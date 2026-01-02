@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reports – ImpromptuIndian Vendor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/reports.css">
+</head>
+
+<body class="text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <div class="reveal mb-8 flex items-start justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold tracking-tight">Reports & Analytics</h1>
+                    <p class="text-gray-400 mt-1">Generate and download detailed performance reports.</p>
+                </div>
+                <button class="btn-export" onclick="exportReport()">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    Export Report
+                </button>
+            </div>
+
+            <div class="reveal filters-bar mb-8" style="transition-delay: 100ms;">
+                <div class="filter-group">
+                    <label class="filter-label">Report Type:</label>
+                    <select id="report-type" class="filter-select" onchange="changeReportType()">
+                        <option value="overview">Overview</option>
+                        <option value="orders">Orders Performance</option>
+                        <option value="earnings">Earnings Analysis</option>
+                        <option value="efficiency">Production Efficiency</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Period:</label>
+                    <select id="period" class="filter-select" onchange="changePeriod()">
+                        <option value="week">Last 7 Days</option>
+                        <option value="month" selected>Last 30 Days</option>
+                        <option value="quarter">Last 3 Months</option>
+                        <option value="year">Last Year</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div class="reveal card" style="transition-delay: 200ms;">
+                    <div class="card-header">
+                        <h3 class="card-title">Orders Breakdown</h3>
+                        <p class="card-description">By status</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container"><canvas id="ordersChart"></canvas></div>
+                    </div>
+                </div>
+
+                <div class="reveal card" style="transition-delay: 300ms;">
+                    <div class="card-header">
+                        <h3 class="card-title">Revenue Trend</h3>
+                        <p class="card-description">Monthly comparison</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container"><canvas id="revenueChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reveal card" style="transition-delay: 400ms;">
+                <div class="card-header">
+                    <h3 class="card-title">Performance Metrics</h3>
+                    <p class="card-description">Key performance indicators</p>
+                </div>
+                <div class="card-body">
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-icon bg-blue-500/10"><i data-lucide="package"
+                                    class="w-6 h-6 text-blue-500"></i></div>
+                            <div class="metric-content">
+                                <p class="metric-label">Total Orders</p>
+                                <p class="metric-value" id="total-orders">0</p>
+                                <p class="metric-change positive">+12% from last period</p>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon bg-green-500/10"><i data-lucide="check-circle"
+                                    class="w-6 h-6 text-green-500"></i></div>
+                            <div class="metric-content">
+                                <p class="metric-label">On-Time Delivery</p>
+                                <p class="metric-value" id="on-time">0%</p>
+                                <p class="metric-change positive">+3% from last period</p>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon bg-purple-500/10"><i data-lucide="star"
+                                    class="w-6 h-6 text-purple-500"></i></div>
+                            <div class="metric-content">
+                                <p class="metric-label">Avg Rating</p>
+                                <p class="metric-value" id="avg-rating">0.0</p>
+                                <p class="metric-change positive">+0.2 from last period</p>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon bg-red-500/10"><i data-lucide="x-circle"
+                                    class="w-6 h-6 text-red-500"></i></div>
+                            <div class="metric-content">
+                                <p class="metric-label">Rejection Rate</p>
+                                <p class="metric-value" id="rejection-rate">0%</p>
+                                <p class="metric-change negative">-1% from last period</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="success-toast" class="toast hidden">
+        <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+        <span id="toast-message">Report exported successfully!</span>
+    </div>
+
+    <script src="js/reports.js"></script>
+</body>
+
+</html>

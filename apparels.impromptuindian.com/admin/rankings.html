@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vendor Rankings – ImpromptuIndian Admin</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/rankings.css">
+    <link rel="shortcut icon" href="images/favicon.ico" type="images/x-icon">
+</head>
+
+<body class="text-white">
+
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- SIDEBAR CONTAINER -->
+        <div id="sidebar-container"></div>
+
+        <!-- Sidebar Script -->
+        <script src="js/sidebar.js"></script>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 overflow-y-auto p-8">
+
+            <!-- Page Header -->
+            <div class="reveal mb-8">
+                <h1 class="text-3xl font-bold tracking-tight">Vendor Rankings</h1>
+                <p class="text-gray-400 mt-1">Analyze vendor performance and manage their status.</p>
+            </div>
+
+            <!-- Top/Lowest Vendors Cards -->
+            <div class="grid gap-6 md:grid-cols-2 mb-8">
+                <!-- Top 3 Performing Vendors -->
+                <div class="reveal card" style="transition-delay: 200ms;">
+                    <div class="card-header">
+                        <h3 class="card-title flex items-center gap-2 text-base">
+                            <i data-lucide="trending-up" class="w-5 h-5 text-green-500"></i>
+                            Top 3 Performing Vendors
+                        </h3>
+                    </div>
+                    <div class="card-body space-y-4" id="top-vendors-list">
+                        <!-- Top vendors will be injected here -->
+                    </div>
+                </div>
+
+                <!-- Lowest 3 Rated Vendors -->
+                <div class="reveal card" style="transition-delay: 300ms;">
+                    <div class="card-header">
+                        <h3 class="card-title flex items-center gap-2 text-base">
+                            <i data-lucide="trending-down" class="w-5 h-5 text-red-500"></i>
+                            Lowest 3 Rated Vendors
+                        </h3>
+                    </div>
+                    <div class="card-body space-y-4" id="lowest-vendors-list">
+                        <!-- Lowest vendors will be injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vendor Performance Table -->
+            <div class="reveal card" style="transition-delay: 400ms;">
+                <div class="card-header">
+                    <h3 class="card-title">Vendor Performance Details</h3>
+                    <p class="text-sm text-gray-400 mt-1">Sort and filter vendors by their performance metrics.</p>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table id="vendor-table">
+                            <thead>
+                                <tr>
+                                    <th>Vendor</th>
+                                    <th class="sortable" data-sort="avgRating">
+                                        <button class="sort-btn">
+                                            Avg. Rating
+                                            <i data-lucide="arrow-up-down" class="w-4 h-4 ml-1"></i>
+                                        </button>
+                                    </th>
+                                    <th class="sortable" data-sort="completedOrders">
+                                        <button class="sort-btn">
+                                            Completed Orders
+                                            <i data-lucide="arrow-up-down" class="w-4 h-4 ml-1"></i>
+                                        </button>
+                                    </th>
+                                    <th class="sortable" data-sort="activeOrders">
+                                        <button class="sort-btn">
+                                            Active Orders
+                                            <i data-lucide="arrow-up-down" class="w-4 h-4 ml-1"></i>
+                                        </button>
+                                    </th>
+                                    <th class="sortable" data-sort="avgDeliveryDays">
+                                        <button class="sort-btn">
+                                            Avg. Delivery
+                                            <i data-lucide="arrow-up-down" class="w-4 h-4 ml-1"></i>
+                                        </button>
+                                    </th>
+                                    <th>Status</th>
+                                    <th class="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vendor-table-body">
+                                <!-- Vendor rows will be injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Vendor Actions Dropdown -->
+    <div id="vendor-dropdown" class="dropdown-menu hidden">
+        <div class="dropdown-label">Actions</div>
+        <button class="dropdown-item" onclick="viewPerformanceReport()">
+            View Performance Report
+        </button>
+        <div class="dropdown-separator"></div>
+        <button class="dropdown-item dropdown-item-danger" id="toggle-status-btn" onclick="toggleVendorStatus()">
+            Block Account
+        </button>
+    </div>
+
+    <!-- Rankings Script -->
+    <script src="js/rankings.js"></script>
+
+</body>
+
+</html>

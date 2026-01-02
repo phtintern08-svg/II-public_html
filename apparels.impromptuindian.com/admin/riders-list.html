@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Riders List – ImpromptuIndian Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/riders-list.css" />
+    <link rel="shortcut icon" href="images/favicon.ico" type="images/x-icon">
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <div class="reveal mb-8 flex items-start justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">Riders List</h1>
+                    <p class="text-gray-400 mt-1">Manage rider profiles and availability</p>
+                </div>
+                <a href="riders.html"
+                    class="flex items-center gap-2 px-4 py-2 bg-[#1273EB] text-white rounded-lg transition-colors border border-gray-700">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Back
+                </a>
+            </div>
+
+            <div class="reveal filters-bar mb-6" style="transition-delay: 100ms;">
+                <input type="text" id="search-rider" class="search-input" placeholder="Search rider..."
+                    oninput="filterRiders()" />
+                <select id="status-filter" class="filter-select" onchange="filterRiders()">
+                    <option value="all">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="offline">Offline</option>
+                    <option value="suspended">Suspended</option>
+                    <option value="verification_submitted">Verification Submitted</option>
+                    <option value="pending_verification">Pending Verification</option>
+                </select>
+            </div>
+
+            <div class="reveal card" style="transition-delay: 200ms;">
+                <div class="card-header">
+                    <h3 class="card-title">Rider Directory <span class="text-gray-400 text-sm ml-2 font-normal"
+                            id="list-total-count">(0)</span></h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Zone</th>
+                                    <th>Status</th>
+                                    <th class="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="riders-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Rider Modal -->
+    <div id="rider-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeRiderModal()"></div>
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modal-title">Add / Edit Rider</h2>
+                <button class="modal-close" onclick="closeRiderModal()"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <label class="block mb-2">Name</label>
+                <input type="text" id="rider-name" class="w-full p-2 bg-gray-800 rounded mb-4" />
+                <label class="block mb-2">Service Zone</label>
+                <input type="text" id="rider-zone" class="w-full p-2 bg-gray-800 rounded mb-4" />
+                <label class="block mb-2">Status</label>
+                <select id="rider-status" class="w-full p-2 bg-gray-800 rounded">
+                    <option value="active">Active</option>
+                    <option value="offline">Offline</option>
+                    <option value="suspended">Suspended</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeRiderModal()">Cancel</button>
+                <button class="btn-primary" onclick="saveRider()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast hidden"><i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i><span
+            id="toast-msg">Action completed!</span></div>
+
+    <script src="js/riders-list.js"></script>
+</body>
+
+</html>

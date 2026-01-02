@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Work Calendar – ImpromptuIndian Vendor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/work-calendar.css">
+</head>
+
+<body class="text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <div class="reveal mb-8 flex items-start justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold tracking-tight">Work Calendar</h1>
+                    <p class="text-gray-400 mt-1">Schedule and track your production timeline.</p>
+                </div>
+                <div class="flex gap-2">
+                    <button class="btn-nav" onclick="previousMonth()"><i data-lucide="chevron-left"
+                            class="w-4 h-4"></i></button>
+                    <button class="btn-today" onclick="goToToday()">Today</button>
+                    <button class="btn-nav" onclick="nextMonth()"><i data-lucide="chevron-right"
+                            class="w-4 h-4"></i></button>
+                </div>
+            </div>
+
+            <div class="reveal card mb-6" style="transition-delay: 100ms;">
+                <div class="card-header">
+                    <h3 class="card-title" id="calendar-month">November 2024</h3>
+                    <div class="legend">
+                        <span class="legend-item"><span class="legend-dot new"></span>New Orders</span>
+                        <span class="legend-item"><span class="legend-dot production"></span>In Production</span>
+                        <span class="legend-item"><span class="legend-dot deadline"></span>Deadlines</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="calendar-grid" id="calendar-grid"></div>
+                </div>
+            </div>
+
+            <div class="reveal card" style="transition-delay: 200ms;">
+                <div class="card-header">
+                    <h3 class="card-title">Upcoming Tasks</h3>
+                    <p class="card-description">Next 7 days</p>
+                </div>
+                <div class="card-body">
+                    <div class="tasks-list" id="tasks-list"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="success-toast" class="toast hidden">
+        <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+        <span id="toast-message">Action completed!</span>
+    </div>
+
+    <script src="js/work-calendar.js"></script>
+</body>
+
+</html>

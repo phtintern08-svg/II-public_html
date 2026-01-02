@@ -1,0 +1,12 @@
+/* Feedback Page Styles */
+body {
+    background-color: #0a0f1c;
+}
+
+.star {
+    transition: transform 0.15s ease;
+}
+
+.star:hover {
+    transform: scale(1.18);
+}

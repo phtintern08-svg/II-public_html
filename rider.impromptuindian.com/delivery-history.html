@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Delivery History – ImpromptuIndian Rider</title>
+    <meta name="description" content="View your complete delivery history" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/rider-global.css" />
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <!-- Header -->
+            <div class="dashboard-header mb-8">
+                <div>
+                    <h1 class="dashboard-title">Delivery History</h1>
+                    <p class="dashboard-subtitle">Complete record of all your deliveries</p>
+                </div>
+                <button class="btn-refresh-modern" onclick="loadHistory()">
+                    <i data-lucide="refresh-ccw" class="w-5 h-5"></i>
+                    Refresh
+                </button>
+            </div>
+
+            <!-- Filters Section -->
+            <div class="info-card mb-6">
+                <h3 class="font-semibold text-lg mb-4">Filters</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="form-group mb-0">
+                        <label class="form-label">From Date</label>
+                        <input type="date" id="fromDate" class="form-input">
+                    </div>
+                    <div class="form-group mb-0">
+                        <label class="form-label">To Date</label>
+                        <input type="date" id="toDate" class="form-input">
+                    </div>
+                    <div class="form-group mb-0">
+                        <label class="form-label">Status</label>
+                        <select id="statusFilter" class="form-input">
+                            <option value="all">All Status</option>
+                            <option value="completed">Completed</option>
+                            <option value="failed">Failed</option>
+                            <option value="returned">Returned</option>
+                        </select>
+                    </div>
+                    <div class="form-group mb-0">
+                        <label class="form-label">Min Rating</label>
+                        <select id="ratingFilter" class="form-input">
+                            <option value="0">All Ratings</option>
+                            <option value="5">⭐⭐⭐⭐⭐ (5 stars)</option>
+                            <option value="4">⭐⭐⭐⭐ (4+ stars)</option>
+                            <option value="3">⭐⭐⭐ (3+ stars)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-4">
+                    <button onclick="applyFilters()" class="btn-primary">
+                        <i data-lucide="filter" class="w-4 h-4"></i>
+                        Apply Filters
+                    </button>
+                    <button onclick="resetFilters()" class="btn-secondary">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                        Reset
+                    </button>
+                    <button onclick="exportHistory()" class="btn-secondary ml-auto">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        Export Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="stats-grid mb-6">
+                <div class="stat-card stat-card-blue">
+                    <div class="stat-icon">
+                        <i data-lucide="package" class="w-6 h-6"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Total Deliveries</p>
+                        <p class="stat-value" id="total-deliveries">0</p>
+                    </div>
+                </div>
+                <div class="stat-card stat-card-green">
+                    <div class="stat-icon">
+                        <i data-lucide="check-circle" class="w-6 h-6"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Successful</p>
+                        <p class="stat-value" id="successful-deliveries">0</p>
+                    </div>
+                </div>
+                <div class="stat-card stat-card-yellow">
+                    <div class="stat-icon">
+                        <i data-lucide="star" class="w-6 h-6"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Average Rating</p>
+                        <p class="stat-value" id="average-rating">0.0</p>
+                    </div>
+                </div>
+                <div class="stat-card stat-card-red">
+                    <div class="stat-icon">
+                        <i data-lucide="x-circle" class="w-6 h-6"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Failed/Returned</p>
+                        <p class="stat-value" id="failed-deliveries">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delivery History Table -->
+            <div class="info-card">
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Delivery ID</th>
+                                <th>Order ID</th>
+                                <th>Pickup Date</th>
+                                <th>Delivery Date</th>
+                                <th>Duration</th>
+                                <th>Rating</th>
+                                <th>Earnings</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            <!-- Rows will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="pagination" class="flex justify-center gap-2 mt-6">
+                    <!-- Pagination will be loaded here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Delivery Details Modal -->
+    <div id="detailsModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h2 class="modal-title">Delivery Details</h2>
+                <button class="modal-close" onclick="closeDetailsModal()">×</button>
+            </div>
+            <div id="detailsContent">
+                <!-- Details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Proof Image Modal -->
+    <div id="proofModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="proofTitle">Proof Image</h2>
+                <button class="modal-close" onclick="closeProofModal()">×</button>
+            </div>
+            <div class="text-center">
+                <img id="proofImage" src="" alt="Proof" class="max-w-full rounded-lg">
+            </div>
+        </div>
+    </div>
+
+    <script src="js/delivery-history.js"></script>
+</body>
+
+</html>

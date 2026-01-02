@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New Orders – ImpromptuIndian Admin</title>
+    <meta name="description" content="Manage new orders in escrow awaiting vendor assignment" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/admin-global.css" />
+    <link rel="stylesheet" href="css/new-order.css" />
+    <link rel="shortcut icon" href="images/favicon.ico" type="images/x-icon">
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <div class="reveal mb-8 flex items-start justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">New Orders (Escrow)</h1>
+                    <p class="text-gray-400 mt-1">Orders paid by customers, awaiting vendor assignment</p>
+                </div>
+                <div class="flex gap-4">
+                    <a href="orders.html"
+                        class="flex items-center gap-2 px-5 py-2.5 bg-gray-800/50 text-gray-300 rounded-xl transition-all border border-white/10 hover:border-blue-500/50 hover:bg-gray-800 hover:text-white">
+                        <i data-lucide="arrow-left" class="w-4 h-4 text-blue-400"></i> <span
+                            class="text-sm font-semibold tracking-wide uppercase">Back to Orders</span>
+                    </a>
+                    <button class="btn-refresh group" onclick="refreshOrders()">
+                        <i data-lucide="refresh-ccw"
+                            class="w-4 h-4 group-hover:rotate-180 transition-transform duration-500"></i>
+                        <span>Sync Data</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 reveal" style="transition-delay: 100ms;">
+                <div class="summary-card">
+                    <div class="summary-icon"><i data-lucide="shopping-cart" class="w-6 h-6"></i></div>
+                    <div>
+                        <p class="summary-label">Total New Orders</p>
+                        <p class="summary-value" id="total-orders">0</p>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-icon"><i data-lucide="clock" class="w-6 h-6"></i></div>
+                    <div>
+                        <p class="summary-label">Unassigned</p>
+                        <p class="value summary-value" id="unassigned-orders">0</p>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-icon"><i data-lucide="dollar-sign" class="w-6 h-6"></i></div>
+                    <div>
+                        <p class="summary-label">Total Sample Payments</p>
+                        <p class="summary-value" id="escrow-amount">₹0</p>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-icon"><i data-lucide="alert-triangle" class="w-6 h-6 text-red-500"></i></div>
+                    <div>
+                        <p class="summary-label">Urgent Orders</p>
+                        <p class="summary-value" id="urgent-orders">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reveal filters-bar mb-6" style="transition-delay: 200ms;">
+                <div class="search-input-wrapper flex-1">
+                    <i data-lucide="search" class="w-4 h-4"></i>
+                    <input type="text" id="search-order" class="search-input"
+                        placeholder="Quick search by Order ID or Customer name..." oninput="filterOrders()" />
+                </div>
+
+                <div class="flex gap-3">
+                    <select id="status-filter" class="filter-select" onchange="filterOrders()">
+                        <option value="all">All Status</option>
+                        <option value="unassigned" selected>Awaiting Assignment</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="reveal card" style="transition-delay: 300ms;">
+                <div class="card-header">
+                    <h3 class="card-title">Escrow Orders</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="flex items-center gap-2 rounded-tl-xl"><i data-lucide="hash"
+                                            class="w-3.5 h-3.5"></i> Order ID</th>
+                                    <th><i data-lucide="user" class="w-3.5 h-3.5 inline mr-1"></i> Customer</th>
+                                    <th><i data-lucide="shirt" class="w-3.5 h-3.5 inline mr-1"></i> Apparel Type</th>
+                                    <th><i data-lucide="bar-chart" class="w-3.5 h-3.5 inline mr-1"></i> Qty</th>
+                                    <th><i data-lucide="dollar-sign" class="w-3.5 h-3.5 inline mr-1"></i> Amount</th>
+                                    <th><i data-lucide="calendar" class="w-3.5 h-3.5 inline mr-1"></i> Deadline</th>
+                                    <th><i data-lucide="shield-check" class="w-3.5 h-3.5 inline mr-1"></i> Status</th>
+                                    <th class="text-right rounded-tr-xl">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Order Detail Modal -->
+    <div id="order-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeOrderModal()"></div>
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modal-title">Order Details</h2>
+                <button class="modal-close" onclick="closeOrderModal()"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="modal-body" id="modal-body"></div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeOrderModal()">Close</button>
+                <button class="btn-danger" onclick="rejectOrder()"><i data-lucide="x" class="w-4 h-4"></i>Reject
+                    Order</button>
+                <button class="btn-primary" onclick="assignVendor()"><i data-lucide="user-check"
+                        class="w-4 h-4"></i>Assign Vendor</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast hidden"><i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i><span
+            id="toast-msg">Action completed!</span></div>
+
+    <script src="js/new-orders.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Customer Dashboard – ImpromptuIndian</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="shortcut icon" href="images/favicon.ico" type="images/x-icon">
+</head>
+
+<body class="text-white">
+
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- SIDEBAR CONTAINER -->
+        <div id="sidebar-container"></div>
+
+        <!-- Sidebar Script -->
+        <script src="js/sidebar.js"></script>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 overflow-y-auto p-8">
+
+            <!-- Optional Alert -->
+            <div id="alertBox"
+                class="hidden reveal bg-red-900/30 border border-red-600 text-red-300 p-4 rounded-lg flex items-start gap-3 mb-6">
+                <i data-lucide="alert-triangle" class="w-6 h-6 text-red-400"></i>
+                <div>
+                    <h3 class="font-semibold text-lg">Action Required</h3>
+                    <p class="text-sm mt-1">
+                        You have <span id="pendingCount" class="font-bold"></span> delivered order(s) awaiting feedback.
+                        Please <a class="underline font-semibold">leave a review</a> to place new orders.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Welcome Banner -->
+            <div
+                class="reveal bg-gradient-to-r from-blue-600/20 to-yellow-700/10 border border-blue-700/20 p-6 rounded-xl mb-10">
+                <h1 class="text-2xl font-bold mb-2">Welcome back, <span id="welcomeUsername">Guest</span>!</h1>
+                <p class="opacity-70 mb-4">Ready to start your next custom apparel project?</p>
+
+                <a href="new-order.html">
+                    <button
+                        class="px-5 py-2 bg-[#FFCC00] hover:bg-yellow-400 rounded-lg flex items-center gap-2 text-black font-semibold transition-colors">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        Create New Order
+                    </button>
+                </a>
+            </div>
+
+            <!-- Category Header -->
+            <div class="reveal mb-6">
+                <h2 class="text-2xl font-bold">Explore by Category</h2>
+                <p class="opacity-60">Find the perfect apparel for any occasion.</p>
+            </div>
+
+            <!-- Category Grid -->
+            <div id="categoryGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-6"></div>
+
+        </main>
+
+    </div>
+
+    <!-- Home Script -->
+    <script src="js/home.js"></script>
+
+</body>
+
+</html>

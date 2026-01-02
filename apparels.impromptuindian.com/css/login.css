@@ -1,0 +1,13 @@
+body {
+    background-color: #0b111f;
+    font-family: 'Inter', sans-serif;
+}
+
+.font-headline {
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Custom Alert Modal Styles */
+#customAlert {
+    backdrop-filter: blur(4px);
+}

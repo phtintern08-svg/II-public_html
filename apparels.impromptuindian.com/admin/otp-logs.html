@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OTP Logs – ImpromptuIndian Admin</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/otp-logs.css">
+    <link rel="shortcut icon" href="images/favicon.ico" type="images/x-icon">
+</head>
+
+<body class="text-white">
+
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- SIDEBAR CONTAINER -->
+        <div id="sidebar-container"></div>
+
+        <!-- Sidebar Script -->
+        <script src="js/sidebar.js"></script>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 overflow-y-auto p-8">
+
+            <!-- Page Header -->
+            <div class="reveal mb-8 flex items-start justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold tracking-tight">OTP Logs</h1>
+                    <p class="text-gray-400 mt-1">View history of OTPs sent to users.</p>
+                </div>
+                <button class="btn-primary flex items-center gap-2" onclick="fetchOTPLogs()">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    Refresh
+                </button>
+            </div>
+
+            <!-- Logs Table -->
+            <div class="reveal card" style="transition-delay: 200ms;">
+                <div class="card-header">
+                    <h3 class="card-title">Recent OTPs</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Recipient</th>
+                                    <th>OTP Code</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Generated At</th>
+                                    <th>Expires At</th>
+                                </tr>
+                            </thead>
+                            <tbody id="otp-logs-table-body">
+                                <!-- Rows will be injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Script -->
+    <script src="js/otp-logs.js"></script>
+
+</body>
+
+</html>

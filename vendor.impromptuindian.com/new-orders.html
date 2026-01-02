@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New Orders – ImpromptuIndian Vendor</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/new-orders.css">
+</head>
+
+<body class="text-white">
+
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- SIDEBAR CONTAINER -->
+        <div id="sidebar-container"></div>
+
+        <!-- Sidebar Script -->
+        <script src="js/sidebar.js"></script>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 overflow-y-auto p-8">
+
+            <!-- Page Header -->
+            <header class="reveal page-header flex items-center justify-between mb-8">
+                <div class="flex items-center gap-4">
+                    <a href="orders.html"
+                        class="p-2 -ml-2 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors group"
+                        title="Back to Dashboard">
+                        <i data-lucide="arrow-left" class="w-6 h-6 group-hover:-translate-x-1 transition-transform"></i>
+                    </a>
+                    <div class="header-title-group">
+                        <h1 class="text-3xl font-bold">New Orders</h1>
+                        <p class="text-gray-400 mt-1">Review and authorize technical manufacturing requisitions.</p>
+                    </div>
+                </div>
+                <div class="header-controls">
+                    <div class="search-bar">
+                        <i data-lucide="search" class="w-4 h-4 text-gray-500"></i>
+                        <input type="text" id="order-search" placeholder="Search by Requisition ID...">
+                    </div>
+                </div>
+            </header>
+
+            <!-- Orders Grid -->
+            <div class="orders-grid" id="orders-grid">
+                <!-- Order cards will be injected here -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="empty-state hidden">
+                <div class="empty-state-icon">
+                    <i data-lucide="layout-grid" class="w-8 h-8"></i>
+                </div>
+                <h3 class="text-xl font-bold">No Active Requisitions</h3>
+                <p>Management has not assigned any new technical orders to your production line at this time.</p>
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Order Detail Modal -->
+    <div id="order-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeOrderModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modal-order-id">Order Details</h2>
+                <button class="modal-close" onclick="closeOrderModal()">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Order details will be injected here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary w-full justify-center" onclick="moveToProduction()">
+                    <i data-lucide="conveyor" class="w-4 h-4"></i>
+                    Move to Production
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reject Reason Modal -->
+    <div id="reject-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeRejectModal()"></div>
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2 class="modal-title">Reject Order</h2>
+                <button class="modal-close" onclick="closeRejectModal()">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="text-sm text-gray-400 mb-4">Please select a reason for rejecting this order:</p>
+                <div class="reject-reasons">
+                    <label class="reject-reason-item">
+                        <input type="radio" name="reject-reason" value="overload" checked>
+                        <span>Production Overload</span>
+                    </label>
+                    <label class="reject-reason-item">
+                        <input type="radio" name="reject-reason" value="unavailable">
+                        <span>Product Unavailable</span>
+                    </label>
+                    <label class="reject-reason-item">
+                        <input type="radio" name="reject-reason" value="timeline">
+                        <span>Cannot Meet Timeline</span>
+                    </label>
+                    <label class="reject-reason-item">
+                        <input type="radio" name="reject-reason" value="other">
+                        <span>Other Reason</span>
+                    </label>
+                </div>
+                <textarea id="reject-notes" class="reject-notes"
+                    placeholder="Additional notes (optional)..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeRejectModal()">Cancel</button>
+                <button class="btn-danger" onclick="confirmReject()">Confirm Rejection</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Orders Script -->
+    <script src="js/new-orders.js"></script>
+
+</body>
+
+</html>

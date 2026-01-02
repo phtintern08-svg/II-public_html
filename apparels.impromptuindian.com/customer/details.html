@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Details – ImpromptuIndian</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/details.css">
+  <link rel="shortcut icon" href="images/favicon.ico" type="images/x-icon">
+</head>
+
+<body class="text-white">
+
+  <div class="flex h-screen overflow-hidden">
+
+    <!-- SIDEBAR CONTAINER -->
+    <div id="sidebar-container"></div>
+
+    <!-- Sidebar Script -->
+    <script src="js/sidebar.js"></script>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 p-10 overflow-y-auto">
+
+      <h1 id="order-title" class="text-3xl font-bold mb-2"></h1>
+      <p id="order-description" class="text-gray-400 mb-8"></p>
+
+      <!-- CONTENT GRID -->
+      <div class="grid lg:grid-cols-3 gap-8">
+
+        <!-- LEFT: Order Details -->
+        <div class="lg:col-span-2 space-y-6">
+
+          <!-- PRODUCT DETAILS CARD (First) -->
+          <div class="bg-[#0b1220] border border-gray-700 rounded-xl p-6">
+            <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+              <i data-lucide="shirt" class="w-5 h-5 text-[#FFCC00]"></i>
+              Product Configuration
+            </h2>
+
+            <div id="product-details" class="grid grid-cols-2 md:grid-cols-3 gap-4"></div>
+          </div>
+
+          <!-- SIZE BREAKDOWN CARD -->
+          <div class="bg-[#0b1220] border border-gray-700 rounded-xl p-6" id="size-breakdown-card">
+            <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+              <i data-lucide="ruler" class="w-5 h-5 text-green-400"></i>
+              Size Breakdown
+            </h2>
+
+            <div id="size-breakdown" class="grid grid-cols-2 md:grid-cols-5 gap-3"></div>
+          </div>
+
+          <!-- DELIVERY ADDRESS CARD (Second) -->
+          <div class="bg-[#0b1220] border border-gray-700 rounded-xl p-6">
+            <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+              <i data-lucide="map-pin" class="w-5 h-5 text-red-400"></i>
+              Delivery Address
+            </h2>
+
+            <div id="address-box" class="text-gray-300 text-sm space-y-1"></div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT: Order Summary (Third) -->
+        <div class="lg:col-span-1">
+          <div class="bg-[#0b1220] border border-gray-700 rounded-xl p-6 sticky top-6">
+            <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+              <i data-lucide="file-text" class="w-5 h-5 text-[#FFCC00]"></i>
+              Order Summary
+            </h2>
+
+            <div class="space-y-4">
+              <!-- Order ID -->
+              <div class="flex justify-between items-center pb-3 border-b border-gray-700">
+                <span class="text-sm text-gray-400">Order ID</span>
+                <span id="sum-order-id" class="text-base font-semibold text-white"></span>
+              </div>
+
+              <!-- Order Date -->
+              <div class="flex justify-between items-center pb-3 border-b border-gray-700">
+                <span class="text-sm text-gray-400">Order Date</span>
+                <span id="sum-date" class="text-base font-semibold text-white"></span>
+              </div>
+
+              <!-- Quantity -->
+              <div class="flex justify-between items-center pb-3 border-b border-gray-700">
+                <span class="text-sm text-gray-400">Quantity</span>
+                <span id="sum-qty" class="text-base font-semibold text-white"></span>
+              </div>
+
+              <!-- Delivery Deadline -->
+              <div class="flex justify-between items-center pb-3 border-b border-gray-700">
+                <span class="text-sm text-gray-400">Delivery By</span>
+                <span id="sum-deadline" class="text-base font-semibold text-white"></span>
+              </div>
+
+              <!-- Sample Cost - PRIMARY DISPLAY -->
+              <div class="flex justify-between items-center pt-2">
+                <span class="text-lg font-bold text-white">Sample Cost</span>
+                <span id="sum-sample-cost" class="text-2xl font-bold text-[#FFCC00]"></span>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-6 space-y-3">
+              <button id="track-order-btn"
+                class="w-full bg-[#1273EB] hover:bg-[#0e5ac0] text-white py-2.5 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2">
+                <i data-lucide="truck" class="w-4 h-4"></i>
+                Track Order
+              </button>
+
+              <button id="contact-support-btn"
+                class="w-full bg-gray-700 hover:bg-gray-600 text-white py-2.5 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2">
+                <i data-lucide="message-circle" class="w-4 h-4"></i>
+                Contact Support
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- TRACKING MODAL - Horizontal Layout -->
+  <div id="tracking-modal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeTrackingModal()"></div>
+    <div
+      class="absolute left-4 right-4 top-1/2 -translate-y-1/2 md:left-10 md:right-10 lg:left-16 lg:right-16 bg-[#0b1220] border border-gray-700 rounded-2xl overflow-hidden max-h-[80vh] flex flex-col">
+
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between p-5 border-b border-gray-700">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center">
+            <i data-lucide="route" class="w-5 h-5 text-blue-400"></i>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-white">Order Tracking</h3>
+            <p id="tracking-order-id" class="text-sm text-gray-400"></p>
+          </div>
+        </div>
+        <button onclick="closeTrackingModal()" class="text-gray-400 hover:text-white transition-colors">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body - Horizontal Timeline -->
+      <div class="flex-1 overflow-x-auto overflow-y-hidden p-6 flex items-center h-full no-scrollbar">
+        <div id="tracking-timeline" class="flex items-start min-w-max mx-auto px-10 pt-4 pb-8">
+          <!-- Horizontal timeline will be injected here -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Details Script -->
+  <script src="js/details.js"></script>
+
+</body>
+
+</html>

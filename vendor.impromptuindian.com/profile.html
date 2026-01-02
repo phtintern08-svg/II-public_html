@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile & Settings | ImpromptuIndian Vendor</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/profile.css">
+    <link rel="shortcut icon" href="/images/favicon.ico" type="images/x-icon">
+</head>
+
+<body class="no-scrollbar">
+
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- SIDEBAR CONTAINER -->
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 overflow-y-auto p-10 no-scrollbar">
+
+            <div class="max-w-8xl mx-auto">
+
+                <!-- Page Header -->
+                <header class="dashboard-header reveal">
+                    <h1 class="dashboard-title">Profile & Settings</h1>
+                    <p class="dashboard-subtitle">Manage your account information and preferences</p>
+                </header>
+
+                <!-- Profile Information Card -->
+                <section class="info-card reveal">
+                    <h2 class="info-card-title">Profile Information</h2>
+
+                    <!-- Avatar Section -->
+                    <div class="profile-avatar-section">
+                        <div class="avatar-container">
+                            <div id="avatarInitial" class="avatar-circle">V</div>
+                            <button class="avatar-btn" onclick="document.getElementById('profilePictureInput').click()">
+                                <i data-lucide="camera" class="w-5 h-5"></i>
+                            </button>
+                            <input type="file" id="profilePictureInput" class="hidden" accept="image/*">
+                        </div>
+                        <p class="avatar-hint">Click camera icon to change picture</p>
+                    </div>
+
+                    <!-- Business Identity Form -->
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Business Name</label>
+                            <input id="profileBusinessName" type="text" placeholder="Creative Prints Ltd."
+                                class="form-input" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Official Phone</label>
+                            <input id="profilePhone" type="tel" placeholder="+91 00000 00000" class="form-input" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Email Address (Read-only)</label>
+                            <input id="profileEmail" type="email" placeholder="contact@business.com" class="form-input"
+                                readonly />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Industry segment</label>
+                            <input id="profileBusinessType" type="text" placeholder="Apparel Manufacturing"
+                                class="form-input" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Service Zone</label>
+                            <input id="profileServiceZone" type="text" value="Bangalore Central" class="form-input"
+                                readonly />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Member Since</label>
+                            <input id="profileMemberSince" type="text" value="15 Nov 2024" class="form-input"
+                                readonly />
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label class="form-label">Business Narrative / Bio</label>
+                            <textarea id="profileBio"
+                                placeholder="Provide a brief history and specialization of your shop..."
+                                class="form-textarea h-32"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Account Status</label>
+                            <div class="status-badge active">
+                                <span class="status-dot"></span>
+                                Active
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8">
+                        <button onclick="saveProfileChanges()" class="btn-primary">
+                            <i data-lucide="save" class="w-5 h-5"></i>
+                            Update Profile
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Logistics & Location Card -->
+                <section class="info-card reveal">
+                    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+                        <div>
+                            <h2 class="info-card-title mb-0">Warehouse & Pickup Settings</h2>
+                            <p class="text-sm text-gray-500 mt-1">Precise location used for order collections.</p>
+                        </div>
+                        <button id="useCurrentLocationBtn" class="btn-primary">
+                            <i data-lucide="navigation" class="w-5 h-5"></i>
+                            Pin via Live GPS
+                        </button>
+                    </header>
+
+                    <div class="form-grid">
+                        <div class="full-width form-group">
+                            <label class="form-label">Detailed Physical Address</label>
+                            <textarea id="fldFullAddress" class="form-textarea h-24"
+                                placeholder="Shop/Unit No., Industrial Area, Landmark details..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">City / District</label>
+                            <input id="fldCity" type="text" class="form-input" placeholder="e.g. Mumbai">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">State / Province</label>
+                            <input id="fldState" type="text" class="form-input" placeholder="Maharashtra">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Pincode / Postal Code</label>
+                            <input id="fldPincode" type="text" class="form-input" placeholder="000 000" maxlength="6">
+                        </div>
+
+                        <div class="form-group flex justify-end items-end">
+                            <div
+                                class="px-4 py-2 bg-black/30 border border-blue-500/20 rounded-xl text-xs text-blue-400 font-mono flex items-center gap-2">
+                                <i data-lucide="crosshair" class="w-4 h-4"></i>
+                                GPS: <span id="coordDisplay">Standby...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex justify-end">
+                        <button id="saveLocationBtn" class="btn-accent">
+                            Establish Coordinates
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Financial Settlement Card -->
+                <section class="info-card reveal">
+                    <h2 class="info-card-title">Financial Settlement</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Account Holder Legal Name</label>
+                            <input id="fldAccountName" type="text" placeholder="Creative Printz Pvt Ltd"
+                                class="form-input" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Bank Account Number</label>
+                            <input id="fldAccountNumber" type="text" placeholder="0000 0000 0000 0000"
+                                class="form-input" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">IFSC / BIC Code</label>
+                            <input id="fldIfsc" type="text" placeholder="IFSC0001234" class="form-input" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Settlement Interval</label>
+                            <select id="fldPaymentCycle" class="form-select w-full">
+                                <option value="weekly">Weekly Settlement</option>
+                                <option value="biweekly">Bi-Weekly Settlement</option>
+                                <option value="monthly" selected>Monthly Settlement</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex justify-end">
+                        <button onclick="saveBankDetails()" class="btn-accent">
+                            Authorize Bank Updates
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Preferences Card -->
+                <section class="info-card reveal">
+                    <h2 class="info-card-title">System Preferences</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="toggle-wrapper">
+                            <div class="toggle-info">
+                                <h4>Email Dispatch</h4>
+                                <p>Official order confirmations</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="checkEmailNotif" class="sr-only peer" checked>
+                                <div
+                                    class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                                </div>
+                            </label>
+                        </div>
+
+                        <div class="toggle-wrapper">
+                            <div class="toggle-info">
+                                <h4>SMS Gateway</h4>
+                                <p>Critical delivery and OTP alerts</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="checkSmsNotif" class="sr-only peer" checked>
+                                <div
+                                    class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex justify-end">
+                        <button onclick="saveNotificationSettings()" class="btn-accent">
+                            Persist Preferences
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Security Management Card -->
+                <section class="info-card reveal">
+                    <h2 class="info-card-title">Security & Authorization</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Current Password</label>
+                            <input id="currentPassword" type="password" placeholder="••••••••" class="form-input" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">New Credentials</label>
+                            <input id="newPassword" type="password" placeholder="Min 8 characters" class="form-input" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Verify New Credentials</label>
+                            <input id="confirmPassword" type="password" placeholder="••••••••" class="form-input" />
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex justify-end">
+                        <button onclick="changePassword()" class="btn-accent">
+                            Update Security Vault
+                        </button>
+                    </div>
+                </section>
+
+                <footer class="py-12 text-center text-gray-500 text-sm">
+                    <p>&copy; 2025 ImpromptuIndian Professional Ecosystem. All Rights Reserved.</p>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <!-- MapmyIndia SDK - API key will be loaded dynamically from backend -->
+    <link rel="stylesheet" id="mappls-css" href="">
+    <script id="mappls-script" src=""></script>
+    <script>
+      // Load Mappls API key from backend and inject into SDK URLs
+      (async function() {
+        try {
+          const token = localStorage.getItem('token');
+          if (!token) {
+            console.warn('No authentication token found. Map features may not work.');
+            return;
+          }
+          
+          const response = await fetch('/api/config', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (response.ok) {
+            const config = await response.json();
+            const apiKey = config.mapplsApiKey || '';
+            
+            if (apiKey) {
+              // Update CSS link
+              const cssLink = document.getElementById('mappls-css');
+              cssLink.href = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk_plugins/v3.0/styles/mappls.css`;
+              
+              // Load script
+              const script = document.getElementById('mappls-script');
+              script.src = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk?v=3.0&layer=vector&libraries=services`;
+              script.onload = () => console.log('Mappls SDK loaded');
+              script.onerror = () => console.error('Mappls SDK failed to load');
+            } else {
+              console.warn('Mappls API key not configured');
+            }
+          }
+        } catch (error) {
+          console.error('Failed to load map configuration:', error);
+        }
+      })();
+    </script>
+
+    <!-- MAP MODAL -->
+    <div id="mapModal"
+        class="fixed inset-0 flex items-center justify-center bg-black/90 hidden z-[100] px-4 backdrop-blur-sm">
+        <div
+            class="bg-[#0f131a] border border-white/10 rounded-2xl overflow-hidden shadow-2xl w-full max-w-2xl h-[650px] flex flex-col transform transition-all scale-95 opacity-0 duration-300 active-modal">
+
+            <!-- Modal Header -->
+            <div class="p-6 border-b border-white/5 bg-[#161b22]">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-white">Refine Pickup Location</h3>
+                        <p class="text-xs text-amber-400 mt-1 flex items-center gap-1">
+                            <i data-lucide="info" class="w-3 h-3"></i>
+                            Precise placement ensures faster pilot dispatch.
+                        </p>
+                    </div>
+                    <button onclick="closeMapModal()" role="button"
+                        class="p-2 hover:bg-white/5 rounded-full transition-colors">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <!-- SEARCH BAR -->
+                <div class="flex gap-2">
+                    <input id="mapSearchInput" type="text" placeholder="Search for nearby landmarks..."
+                        class="flex-1 bg-black/40 border border-white/10 text-white text-sm rounded-xl px-4 py-3 focus:border-blue-500 focus:outline-none transition-all" />
+                    <button id="mapSearchBtn"
+                        class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all">
+                        Search Area
+                    </button>
+                </div>
+            </div>
+
+            <div id="mapContainer" class="flex-1 w-full bg-gray-900 relative"></div>
+
+            <div class="p-6 border-t border-white/5 bg-[#161b22] flex justify-end gap-4">
+                <button onclick="closeMapModal()" role="button"
+                    class="px-6 py-2 text-gray-400 hover:text-white font-medium transition-colors">Abort</button>
+                <button id="confirmLocationBtn"
+                    class="px-8 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold shadow-lg shadow-blue-600/20 transition-all">
+                    Establish Coordinates
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div id="success-toast"
+        class="fixed top-6 right-6 bg-emerald-600/90 text-white px-6 py-4 rounded-2xl shadow-2xl z-[200] transform transition-all translate-x-12 opacity-0 flex items-center gap-4 border border-emerald-400/20 backdrop-blur-md">
+        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+            <i data-lucide="check-circle-2" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+            <p class="font-bold">Transformation Successful</p>
+            <p id="toast-message" class="text-sm opacity-90">Your profile has been synchronized.</p>
+        </div>
+    </div>
+
+    <style>
+        .active-modal.show {
+            transform: scale(1);
+            opacity: 1;
+        }
+    </style>
+
+    <script src="js/custom-alert.js"></script>
+    <script src="/shared-js/location-service.js"></script>
+    <script src="js/profile.js"></script>
+
+    <script>
+        function closeMapModal() {
+            const modal = document.getElementById('mapModal');
+            const inner = modal.querySelector('.active-modal');
+            inner.classList.remove('show');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        // Modal animation helper
+        document.getElementById('useCurrentLocationBtn').addEventListener('click', () => {
+            const modal = document.getElementById('mapModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.querySelector('.active-modal').classList.add('show');
+            }, 10);
+        });
+    </script>
+
+</body>
+
+</html>

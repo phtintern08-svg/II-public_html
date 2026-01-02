@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ready for Dispatch – ImpromptuIndian Admin</title>
+    <meta name="description" content="QC approval and rider assignment for completed orders" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/ready-dispatch.css" />
+    <link rel="shortcut icon" href="images/favicon.ico" type="images/x-icon">
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <div class="reveal mb-8 flex items-start justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">Ready for Dispatch</h1>
+                    <p class="text-gray-400 mt-1">Orders cleared by vendors, awaiting rider assignment</p>
+                </div>
+                <div class="flex gap-3">
+                    <a href="orders.html"
+                        class="flex items-center gap-2 px-4 py-2 bg-[#1273EB] text-white rounded-lg transition-colors border border-gray-700">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i> Back
+                    </a>
+                    <button class="btn-refresh" onclick="refreshDispatch()"><i data-lucide="refresh-ccw"
+                            class="w-4 h-4"></i> Refresh</button>
+                </div>
+            </div>
+
+            <div class="reveal filters-bar mb-6" style="transition-delay: 100ms;">
+                <select id="qc-filter" class="filter-select" onchange="filterDispatch()">
+                    <option value="all">All QC Status</option>
+                    <option value="pending">QC Pending</option>
+                    <option value="approved">QC Approved</option>
+                    <option value="failed">QC Failed</option>
+                </select>
+                <input type="text" id="search-dispatch" class="search-input" placeholder="Search order ID..."
+                    oninput="filterDispatch()" />
+            </div>
+
+            <div class="reveal card" style="transition-delay: 200ms;">
+                <div class="card-header">
+                    <h3 class="card-title">Dispatch Queue</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Vendor</th>
+                                    <th>QC Status</th>
+                                    <th>Ready Since</th>
+                                    <th class="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dispatch-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Dispatch Detail Modal -->
+    <div id="dispatch-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeDispatchModal()"></div>
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modal-title">Dispatch Details</h2>
+                <button class="modal-close" onclick="closeDispatchModal()"><i data-lucide="x"
+                        class="w-5 h-5"></i></button>
+            </div>
+            <div class="modal-body" id="modal-body"></div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeDispatchModal()">Close</button>
+                <button class="btn-danger" onclick="failQC()"><i data-lucide="x" class="w-4 h-4"></i>Fail QC</button>
+                <button class="btn-primary" onclick="assignRider()"><i data-lucide="truck" class="w-4 h-4"></i>Assign
+                    Rider</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast hidden"><i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i><span
+            id="toast-msg">Action completed!</span></div>
+
+    <script src="js/ready-dispatch.js"></script>
+</body>
+
+</html>

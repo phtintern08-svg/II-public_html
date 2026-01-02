@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Support – ImpromptuIndian</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/support.css">
+   <link rel="shortcut icon" href="images/favicon.ico" type="images/x-icon">
+</head>
+
+<body class="text-white">
+
+  <div class="flex h-screen overflow-hidden">
+
+    <!-- SIDEBAR CONTAINER -->
+    <div id="sidebar-container"></div>
+
+    <!-- Sidebar Script -->
+    <script src="js/sidebar.js"></script>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 overflow-y-auto p-10">
+
+      <!-- Header -->
+      <h1 class="text-4xl font-bold">Help & Support</h1>
+      <p class="opacity-70 mt-1 mb-10">Find answers or reach our support team.</p>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- LEFT SIDE -->
+        <div class="lg:col-span-1 space-y-8">
+
+          <!-- Get Help -->
+          <div class="bg-[#111827] border border-gray-700 rounded-xl p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <i data-lucide="life-buoy" class="w-6 h-6 text-blue-400"></i>
+              <h2 class="text-xl font-bold">Get Help</h2>
+            </div>
+            <p class="opacity-60 mb-4">For urgent issues or questions.</p>
+
+            <button
+              class="w-full mb-3 bg-[#FFCC00] hover:bg-yellow-400 text-black font-semibold py-2 rounded-lg flex items-center justify-start gap-2 px-3 transition-colors">
+              <i data-lucide="mail" class="w-4 h-4"></i>
+              Email Us
+            </button>
+
+            <button
+              class="w-full bg-[#FFCC00] hover:bg-yellow-400 text-black font-semibold py-2 rounded-lg flex items-center justify-start gap-2 px-3 transition-colors">
+              <i data-lucide="phone" class="w-4 h-4"></i>
+              Call Support
+            </button>
+          </div>
+
+          <!-- Tickets -->
+          <div class="bg-[#111827] border border-gray-700 rounded-xl p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <i data-lucide="ticket" class="w-6 h-6 text-yellow-400"></i>
+              <h2 class="text-xl font-bold">My Tickets</h2>
+            </div>
+
+            <table class="w-full text-sm">
+              <thead class="opacity-60">
+                <tr>
+                  <th class="text-left py-2">Ticket ID</th>
+                  <th class="text-left py-2">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="border-t border-gray-700">
+                  <td class="py-3 font-medium">TKT-001</td>
+                  <td><span class="bg-green-600 text-xs px-2 py-1 rounded">Resolved</span></td>
+                </tr>
+                <tr class="border-t border-gray-700">
+                  <td class="py-3 font-medium">TKT-002</td>
+                  <td><span class="bg-gray-600 text-xs px-2 py-1 rounded">In Progress</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+        <!-- RIGHT SIDE -->
+        <div class="lg:col-span-2">
+          <div class="bg-[#111827] border border-gray-700 rounded-xl p-6">
+            <h2 class="text-2xl font-bold mb-1">Frequently Asked Questions</h2>
+            <p class="opacity-60 mb-6">Common questions answered</p>
+
+            <!-- FAQ ACCORDION -->
+            <div id="faq">
+
+              <div class="border-b border-gray-800 py-3 cursor-pointer accordion">
+                <div class="flex justify-between items-center">
+                  <p class="font-medium">How do I place an order?</p>
+                  <i data-lucide="chevron-down" class="accordion-icon w-5 h-5 transition"></i>
+                </div>
+                <div class="accordion-content text-gray-400 mt-2">
+                  You can place an order by navigating to the "New Order" page and filling out the required details
+                  including product type, quantity, and delivery information.
+                </div>
+              </div>
+
+              <div class="border-b border-gray-800 py-3 cursor-pointer accordion">
+                <div class="flex justify-between items-center">
+                  <p class="font-medium">What is the typical delivery time?</p>
+                  <i data-lucide="chevron-down" class="accordion-icon w-5 h-5 transition"></i>
+                </div>
+                <div class="accordion-content text-gray-400 mt-2">
+                  Standard delivery takes 5–7 business days after the order is confirmed and payment is received.
+                </div>
+              </div>
+
+              <div class="border-b border-gray-800 py-3 cursor-pointer accordion">
+                <div class="flex justify-between items-center">
+                  <p class="font-medium">Can I cancel my order?</p>
+                  <i data-lucide="chevron-down" class="accordion-icon w-5 h-5 transition"></i>
+                </div>
+                <div class="accordion-content text-gray-400 mt-2">
+                  Orders can be cancelled within 24 hours of placement. After that, please contact support for
+                  assistance.
+                </div>
+              </div>
+
+              <div class="border-b border-gray-800 py-3 cursor-pointer accordion">
+                <div class="flex justify-between items-center">
+                  <p class="font-medium">How do I track my order?</p>
+                  <i data-lucide="chevron-down" class="accordion-icon w-5 h-5 transition"></i>
+                </div>
+                <div class="accordion-content text-gray-400 mt-2">
+                  You can track your order from the "My Orders" page. Click on any order to see its current status and
+                  tracking information.
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- Support Script -->
+  <script src="js/support.js"></script>
+
+</body>
+
+</html>

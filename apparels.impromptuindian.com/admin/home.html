@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard – ImpromptuIndian</title>
+    <meta name="description" content="Real-time overview of ImpromptuIndian operations" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/admin-global.css" />
+    <link rel="stylesheet" href="css/home.css" />
+    <link rel="shortcut icon" href="images/favicon.ico" type="images/x-icon">
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <!-- Header -->
+            <div class="dashboard-header mb-8">
+                <div>
+                    <h1 class="dashboard-title">Admin Dashboard</h1>
+                    <p class="dashboard-subtitle">Real-time overview of operations</p>
+                </div>
+                <button class="btn-refresh-modern" onclick="refreshDashboard()">
+                    <i data-lucide="refresh-ccw" class="w-5 h-5"></i>
+                    Refresh
+                </button>
+            </div>
+
+            <!-- Order Statistics Grid -->
+            <div class="stats-grid mb-8">
+                <div class="stat-card stat-card-blue" data-delay="0">
+                    <div class="stat-icon">
+                        <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Orders Today</p>
+                        <p class="stat-value" id="orders-today">12</p>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-yellow" data-delay="100">
+                    <div class="stat-icon">
+                        <i data-lucide="calendar" class="w-6 h-6"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">This Week</p>
+                        <p class="stat-value" id="orders-week">85</p>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-purple" data-delay="200">
+                    <div class="stat-icon">
+                        <i data-lucide="trending-up" class="w-6 h-6"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">This Month</p>
+                        <p class="stat-value" id="orders-month">320</p>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-indigo" data-delay="300">
+                    <div class="stat-icon">
+                        <i data-lucide="clock" class="w-6 h-6"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Pending Orders</p>
+                        <p class="stat-value" id="pending-orders">14</p>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-cyan" data-delay="400">
+                    <div class="stat-icon">
+                        <i data-lucide="package" class="w-6 h-6"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">In Production</p>
+                        <p class="stat-value" id="in-production">27</p>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-green" data-delay="500">
+                    <div class="stat-icon">
+                        <i data-lucide="truck" class="w-6 h-6"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Ready for Dispatch</p>
+                        <p class="stat-value" id="ready-dispatch">9</p>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-emerald" data-delay="600">
+                    <div class="stat-icon">
+                        <i data-lucide="check-circle" class="w-6 h-6"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Delivered</p>
+                        <p class="stat-value" id="delivered">260</p>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-red" data-delay="700">
+                    <div class="stat-icon">
+                        <i data-lucide="x-circle" class="w-6 h-6"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Cancelled / Rejected</p>
+                        <p class="stat-value" id="cancelled">5</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Monitoring Section -->
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold mb-4 text-white flex items-center gap-2">
+                    <i data-lucide="activity" class="w-6 h-6"></i>
+                    ImpromptuIndian Backend Process Monitor
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- CPU Usage Card -->
+                    <div class="info-card" data-delay="750">
+                        <div class="info-card-header">
+                            <h3 class="info-card-title flex items-center gap-2">
+                                <i data-lucide="cpu" class="w-5 h-5"></i>
+                                CPU Usage (Process)
+                            </h3>
+                        </div>
+                        <div class="info-card-body">
+                            <div class="flex flex-col items-center justify-center py-4">
+                                <div class="relative w-32 h-32 mb-4">
+                                    <svg class="transform -rotate-90 w-32 h-32">
+                                        <circle cx="64" cy="64" r="56" stroke="#1f2937" stroke-width="8" fill="none">
+                                        </circle>
+                                        <circle id="cpu-progress" cx="64" cy="64" r="56" stroke="#3b82f6"
+                                            stroke-width="8" fill="none" stroke-dasharray="351.86"
+                                            stroke-dashoffset="351.86" stroke-linecap="round"></circle>
+                                    </svg>
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <span id="cpu-percent" class="text-3xl font-bold text-blue-400">0%</span>
+                                    </div>
+                                </div>
+                                <p class="text-gray-400 text-sm" id="cpu-cores">0 Cores Available</p>
+                                <p class="text-gray-500 text-xs mt-1" id="process-threads">0 Threads</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RAM Usage Card -->
+                    <div class="info-card" data-delay="800">
+                        <div class="info-card-header">
+                            <h3 class="info-card-title flex items-center gap-2">
+                                <i data-lucide="hard-drive" class="w-5 h-5"></i>
+                                RAM Usage (Process)
+                            </h3>
+                        </div>
+                        <div class="info-card-body">
+                            <div class="flex flex-col items-center justify-center py-4">
+                                <div class="relative w-32 h-32 mb-4">
+                                    <svg class="transform -rotate-90 w-32 h-32">
+                                        <circle cx="64" cy="64" r="56" stroke="#1f2937" stroke-width="8" fill="none">
+                                        </circle>
+                                        <circle id="ram-progress" cx="64" cy="64" r="56" stroke="#10b981"
+                                            stroke-width="8" fill="none" stroke-dasharray="351.86"
+                                            stroke-dashoffset="351.86" stroke-linecap="round"></circle>
+                                    </svg>
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <span id="ram-percent" class="text-3xl font-bold text-green-400">0%</span>
+                                    </div>
+                                </div>
+                                <p class="text-gray-400 text-sm" id="ram-usage">0 MB Used</p>
+                                <p class="text-gray-500 text-xs mt-1" id="process-uptime">Uptime: 0h</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- I/O Usage Card -->
+                    <div class="info-card" data-delay="850">
+                        <div class="info-card-header">
+                            <h3 class="info-card-title flex items-center gap-2">
+                                <i data-lucide="hard-drive" class="w-5 h-5"></i>
+                                Disk I/O (Process)
+                            </h3>
+                        </div>
+                        <div class="info-card-body">
+                            <div class="py-4 space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-400 flex items-center gap-2">
+                                        <i data-lucide="arrow-down-to-line" class="w-4 h-4 text-blue-400"></i>
+                                        Read
+                                    </span>
+                                    <span id="io-read" class="text-white font-semibold">0 MB</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-400 flex items-center gap-2">
+                                        <i data-lucide="arrow-up-from-line" class="w-4 h-4 text-green-400"></i>
+                                        Written
+                                    </span>
+                                    <span id="io-written" class="text-white font-semibold">0 MB</span>
+                                </div>
+                                <div class="border-t border-gray-700 pt-3 mt-3">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-gray-400 font-medium">Total I/O</span>
+                                        <span id="io-total" class="text-purple-400 font-bold">0 MB</span>
+                                    </div>
+                                </div>
+                                <div class="border-t border-gray-700 pt-2 mt-2">
+                                    <p class="text-gray-500 text-xs text-center" id="process-pid">PID: -</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Two Column Layout -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Vendor Status Overview -->
+                <div class="info-card" data-delay="800">
+                    <div class="info-card-header">
+                        <h3 class="info-card-title">Vendor Status Overview</h3>
+                    </div>
+                    <div class="info-card-body">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Pending Verification</span>
+                                <span class="info-value info-value-yellow" id="vendor-pending">4</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Approved</span>
+                                <span class="info-value info-value-green" id="vendor-approved">38</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Rejected</span>
+                                <span class="info-value info-value-red" id="vendor-rejected">2</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Suspended</span>
+                                <span class="info-value info-value-orange" id="vendor-suspended">1</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Missing Deadlines</span>
+                                <span class="info-value info-value-red" id="vendor-missing">3</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rider Status Overview -->
+                <div class="info-card" data-delay="900">
+                    <div class="info-card-header">
+                        <h3 class="info-card-title">Rider Status Overview</h3>
+                    </div>
+                    <div class="info-card-body">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Active Riders</span>
+                                <span class="info-value info-value-green" id="rider-active">12</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Delivering</span>
+                                <span class="info-value info-value-blue" id="rider-delivering">5</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Idle</span>
+                                <span class="info-value info-value-gray" id="rider-idle">7</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Performance Score</span>
+                                <span class="info-value info-value-purple" id="rider-score">87%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial Overview Grid -->
+            <div class="finance-grid mb-8">
+                <div class="finance-card finance-card-green" data-delay="1000">
+                    <div class="finance-icon">
+                        <i data-lucide="dollar-sign" class="w-6 h-6"></i>
+                    </div>
+                    <div class="finance-content">
+                        <p class="finance-label">Platform Revenue</p>
+                        <p class="finance-value" id="platform-revenue">$45230</p>
+                    </div>
+                </div>
+
+                <div class="finance-card finance-card-blue" data-delay="1100">
+                    <div class="finance-icon">
+                        <i data-lucide="credit-card" class="w-6 h-6"></i>
+                    </div>
+                    <div class="finance-content">
+                        <p class="finance-label">Payments Today</p>
+                        <p class="finance-value" id="payments-today">$1240</p>
+                    </div>
+                </div>
+
+                <div class="finance-card finance-card-purple" data-delay="1200">
+                    <div class="finance-icon">
+                        <i data-lucide="lock" class="w-6 h-6"></i>
+                    </div>
+                    <div class="finance-content">
+                        <p class="finance-label">Escrow Held</p>
+                        <p class="finance-value" id="escrow-held">$8300</p>
+                    </div>
+                </div>
+
+                <div class="finance-card finance-card-yellow" data-delay="1300">
+                    <div class="finance-icon">
+                        <i data-lucide="trending-up" class="w-6 h-6"></i>
+                    </div>
+                    <div class="finance-content">
+                        <p class="finance-label">Commission Today</p>
+                        <p class="finance-value" id="commission-today">$6780</p>
+                    </div>
+                </div>
+
+                <div class="finance-card finance-card-red" data-delay="1400">
+                    <div class="finance-icon">
+                        <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                    </div>
+                    <div class="finance-content">
+                        <p class="finance-label">Penalties Collected</p>
+                        <p class="finance-value" id="penalties">$320</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Critical Alerts -->
+            <div class="alerts-section" id="alerts-section" data-delay="1500">
+                <!-- Alerts will be dynamically inserted here -->
+            </div>
+
+            <!-- Recent OTP Logs Section -->
+            <div class="reveal info-card mb-8" data-delay="1550">
+                <div class="info-card-header flex justify-between items-center">
+                    <h3 class="info-card-title">Recent OTP Logs</h3>
+                    <button class="text-sm text-blue-400 hover:text-blue-300" onclick="fetchOTPLogs()">Refresh
+                        Logs</button>
+                </div>
+                <div class="info-card-body p-0">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-gray-400">
+                            <thead class="bg-gray-800 text-gray-200 uppercase font-medium">
+                                <tr>
+                                    <th class="px-6 py-3">Recipient</th>
+                                    <th class="px-6 py-3">OTP Code</th>
+                                    <th class="px-6 py-3">Type</th>
+                                    <th class="px-6 py-3">Status</th>
+                                    <th class="px-6 py-3">Created At</th>
+                                </tr>
+                            </thead>
+                            <tbody id="otp-logs-table-body" class="divide-y divide-gray-700">
+                                <!-- OTP Logs injected here -->
+                                <tr>
+                                    <td colspan="5" class="px-6 py-4 text-center">Loading logs...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="actions-grid" data-delay="1600">
+                <a href="vendor-requests.html" class="action-card action-card-blue">
+                    <i data-lucide="user-check" class="w-8 h-8"></i>
+                    <span>Verify New Vendors</span>
+                </a>
+                <a href="new-orders.html" class="action-card action-card-yellow">
+                    <i data-lucide="clipboard-list" class="w-8 h-8"></i>
+                    <span>Assign Pending Orders</span>
+                </a>
+                <a href="rider-assignments.html" class="action-card action-card-purple">
+                    <i data-lucide="truck" class="w-8 h-8"></i>
+                    <span>View Deliveries Pending</span>
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast hidden">
+        <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+        <span id="toast-msg">Action completed!</span>
+    </div>
+
+    <script src="js/home.js"></script>
+</body>
+
+</html>

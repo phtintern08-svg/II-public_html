@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - ImpromptuIndian</title>
+
+    <!-- ✅ Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- ✅ Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- ✅ ScrollReveal -->
+    <script src="https://unpkg.com/scrollreveal"></script>
+
+    <!-- ✅ Custom CSS -->
+    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="css/blog.css">
+</head>
+
+<body class="flex flex-col min-h-screen bg-gray-50 text-gray-900">
+
+    <!-- Header -->
+    <header class="bg-[#1273EB] text-white sticky top-0 z-50 shadow">
+        <div class="container mx-auto px-6 h-16 flex items-center">
+
+            <!-- Left Logo -->
+            <div class="flex items-center gap-2 text-xl font-bold flex-shrink-0">
+                <i data-lucide="shirt" class="w-6 h-6 text-[#FFCC00]"></i>
+                <a href="index.html"><span class="text-[#FFCC00]">Impromptu<span
+                            class="text-white">Indian</span></span></a>
+            </div>
+
+            <!-- Center Navigation -->
+            <nav id="nav" class="flex flex-1 justify-center space-x-4 lg:space-x-8 text-xs lg:text-sm font-medium">
+                <a href="index.html" class="hover:text-yellow-300">Home</a>
+                <a href="about.html" class="hover:text-yellow-300">About Us</a>
+                <a href="blog.html" class="text-[#FFCC00] font-bold">Blog</a>
+                <a href="index.html#customers" class="hover:text-yellow-300">Services</a>
+                <a href="index.html#contact" class="hover:text-yellow-300">Contact</a>
+            </nav>
+
+            <!-- Right Buttons -->
+            <div class="flex items-center gap-4 flex-shrink-0">
+                <a href="login.html" class="text-white hover:text-[#FFCC00]">Login</a>
+                <a href="register.html"
+                    class="bg-[#FFCC00] text-black px-4 py-2 rounded-md font-semibold shadow hover:bg-yellow-400">
+                    Sign Up
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENT WRAPPER -->
+    <div id="main-wrapper">
+
+        <!-- VIEW: BLOG LISTING -->
+        <div id="blog-listing">
+            <!-- Hero Section -->
+            <section class="relative bg-[#FFCC00] text-black py-20 overflow-hidden">
+                <div class="absolute inset-0 opacity-20 bg-pattern bg-cover bg-center"></div>
+                <div class="container mx-auto px-6 relative z-10 text-center">
+                    <h1 class="text-4xl md:text-6xl font-bold mb-4 animate-fadeUp">From the Stitch</h1>
+                    <p class="text-lg md:text-xl text-black max-w-2xl mx-auto animate-fadeUp delay-200">
+                        Stories, updates, and insights from the world of custom apparel, manufacturing, and delivery.
+                    </p>
+                    <div class="mt-8 flex justify-center animate-fadeUp delay-400">
+                        <form class="bg-white p-2 rounded-full shadow-lg flex w-full max-w-md">
+                            <input type="email" placeholder="Enter your email"
+                                class="flex-1 px-4 py-2 rounded-l-full text-gray-700 outline-none" required>
+                            <button type="submit"
+                                class="bg-[#FFCC00] text-black px-6 py-2 rounded-full font-bold hover:bg-yellow-400 transition">Subscribe</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Main Content -->
+            <section class="py-16">
+                <div class="container mx-auto px-6">
+
+                    <!-- Featured Post -->
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-16 flex flex-col md:flex-row reveal">
+                        <div class="md:w-1/2 h-64 md:h-auto overflow-hidden">
+                            <img src="images/homebg.png" alt="Featured"
+                                class="w-full h-full object-cover hover:scale-105 transition duration-500">
+                        </div>
+                        <div class="md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
+                            <span class="text-[#1273EB] font-bold tracking-wide uppercase text-sm mb-2">Featured
+                                Story</span>
+                            <h2 class="text-3xl font-bold mb-4 text-gray-900">Wearable Stories: The Magic Behind Custom
+                                Apparel</h2>
+                            <p class="text-gray-600 mb-6 leading-relaxed">
+                                Custom apparel has evolved into a powerful expression of identity. A simple t-shirt can
+                                represent a memory, a movement, or a connection. ImpromptuIndian connects creativity with
+                                production and logistics.
+                            </p>
+                            <a href="#article-featured"
+                                class="inline-flex items-center text-[#1273EB] font-bold hover:gap-2 transition-all">
+                                Read Full Story <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+                        <h2 class="text-2xl font-bold text-gray-800">Latest Articles</h2>
+                        <div class="hidden md:flex gap-3">
+                            <button
+                                class="filter-btn px-4 py-2 rounded-full bg-[#1273EB] text-white font-medium text-sm transition"
+                                data-filter="all">All</button>
+                            <button
+                                class="filter-btn px-4 py-2 rounded-full bg-white text-gray-600 border border-gray-200 hover:border-[#1273EB] hover:text-[#1273EB] transition font-medium text-sm"
+                                data-filter="customers">Customers</button>
+                            <button
+                                class="filter-btn px-4 py-2 rounded-full bg-white text-gray-600 border border-gray-200 hover:border-[#1273EB] hover:text-[#1273EB] transition font-medium text-sm"
+                                data-filter="vendors">Vendors</button>
+                            <button
+                                class="filter-btn px-4 py-2 rounded-full bg-white text-gray-600 border border-gray-200 hover:border-[#1273EB] hover:text-[#1273EB] transition font-medium text-sm"
+                                data-filter="delivery">Delivery</button>
+                        </div>
+                    </div>
+
+                    <!-- Grid -->
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <!-- Post 1: Fabric Guide -->
+                        <article
+                            class="blog-article bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 group"
+                            data-category="customers">
+                            <div class="h-56 overflow-hidden relative">
+                                <span
+                                    class="absolute top-4 left-4 bg-[#FFCC00] text-black text-xs font-bold px-3 py-1 rounded-full z-10">Guide</span>
+                                <img src="images/t_shirt.png" alt="Fabric Guide"
+                                    class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            </div>
+                            <div class="p-6">
+                                <div class="flex items-center gap-2 text-xs text-gray-400 mb-3"><i data-lucide="layers"
+                                        class="w-3 h-3"></i> Fabric Types</div>
+                                <h3 class="text-xl font-bold text-gray-900 mb-3 group-hover:text-[#1273EB] transition">
+                                    Material Matters: A ImpromptuIndian Guide</h3>
+                                <p class="text-gray-600 text-sm mb-4">Cotton for comfort, polyester for performance, or
+                                    fleece for warmth? We break down how each fabric plays a role.</p>
+                                <a href="#article-fabrics"
+                                    class="text-[#1273EB] font-semibold text-sm hover:underline">Read More</a>
+                            </div>
+                        </article>
+
+                        <!-- Post 2: Printing -->
+                        <article
+                            class="blog-article bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 group"
+                            data-category="customers vendors">
+                            <div class="h-56 overflow-hidden relative">
+                                <span
+                                    class="absolute top-4 left-4 bg-[#1273EB] text-white text-xs font-bold px-3 py-1 rounded-full z-10">Technology</span>
+                                <img src="images/shirt_oversized.png" alt="Printing Methods"
+                                    class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            </div>
+                            <div class="p-6">
+                                <div class="flex items-center gap-2 text-xs text-gray-400 mb-3"><i data-lucide="printer"
+                                        class="w-3 h-3"></i> Printing</div>
+                                <h3 class="text-xl font-bold text-gray-900 mb-3 group-hover:text-[#1273EB] transition">
+                                    Bringing Designs to Life</h3>
+                                <p class="text-gray-600 text-sm mb-4">From vibrant DTF prints to elegant embroidery and
+                                    classic screen printing—find the perfect medium.</p>
+                                <a href="#article-printing"
+                                    class="text-[#1273EB] font-semibold text-sm hover:underline">Read More</a>
+                            </div>
+                        </article>
+
+                        <!-- Post 3: Sustainability -->
+                        <article
+                            class="blog-article bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 group"
+                            data-category="customers vendors">
+                            <div class="h-56 overflow-hidden relative">
+                                <span
+                                    class="absolute top-4 left-4 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full z-10">Sustainability</span>
+                                <img src="images/hoodie.png" alt="Eco Friendly"
+                                    class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            </div>
+                            <div class="p-6">
+                                <div class="flex items-center gap-2 text-xs text-gray-400 mb-3"><i data-lucide="leaf"
+                                        class="w-3 h-3"></i> Conscious Fashion</div>
+                                <h3 class="text-xl font-bold text-gray-900 mb-3 group-hover:text-[#1273EB] transition">
+                                    Sustainable Merchandise</h3>
+                                <p class="text-gray-600 text-sm mb-4">Water-based inks, organic fabrics, and low-waste
+                                    models—why eco-friendly choices are new trend.</p>
+                                <a href="#article-sustainability"
+                                    class="text-[#1273EB] font-semibold text-sm hover:underline">Read More</a>
+                            </div>
+                        </article>
+
+                        <!-- Post 4: Trends -->
+                        <article
+                            class="blog-article bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 group"
+                            data-category="customers">
+                            <div class="h-56 overflow-hidden relative">
+                                <span
+                                    class="absolute top-4 left-4 bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-full z-10">Trends
+                                    2025</span>
+                                <img src="images/jacket_bomber.png" alt="Trends"
+                                    class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            </div>
+                            <div class="p-6">
+                                <div class="flex items-center gap-2 text-xs text-gray-400 mb-3"><i
+                                        data-lucide="trending-up" class="w-3 h-3"></i> Fashion</div>
+                                <h3 class="text-xl font-bold text-gray-900 mb-3 group-hover:text-[#1273EB] transition">
+                                    The 2025 Style Forecast</h3>
+                                <p class="text-gray-600 text-sm mb-4">Minimal aesthetics, oversized silhouettes, and
+                                    bomber jackets. Discover why custom merch is lifestyle wear.</p>
+                                <a href="#article-trends"
+                                    class="text-[#1273EB] font-semibold text-sm hover:underline">Read More</a>
+                            </div>
+                        </article>
+
+                        <!-- Post 5: Vendors -->
+                        <article
+                            class="blog-article bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 group"
+                            data-category="vendors">
+                            <div class="h-56 overflow-hidden relative">
+                                <span
+                                    class="absolute top-4 left-4 bg-[#FFCC00] text-black text-xs font-bold px-3 py-1 rounded-full z-10">Vendors</span>
+                                <img src="images/vendor.png" alt="Vendor Success"
+                                    class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            </div>
+                            <div class="p-6">
+                                <div class="flex items-center gap-2 text-xs text-gray-400 mb-3"><i
+                                        data-lucide="briefcase" class="w-3 h-3"></i> Supply Chain</div>
+                                <h3 class="text-xl font-bold text-gray-900 mb-3 group-hover:text-[#1273EB] transition">
+                                    Scaling Your Business</h3>
+                                <p class="text-gray-600 text-sm mb-4">How local manufacturers are using our dashboard to
+                                    manage orders, track payments, and grow.</p>
+                                <a href="#article-vendors"
+                                    class="text-[#1273EB] font-semibold text-sm hover:underline">Read More</a>
+                            </div>
+                        </article>
+
+                        <!-- Post 6: Delivery -->
+                        <article
+                            class="blog-article bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 group"
+                            data-category="delivery">
+                            <div class="h-56 overflow-hidden relative">
+                                <span
+                                    class="absolute top-4 left-4 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full z-10">Riders</span>
+                                <img src="images/delivery-rider.png" alt="Delivery"
+                                    class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            </div>
+                            <div class="p-6">
+                                <div class="flex items-center gap-2 text-xs text-gray-400 mb-3"><i data-lucide="bike"
+                                        class="w-3 h-3"></i> Logistics</div>
+                                <h3 class="text-xl font-bold text-gray-900 mb-3 group-hover:text-[#1273EB] transition">
+                                    The Last Mile Heroes</h3>
+                                <p class="text-gray-600 text-sm mb-4">Meet the delivery partners ensuring your custom
+                                    gear arrives on time. Explore earnings of joining our fleet.</p>
+                                <a href="#article-delivery"
+                                    class="text-[#1273EB] font-semibold text-sm hover:underline">Read More</a>
+                            </div>
+                        </article>
+
+                        <!-- Post 7: Use Cases -->
+                        <article
+                            class="blog-article bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 group"
+                            data-category="customers">
+                            <div class="h-56 overflow-hidden relative">
+                                <span
+                                    class="absolute top-4 left-4 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full z-10">Identity</span>
+                                <img src="images/uniform_set.png" alt="Teams"
+                                    class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            </div>
+                            <div class="p-6">
+                                <div class="flex items-center gap-2 text-xs text-gray-400 mb-3"><i
+                                        data-lucide="briefcase" class="w-3 h-3"></i> Use Cases</div>
+                                <h3 class="text-xl font-bold text-gray-900 mb-3 group-hover:text-[#1273EB] transition">
+                                    Clothing Binds Communities</h3>
+                                <p class="text-gray-600 text-sm mb-4">From college fests to corporate uniforms—how
+                                    matching outfits boost morale and brand impression.</p>
+                                <a href="#article-use-cases"
+                                    class="text-[#1273EB] font-semibold text-sm hover:underline">Read More</a>
+                            </div>
+                        </article>
+                    </div>
+
+                    <!-- Load More -->
+                    <div class="mt-12 text-center">
+                        <button id="load-more-btn"
+                            class="border-2 border-[#1273EB] text-[#1273EB] hover:bg-[#1273EB] hover:text-white px-8 py-3 rounded-full font-bold transition-colors">Load
+                            More Stories</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- VIEW: ARTICLE DETAILS (Hidden Components) -->
+        <div id="blog-details-view" class="hidden">
+            <section class="py-20 bg-gray-50">
+                <div class="container mx-auto px-6 max-w-4xl">
+
+                    <!-- Article: Featured -->
+                    <div id="article-featured" class="article-content hidden">
+                        <div class="mb-8 overflow-hidden rounded-2xl shadow-xl">
+                            <img src="images/homebg.png" alt="Featured" class="w-full h-96 object-cover">
+                        </div>
+                        <div class="mb-8">
+                            <span class="text-[#1273EB] font-bold tracking-wide uppercase text-sm">Vision & Story</span>
+                            <h1 class="text-4xl md:text-5xl font-bold mt-4 mb-6 leading-tight">More Than Fabric: <span
+                                    class="text-[#1273EB]">Stories, Stitches & Identity</span></h1>
+                            <div class="flex items-center gap-4 text-gray-500 text-sm mb-10 border-b pb-8">
+                                <div class="flex items-center gap-2"><i data-lucide="user" class="w-4 h-4"></i>
+                                    ImpromptuIndian
+                                    Team</div>
+                                <div class="flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4"></i> Dec
+                                    9, 2025</div>
+                                <div class="flex items-center gap-2"><i data-lucide="clock" class="w-4 h-4"></i> 5 min
+                                    read</div>
+                            </div>
+                        </div>
+                        <article class="prose max-w-none text-lg text-gray-700 leading-relaxed">
+                            <p class="lead text-xl text-gray-700 font-medium">Custom apparel has evolved into a powerful
+                                expression of identity. A simple t-shirt can represent a college fest, a startup team, a
+                                club, a movement or even a memory worth keeping.</p>
+                            <p>Hoodies speak warmth and belonging, jackets represent confidence, and uniforms create
+                                unity. In today’s world, clothing is more than fabric — it’s a language, a feeling, a
+                                statement. This is where <strong>ImpromptuIndian</strong> steps in, transforming ideas
+                                into
+                                wearable stories.</p>
+
+                            <h2 id="ecosystem">A Complete Ecosystem</h2>
+                            <p>ImpromptuIndian is designed as a complete custom apparel ecosystem, built for customers
+                                who want
+                                personalized clothing, for vendors who want manufacturing opportunities, and for
+                                delivery partners who help move those creations across the city.</p>
+
+                            <h2 id="fabrics-feat">Material Matters</h2>
+                            <p>Fabric plays a big role in the final experience. <strong>Cotton</strong> remains the
+                                crowd favourite for everyday comfort. <strong>Polyester</strong> works beautifully for
+                                sports and performance.</p>
+
+                            <h2 id="vendors-feat">Scaling Your Business with ImpromptuIndian</h2>
+                            <p>While customers enjoy creativity and convenience, ImpromptuIndian also empowers the other
+                                side —
+                                local manufacturers. Vendors receive work without heavy marketing efforts.</p>
+
+                            <h2 id="delivery-feat">The Last Mile Heroes</h2>
+                            <p>Then comes the final link in the chain — delivery partners. Riders are the hands that
+                                move creativity through streets and lanes.</p>
+                        </article>
+                    </div>
+
+                    <!-- Article: Fabrics -->
+                    <div id="article-fabrics" class="article-content hidden">
+                        <div class="mb-8 overflow-hidden rounded-2xl shadow-xl">
+                            <img src="images/t_shirt.png" alt="Fabric Guide" class="w-full h-96 object-cover">
+                        </div>
+                        <div class="mb-8">
+                            <span class="text-[#1273EB] font-bold tracking-wide uppercase text-sm">Fabric Guide</span>
+                            <h1 class="text-4xl md:text-5xl font-bold mt-4 mb-6 leading-tight">Material Matters: A
+                                ImpromptuIndian Guide</h1>
+                            <div class="flex items-center gap-4 text-gray-500 text-sm mb-10 border-b pb-8">
+                                <div class="flex items-center gap-2"><i data-lucide="user" class="w-4 h-4"></i>
+                                    ImpromptuIndian
+                                    Team</div>
+                                <div class="flex items-center gap-2"><i data-lucide="clock" class="w-4 h-4"></i> 3 min
+                                    read</div>
+                            </div>
+                        </div>
+                        <article class="prose max-w-none text-lg text-gray-700 leading-relaxed">
+                            <p>Fabric plays a big role in the final experience of any custom apparel. It's not just
+                                about how it looks, but how it feels and performs. <strong>Cotton</strong> remains the
+                                crowd favourite for everyday comfort — soft, breathable and perfect for casual wear.</p>
+                            <p><strong>Polyester</strong>, on the other hand, works beautifully for sports, jerseys and
+                                performance-based outfits. Its durability and quick-drying capabilities make it the
+                                champion of activewear.</p>
+                            <p>For those seeking the best of both worlds, <strong>Poly-cotton blends</strong> balance
+                                both material strengths — slightly structured, long lasting and excellent for printing.
+                            </p>
+                        </article>
+                    </div>
+
+                    <!-- Article: Printing -->
+                    <div id="article-printing" class="article-content hidden">
+                        <div class="mb-8 overflow-hidden rounded-2xl shadow-xl">
+                            <img src="images/shirt_oversized.png" alt="Printing" class="w-full h-96 object-cover">
+                        </div>
+                        <div class="mb-8">
+                            <span class="text-[#1273EB] font-bold tracking-wide uppercase text-sm">Technology</span>
+                            <h1 class="text-4xl md:text-5xl font-bold mt-4 mb-6 leading-tight">Bringing Designs to Life
+                            </h1>
+                            <div class="flex items-center gap-4 text-gray-500 text-sm mb-10 border-b pb-8">
+                                <div class="flex items-center gap-2"><i data-lucide="user" class="w-4 h-4"></i>
+                                    ImpromptuIndian
+                                    Team</div>
+                                <div class="flex items-center gap-2"><i data-lucide="clock" class="w-4 h-4"></i> 3 min
+                                    read</div>
+                            </div>
+                        </div>
+                        <article class="prose max-w-none text-lg text-gray-700 leading-relaxed">
+                            <p>Printing gives life to a design. It transforms a digital concept into a tangible reality.
+                                Some creators love vibrant <strong>DTF (Direct to Film) prints</strong> that work on
+                                almost any fabric, providing high detail and color accuracy.</p>
+                            <p>Bulk teams often prefer <strong>screen printing</strong> for its clean finish and
+                                long-lasting results. Startups often choose <strong>embroidery</strong> to achieve an
+                                elegant branded look that stands out without shouting.</p>
+                        </article>
+                    </div>
+
+                    <!-- Article: Sustainability -->
+                    <div id="article-sustainability" class="article-content hidden">
+                        <div class="mb-8 overflow-hidden rounded-2xl shadow-xl">
+                            <img src="images/hoodie.png" alt="Sustainability" class="w-full h-96 object-cover">
+                        </div>
+                        <div class="mb-8">
+                            <span class="text-green-600 font-bold tracking-wide uppercase text-sm">Sustainability</span>
+                            <h1 class="text-4xl md:text-5xl font-bold mt-4 mb-6 leading-tight">Sustainable Merchandise
+                            </h1>
+                            <div class="flex items-center gap-4 text-gray-500 text-sm mb-10 border-b pb-8">
+                                <div class="flex items-center gap-2"><i data-lucide="user" class="w-4 h-4"></i>
+                                    ImpromptuIndian
+                                    Team</div>
+                                <div class="flex items-center gap-2"><i data-lucide="clock" class="w-4 h-4"></i> 2 min
+                                    read</div>
+                            </div>
+                        </div>
+                        <article class="prose max-w-none text-lg text-gray-700 leading-relaxed">
+                            <p>In an era where conscious fashion is growing, sustainability matters more than ever. Many
+                                of our partners and customers prefer water-based inks, organic fabrics and low-waste
+                                printing models.</p>
+                            <p>Sustainable merchandise becomes more than wearable — it becomes meaningful. By choosing
+                                ImpromptuIndian, you are supporting a network that values efficiency and reduced waste
+                                in the
+                                custom apparel industry.</p>
+                        </article>
+                    </div>
+
+                    <!-- Article: Trends -->
+                    <div id="article-trends" class="article-content hidden">
+                        <div class="mb-8 overflow-hidden rounded-2xl shadow-xl">
+                            <img src="images/jacket_bomber.png" alt="Trends" class="w-full h-96 object-cover">
+                        </div>
+                        <div class="mb-8">
+                            <span class="text-purple-600 font-bold tracking-wide uppercase text-sm">Trends 2025</span>
+                            <h1 class="text-4xl md:text-5xl font-bold mt-4 mb-6 leading-tight">The 2025 Style Forecast
+                            </h1>
+                            <div class="flex items-center gap-4 text-gray-500 text-sm mb-10 border-b pb-8">
+                                <div class="flex items-center gap-2"><i data-lucide="user" class="w-4 h-4"></i>
+                                    ImpromptuIndian
+                                    Team</div>
+                                <div class="flex items-center gap-2"><i data-lucide="clock" class="w-4 h-4"></i> 2 min
+                                    read</div>
+                            </div>
+                        </div>
+                        <article class="prose max-w-none text-lg text-gray-700 leading-relaxed">
+                            <p>Fashion doesn’t remain still; it evolves. The 2025 trends show a love for minimal
+                                aesthetics — small chest prints, subtle logos, sleeve tags and tone-on-tone branding.
+                            </p>
+                            <p>Streetwear influence continues to dominate, bringing oversized silhouettes, bomber
+                                jackets and neutral earthy tones to the spotlight. At the same time, winter collections
+                                are leaning toward premium hoodies and jackets with structured fits.</p>
+                        </article>
+                    </div>
+
+                    <!-- Article: Vendors -->
+                    <div id="article-vendors" class="article-content hidden">
+                        <div class="mb-8 overflow-hidden rounded-2xl shadow-xl">
+                            <img src="images/vendor.png" alt="Vendors" class="w-full h-96 object-cover">
+                        </div>
+                        <div class="mb-8">
+                            <span
+                                class="text-[#FFCC00] font-bold tracking-wide uppercase text-sm text-black px-2 rounded bg-yellow-100">Vendors</span>
+                            <h1 class="text-4xl md:text-5xl font-bold mt-4 mb-6 leading-tight">Scaling Your Business
+                                with ImpromptuIndian</h1>
+                            <div class="flex items-center gap-4 text-gray-500 text-sm mb-10 border-b pb-8">
+                                <div class="flex items-center gap-2"><i data-lucide="user" class="w-4 h-4"></i>
+                                    ImpromptuIndian
+                                    Team</div>
+                                <div class="flex items-center gap-2"><i data-lucide="clock" class="w-4 h-4"></i> 2 min
+                                    read</div>
+                            </div>
+                        </div>
+                        <article class="prose max-w-none text-lg text-gray-700 leading-relaxed">
+                            <p>While customers enjoy creativity and convenience, ImpromptuIndian also empowers the other
+                                side —
+                                local manufacturers. Vendors receive work without heavy marketing efforts.</p>
+                            <p>Through the <strong>vendor dashboard</strong>, you can see new orders, production queue,
+                                pending dispatch and completed deliveries. It helps local businesses scale with steady
+                                orders, instead of waiting for seasonal demand.</p>
+                        </article>
+                    </div>
+
+                    <!-- Article: Delivery -->
+                    <div id="article-delivery" class="article-content hidden">
+                        <div class="mb-8 overflow-hidden rounded-2xl shadow-xl">
+                            <img src="images/delivery-rider.png" alt="Delivery" class="w-full h-96 object-cover">
+                        </div>
+                        <div class="mb-8">
+                            <span class="text-blue-600 font-bold tracking-wide uppercase text-sm">Logistics</span>
+                            <h1 class="text-4xl md:text-5xl font-bold mt-4 mb-6 leading-tight">The Last Mile Heroes</h1>
+                            <div class="flex items-center gap-4 text-gray-500 text-sm mb-10 border-b pb-8">
+                                <div class="flex items-center gap-2"><i data-lucide="user" class="w-4 h-4"></i>
+                                    ImpromptuIndian
+                                    Team</div>
+                                <div class="flex items-center gap-2"><i data-lucide="clock" class="w-4 h-4"></i> 2 min
+                                    read</div>
+                            </div>
+                        </div>
+                        <article class="prose max-w-none text-lg text-gray-700 leading-relaxed">
+                            <p>The final link in our chain is our delivery partners. Riders are the hands that move
+                                creativity through streets and lanes. Their role ensures that every design uploaded from
+                                a screen becomes a real fabric in someone’s hand.</p>
+                            <p>Joining the ImpromptuIndian fleet offers <strong>flexible hours</strong>, transparent
+                                earnings,
+                                and the pride of delivering smiles. Whether it's a student receiving their first club
+                                hoodie or a startup getting their team jerseys, our riders are the ones making that
+                                moment happen.</p>
+                        </article>
+                    </div>
+
+                    <!-- Article: Use Cases -->
+                    <div id="article-use-cases" class="article-content hidden">
+                        <div class="mb-8 overflow-hidden rounded-2xl shadow-xl">
+                            <img src="images/uniform_set.png" alt="Community" class="w-full h-96 object-cover">
+                        </div>
+                        <div class="mb-8">
+                            <span class="text-blue-500 font-bold tracking-wide uppercase text-sm">Identity</span>
+                            <h1 class="text-4xl md:text-5xl font-bold mt-4 mb-6 leading-tight">Clothing Binds
+                                Communities</h1>
+                            <div class="flex items-center gap-4 text-gray-500 text-sm mb-10 border-b pb-8">
+                                <div class="flex items-center gap-2"><i data-lucide="user" class="w-4 h-4"></i>
+                                    ImpromptuIndian
+                                    Team</div>
+                                <div class="flex items-center gap-2"><i data-lucide="clock" class="w-4 h-4"></i> 2 min
+                                    read</div>
+                            </div>
+                        </div>
+                        <article class="prose max-w-none text-lg text-gray-700 leading-relaxed">
+                            <p>The beauty of custom apparel lies in how broadly it can be used. It's about belonging.
+                            </p>
+                            <ul class="list-disc pl-6 mb-6 space-y-2">
+                                <li><strong>Colleges</strong> design freshers’ tees, fest merchandise and club uniforms.
+                                </li>
+                                <li><strong>Startups</strong> launch apparel for employees and events.</li>
+                                <li><strong>Corporate organizations</strong> maintain unified staff appearance.</li>
+                                <li><strong>Small groups</strong> celebrate togetherness through matching outfits.</li>
+                            </ul>
+                            <p>Clothing binds communities together. It turns a group of individuals into a team.</p>
+                        </article>
+                    </div>
+
+                    <!-- Back Button Actions -->
+                    <div class="border-t mt-16 pt-10">
+                        <a href="#"
+                            class="flex items-center gap-2 text-gray-600 hover:text-[#1273EB] font-semibold transition">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Blog
+                        </a>
+                    </div>
+
+                </div>
+            </section>
+        </div>
+
+    </div>
+
+    <!-- CTA Section -->
+    <section class="py-20 bg-gradient-to-br from-gray-900 via-black to-gray-900 text-center relative overflow-hidden">
+        <!-- Animated background elements -->
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute top-10 left-10 w-72 h-72 bg-[#FFCC00] rounded-full blur-3xl"></div>
+            <div class="absolute bottom-10 right-10 w-96 h-96 bg-blue-500 rounded-full blur-3xl"></div>
+        </div>
+
+        <div class="container mx-auto px-6 max-w-2xl relative z-10">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6 text-white cta-heading">
+                Creativity Lives in <span class="text-[#FFCC00]">Your Mind</span>
+            </h2>
+            <p class="text-gray-300 mb-8 text-lg cta-text">
+                We just provide the fabric, the ink, and the logistics to bring it out.
+            </p>
+            <a href="register.html"
+                class="cta-button inline-block bg-[#FFCC00] text-black px-8 py-4 rounded-full font-bold shadow-lg hover:shadow-2xl transition-all duration-300">
+                Start Creating Now
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white text-gray-700 pt-16 pb-8 border-t">
+        <div class="container mx-auto px-6 grid md:grid-cols-4 gap-12">
+            <div>
+                <div class="flex items-center gap-2 text-xl font-bold">
+                    <i data-lucide="shirt" class="w-6 h-6 text-[#FFCC00]"></i>
+                    <span class="text-[#1273EB]">Impromptu<span class="text-[#FFCC00]">Indian</span></span>
+                </div>
+                <p class="text-gray-500 mt-3">The best platform for custom apparel.</p><br>
+                <div class="flex gap-4 mt-4 text-gray-500">
+                    <a href="#" target="_blank"><i data-lucide="facebook" class="w-5 h-5 hover:text-blue-600"></i></a>
+                    <a href="#" target="_blank"><i data-lucide="twitter" class="w-5 h-5 hover:text-blue-400"></i></a>
+                    <a href="#" target="_blank"><i data-lucide="instagram" class="w-5 h-5 hover:text-pink-500"></i></a>
+                </div>
+            </div>
+            <div>
+                <h3 class="font-semibold mb-4">Quick Links</h3>
+                <ul class="space-y-2 text-gray-600">
+                    <li><a href="index.html" class="hover:text-[#1273EB]">Home</a></li>
+                    <li><a href="blog.html" class="hover:text-[#1273EB]">Blogs</a></li>
+                    <li><a href="index.html#customers" class="hover:text-[#1273EB]">For Customers</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="font-semibold mb-4">Terms</h3>
+                <ul class="space-y-2 text-gray-600">
+                    <li><a href="terms.html" class="hover:text-[#1273EB]">Policies</a></li>
+                    <li><a href="support.html" class="hover:text-[#1273EB]">Support</a></li>
+                </ul>
+            </div>
+            <div class="md:col-span-4 mt-10 border-t pt-6 text-center text-gray-500">
+                <p>&copy; 2025 ImpromptuIndian. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/index.js"></script>
+    <script src="js/blog.js"></script>
+</body>
+
+</html>

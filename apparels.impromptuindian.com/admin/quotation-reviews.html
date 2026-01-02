@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quotation Reviews – ImpromptuIndian Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/quotation-reviews.css" />
+    <link rel="shortcut icon" href="images/favicon.ico" type="images/x-icon">
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+        <main class="flex-1 overflow-y-auto p-8">
+            <div class="reveal mb-8 flex items-start justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">Quotation Reviews</h1>
+                    <p class="text-gray-400 mt-1">Review and approve vendor quotations and commission rates</p>
+                </div>
+                <a href="vendors.html"
+                    class="flex items-center gap-2 px-4 py-2 bg-[#1273EB]  text-gray-300 rounded-lg transition-colors border border-gray-700">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Back
+                </a>
+            </div>
+
+            <div class="reveal" style="transition-delay: 200ms;">
+                <h3 class="text-xl font-semibold mb-4 text-gray-200">Pending Quotations</h3>
+                <div id="quotations-grid" class="quotations-grid">
+                    <!-- Cards will be injected here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Quotation Detail Modal -->
+    <div id="quotation-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeQuotationModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modal-title">Review Quotation</h2>
+                <button class="modal-close" onclick="closeQuotationModal()"><i data-lucide="x"
+                        class="w-5 h-5"></i></button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <div class="space-y-6">
+                    <div>
+                        <p class="info-label">Vendor</p>
+                        <p class="info-value" id="modal-vendor-name"></p>
+                    </div>
+
+                    <div class="file-preview-box">
+                        <div class="flex items-center gap-4">
+                            <div class="bg-green-500/10 p-3 rounded-lg">
+                                <i data-lucide="file-spreadsheet" class="w-8 h-8 text-green-500"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400">Quotation File</p>
+                                <p id="modal-filename" class="font-medium text-white"></p>
+                            </div>
+                        </div>
+                        <a href="#" id="modal-download-link"
+                            class="btn-secondary text-sm flex items-center gap-2 hover:bg-gray-700">
+                            <i data-lucide="download" class="w-4 h-4"></i> Download
+                        </a>
+                    </div>
+
+                    <div>
+                        <label class="info-label mb-2 block">Final Commission Rate (%)</label>
+                        <div class="input-group">
+                            <input type="number" id="modal-commission" class="custom-input" placeholder="0.00" min="0"
+                                max="100">
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">You can adjust the proposed rate before approving.</p>
+                    </div>
+
+                    <div>
+                        <label class="info-label mb-2 block">Rejection Reason (if rejecting)</label>
+                        <div class="input-group">
+                            <textarea id="modal-remarks" class="custom-input resize-none" rows="3"
+                                placeholder="Enter reason for rejection..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeQuotationModal()">Cancel</button>
+                <button class="btn-danger" onclick="rejectQuotation()">Reject</button>
+                <button class="btn-primary" onclick="approveQuotation()">Approve & Activate</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ALERT MODAL -->
+    <div id="customAlert"
+        class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50 px-4">
+        <div class="bg-[#0f131a] border border-gray-800 rounded-xl p-6 shadow-2xl text-white max-w-sm w-full">
+            <div class="flex flex-col items-center text-center">
+                <div id="alertIcon" class="mb-4"></div>
+                <h3 id="alertTitle" class="text-lg font-bold mb-2">Alert</h3>
+                <p id="alertMessage" class="text-gray-400 text-sm mb-6">Message goes here</p>
+
+                <div class="flex gap-3 w-full">
+                    <button id="alertCancelBtn" onclick="closeAlert()"
+                        class="hidden w-full bg-gray-600 hover:bg-gray-500 text-white py-2 rounded-md font-medium">Cancel</button>
+
+                    <button id="alertOkBtn" onclick="closeAlert()"
+                        class="w-full bg-[#3fa9ff] hover:bg-[#2d93e0] text-white py-2 rounded-md font-medium">Okay</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Alert Script -->
+    <script src="js/custom-alert.js"></script>
+
+    <script>
+        window.THREADLY_API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://apparels.impromptuindian.com';
+    </script>
+    <script src="js/quotation-reviews.js"></script>
+</body>
+
+</html>

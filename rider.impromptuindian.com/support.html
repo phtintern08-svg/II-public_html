@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Support & Helpdesk – ImpromptuIndian Rider</title>
+    <meta name="description" content="Get help and support" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/rider-global.css" />
+    <link rel="stylesheet" href="css/support.css" />
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <!-- Header -->
+            <div class="dashboard-header mb-8">
+                <div>
+                    <h1 class="dashboard-title">Support & Helpdesk</h1>
+                    <p class="dashboard-subtitle">Get help with your issues</p>
+                </div>
+                <button class="btn-primary" onclick="openCreateTicketModal()">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                    Create Ticket
+                </button>
+            </div>
+
+            <!-- Filter Tabs -->
+            <div class="flex gap-2 mb-6 overflow-x-auto">
+                <button class="filter-tab active" data-status="all" onclick="filterTickets('all')">
+                    All Tickets
+                </button>
+                <button class="filter-tab" data-status="open" onclick="filterTickets('open')">
+                    Open
+                </button>
+                <button class="filter-tab" data-status="in_progress" onclick="filterTickets('in_progress')">
+                    In Progress
+                </button>
+                <button class="filter-tab" data-status="resolved" onclick="filterTickets('resolved')">
+                    Resolved
+                </button>
+            </div>
+
+            <!-- Tickets Container -->
+            <div id="ticketsContainer">
+                <!-- Tickets will be loaded here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Create Ticket Modal -->
+    <div id="createTicketModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Create Support Ticket</h2>
+                <button class="modal-close" onclick="closeCreateTicketModal()">×</button>
+            </div>
+            <form id="createTicketForm" onsubmit="createTicket(event)">
+                <div class="form-group">
+                    <label class="form-label">Category *</label>
+                    <select id="ticketCategory" class="form-input" required>
+                        <option value="">Select Category</option>
+                        <option value="delivery_issue">Delivery Issue</option>
+                        <option value="payment_issue">Payment/Payout Issue</option>
+                        <option value="technical_issue">App/Technical Issue</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Subject *</label>
+                    <input type="text" id="ticketSubject" class="form-input"
+                        placeholder="Brief description of the issue" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description *</label>
+                    <textarea id="ticketDescription" class="form-textarea" rows="5"
+                        placeholder="Provide detailed information about your issue..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Attachment (Optional)</label>
+                    <input type="file" id="ticketAttachment" accept="image/*" class="form-input">
+                    <p class="text-xs text-muted mt-2">Upload images of damaged parcels, failed OTP, etc.</p>
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="btn-primary flex-1">
+                        <i data-lucide="send" class="w-4 h-4"></i>
+                        Submit Ticket
+                    </button>
+                    <button type="button" onclick="closeCreateTicketModal()" class="btn-secondary">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Ticket Details Modal -->
+    <div id="ticketDetailsModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h2 class="modal-title">Ticket Details</h2>
+                <button class="modal-close" onclick="closeTicketDetailsModal()">×</button>
+            </div>
+            <div id="ticketDetailsContent">
+                <!-- Ticket details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="js/support.js"></script>
+</body>
+
+</html>

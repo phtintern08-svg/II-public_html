@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Earnings & Payouts – ImpromptuIndian Rider</title>
+    <meta name="description" content="Track your earnings and payouts" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/rider-global.css" />
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <!-- Header -->
+            <div class="dashboard-header mb-8">
+                <div>
+                    <h1 class="dashboard-title">Earnings & Payouts</h1>
+                    <p class="dashboard-subtitle">Track your income and payout history</p>
+                </div>
+                <button class="btn-refresh-modern" onclick="loadEarnings()">
+                    <i data-lucide="refresh-ccw" class="w-5 h-5"></i>
+                    Refresh
+                </button>
+            </div>
+
+            <!-- Earnings Summary -->
+            <div class="mb-8">
+                <h2 class="text-xl font-bold mb-4">Earnings Summary</h2>
+                <div class="stats-grid">
+                    <div class="stat-card stat-card-green" data-delay="0">
+                        <div class="stat-icon">
+                            <i data-lucide="dollar-sign" class="w-6 h-6"></i>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">Total Earnings (Lifetime)</p>
+                            <p class="stat-value" id="total-earnings">₹0</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card stat-card-blue" data-delay="100">
+                        <div class="stat-icon">
+                            <i data-lucide="calendar-days" class="w-6 h-6"></i>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">Earnings Today</p>
+                            <p class="stat-value" id="earnings-today">₹0</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card stat-card-yellow" data-delay="200">
+                        <div class="stat-icon">
+                            <i data-lucide="calendar" class="w-6 h-6"></i>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">This Week</p>
+                            <p class="stat-value" id="earnings-week">₹0</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card stat-card-blue" data-delay="300">
+                        <div class="stat-icon">
+                            <i data-lucide="trending-up" class="w-6 h-6"></i>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">This Month</p>
+                            <p class="stat-value" id="earnings-month">₹0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Payout -->
+            <div class="info-card mb-8" data-delay="400">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-secondary">Pending Payout</h3>
+                    <span class="status-badge"
+                        style="background: rgba(255, 204, 0, 0.2); color: #FFCC00; border-color: rgba(255, 204, 0, 0.3);">
+                        <i data-lucide="clock" class="w-4 h-4"></i>
+                        Pending
+                    </span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div>
+                        <p class="text-sm text-muted mb-1">Amount</p>
+                        <p class="text-2xl font-bold text-secondary" id="pending-amount">₹0.00</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-muted mb-1">Deliveries Count</p>
+                        <p class="text-2xl font-bold" id="pending-deliveries">0</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-muted mb-1">Next Payout Date</p>
+                        <p class="text-lg font-semibold" id="next-payout-date">-</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-muted mb-1">Payment Method</p>
+                        <p class="text-lg font-semibold" id="payment-method">Bank Transfer</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Earnings Breakdown -->
+            <div class="info-card mb-8" data-delay="500">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold">Earnings Breakdown</h3>
+                    <div class="flex gap-2">
+                        <input type="date" id="breakdownFromDate" class="form-input" style="width: auto;">
+                        <input type="date" id="breakdownToDate" class="form-input" style="width: auto;">
+                        <button onclick="loadBreakdown()" class="btn-primary">
+                            <i data-lucide="search" class="w-4 h-4"></i>
+                            Filter
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Delivery ID</th>
+                                <th>Order ID</th>
+                                <th>Date</th>
+                                <th>Base Payout</th>
+                                <th>Distance Bonus</th>
+                                <th>Incentive</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="breakdownTableBody">
+                            <!-- Rows will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-4 p-4 bg-blue-900/20 border border-blue-700/30 rounded-lg">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div>
+                            <p class="text-sm text-muted">Total Deliveries</p>
+                            <p class="text-xl font-bold" id="breakdown-count">0</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-muted">Total Base</p>
+                            <p class="text-xl font-bold text-blue-400" id="breakdown-base">₹0</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-muted">Total Bonuses</p>
+                            <p class="text-xl font-bold text-yellow-400" id="breakdown-bonus">₹0</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-muted">Total Earnings</p>
+                            <p class="text-xl font-bold text-green-400" id="breakdown-total">₹0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payout History -->
+            <div class="info-card" data-delay="600">
+                <h3 class="text-xl font-bold mb-4">Payout History</h3>
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Payout ID</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Deliveries</th>
+                                <th>Method</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="payoutHistoryBody">
+                            <!-- Rows will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Payout Details Modal -->
+    <div id="payoutModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Payout Details</h2>
+                <button class="modal-close" onclick="closePayoutModal()">×</button>
+            </div>
+            <div id="payoutContent">
+                <!-- Payout details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="js/earnings.js"></script>
+</body>
+
+</html>

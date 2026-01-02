@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Rider | ImpromptuIndian Vendor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/profile.css">
+    <script src="https://apis.mapmyindia.com/advancedmaps/v1/YOUR_API_KEY/map_load?v=1.3"></script>
+</head>
+
+<body class="bg-gradient-to-br from-[#0a0e27] to-[#1a1f3a] min-h-screen text-white">
+
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div id="sidebar-container"></div>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-8">
+            <div class="max-w-7xl mx-auto">
+
+                <!-- Header -->
+                <header class="mb-8">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 class="text-3xl font-bold mb-2">Track Rider</h1>
+                            <p class="text-gray-400">Monitor rider location in real-time during pickup</p>
+                        </div>
+                        <button onclick="window.history.back()"
+                            class="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl font-semibold transition-colors">
+                            <i data-lucide="arrow-left" class="w-5 h-5 inline mr-2"></i>
+                            Back to Orders
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Delivery Info Card -->
+                <div class="info-card mb-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold" id="orderTitle">Order #7</h2>
+                            <p class="text-gray-400 mt-1" id="orderProduct">Crewneck Sweatshirt - 200 pieces</p>
+                        </div>
+                        <div class="text-right">
+                            <div id="statusBadge"
+                                class="inline-block px-4 py-2 rounded-full bg-yellow-500/20 text-yellow-400 font-bold text-sm">
+                                🚴 Rider En Route to Pickup
+                            </div>
+                            <p class="text-sm text-gray-400 mt-2" id="lastUpdate">Last updated: Just now</p>
+                        </div>
+                    </div>
+
+                    <!-- Rider Info -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div class="bg-black/20 rounded-xl p-4">
+                            <p class="text-gray-400 text-sm mb-2">Rider Name</p>
+                            <p class="font-bold text-lg" id="riderName">Loading...</p>
+                        </div>
+                        <div class="bg-black/20 rounded-xl p-4">
+                            <p class="text-gray-400 text-sm mb-2">Vehicle Type</p>
+                            <p class="font-bold text-lg" id="riderVehicle">Loading...</p>
+                        </div>
+                        <div class="bg-black/20 rounded-xl p-4">
+                            <p class="text-gray-400 text-sm mb-2">Estimated Time</p>
+                            <p class="font-bold text-lg text-yellow-400" id="eta">Calculating...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Map Card -->
+                <div class="info-card">
+                    <h3 class="text-xl font-bold mb-4">Live Location</h3>
+                    <div class="relative">
+                        <div id="map" class="w-full h-[500px] rounded-xl"></div>
+                        <div class="absolute top-4 right-4 bg-black/80 backdrop-blur-sm px-4 py-2 rounded-lg">
+                            <div class="flex items-center gap-2">
+                                <span class="animate-pulse w-3 h-3 bg-green-500 rounded-full"></span>
+                                <span class="font-semibold">Live Tracking</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <!-- Removed non-existent shared-config.js and threadly-api.js -->
+    <script src="js/sidebar.js"></script>
+    <script src="js/track-rider.js"></script>
+</body>
+
+</html>

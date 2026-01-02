@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings – ImpromptuIndian Admin</title>
+    <meta name="description" content="Configure platform settings and business rules" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/settings.css" />
+    <link rel="shortcut icon" href="images/favicon.ico" type="images/x-icon">
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <div class="reveal mb-8">
+                <h1 class="text-3xl font-bold">Platform Settings</h1>
+                <p class="text-gray-400 mt-1">Configure platform rules and preferences</p>
+            </div>
+
+            <!-- Settings Tabs -->
+            <div class="reveal tabs-container mb-6" style="transition-delay: 100ms;">
+                <button class="tab-btn active" onclick="switchTab('branding')">Branding</button>
+                <button class="tab-btn" onclick="switchTab('commission')">Commission</button>
+                <button class="tab-btn" onclick="switchTab('penalties')">Penalties</button>
+                <button class="tab-btn" onclick="switchTab('sla')">SLA Rules</button>
+                <button class="tab-btn" onclick="switchTab('notifications')">Notifications</button>
+                <button class="tab-btn" onclick="switchTab('payment')">Payment Gateway</button>
+            </div>
+
+            <!-- Settings Content -->
+            <div id="settings-content" class="reveal" style="transition-delay: 200ms;">
+                <!-- Dynamic content injected by JS -->
+            </div>
+
+            <!-- Save Button -->
+            <div class="reveal mt-8" style="transition-delay: 300ms;">
+                <button class="btn-save" onclick="saveSettings()"><i data-lucide="save" class="w-4 h-4"></i> Save All
+                    Settings</button>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast hidden"><i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i><span
+            id="toast-msg">Action completed!</span></div>
+
+    <script src="js/settings.js"></script>
+</body>
+
+</html>

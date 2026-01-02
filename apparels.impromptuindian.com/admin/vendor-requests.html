@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vendor Requests – ImpromptuIndian Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/vendor-requests.css" />
+    <link rel="shortcut icon" href="images/favicon.ico" type="images/x-icon">
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+        <main class="flex-1 overflow-y-auto p-8">
+            <div class="reveal mb-8 flex items-start justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">Vendor Requests</h1>
+                    <p class="text-gray-400 mt-1">Review and verify new vendor applications</p>
+                </div>
+                <a href="vendors.html"
+                    class="flex items-center gap-2 px-4 py-2 bg-[#1273EB]  text-gray-300 rounded-lg transition-colors border border-gray-700">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Back
+                </a>
+            </div>
+
+            <div class="reveal filters-bar mb-6" style="transition-delay: 100ms;">
+                <select id="status-filter" class="filter-select" onchange="filterRequests()">
+                    <option value="all">All</option>
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+                <input type="text" id="search-vendor" class="search-input" placeholder="Search vendor..."
+                    oninput="filterRequests()" />
+            </div>
+
+            <div class="reveal card" style="transition-delay: 200ms;">
+                <div class="card-header">
+                    <h3 class="card-title">Pending Applications</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Vendor Name</th>
+                                    <th>Business Type</th>
+                                    <th>Submitted On</th>
+                                    <th>Status</th>
+                                    <th class="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="requests-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Vendor Detail Modal -->
+    <div id="vendor-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeVendorModal()"></div>
+        <div class="modal-content modal-large">
+            <div class="modal-header flex justify-between items-center w-full">
+                <h2 class="modal-title" id="modal-title">Vendor Application</h2>
+                <button class="modal-close bg-transparent border-none cursor-pointer" onclick="closeVendorModal()"><i
+                        data-lucide="x" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i></button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Dynamic content will be injected -->
+            </div>
+            <div class="modal-footer">
+                <button id="btn-reject-vendor" class="btn-danger hidden" onclick="rejectVendor()">
+                    <i data-lucide="x" class="w-4 h-4"></i>Reject
+                </button>
+                <button id="btn-approve-vendor" class="btn-primary" onclick="approveVendor()">
+                    <i data-lucide="check" class="w-4 h-4"></i>Approve
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ALERT MODAL -->
+    <div id="customAlert"
+        class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50 px-4">
+        <div class="bg-[#0f131a] border border-gray-800 rounded-xl p-6 shadow-2xl text-white max-w-sm w-full">
+            <div class="flex flex-col items-center text-center">
+                <div id="alertIcon" class="mb-4"></div>
+                <h3 id="alertTitle" class="text-lg font-bold mb-2">Alert</h3>
+                <p id="alertMessage" class="text-gray-400 text-sm mb-6">Message goes here</p>
+
+                <div class="flex gap-3 w-full">
+                    <button id="alertCancelBtn" onclick="closeAlert()"
+                        class="hidden w-full bg-gray-600 hover:bg-gray-500 text-white py-2 rounded-md font-medium">Cancel</button>
+                    <button id="alertOkBtn" onclick="closeAlert()"
+                        class="w-full bg-[#3fa9ff] hover:bg-[#2d93e0] text-white py-2 rounded-md font-medium">Okay</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Alert Script -->
+    <script src="js/custom-alert.js"></script>
+
+    <script src="js/vendor-requests.js?v=11"></script>
+</body>
+
+</html>

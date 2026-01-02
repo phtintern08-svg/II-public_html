@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Completed Orders – ImpromptuIndian Admin</title>
+    <meta name="description" content="View delivered orders with payout calculations and analytics" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/completed-orders.css" />
+    <link rel="shortcut icon" href="images/favicon.ico" type="images/x-icon">
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <div class="reveal mb-8 flex items-start justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">Completed Orders</h1>
+                    <p class="text-gray-400 mt-1">Delivered orders with payout calculations</p>
+                </div>
+                <div class="flex gap-3">
+                    <a href="orders.html"
+                        class="flex items-center gap-2 px-4 py-2 bg-[#1273EB] text-white rounded-lg transition-colors border border-gray-700">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i> Back
+                    </a>
+                    <button class="btn-export" onclick="exportCSV()"><i data-lucide="download" class="w-4 h-4"></i>
+                        Export
+                        CSV</button>
+                </div>
+            </div>
+
+            <div class="reveal filters-bar mb-6" style="transition-delay: 100ms;">
+                <input type="date" id="date-from" class="filter-select" onchange="filterCompleted()" />
+                <input type="date" id="date-to" class="filter-select" onchange="filterCompleted()" />
+                <input type="text" id="search-completed" class="search-input" placeholder="Search order ID..."
+                    oninput="filterCompleted()" />
+            </div>
+
+            <div class="reveal card" style="transition-delay: 200ms;">
+                <div class="card-header">
+                    <h3 class="card-title">Delivered Orders</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Vendor</th>
+                                    <th>Customer</th>
+                                    <th>Delivery Time (hrs)</th>
+                                    <th>Vendor Payout</th>
+                                    <th>Commission</th>
+                                    <th>Penalty</th>
+                                    <th>Total Earned</th>
+                                </tr>
+                            </thead>
+                            <tbody id="completed-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reveal card mt-8" style="transition-delay: 300ms;">
+                <div class="card-header">
+                    <h3 class="card-title">Revenue Trend (Last 30 Days)</h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast hidden"><i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i><span
+            id="toast-msg">Action completed!</span></div>
+
+    <script src="js/completed-orders.js"></script>
+</body>
+
+</html>

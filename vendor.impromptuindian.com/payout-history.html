@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payout History – ImpromptuIndian Vendor</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/payout-history.css">
+</head>
+
+<body class="text-white">
+
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- SIDEBAR CONTAINER -->
+        <div id="sidebar-container"></div>
+
+        <!-- Sidebar Script -->
+        <script src="js/sidebar.js"></script>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 overflow-y-auto p-8">
+
+            <!-- Page Header -->
+            <div class="reveal mb-8 flex items-start justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold tracking-tight">Payout History</h1>
+                    <p class="text-gray-400 mt-1">View all your past payouts and transactions.</p>
+                </div>
+                <button class="btn-download" onclick="downloadPayoutReport()">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    Download Report
+                </button>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="reveal payout-summary-grid mb-8" style="transition-delay: 100ms;">
+                <div class="summary-card">
+                    <div class="summary-icon bg-green-500/10">
+                        <i data-lucide="check-circle" class="w-6 h-6 text-green-500"></i>
+                    </div>
+                    <div class="summary-content">
+                        <p class="summary-label">Total Paid</p>
+                        <p class="summary-value" id="total-paid">$0</p>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-icon bg-yellow-500/10">
+                        <i data-lucide="clock" class="w-6 h-6 text-yellow-500"></i>
+                    </div>
+                    <div class="summary-content">
+                        <p class="summary-label">In Process</p>
+                        <p class="summary-value" id="in-process">$0</p>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-icon bg-blue-500/10">
+                        <i data-lucide="calendar" class="w-6 h-6 text-blue-500"></i>
+                    </div>
+                    <div class="summary-content">
+                        <p class="summary-label">Last Payout</p>
+                        <p class="summary-value" id="last-payout-date">-</p>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-icon bg-purple-500/10">
+                        <i data-lucide="trending-up" class="w-6 h-6 text-purple-500"></i>
+                    </div>
+                    <div class="summary-content">
+                        <p class="summary-label">Total Payouts</p>
+                        <p class="summary-value" id="total-count">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="reveal filters-bar mb-6" style="transition-delay: 200ms;">
+                <div class="filter-group">
+                    <label class="filter-label">Date Range:</label>
+                    <select id="date-filter" class="filter-select" onchange="filterPayouts()">
+                        <option value="all">All Time</option>
+                        <option value="month" selected>Last Month</option>
+                        <option value="quarter">Last 3 Months</option>
+                        <option value="year">Last Year</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Status:</label>
+                    <select id="status-filter" class="filter-select" onchange="filterPayouts()">
+                        <option value="all">All Status</option>
+                        <option value="paid">Paid</option>
+                        <option value="processing">Processing</option>
+                        <option value="on-hold">On Hold</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <input type="text" id="search-input" class="search-input" placeholder="Search by Transaction ID..."
+                        oninput="filterPayouts()">
+                </div>
+            </div>
+
+            <!-- Payout Table -->
+            <div class="reveal card" style="transition-delay: 300ms;">
+                <div class="card-header">
+                    <h3 class="card-title">Payout Transactions</h3>
+                    <p class="card-description" id="results-count">Showing all payouts</p>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Transaction ID</th>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Method</th>
+                                    <th>Status</th>
+                                    <th class="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="payout-table">
+                                <!-- Payouts will be injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Payout Details Modal -->
+    <div id="details-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeDetailsModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modal-title">Payout Details</h2>
+                <button class="modal-close" onclick="closeDetailsModal()">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Details will be injected here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeDetailsModal()">Close</button>
+                <button class="btn-primary" onclick="downloadReceipt()">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    Download Receipt
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dispute Modal -->
+    <div id="dispute-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeDisputeModal()"></div>
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2 class="modal-title">Raise Dispute</h2>
+                <button class="modal-close" onclick="closeDisputeModal()">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="text-sm text-gray-400 mb-4">Describe the issue with this payout:</p>
+                <textarea id="dispute-reason" class="dispute-textarea" placeholder="Explain the issue in detail..."
+                    rows="5"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeDisputeModal()">Cancel</button>
+                <button class="btn-danger" onclick="submitDispute()">Submit Dispute</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div id="success-toast" class="toast hidden">
+        <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+        <span id="toast-message">Action completed successfully!</span>
+    </div>
+
+    <!-- Payout History Script -->
+    <script src="js/payout-history.js"></script>
+
+</body>
+
+</html>

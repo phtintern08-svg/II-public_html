@@ -1,0 +1,277 @@
+/* verified-vendors.css */
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+.reveal {
+    /* Default visible so content isn't hidden if JS fails */
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity .6s, transform .6s;
+}
+
+.reveal.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Card & Table */
+.card {
+    background: rgba(255, 255, 255, .04);
+    border-radius: .75rem;
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, .1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.card-body {
+    padding: 1rem;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: .75rem;
+    text-align: left;
+    color: #e2e8f0;
+    border-bottom: 1px solid rgba(255, 255, 255, .1);
+}
+
+th {
+    background: rgba(255, 255, 255, .06);
+    font-weight: 600;
+}
+
+tr:hover {
+    background: rgba(255, 255, 255, .02);
+}
+
+/* Filters */
+.filters-bar {
+    display: flex;
+    gap: .5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.filter-select,
+.search-input {
+    background: #2d3748;
+    border: none;
+    padding: .5rem;
+    border-radius: .5rem;
+    color: #fff;
+}
+
+.filter-select:focus,
+.search-input:focus {
+    outline: none;
+}
+
+/* Status badges */
+.status-active {
+    background: #10b981;
+    color: #fff;
+    padding: .25rem .5rem;
+    border-radius: .25rem;
+    font-size: .75rem;
+}
+
+.status-suspended {
+    background: #ef4444;
+    color: #fff;
+    padding: .25rem .5rem;
+    border-radius: .25rem;
+    font-size: .75rem;
+}
+
+/* Rating stars */
+.rating {
+    color: #f59e0b;
+}
+
+/* Buttons */
+.btn-add {
+    background: #1273EB;
+    color: #fff;
+    padding: .5rem 1rem;
+    border-radius: .5rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    cursor: pointer;
+}
+
+.btn-add:hover {
+    background: #0f5bbf;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-danger {
+    padding: .5rem 1rem;
+    border-radius: .5rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.btn-primary {
+    background: #1273EB;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: #0f5bbf;
+}
+
+.btn-secondary {
+    background: #4b5563;
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background: #374151;
+}
+
+.btn-danger {
+    background: #ef4444;
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-overlay {
+    position: absolute;
+    inset: 0;
+}
+
+.modal-content {
+    background: #1a202c;
+    border-radius: .75rem;
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 51;
+}
+
+.modal-large {
+    max-width: 1000px;
+}
+
+.modal-header,
+.modal-footer {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, .1);
+}
+
+.modal-footer {
+    border-top: 1px solid rgba(255, 255, 255, .1);
+    border-bottom: none;
+    display: flex;
+    justify-content: flex-end;
+    gap: .5rem;
+}
+
+.modal-body {
+    padding: 1rem;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.modal-close {
+    background: transparent;
+    border: none;
+    color: #a0aec0;
+    cursor: pointer;
+    padding: .25rem;
+}
+
+/* Vendor analytics */
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.analytics-card {
+    background: rgba(255, 255, 255, .05);
+    padding: 1rem;
+    border-radius: .5rem;
+}
+
+.analytics-label {
+    font-size: .875rem;
+    color: #a0aec0;
+    margin-bottom: .5rem;
+}
+
+.analytics-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+/* Toast */
+.toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: #1a202c;
+    color: #fff;
+    padding: .75rem 1.25rem;
+    border-radius: .5rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .3);
+    z-index: 100;
+}
+
+.toast.hidden {
+    display: none;
+}

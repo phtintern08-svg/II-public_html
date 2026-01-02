@@ -1,0 +1,24 @@
+/* Products Page Styles */
+body {
+    background-color: #0a0f1c;
+}
+
+.sidebar {
+    width: 265px;
+}
+
+.menu-item.active {
+    background-color: #FFCC00 !important;
+    color: #000 !important;
+}
+
+.menu-item:hover {
+    background-color: #000 !important;
+    color: #fff !important;
+}
+
+.main-scroll {
+    overflow-y: auto;
+    height: 100vh;
+    padding-bottom: 120px;
+}

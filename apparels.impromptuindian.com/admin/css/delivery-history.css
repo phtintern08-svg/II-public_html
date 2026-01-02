@@ -1,0 +1,188 @@
+/* delivery-history.css */
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+.reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity .6s, transform .6s;
+}
+
+.reveal.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Summary cards */
+.summary-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: .75rem;
+    border: 1px solid;
+}
+
+.summary-icon {
+    padding: .5rem;
+    border-radius: .5rem;
+}
+
+.summary-label {
+    font-size: .875rem;
+    color: #a0aec0;
+}
+
+.summary-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+/* Card & Table */
+.card {
+    background: rgba(255, 255, 255, .04);
+    border-radius: .75rem;
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, .1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.card-body {
+    padding: 1rem;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: .75rem;
+    text-align: left;
+    color: #e2e8f0;
+    border-bottom: 1px solid rgba(255, 255, 255, .1);
+}
+
+th {
+    background: rgba(255, 255, 255, .06);
+    font-weight: 600;
+}
+
+tr:hover {
+    background: rgba(255, 255, 255, .02);
+}
+
+/* Filters */
+.filters-bar {
+    display: flex;
+    gap: .5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.filter-select,
+.search-input {
+    background: #2d3748;
+    border: none;
+    padding: .5rem;
+    border-radius: .5rem;
+    color: #fff;
+}
+
+.filter-select:focus,
+.search-input:focus {
+    outline: none;
+}
+
+/* Buttons */
+.btn-export {
+    background: #FFCC00;
+    color: black;
+    padding: .5rem 1rem;
+    border-radius: .5rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.btn-export:hover {
+    background: #0f5bbf;
+}
+
+.btn-primary {
+    background: #1273EB;
+    color: #fff;
+    padding: .5rem 1rem;
+    border-radius: .5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.btn-primary:hover {
+    background: #0f5bbf;
+}
+
+/* Toast */
+.toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: #1a202c;
+    color: #fff;
+    padding: .75rem 1.25rem;
+    border-radius: .5rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .3);
+    z-index: 100;
+}
+
+.toast.hidden {
+    display: none;
+}
+
+/* Status badges */
+.status-delivered {
+    background: #10b981;
+    color: #fff;
+    padding: .25rem .5rem;
+    border-radius: .25rem;
+    font-size: .75rem;
+}
+
+.status-failed {
+    background: #ef4444;
+    color: #fff;
+    padding: .25rem .5rem;
+    border-radius: .25rem;
+    font-size: .75rem;
+}
+
+.status-returned {
+    background: #f59e0b;
+    color: #fff;
+    padding: .25rem .5rem;
+    border-radius: .25rem;
+    font-size: .75rem;
+}

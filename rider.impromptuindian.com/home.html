@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rider Dashboard – ImpromptuIndian</title>
+    <meta name="description" content="Delivery Partner Dashboard for ImpromptuIndian" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/rider-global.css" />
+    <link rel="stylesheet" href="css/home.css" />
+
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <!-- Header -->
+            <div class="dashboard-header mb-8">
+                <div>
+                    <h1 class="dashboard-title">Rider Dashboard</h1>
+                    <p class="dashboard-subtitle">Manage your deliveries and track earnings</p>
+                </div>
+                <button class="btn-refresh-modern" onclick="refreshDashboard()">
+                    <i data-lucide="refresh-ccw" class="w-5 h-5"></i>
+                    Refresh
+                </button>
+            </div>
+
+            <!-- Online/Offline Toggle -->
+            <div class="toggle-container mb-8" data-delay="0">
+                <div class="flex-1">
+                    <h3 class="font-semibold text-lg mb-1">Availability Status</h3>
+                    <p class="text-sm text-muted">Toggle to receive new delivery assignments</p>
+                </div>
+                <div class="toggle-switch" id="availabilityToggle" onclick="toggleAvailability()">
+                    <div class="toggle-slider"></div>
+                </div>
+                <div class="status-badge offline" id="statusBadge">
+                    <span class="status-dot"></span>
+                    <span id="statusText">Offline</span>
+                </div>
+            </div>
+
+            <!-- Today's Overview -->
+            <div class="mb-8">
+                <h2 class="text-xl font-bold mb-4">Today's Overview</h2>
+                <div class="stats-grid">
+                    <div class="stat-card stat-card-blue" data-delay="0">
+                        <div class="stat-icon">
+                            <i data-lucide="package" class="w-6 h-6"></i>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">Total Assigned</p>
+                            <p class="stat-value" id="total-assigned">0</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card stat-card-yellow" data-delay="100">
+                        <div class="stat-icon">
+                            <i data-lucide="clock" class="w-6 h-6"></i>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">Pending Pickup</p>
+                            <p class="stat-value" id="pending-pickup">0</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card stat-card-blue" data-delay="200">
+                        <div class="stat-icon">
+                            <i data-lucide="truck" class="w-6 h-6"></i>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">Out for Delivery</p>
+                            <p class="stat-value" id="out-for-delivery">0</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card stat-card-green" data-delay="300">
+                        <div class="stat-icon">
+                            <i data-lucide="check-circle" class="w-6 h-6"></i>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">Completed Today</p>
+                            <p class="stat-value" id="completed-today">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Earnings Overview -->
+            <div class="mb-8">
+                <h2 class="text-xl font-bold mb-4">Earnings Overview</h2>
+                <div class="stats-grid">
+                    <div class="stat-card stat-card-green" data-delay="400">
+                        <div class="stat-icon">
+                            <i data-lucide="dollar-sign" class="w-6 h-6"></i>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">Earnings Today</p>
+                            <p class="stat-value" id="earnings-today">₹0</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card stat-card-blue" data-delay="500">
+                        <div class="stat-icon">
+                            <i data-lucide="calendar" class="w-6 h-6"></i>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">This Week</p>
+                            <p class="stat-value" id="earnings-week">₹0</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card stat-card-yellow" data-delay="600">
+                        <div class="stat-icon">
+                            <i data-lucide="trending-up" class="w-6 h-6"></i>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">This Month</p>
+                            <p class="stat-value" id="earnings-month">₹0</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card stat-card-red" data-delay="700">
+                        <div class="stat-icon">
+                            <i data-lucide="clock" class="w-6 h-6"></i>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">Pending Payout</p>
+                            <p class="stat-value" id="pending-payout">₹0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Delivery Tasks -->
+            <div class="mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold">Active Delivery Tasks</h2>
+                    <a href="assigned-deliveries.html" class="text-sm text-secondary hover:underline">View All →</a>
+                </div>
+                <div id="active-tasks-container">
+                    <!-- Tasks will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Alerts Section -->
+            <div class="mb-8" id="alerts-section">
+                <h2 class="text-xl font-bold mb-4">Alerts & Notifications</h2>
+                <div id="alerts-container">
+                    <!-- Alerts will be loaded here -->
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="js/location-service.js"></script>
+    <script src="js/home.js"></script>
+</body>
+
+</html>

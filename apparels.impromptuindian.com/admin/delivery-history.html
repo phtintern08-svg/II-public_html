@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Delivery History – ImpromptuIndian Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/delivery-history.css" />
+    <link rel="shortcut icon" href="images/favicon.ico" type="images/x-icon">
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <div class="reveal mb-8 flex items-start justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">Delivery History</h1>
+                    <p class="text-gray-400 mt-1">Track completed and failed deliveries</p>
+                </div>
+                <div class="flex gap-3">
+                    <a href="delivery.html"
+                        class="flex items-center gap-2 px-4 py-2 bg-[#1273EB] text-white rounded-lg transition-colors border border-gray-700">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i> Back
+                    </a>
+                    <button class="btn-export" onclick="exportHistory()"><i data-lucide="download" class="w-4 h-4"></i>
+                        Export CSV</button>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 reveal" style="transition-delay: 100ms;">
+                <div class="summary-card bg-green-500/10 border-green-500/20">
+                    <div class="summary-icon bg-green-500/20"><i data-lucide="check-circle"
+                            class="w-6 h-6 text-green-500"></i></div>
+                    <div>
+                        <p class="summary-label">Completed</p>
+                        <p class="summary-value" id="completed-count">0</p>
+                    </div>
+                </div>
+                <div class="summary-card bg-red-500/10 border-red-500/20">
+                    <div class="summary-icon bg-red-500/20"><i data-lucide="x-circle" class="w-6 h-6 text-red-500"></i>
+                    </div>
+                    <div>
+                        <p class="summary-label">Failed</p>
+                        <p class="summary-value" id="failed-count">0</p>
+                    </div>
+                </div>
+                <div class="summary-card bg-blue-500/10 border-blue-500/20">
+                    <div class="summary-icon bg-blue-500/20"><i data-lucide="clock" class="w-6 h-6 text-blue-500"></i>
+                    </div>
+                    <div>
+                        <p class="summary-label">Avg Delivery Time</p>
+                        <p class="summary-value" id="avg-time">0h</p>
+                    </div>
+                </div>
+                <div class="summary-card bg-purple-500/10 border-purple-500/20">
+                    <div class="summary-icon bg-purple-500/20"><i data-lucide="star"
+                            class="w-6 h-6 text-purple-500"></i></div>
+                    <div>
+                        <p class="summary-label">Avg Rating</p>
+                        <p class="summary-value" id="avg-rating">0.0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reveal filters-bar mb-6" style="transition-delay: 200ms;">
+                <select id="status-filter" class="filter-select" onchange="filterHistory()">
+                    <option value="all">All Status</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="failed">Failed</option>
+                    <option value="returned">Returned</option>
+                </select>
+                <input type="date" id="date-from" class="filter-select" onchange="filterHistory()" />
+                <input type="date" id="date-to" class="filter-select" onchange="filterHistory()" />
+                <input type="text" id="search-history" class="search-input" placeholder="Search order ID..."
+                    oninput="filterHistory()" />
+            </div>
+
+            <div class="reveal card" style="transition-delay: 300ms;">
+                <div class="card-header">
+                    <h3 class="card-title">Delivery Records</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Rider</th>
+                                    <th>Customer</th>
+                                    <th>Delivery Time</th>
+                                    <th>Status</th>
+                                    <th>Rating</th>
+                                    <th>Feedback</th>
+                                    <th class="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Chart -->
+            <div class="reveal card mt-8" style="transition-delay: 400ms;">
+                <div class="card-header">
+                    <h3 class="card-title">Rider Performance (Last 30 Days)</h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast hidden"><i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i><span
+            id="toast-msg">Action completed!</span></div>
+
+    <script src="js/delivery-history.js"></script>
+</body>
+
+</html>

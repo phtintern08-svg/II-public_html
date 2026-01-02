@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Accepted Orders – ImpromptuIndian Vendor</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/accepted-orders.css">
+</head>
+
+<body class="text-white">
+
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- SIDEBAR CONTAINER -->
+        <div id="sidebar-container"></div>
+
+        <!-- Sidebar Script -->
+        <script src="js/sidebar.js"></script>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 overflow-y-auto p-8">
+
+            <!-- Page Header -->
+            <div class="reveal mb-8">
+                <h1 class="text-3xl font-bold tracking-tight">Accepted Orders</h1>
+                <p class="text-gray-400 mt-1">Manage the status and progress of your active orders.</p>
+            </div>
+
+            <!-- Orders Table Card -->
+            <div class="reveal card" style="transition-delay: 200ms;">
+                <div class="card-header">
+                    <h3 class="card-title">In Progress</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Time Remaining</th>
+                                    <th>Status</th>
+                                    <th class="text-right">Quantity</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-table-body">
+                                <!-- Order rows will be injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Success Toast -->
+    <div id="success-toast" class="success-toast hidden">
+        <div class="flex items-center gap-2">
+            <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+            <span id="toast-message">Status updated successfully!</span>
+        </div>
+    </div>
+
+    <!-- Accepted Orders Script -->
+    <script src="js/accepted-orders.js"></script>
+
+</body>
+
+</html>

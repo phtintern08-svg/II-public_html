@@ -1,0 +1,118 @@
+.notification-item {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.notification-item:hover {
+    transform: translateX(5px);
+    border-color: rgba(18, 115, 235, 0.5);
+    box-shadow: 0 5px 20px rgba(18, 115, 235, 0.2);
+}
+
+.notification-item.unread {
+    background: linear-gradient(135deg, rgba(18, 115, 235, 0.1) 0%, rgba(18, 115, 235, 0.05) 100%);
+    border-left: 4px solid #1273EB;
+}
+
+.notification-item.unread::before {
+    content: '';
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    background: #1273EB;
+    border-radius: 50%;
+}
+
+.notification-header {
+    display: flex;
+    align-items: start;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.notification-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.notification-icon.job {
+    background: linear-gradient(135deg, rgba(18, 115, 235, 0.2) 0%, rgba(18, 115, 235, 0.1) 100%);
+    color: #1273EB;
+}
+
+.notification-icon.payment {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0.1) 100%);
+    color: #22c55e;
+}
+
+.notification-icon.admin {
+    background: linear-gradient(135deg, rgba(255, 204, 0, 0.2) 0%, rgba(255, 204, 0, 0.1) 100%);
+    color: #FFCC00;
+}
+
+.notification-icon.system {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.1) 100%);
+    color: #ef4444;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.notification-message {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.notification-time {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.filter-tab {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.filter-tab:hover {
+    background: rgba(18, 115, 235, 0.1);
+    border-color: rgba(18, 115, 235, 0.3);
+    color: #1273EB;
+}
+
+.filter-tab.active {
+    background: linear-gradient(135deg, #1273EB 0%, #0d61c9 100%);
+    border-color: #1273EB;
+    color: white;
+}

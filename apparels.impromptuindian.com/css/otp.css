@@ -1,0 +1,26 @@
+body {
+    background: #0e1117;
+}
+
+/* OTP Input Styles */
+.otp-input {
+    width: 2.5rem;
+    height: 2.5rem;
+    text-align: center;
+    font-size: 1.125rem;
+    border-radius: 0.375rem;
+    background-color: #131820;
+    border: 1px solid #374151;
+    color: white;
+}
+
+.otp-input:focus {
+    border-color: #3b82f6;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* Custom Alert Modal Styles */
+#customAlert {
+    backdrop-filter: blur(4px);
+}

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment History – ImpromptuIndian Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/payment-history.css" />
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+        <main class="flex-1 overflow-y-auto p-8">
+            <div class="reveal mb-8 flex items-start justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">Payment History</h1>
+                    <p class="text-gray-400 mt-1">All payouts and transactions</p>
+                </div>
+                <div class="flex gap-3">
+                    <a href="payments.html"
+                        class="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors border border-gray-700">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i> Back
+                    </a>
+                    <button class="btn-export" onclick="exportPayments()">
+                        <i data-lucide="download" class="w-4 h-4"></i> Export
+                    </button>
+                </div>
+            </div>
+
+            <div class="reveal filters-bar mb-6" style="transition-delay: 100ms;">
+                <select id="status-filter" class="filter-select" onchange="filterPayments()">
+                    <option value="all">All Status</option>
+                    <option value="approved">Approved</option>
+                    <option value="pending">Pending</option>
+                    <option value="on-hold">On Hold</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+                <input type="date" id="date-from" class="filter-select" onchange="filterPayments()" />
+                <input type="date" id="date-to" class="filter-select" onchange="filterPayments()" />
+                <input type="text" id="search-vendor" class="search-input" placeholder="Search vendor..."
+                    oninput="filterPayments()" />
+            </div>
+
+            <div class="reveal card" style="transition-delay: 200ms;">
+                <div class="card-header">
+                    <h3 class="card-title">Payout Transactions</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Vendor</th>
+                                    <th>Order ID</th>
+                                    <th>Gross Amount</th>
+                                    <th>Commission</th>
+                                    <th>Penalty</th>
+                                    <th>Net Payout</th>
+                                    <th>Status</th>
+                                    <th class="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="payments-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast hidden"><i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i><span
+            id="toast-msg">Action completed!</span></div>
+
+    <script src="js/payment-history.js"></script>
+</body>
+
+</html>

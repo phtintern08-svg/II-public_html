@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Customer Management – ImpromptuIndian Admin</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/customers.css">
+    <link rel="shortcut icon" href="images/favicon.ico" type="images/x-icon">
+</head>
+
+<body class="text-white">
+
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- SIDEBAR CONTAINER -->
+        <div id="sidebar-container"></div>
+
+        <!-- Sidebar Script -->
+        <script src="js/sidebar.js"></script>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 overflow-y-auto p-8">
+
+            <!-- Page Header -->
+            <div class="reveal mb-8 flex items-start justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold tracking-tight">Customer Management</h1>
+                    <p class="text-gray-400 mt-1">View, manage, and monitor all customers.</p>
+                </div>
+                <button class="btn-primary flex items-center gap-2">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                    Add Customer
+                </button>
+            </div>
+
+            <!-- Customers Table -->
+            <div class="reveal card" style="transition-delay: 200ms;">
+                <div class="card-header">
+                    <h3 class="card-title">All Customers</h3>
+                    <div class="mt-4">
+                        <input type="text" id="search-input" placeholder="Filter customers by name or email..."
+                            class="search-input max-w-sm" />
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Email</th>
+                                    <th class="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customers-table-body">
+                                <!-- Customer rows will be injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Customer Actions Dropdown -->
+    <div id="customer-dropdown" class="dropdown-menu hidden">
+        <div class="dropdown-label">Actions</div>
+        <button class="dropdown-item" onclick="viewCustomerDetails()">
+            View Details
+        </button>
+        <button class="dropdown-item" onclick="editCustomer()">
+            Edit User
+        </button>
+        <div class="dropdown-separator"></div>
+        <button class="dropdown-item dropdown-item-danger" id="toggle-customer-status-btn"
+            onclick="toggleCustomerStatus()">
+            Block Account
+        </button>
+    </div>
+
+    <!-- Customers Script -->
+    <script src="js/customers.js"></script>
+
+</body>
+
+</html>

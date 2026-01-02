@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rider Assignments – ImpromptuIndian Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/rider-assignments.css" />
+    <link rel="shortcut icon" href="images/favicon.ico" type="images/x-icon">
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <div class="reveal mb-8 flex items-start justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">Rider Assignments</h1>
+                    <p class="text-gray-400 mt-1">Assign and track delivery pickups</p>
+                </div>
+                <a href="delivery.html"
+                    class="flex items-center gap-2 px-4 py-2 bg-[#1273EB] text-white rounded-lg transition-colors border border-gray-700">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Back
+                </a>
+            </div>
+
+            <div class="reveal filters-bar mb-6" style="transition-delay: 100ms;">
+                <select id="status-filter" class="filter-select" onchange="filterAssignments()">
+                    <option value="all">All Status</option>
+                    <option value="pending">Pickup Pending</option>
+                    <option value="picked-up">Picked Up</option>
+                    <option value="out-for-delivery">Out for Delivery</option>
+                    <option value="delivered">Delivered</option>
+                </select>
+                <input type="text" id="search-assignment" class="search-input" placeholder="Search order ID..."
+                    oninput="filterAssignments()" />
+            </div>
+
+            <div class="reveal card" style="transition-delay: 200ms;">
+                <div class="card-header">
+                    <h3 class="card-title">Active Assignments</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Vendor</th>
+                                    <th>Rider</th>
+                                    <th>Status</th>
+                                    <th>Customer Address</th>
+                                    <th class="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="assignments-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Assignment Modal -->
+    <div id="assignment-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeAssignmentModal()"></div>
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modal-title">Assignment Details</h2>
+                <button class="modal-close" onclick="closeAssignmentModal()"><i data-lucide="x"
+                        class="w-5 h-5"></i></button>
+            </div>
+            <div class="modal-body" id="modal-body"></div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeAssignmentModal()">Close</button>
+                <button class="btn-danger" onclick="reassignRider()"><i data-lucide="shuffle"
+                        class="w-4 h-4"></i>Reassign Rider</button>
+                <button class="btn-primary" onclick="sendInstructions()"><i data-lucide="send" class="w-4 h-4"></i>Send
+                    Instructions</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast hidden"><i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i><span
+            id="toast-msg">Action completed!</span></div>
+
+    <script src="js/rider-assignments.js"></script>
+</body>
+
+</html>

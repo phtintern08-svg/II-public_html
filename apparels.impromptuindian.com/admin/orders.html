@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Orders – ImpromptuIndian Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/admin-global.css" />
+    <link rel="shortcut icon" href="images/favicon.ico" type="images/x-icon">
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <!-- Header -->
+            <div class="reveal mb-8">
+                <h1 class="text-3xl font-bold">Orders Management</h1>
+                <p class="text-gray-400 mt-1">Select an order category to manage</p>
+            </div>
+
+            <!-- Order Categories Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 reveal" style="transition-delay: 100ms;">
+
+                <!-- New Orders Card -->
+                <a href="new-orders.html" class="order-category-card group">
+                    <div class="order-icon bg-blue-500/10 border-blue-500/20">
+                        <i data-lucide="clipboard-list" class="w-12 h-12 text-blue-400"></i>
+                    </div>
+                    <h3 class="order-title">New Orders</h3>
+                    <p class="order-description">Pending orders awaiting assignment</p>
+                    <div class="order-arrow">
+                        <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                    </div>
+                </a>
+
+                <!-- In Production Card -->
+                <a href="in-production.html" class="order-category-card group">
+                    <div class="order-icon bg-purple-500/10 border-purple-500/20">
+                        <i data-lucide="package" class="w-12 h-12 text-purple-400"></i>
+                    </div>
+                    <h3 class="order-title">In Production</h3>
+                    <p class="order-description">Orders currently being manufactured</p>
+                    <div class="order-arrow">
+                        <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                    </div>
+                </a>
+
+                <!-- Ready for Dispatch Card -->
+                <a href="ready-dispatch.html" class="order-category-card group">
+                    <div class="order-icon bg-yellow-500/10 border-yellow-500/20">
+                        <i data-lucide="truck" class="w-12 h-12 text-yellow-400"></i>
+                    </div>
+                    <h3 class="order-title">Ready for Dispatch</h3>
+                    <p class="order-description">Completed orders ready for delivery</p>
+                    <div class="order-arrow">
+                        <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                    </div>
+                </a>
+
+                <!-- Completed Orders Card -->
+                <a href="completed-orders.html" class="order-category-card group">
+                    <div class="order-icon bg-green-500/10 border-green-500/20">
+                        <i data-lucide="check-circle" class="w-12 h-12 text-green-400"></i>
+                    </div>
+                    <h3 class="order-title">Completed Orders</h3>
+                    <p class="order-description">Successfully delivered orders</p>
+                    <div class="order-arrow">
+                        <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                    </div>
+                </a>
+
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8 reveal"
+                style="transition-delay: 200ms;">
+
+                <div class="stat-card-mini">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">New Orders</p>
+                            <p class="text-3xl font-bold text-blue-400 mt-1" id="new-orders-count">0</p>
+                        </div>
+                        <i data-lucide="clipboard-list" class="w-10 h-10 text-blue-400 opacity-20"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card-mini">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">In Production</p>
+                            <p class="text-3xl font-bold text-purple-400 mt-1" id="production-count">0</p>
+                        </div>
+                        <i data-lucide="package" class="w-10 h-10 text-purple-400 opacity-20"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card-mini">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">Ready to Ship</p>
+                            <p class="text-3xl font-bold text-yellow-400 mt-1" id="ready-count">0</p>
+                        </div>
+                        <i data-lucide="truck" class="w-10 h-10 text-yellow-400 opacity-20"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card-mini">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">Completed</p>
+                            <p class="text-3xl font-bold text-green-400 mt-1" id="completed-count">0</p>
+                        </div>
+                        <i data-lucide="check-circle" class="w-10 h-10 text-green-400 opacity-20"></i>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <link rel="stylesheet" href="css/orders-landing.css">
+    <script src="js/orders.js"></script>
+</body>
+
+</html>

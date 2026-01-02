@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Support & Tickets – ImpromptuIndian Admin</title>
+    <meta name="description" content="Manage support tickets from customers, vendors, and riders" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/admin-global.css" />
+    <link rel="stylesheet" href="css/support-tickets.css" />
+    <link rel="shortcut icon" href="images/favicon.ico" type="images/x-icon">
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <div class="reveal mb-8 flex items-start justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">Support & Tickets</h1>
+                    <p class="text-gray-400 mt-1">Manage support requests from all users</p>
+                </div>
+                <button class="btn-refresh" onclick="refreshTickets()"><i data-lucide="refresh-ccw" class="w-4 h-4"></i>
+                    Refresh</button>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 reveal" style="transition-delay: 100ms;">
+                <div class="summary-card bg-red-500/10 border-red-500/20">
+                    <div class="summary-icon bg-red-500/20"><i data-lucide="alert-circle"
+                            class="w-6 h-6 text-red-500"></i></div>
+                    <div>
+                        <p class="summary-label">Open Tickets</p>
+                        <p class="summary-value" id="open-tickets">0</p>
+                    </div>
+                </div>
+                <div class="summary-card bg-yellow-500/10 border-yellow-500/20">
+                    <div class="summary-icon bg-yellow-500/20"><i data-lucide="clock"
+                            class="w-6 h-6 text-yellow-500"></i></div>
+                    <div>
+                        <p class="summary-label">Pending</p>
+                        <p class="summary-value" id="pending-tickets">0</p>
+                    </div>
+                </div>
+                <div class="summary-card bg-green-500/10 border-green-500/20">
+                    <div class="summary-icon bg-green-500/20"><i data-lucide="check-circle"
+                            class="w-6 h-6 text-green-500"></i></div>
+                    <div>
+                        <p class="summary-label">Resolved Today</p>
+                        <p class="summary-value" id="resolved-tickets">0</p>
+                    </div>
+                </div>
+                <div class="summary-card bg-purple-500/10 border-purple-500/20">
+                    <div class="summary-icon bg-purple-500/20"><i data-lucide="trending-up"
+                            class="w-6 h-6 text-purple-500"></i></div>
+                    <div>
+                        <p class="summary-label">Avg Response Time</p>
+                        <p class="summary-value" id="avg-response">0h</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reveal filters-bar mb-6" style="transition-delay: 200ms;">
+                <select id="priority-filter" class="filter-select" onchange="filterTickets()">
+                    <option value="all">All Priority</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                </select>
+                <select id="type-filter" class="filter-select" onchange="filterTickets()">
+                    <option value="all">All Types</option>
+                    <option value="customer">Customer</option>
+                    <option value="vendor">Vendor</option>
+                    <option value="rider">Rider</option>
+                </select>
+                <select id="status-filter" class="filter-select" onchange="filterTickets()">
+                    <option value="all">All Status</option>
+                    <option value="open">Open</option>
+                    <option value="pending">Pending</option>
+                    <option value="resolved">Resolved</option>
+                    <option value="closed">Closed</option>
+                </select>
+                <input type="text" id="search-ticket" class="search-input" placeholder="Search ticket..."
+                    oninput="filterTickets()" />
+            </div>
+
+            <div class="reveal card" style="transition-delay: 300ms;">
+                <div class="card-header">
+                    <h3 class="card-title">Support Tickets</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Ticket ID</th>
+                                    <th>User Type</th>
+                                    <th>Subject</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th class="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tickets-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Ticket Detail Modal -->
+    <div id="ticket-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeTicketModal()"></div>
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modal-title">Ticket Details</h2>
+                <button class="modal-close" onclick="closeTicketModal()"><i data-lucide="x"
+                        class="w-5 h-5"></i></button>
+            </div>
+            <div class="modal-body" id="modal-body"></div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeTicketModal()">Close</button>
+                <button class="btn-primary" onclick="assignStaff()"><i data-lucide="user-plus"
+                        class="w-4 h-4"></i>Assign Staff</button>
+                <button class="btn-success" onclick="resolveTicket()"><i data-lucide="check"
+                        class="w-4 h-4"></i>Resolve</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast hidden"><i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i><span
+            id="toast-msg">Action completed!</span></div>
+
+    <script src="js/support-tickets.js"></script>
+</body>
+
+</html>

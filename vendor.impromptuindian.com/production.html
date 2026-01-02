@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Production – ImpromptuIndian Vendor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/dashboard.css" />
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+        <main class="flex-1 overflow-y-auto p-8">
+            <div class="reveal mb-8">
+                <h1 class="text-3xl font-bold">Production Management</h1>
+                <p class="text-gray-400 mt-1">Manage your production schedule and resources</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 reveal" style="transition-delay: 100ms;">
+                <a href="work-calendar.html" class="category-card group">
+                    <div class="category-icon bg-blue-500/10 border-blue-500/20">
+                        <i data-lucide="calendar" class="w-12 h-12 text-blue-400"></i>
+                    </div>
+                    <h3 class="category-title">Work Calendar</h3>
+                    <p class="category-description">View and manage production schedule</p>
+                    <div class="category-arrow"><i data-lucide="arrow-right" class="w-5 h-5"></i></div>
+                </a>
+                <a href="machine-slots.html" class="category-card group">
+                    <div class="category-icon bg-purple-500/10 border-purple-500/20">
+                        <i data-lucide="cpu" class="w-12 h-12 text-purple-400"></i>
+                    </div>
+                    <h3 class="category-title">Machine Slots</h3>
+                    <p class="category-description">Manage machine availability and slots</p>
+                    <div class="category-arrow"><i data-lucide="arrow-right" class="w-5 h-5"></i></div>
+                </a>
+            </div>
+        </main>
+    </div>
+    <link rel="stylesheet" href="css/category-cards.css">
+    <script src="js/reveal-init.js"></script>
+</body>
+
+</html>

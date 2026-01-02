@@ -1,0 +1,404 @@
+// Vendor Profile Page JavaScript
+lucide.createIcons();
+
+const ThreadlyApi = window.ThreadlyApi || (() => {
+    const rawBase =
+        window.THREADLY_API_BASE ||
+        window.APP_API_BASE ||
+        localStorage.getItem('THREADLY_API_BASE') ||
+        '';
+
+    let base = rawBase.trim().replace(/\/$/, '');
+    if (!base) {
+        const origin = window.location.origin;
+        if (origin && origin.startsWith('http')) {
+            base = origin.replace(/\/$/, '');
+        } else {
+            base = window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://apparels.impromptuindian.com';
+        }
+    }
+
+    const buildUrl = (path = '') => `${base}${path.startsWith('/') ? path : `/${path}`}`;
+
+    return {
+        baseUrl: base,
+        buildUrl,
+        fetch: (path, options = {}) => fetch(buildUrl(path), options)
+    };
+})();
+window.ThreadlyApi = ThreadlyApi;
+
+// Save bank details
+function saveBankDetails() {
+    const bankDetails = {
+        accountName: document.getElementById('fldAccountName').value,
+        accountNumber: document.getElementById('fldAccountNumber').value,
+        ifsc: document.getElementById('fldIfsc').value,
+        paymentCycle: document.getElementById('fldPaymentCycle').value
+    };
+
+    localStorage.setItem('vendorBankDetails', JSON.stringify(bankDetails));
+    showToast('Financial records updated!');
+}
+
+// Save notification settings
+function saveNotificationSettings() {
+    const settings = {
+        email: document.getElementById('checkEmailNotif').checked,
+        sms: document.getElementById('checkSmsNotif').checked
+    };
+
+    localStorage.setItem('vendorNotificationSettings', JSON.stringify(settings));
+    showToast('Communication preferences saved!');
+}
+
+// Load vendor data
+async function loadVendorProfile() {
+    const userId = localStorage.getItem('user_id');
+    if (!userId) return;
+
+    try {
+        // Fetch full vendor data from backend
+        // We might need a generic user profile endpoint or use a specific vendor one
+        // For now, let's try to get initial data from localStorage and then fetch
+
+        const username = localStorage.getItem('username') || '';
+        const email = localStorage.getItem('email') || '';
+        const phone = localStorage.getItem('phone') || '';
+
+        document.getElementById('profileBusinessName').value = localStorage.getItem('business_name') || username;
+        document.getElementById('profileEmail').value = email;
+        document.getElementById('profilePhone').value = phone;
+
+        // Fetch remaining details from backend (bio, business_type, address, lat, lon)
+        // Since we don't have a specific "get vendor by id" endpoint that's public for the vendor itself yet, 
+        // let's assume one exists or we might need to add it.
+        // Actually, many pages use /vendor/status/ID, let's see if that has profile info.
+
+        const response = await ThreadlyApi.fetch(`/vendor/profile/${userId}`);
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById('profileBusinessName').value = data.business_name || '';
+            document.getElementById('profileEmail').value = data.email || '';
+            document.getElementById('profilePhone').value = data.phone || '';
+            document.getElementById('profileBusinessType').value = data.business_type || '';
+            document.getElementById('profileBio').value = data.bio || '';
+
+            // Address details
+            document.getElementById('fldFullAddress').value = data.address || '';
+            document.getElementById('fldCity').value = data.city || '';
+            document.getElementById('fldState').value = data.state || '';
+            document.getElementById('fldPincode').value = data.pincode || '';
+
+            if (data.latitude && data.longitude) {
+                document.getElementById('coordDisplay').textContent = `${data.latitude.toFixed(4)}, ${data.longitude.toFixed(4)}`;
+                window.currentCoords = { lat: data.latitude, lon: data.longitude };
+            }
+
+            // Update avatar
+            const avatarInitial = document.getElementById('avatarInitial');
+            if (avatarInitial) {
+                avatarInitial.textContent = (data.business_name || username).charAt(0).toUpperCase();
+            }
+
+            // Additional details for the new UI
+            if (data.created_at) {
+                const date = new Date(data.created_at);
+                const options = { day: '2-digit', month: 'short', year: 'numeric' };
+                document.getElementById('profileMemberSince').value = date.toLocaleDateString('en-GB', options);
+            }
+            if (data.service_zone) {
+                document.getElementById('profileServiceZone').value = data.service_zone;
+            }
+        }
+
+        // Load Bank Details from LocalStorage (Fallback for now)
+        const bank = JSON.parse(localStorage.getItem('vendorBankDetails') || '{}');
+        if (bank.accountName) {
+            document.getElementById('fldAccountName').value = bank.accountName;
+            document.getElementById('fldAccountNumber').value = bank.accountNumber;
+            document.getElementById('fldIfsc').value = bank.ifsc;
+            document.getElementById('fldPaymentCycle').value = bank.paymentCycle || 'monthly';
+        }
+
+        // Load Notif Settings
+        const notifs = JSON.parse(localStorage.getItem('vendorNotificationSettings') || '{}');
+        if (notifs.email !== undefined) {
+            document.getElementById('checkEmailNotif').checked = notifs.email;
+            document.getElementById('checkSmsNotif').checked = notifs.sms;
+        }
+
+    } catch (error) {
+        console.error('Error loading vendor profile:', error);
+    }
+}
+
+// Save profile changes (Basic Details)
+async function saveProfileChanges() {
+    const userId = localStorage.getItem('user_id');
+    const businessName = document.getElementById('profileBusinessName').value;
+    const email = document.getElementById('profileEmail').value;
+    const phone = document.getElementById('profilePhone').value;
+    const businessType = document.getElementById('profileBusinessType').value;
+    const bio = document.getElementById('profileBio').value;
+
+    if (!businessName || !email || !phone) {
+        showToast('Business Name, Email, and Phone are required', 'error');
+        return;
+    }
+
+    try {
+        const response = await ThreadlyApi.fetch(`/vendor/update-profile`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                vendor_id: userId,
+                business_name: businessName,
+                email: email,
+                phone: phone,
+                business_type: businessType,
+                bio: bio
+            })
+        });
+
+        if (response.ok) {
+            localStorage.setItem('username', businessName);
+            localStorage.setItem('business_name', businessName);
+            localStorage.setItem('email', email);
+            localStorage.setItem('phone', phone);
+
+            showToast('Profile updated successfully!');
+
+            // Sync UI
+            const avatarInitial = document.getElementById('avatarInitial');
+            if (avatarInitial) avatarInitial.textContent = businessName.charAt(0).toUpperCase();
+        } else {
+            const err = await response.json();
+            showToast(err.error || 'Update failed', 'error');
+        }
+    } catch (error) {
+        showToast('Connection error', 'error');
+    }
+}
+
+// Save Location details
+async function saveLocation() {
+    const userId = localStorage.getItem('user_id');
+    const fullAddress = document.getElementById('fldFullAddress').value;
+    const city = document.getElementById('fldCity').value;
+    const state = document.getElementById('fldState').value;
+    const pincode = document.getElementById('fldPincode').value;
+
+    const coords = window.currentCoords || { lat: null, lon: null };
+
+    try {
+        const response = await ThreadlyApi.fetch(`/vendor/update-location-details`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                vendor_id: userId,
+                address: fullAddress,
+                city: city,
+                state: state,
+                pincode: pincode,
+                latitude: coords.lat,
+                longitude: coords.lon
+            })
+        });
+
+        if (response.ok) {
+            showToast('Shop location saved successfully!');
+        } else {
+            showToast('Failed to save location', 'error');
+        }
+    } catch (error) {
+        showToast('Connection error', 'error');
+    }
+}
+
+// Map Logic
+let map = null;
+let marker = null;
+
+function initMapEvents() {
+    const useCurrentLocationBtn = document.getElementById('useCurrentLocationBtn');
+    const confirmLocationBtn = document.getElementById('confirmLocationBtn');
+    const mapModal = document.getElementById('mapModal');
+
+    useCurrentLocationBtn.onclick = () => {
+        mapModal.classList.remove('hidden');
+        if (!navigator.geolocation) {
+            showToast('Geolocation not supported', 'error');
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(pos => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            setupMap(lat, lng);
+        }, err => {
+            // Fallback to Bangalore
+            setupMap(12.9716, 77.5946);
+        }, { enableHighAccuracy: true });
+    };
+
+    confirmLocationBtn.onclick = async () => {
+        if (!marker) return;
+        const pos = marker.getPosition();
+        const lat = pos.lat || pos[0];
+        const lng = pos.lng || pos[1];
+
+        confirmLocationBtn.innerHTML = '<i class="w-4 h-4 animate-spin mr-2"></i> Resolving...';
+        confirmLocationBtn.disabled = true;
+
+        try {
+            const res = await ThreadlyApi.fetch(`/api/reverse-geocode?lat=${lat}&lng=${lng}`);
+            const data = await res.json();
+
+            if (data && !data.error) {
+                const addr = data.results && data.results[0] ? data.results[0] : data;
+
+                // Mappls structure helper
+                const getComp = (k) => addr[k] || '';
+
+                const area = getComp('subLocality') || getComp('locality') || getComp('street') || '';
+                const house = getComp('houseNumber') || getComp('house_number') || '';
+
+                document.getElementById('fldFullAddress').value = `${house ? house + ', ' : ''}${area}`;
+                document.getElementById('fldCity').value = getComp('city') || getComp('district') || '';
+                document.getElementById('fldState').value = getComp('state') || '';
+                document.getElementById('fldPincode').value = getComp('pincode') || '';
+
+                document.getElementById('coordDisplay').textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                window.currentCoords = { lat, lon: lng };
+
+                mapModal.classList.add('hidden');
+                showToast('Location pinned!');
+            }
+        } catch (e) {
+            showToast('Reverse geocode failed', 'error');
+        } finally {
+            confirmLocationBtn.innerHTML = 'Confirm Location';
+            confirmLocationBtn.disabled = false;
+        }
+    };
+
+    // Search logic
+    const mapSearchBtn = document.getElementById('mapSearchBtn');
+    const mapSearchInput = document.getElementById('mapSearchInput');
+
+    mapSearchBtn.onclick = () => {
+        const query = mapSearchInput.value.trim();
+        if (!query || !mappls) return;
+
+        mappls.search({ query }, (data) => {
+            if (data && data.length > 0) {
+                const res = data[0];
+                const lat = parseFloat(res.latitude || res.lat);
+                const lng = parseFloat(res.longitude || res.lng);
+                map.setCenter([lat, lng]);
+                marker.setPosition({ lat, lng });
+            }
+        });
+    };
+}
+
+function setupMap(lat, lng) {
+    if (typeof mappls === 'undefined') return;
+
+    if (!map) {
+        map = new mappls.Map("mapContainer", { center: [lat, lng], zoom: 15 });
+        marker = new mappls.Marker({ map, position: { lat, lng }, draggable: true });
+    } else {
+        map.setCenter([lat, lng]);
+        marker.setPosition({ lat, lng });
+    }
+
+    setTimeout(() => map.invalidateSize?.(), 200);
+}
+
+// Toast helper
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('success-toast');
+    const messageEl = document.getElementById('toast-message');
+
+    // Update visuals based on type
+    if (type === 'error') {
+        toast.classList.replace('bg-emerald-600/90', 'bg-rose-600/90');
+        toast.querySelector('p.font-bold').textContent = 'Update Interrupted';
+    } else {
+        toast.classList.replace('bg-rose-600/90', 'bg-emerald-600/90');
+        toast.querySelector('p.font-bold').textContent = 'Transformation Successful';
+    }
+
+    messageEl.textContent = message;
+
+    // Smooth Entry
+    toast.classList.remove('translate-x-12', 'opacity-0');
+    toast.classList.add('translate-x-0', 'opacity-100');
+
+    setTimeout(() => {
+        // Smooth Exit
+        toast.classList.remove('translate-x-0', 'opacity-100');
+        toast.classList.add('translate-x-12', 'opacity-0');
+    }, 4000);
+}
+
+// Change Password
+async function changePassword() {
+    const userId = localStorage.getItem('user_id');
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        showToast('All fields required', 'error');
+        return;
+    }
+    if (newPassword !== confirmPassword) {
+        showToast('New passwords match', 'error');
+        return;
+    }
+
+    try {
+        const response = await ThreadlyApi.fetch(`/change-password`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: userId,
+                role: 'vendor',
+                current_password: currentPassword,
+                new_password: newPassword
+            })
+        });
+
+        if (response.ok) {
+            showToast('Password updated!');
+            document.querySelectorAll('input[type="password"]').forEach(i => i.value = '');
+        } else {
+            const err = await response.json();
+            showToast(err.error || 'Update failed', 'error');
+        }
+    } catch (e) {
+        showToast('Connection error', 'error');
+    }
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+    loadVendorProfile();
+    initMapEvents();
+
+    // Reveal On Scroll
+    const reveal = () => {
+        document.querySelectorAll('.reveal').forEach(el => {
+            if (el.getBoundingClientRect().top < window.innerHeight * 0.9) el.classList.add('show');
+        });
+    };
+    window.addEventListener('scroll', reveal);
+    setTimeout(reveal, 100);
+
+    document.getElementById('saveLocationBtn').onclick = saveAddress; // Map to saveLocation
+    // Re-linking since I used both names
+    window.saveAddress = saveLocation;
+});

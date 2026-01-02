@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Support – ImpromptuIndian Vendor</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/support.css">
+</head>
+
+<body class="text-white">
+
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- SIDEBAR CONTAINER -->
+        <div id="sidebar-container"></div>
+
+        <!-- Sidebar Script -->
+        <script src="js/sidebar.js"></script>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 overflow-y-auto p-8">
+
+            <!-- Page Header -->
+            <div class="reveal mb-8 flex items-start justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold tracking-tight">Support Center</h1>
+                    <p class="text-gray-400 mt-1">Get help and raise support tickets.</p>
+                </div>
+                <button class="btn-new-ticket" onclick="openNewTicketModal()">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    New Ticket
+                </button>
+            </div>
+
+            <!-- Quick Help Cards -->
+            <div class="reveal help-cards-grid mb-8" style="transition-delay: 100ms;">
+                <div class="help-card">
+                    <i data-lucide="phone" class="w-8 h-8 text-blue-400 mb-3"></i>
+                    <h3 class="help-title">Helpline</h3>
+                    <p class="help-value">1800-123-4567</p>
+                    <p class="help-description">Mon-Sat, 9 AM - 6 PM</p>
+                </div>
+                <div class="help-card">
+                    <i data-lucide="mail" class="w-8 h-8 text-green-400 mb-3"></i>
+                    <h3 class="help-title">Email Support</h3>
+                    <p class="help-value">support@impromptuindian.com</p>
+                    <p class="help-description">24-48 hour response</p>
+                </div>
+                <div class="help-card">
+                    <i data-lucide="book-open" class="w-8 h-8 text-purple-400 mb-3"></i>
+                    <h3 class="help-title">Documentation</h3>
+                    <p class="help-value">Help Center</p>
+                    <p class="help-description">Guides & tutorials</p>
+                </div>
+            </div>
+
+            <!-- Tickets Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <!-- My Tickets -->
+                <div class="reveal lg:col-span-2 card" style="transition-delay: 200ms;">
+                    <div class="card-header">
+                        <h3 class="card-title">My Tickets</h3>
+                        <p class="card-description">Track your support requests</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="tickets-list" id="tickets-list">
+                            <!-- Tickets will be injected here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQs -->
+                <div class="reveal card" style="transition-delay: 300ms;">
+                    <div class="card-header">
+                        <h3 class="card-title">FAQs</h3>
+                        <p class="card-description">Common questions</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="faqs-list">
+                            <div class="faq-item" onclick="toggleFaq(this)">
+                                <div class="faq-question">
+                                    <span>How do I update my bank details?</span>
+                                    <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                                </div>
+                                <div class="faq-answer">
+                                    Go to Settings > Bank Details and update your information. Changes are verified
+                                    within 24 hours.
+                                </div>
+                            </div>
+                            <div class="faq-item" onclick="toggleFaq(this)">
+                                <div class="faq-question">
+                                    <span>When will I receive my payout?</span>
+                                    <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                                </div>
+                                <div class="faq-answer">
+                                    Payouts are processed on the 1st and 15th of every month for completed orders.
+                                </div>
+                            </div>
+                            <div class="faq-item" onclick="toggleFaq(this)">
+                                <div class="faq-question">
+                                    <span>How to upload production photos?</span>
+                                    <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                                </div>
+                                <div class="faq-answer">
+                                    Go to In Production, select an order, and use the upload section to add photos.
+                                </div>
+                            </div>
+                            <div class="faq-item" onclick="toggleFaq(this)">
+                                <div class="faq-question">
+                                    <span>What is the commission rate?</span>
+                                    <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                                </div>
+                                <div class="faq-answer">
+                                    The platform commission is 15% on all orders. This is deducted before payout.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- New Ticket Modal -->
+    <div id="new-ticket-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeNewTicketModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Raise Support Ticket</h2>
+                <button class="modal-close" onclick="closeNewTicketModal()">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Issue Category</label>
+                    <select id="ticket-category" class="form-select">
+                        <option value="technical">Technical Issue</option>
+                        <option value="payment">Payment Issue</option>
+                        <option value="order">Order Related</option>
+                        <option value="verification">Verification Issue</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Subject</label>
+                    <input type="text" id="ticket-subject" placeholder="Brief description of the issue"
+                        class="form-input">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="ticket-description" rows="5"
+                        placeholder="Provide detailed information about your issue..." class="form-textarea"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Attach Files (Optional)</label>
+                    <div class="file-upload-area" onclick="document.getElementById('ticket-file').click()">
+                        <i data-lucide="upload" class="w-6 h-6 text-gray-500"></i>
+                        <p class="text-sm text-gray-400">Click to upload screenshots or documents</p>
+                        <input type="file" id="ticket-file" multiple hidden>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeNewTicketModal()">Cancel</button>
+                <button class="btn-primary" onclick="submitTicket()">
+                    <i data-lucide="send" class="w-4 h-4"></i>
+                    Submit Ticket
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ticket Details Modal -->
+    <div id="ticket-details-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeTicketDetailsModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="ticket-details-title">Ticket Details</h2>
+                <button class="modal-close" onclick="closeTicketDetailsModal()">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="ticket-details-body">
+                <!-- Details will be injected here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="closeTicketDetailsModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div id="success-toast" class="toast hidden">
+        <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+        <span id="toast-message">Action completed successfully!</span>
+    </div>
+
+    <!-- Support Script -->
+    <script src="js/support.js"></script>
+
+</body>
+
+</html>

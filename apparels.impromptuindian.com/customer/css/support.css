@@ -1,0 +1,12 @@
+/* Support Page Styles */
+.accordion-content {
+    display: none;
+}
+
+.accordion-active .accordion-content {
+    display: block;
+}
+
+.accordion-active .accordion-icon {
+    transform: rotate(180deg);
+}

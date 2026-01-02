@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Earnings Summary – ImpromptuIndian Vendor</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/earnings.css">
+</head>
+
+<body class="text-white">
+
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- SIDEBAR CONTAINER -->
+        <div id="sidebar-container"></div>
+
+        <!-- Sidebar Script -->
+        <script src="js/sidebar.js"></script>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 overflow-y-auto p-8">
+
+            <!-- Page Header -->
+            <div class="reveal mb-8 flex items-start justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold tracking-tight">Earnings Summary</h1>
+                    <p class="text-gray-400 mt-1">Track your earnings and commission breakdown.</p>
+                </div>
+                <button class="btn-download" onclick="downloadStatement()">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    Download Statement
+                </button>
+            </div>
+
+            <!-- Earnings Cards -->
+            <div class="reveal earnings-grid mb-8" style="transition-delay: 100ms;">
+                <div class="earnings-card earnings-total">
+                    <div class="earnings-icon">
+                        <i data-lucide="dollar-sign" class="w-6 h-6"></i>
+                    </div>
+                    <div class="earnings-content">
+                        <p class="earnings-label">Total Earnings</p>
+                        <p class="earnings-value" id="total-earnings">$0</p>
+                        <p class="earnings-change">All time</p>
+                    </div>
+                </div>
+
+                <div class="earnings-card earnings-month">
+                    <div class="earnings-icon">
+                        <i data-lucide="calendar" class="w-6 h-6"></i>
+                    </div>
+                    <div class="earnings-content">
+                        <p class="earnings-label">This Month</p>
+                        <p class="earnings-value" id="month-earnings">$0</p>
+                        <p class="earnings-change" id="month-change">+0% from last month</p>
+                    </div>
+                </div>
+
+                <div class="earnings-card earnings-pending">
+                    <div class="earnings-icon">
+                        <i data-lucide="clock" class="w-6 h-6"></i>
+                    </div>
+                    <div class="earnings-content">
+                        <p class="earnings-label">Pending Payout</p>
+                        <p class="earnings-value" id="pending-earnings">$0</p>
+                        <p class="earnings-change" id="next-payout">Next payout: -</p>
+                    </div>
+                </div>
+
+                <div class="earnings-card earnings-commission">
+                    <div class="earnings-icon">
+                        <i data-lucide="percent" class="w-6 h-6"></i>
+                    </div>
+                    <div class="earnings-content">
+                        <p class="earnings-label">Commission Rate</p>
+                        <p class="earnings-value" id="commission-rate">0%</p>
+                        <p class="earnings-change">Platform fee</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <!-- Monthly Earnings Chart -->
+                <div class="reveal card" style="transition-delay: 200ms;">
+                    <div class="card-header">
+                        <h3 class="card-title">Monthly Earnings</h3>
+                        <p class="card-description">Last 6 months</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="earningsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Commission Breakdown -->
+                <div class="reveal card" style="transition-delay: 300ms;">
+                    <div class="card-header">
+                        <h3 class="card-title">Commission Breakdown</h3>
+                        <p class="card-description">This month</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="commission-breakdown" id="commission-breakdown">
+                            <!-- Breakdown will be injected here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="reveal card" style="transition-delay: 400ms;">
+                <div class="card-header">
+                    <h3 class="card-title">Recent Transactions</h3>
+                    <p class="card-description">Latest earnings from completed orders</p>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Date</th>
+                                    <th>Customer</th>
+                                    <th>Gross Amount</th>
+                                    <th>Commission</th>
+                                    <th class="text-right">Net Earnings</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactions-table">
+                                <!-- Transactions will be injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Success Toast -->
+    <div id="success-toast" class="toast hidden">
+        <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+        <span id="toast-message">Action completed successfully!</span>
+    </div>
+
+    <!-- Earnings Script -->
+    <script src="js/earnings.js"></script>
+
+</body>
+
+</html>

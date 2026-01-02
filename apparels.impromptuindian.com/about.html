@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About Us - ImpromptuIndian</title>
+
+    <!-- ✅ Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- ✅ Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- ✅ ScrollReveal -->
+    <script src="https://unpkg.com/scrollreveal"></script>
+
+    <!-- ✅ Custom CSS -->
+    <link rel="stylesheet" href="css/index.css">
+    <link rel="icon" href="images/favicon.ico">
+</head>
+
+<body class="flex flex-col min-h-screen bg-white text-gray-900">
+
+    <!-- Header -->
+    <header class="bg-[#1273EB] text-white sticky top-0 z-50 shadow">
+        <div class="container mx-auto px-6 h-16 flex items-center justify-between">
+
+            <!-- Left Logo -->
+            <div class="flex items-center gap-2 text-xl font-bold">
+                <i data-lucide="shirt" class="w-6 h-6 text-[#FFCC00]"></i>
+                <a href="index.html"><span class="text-[#FFCC00]">Impromptu<span class="text-white">Indian</span></span></a>
+            </div>
+
+            <!-- Center Navigation -->
+            <nav id="nav" class="hidden md:flex space-x-8 text-sm font-medium">
+                <a href="index.html" class="hover:text-yellow-300">Home</a>
+                <a href="about.html" class="text-[#FFCC00] font-bold">About Us</a>
+                <a href="blog.html" class="hover:text-yellow-300">Blog</a>
+                <a href="index.html#customers" class="hover:text-yellow-300">Services</a>
+                <a href="index.html#contact" class="hover:text-yellow-300">Contact</a>
+            </nav>
+
+            <!-- Right Buttons -->
+            <div class="hidden md:flex items-center gap-4">
+                <a href="login.html" class="text-white hover:text-[#FFCC00]">Login</a>
+                <a href="register.html"
+                    class="bg-[#FFCC00] text-black px-4 py-2 rounded-md font-semibold shadow hover:bg-[#FFCC00]">
+                    Sign Up
+                </a>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button id="menu-btn" class="md:hidden">
+                <i data-lucide="menu" class="w-7 h-7 text-white"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="relative h-[60vh] flex items-center justify-center bg-[#0b1622] overflow-hidden">
+        <!-- Overlay/Background -->
+        <div class="absolute inset-0 opacity-40 bg-[url('images/homebg.png')] bg-cover bg-center"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-[#0b1622]/80 to-[#0b1622]"></div>
+
+        <div class="relative z-10 text-center px-6 max-w-4xl mx-auto">
+            <h1 class="text-4xl md:text-6xl font-bold text-white mb-6 animate-fadeUp">
+                Empowering Creativity,<br /> <span class="text-[#FFCC00]">One Stitch at a Time.</span>
+            </h1>
+            <p class="text-xl text-gray-300 animate-fadeUp [animation-delay:0.2s]">
+                We are building the world's most reliable and accessible custom apparel ecosystem.
+            </p>
+        </div>
+    </section>
+
+    <!-- Our Story -->
+    <section class="py-20">
+        <div class="container mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+            <div class="reveal">
+                <h2 class="text-3xl font-bold mb-6 text-[#1273EB]">Our Journey</h2>
+                <p class="text-gray-600 mb-4 text-lg leading-relaxed">
+                    ImpromptuIndian began with a simple question: <em class="text-gray-800">Why is ordering custom t-shirts so
+                        complicated?</em>
+                </p>
+                <p class="text-gray-600 mb-4 text-lg leading-relaxed">
+                    From vague pricing and undefined delivery dates to limited fabric choices, the industry was
+                    fragmented. We decided to change that by bridging the gap between customers, local manufacturers,
+                    and delivery partners.
+                </p>
+                <p class="text-gray-600 mb-8 text-lg leading-relaxed">
+                    Today, ImpromptuIndian is a thriving platform enabling thousands of students, businesses, and creators to
+                    bring their designs to life with transparency and speed.
+                </p>
+
+                <div class="flex gap-8">
+                    <div>
+                        <span class="block text-4xl font-bold text-[#1273EB]">10k+</span>
+                        <span class="text-gray-500 text-sm">Orders Delivered</span>
+                    </div>
+                    <div>
+                        <span class="block text-4xl font-bold text-[#1273EB]">500+</span>
+                        <span class="text-gray-500 text-sm">Verified Vendors</span>
+                    </div>
+                    <div>
+                        <span class="block text-4xl font-bold text-[#1273EB]">98%</span>
+                        <span class="text-gray-500 text-sm">Customer Satisfaction</span>
+                    </div>
+                </div>
+            </div>
+            <div class="relative reveal">
+                <div class="absolute inset-0 bg-[#FFCC00] rounded-2xl transform translate-x-4 translate-y-4"></div>
+                <img src="images/delivery-rider.png" alt="Our Journey"
+                    class="relative rounded-2xl shadow-xl w-full object-cover h-[400px]">
+            </div>
+        </div>
+    </section>
+
+    <!-- Mission & Vision -->
+    <section class="py-20 bg-gray-50">
+        <div class="container mx-auto px-6">
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Mission -->
+                <div
+                    class="bg-white p-10 rounded-2xl shadow-lg border-l-4 border-[#1273EB] hover:-translate-y-2 transition-transform duration-300 reveal">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6">
+                        <i data-lucide="target" class="w-8 h-8 text-[#1273EB]"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Our Mission</h3>
+                    <p class="text-gray-600 text-lg">
+                        To democratize custom apparel manufacturing by providing a seamless, transparent, and
+                        high-quality platform for everyone—from individuals to large enterprises.
+                    </p>
+                </div>
+
+                <!-- Vision -->
+                <div
+                    class="bg-white p-10 rounded-2xl shadow-lg border-l-4 border-[#FFCC00] hover:-translate-y-2 transition-transform duration-300 reveal">
+                    <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-6">
+                        <i data-lucide="eye" class="w-8 h-8 text-[#FFCC00]"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Our Vision</h3>
+                    <p class="text-gray-600 text-lg">
+                        To become the global standard for on-demand fashion, where creativity has no boundaries and
+                        local vendors thrive in a digital economy.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Values -->
+    <section class="py-20 bg-[#0b1622] text-white">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-3xl font-bold mb-12">What Drives Us</h2>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+
+                <div class="p-6 border border-gray-700 rounded-xl hover:border-[#1273EB] transition reveal">
+                    <i data-lucide="shield-check" class="w-10 h-10 text-[#1273EB] mx-auto mb-4"></i>
+                    <h3 class="font-bold text-xl mb-2">Quality First</h3>
+                    <p class="text-gray-400">We never compromise on the fabric or print quality.</p>
+                </div>
+
+                <div class="p-6 border border-gray-700 rounded-xl hover:border-[#FFCC00] transition reveal">
+                    <i data-lucide="zap" class="w-10 h-10 text-[#FFCC00] mx-auto mb-4"></i>
+                    <h3 class="font-bold text-xl mb-2">Speed & Agility</h3>
+                    <p class="text-gray-400">From design to doorstep, we optimize every second.</p>
+                </div>
+
+                <div class="p-6 border border-gray-700 rounded-xl hover:border-[#1273EB] transition reveal">
+                    <i data-lucide="users" class="w-10 h-10 text-[#1273EB] mx-auto mb-4"></i>
+                    <h3 class="font-bold text-xl mb-2">Community</h3>
+                    <p class="text-gray-400">We empower local businesses and riders to grow with us.</p>
+                </div>
+
+                <div class="p-6 border border-gray-700 rounded-xl hover:border-[#FFCC00] transition reveal">
+                    <i data-lucide="leaf" class="w-10 h-10 text-[#FFCC00] mx-auto mb-4"></i>
+                    <h3 class="font-bold text-xl mb-2">Sustainability</h3>
+                    <p class="text-gray-400">Promoting eco-friendly fabrics and reducing waste.</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Team / CTA -->
+    <section class="py-24 bg-cover bg-center relative" style="background-image: url('images/homebg.png');">
+        <div class="absolute inset-0 bg-[#1273EB]/90"></div>
+        <div class="container mx-auto px-6 relative z-10 text-center text-white">
+            <h2 class="text-4xl font-bold mb-6">Be Part of the Story</h2>
+            <p class="text-xl opacity-90 mb-10 max-w-2xl mx-auto">
+                Whether you want to create amazing merch, grow your manufacturing business, or earn by delivering smiles
+                — ImpromptuIndian is the place for you.
+            </p>
+
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="register.html"
+                    class="bg-white text-[#1273EB] px-8 py-3 rounded-full font-bold shadow-lg hover:bg-gray-100 transition">
+                    Join as Customer
+                </a>
+                <a href="register.html"
+                    class="bg-transparent border-2 border-white text-white px-8 py-3 rounded-full font-bold hover:bg-white hover:text-[#1273EB] transition">
+                    Partner with Us
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white text-gray-700 pt-16 pb-8">
+        <div class="container mx-auto px-6 grid md:grid-cols-4 gap-12">
+
+            <!-- Branding -->
+            <div>
+                <div class="flex items-center gap-2 text-xl font-bold">
+                    <i data-lucide="shirt" class="w-6 h-6 text-[#FFCC00]"></i>
+                    <span class="text-[#1273EB]">Impromptu<span class="text-[#FFCC00]">Indian</span></span>
+                </div>
+
+                <p class="text-gray-500 mt-3">The best platform for custom apparel.</p><br>
+                <ul class="space-y-2 text-gray-600">
+                    <li><a href="about.html" class="hover:text-[#1273EB]">About Us</a></li>
+                    <li><a href="#" class="hover:text-blue-600">Terms & Policies</a></li>
+                    <li><a href="#" class="hover:text-blue-600">Support Center</a></li>
+                </ul>
+                <div class="flex gap-4 mt-4 text-gray-500">
+                    <a href="#"><i data-lucide="facebook" class="w-5 h-5 hover:text-blue-600"></i></a>
+                    <a href="#"><i data-lucide="twitter" class="w-5 h-5 hover:text-blue-400"></i></a>
+                    <a href="#"><i data-lucide="instagram" class="w-5 h-5 hover:text-pink-500"></i></a>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div>
+                <h3 class="font-semibold mb-4">Quick Links</h3>
+                <div>
+                    <ul class="space-y-2 text-gray-600">
+                        <li><a href="index.html" class="hover:text-[#1273EB]">Home</a></li>
+                        <li><a href="blog.html" class="hover:text-[#1273EB]">Blogs</a></li>
+                        <li><a href="index.html#customers" class="hover:text-[#1273EB]">For Customers</a></li>
+                        <li><a href="index.html#vendors" class="hover:text-[#1273EB]">For Vendors</a></li>
+                        <li><a href="index.html#promise" class="hover:text-[#1273EB]">Our Promise</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- For Customers -->
+            <div>
+                <h3 class="font-semibold mb-4">For Customers</h3>
+                <ul class="space-y-2 text-gray-600">
+                    <li><a href="new-order.html" class="hover:text-[#1273EB]">Create an Order</a></li>
+                    <li><a href="#" class="hover:text-[#1273EB]">Track Order</a></li>
+                    <li><a href="#" class="hover:text-[#1273EB]">FAQs</a></li>
+                    <li><a href="#" class="hover:text-[#1273EB]">Customer Support</a></li>
+                </ul>
+            </div>
+
+            <!-- For Vendors -->
+            <div>
+                <h3 class="font-semibold mb-4">For Vendors</h3>
+                <ul class="space-y-2 text-gray-600">
+                    <li><a href="register.html" class="hover:text-[#1273EB]">Become a Vendor</a></li>
+                    <li><a href="vendor-login.html" class="hover:text-[#1273EB]">Vendor Dashboard</a></li>
+                    <li><a href="#" class="hover:text-[#1273EB]">Vendor Support</a></li>
+                </ul>
+            </div>
+
+            <!-- Contact -->
+            <div class="md:col-span-4 mt-10">
+                <div class="border-t pt-6 text-center text-gray-500">
+                    <p>&copy; 2025 ImpromptuIndian. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/index.js"></script>
+
+</body>
+
+</html>

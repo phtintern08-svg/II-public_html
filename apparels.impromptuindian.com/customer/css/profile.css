@@ -1,0 +1,18 @@
+/* ACTIVE TAB = YELLOW */
+.tab-active {
+    background-color: #FFCC00 !important;
+    color: #000 !important;
+    border-color: #FFCC00 !important;
+}
+
+/* Reveal animation */
+.reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.6s ease;
+}
+
+.reveal.show {
+    opacity: 1;
+    transform: translateY(0);
+}

@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ImpromptuIndian – Custom Apparel Partner</title>
+
+  <link rel="shortcut icon" href="images/favicon.ico" type="images/x-icon">
+
+  <!-- ✅ Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- ✅ Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- ✅ ScrollReveal -->
+  <script src="https://unpkg.com/scrollreveal"></script>
+
+  <!-- ✅ Custom CSS -->
+  <link rel="stylesheet" href="css/index.css">
+</head>
+
+<body class="flex flex-col min-h-screen bg-gray-50 text-gray-900">
+  <!-- Header -->
+  <header class="bg-[#1273EB] text-white sticky top-0 z-50 shadow">
+    <div class="container mx-auto px-4 md:px-6 h-16 flex items-center relative">
+
+      <!-- Mobile Menu Button (Left on Mobile) -->
+      <button id="menu-btn" class="md:hidden absolute left-4 z-10">
+        <i data-lucide="menu" class="w-6 h-6 text-white"></i>
+      </button>
+
+      <!-- Logo (Center on Mobile, Left on Desktop) -->
+      <div class="flex items-center gap-2 text-xl font-bold mx-auto md:mx-0">
+        <i data-lucide="shirt" class="w-6 h-6 text-[#FFCC00]"></i>
+        <a href="#"><span class="text-[#FFCC00]">Impromptu<span class="text-white">Indian</span></span></a>
+      </div>
+
+      <!-- Center Navigation (Desktop Only) -->
+      <nav class="hidden md:flex space-x-8 text-sm font-medium mx-auto">
+        <a href="#home" class="hover:text-yellow-300">Home</a>
+        <a href="about.html" class="hover:text-yellow-300">About Us</a>
+        <a href="blog.html" class="hover:text-yellow-300">Blog</a>
+        <a href="blog.html" class="hover:text-yellow-300">Services</a>
+        <a href="#contact" class="hover:text-yellow-300">Contact</a>
+      </nav>
+
+      <!-- Right Buttons (Desktop Only) -->
+      <div class="hidden md:flex items-center gap-4">
+        <a href="login.html" class="text-white hover:text-[#FFCC00]">Login</a>
+        <a href="register.html"
+          class="bg-[#FFCC00] text-black px-4 py-2 rounded-md font-semibold shadow hover:bg-yellow-400 transition">
+          Sign Up
+        </a>
+      </div>
+    </div>
+
+    <!-- Mobile Menu (Hidden by default) -->
+    <div id="mobile-menu" class="hidden md:hidden bg-[#1273EB] border-t border-white/10">
+      <nav class="flex flex-col px-4 py-4 space-y-2">
+        <a href="#home" class="py-2.5 px-3 hover:bg-white/10 rounded-md transition">Home</a>
+        <a href="about.html" class="py-2.5 px-3 hover:bg-white/10 rounded-md transition">About Us</a>
+        <a href="blog.html" class="py-2.5 px-3 hover:bg-white/10 rounded-md transition">Blog</a>
+        <a href="blog.html" class="py-2.5 px-3 hover:bg-white/10 rounded-md transition">Services</a>
+        <a href="#contact" class="py-2.5 px-3 hover:bg-white/10 rounded-md transition">Contact</a>
+
+        <!-- Mobile Auth Buttons -->
+        <div class="pt-3 border-t border-white/20 space-y-2">
+          <a href="login.html"
+            class="block w-full text-center py-2.5 px-4 border border-white rounded-md hover:bg-white hover:text-[#1273EB] transition font-medium">
+            Login
+          </a>
+          <a href="register.html"
+            class="block w-full text-center py-2.5 px-4 bg-[#FFCC00] text-black rounded-md font-semibold hover:bg-yellow-400 transition">
+            Sign Up
+          </a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+
+  <!-- Hero -->
+  <section id="home"
+    class="relative h-[85vh] md:h-[90vh] flex items-center justify-center text-center bg-cover bg-center"
+    style="background-image: url('images/homebg.png');">
+
+    <!-- Dark Overlay -->
+    <div class="absolute inset-0 bg-black/40"></div>
+
+    <!-- Content -->
+    <div class="relative z-10 text-center px-6">
+
+      <!-- Main Title -->
+      <h1
+        class="text-4xl md:text-6xl font-bold font-headline leading-snug opacity-0 animate-fadeUp [animation-delay:0.1s]">
+        <span class="text-[#1273EB]">Welcome to </span>
+        <span class="text-[#FFCC00]">ImpromptuIndian</span><br />
+        <span class="text-[#1273EB]">Your Trusted Custom Apparel Partner</span>
+      </h1>
+
+      <!-- Subtitle -->
+      <p class="text-lg md:text-xl text-white/90 mt-4 mb-8 opacity-0 animate-fadeUp [animation-delay:0.3s]">
+        Where Creativity Meets Quality, Every Time.
+      </p>
+
+      <!-- Buttons -->
+      <div class="flex justify-center gap-4 mt-3 opacity-0 animate-fadeUp [animation-delay:0.5s]">
+        <a href="register.html"
+          class="bg-[#1273EB] text-white px-6 py-3 rounded-md font-semibold hover:bg-blue-600 shadow-lg transition">
+          Start Your Order →
+        </a>
+
+        <a href="register.html?role=vendor"
+          class="border border-white text-white px-6 py-3 rounded-md hover:bg-white hover:text-[#1273EB] transition">
+          Join as Vendor
+        </a>
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+
+  <!-- Categories -->
+  <section id="categories" class="py-20 bg-[#FFCC00] text-black overflow-hidden">
+    <div class="container mx-auto px-6 text-center mb-12">
+      <h2 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
+        Explore by <span class="text-[#1273EB]">Category</span>
+      </h2>
+      <p class="text-lg md:text-xl lg:text-2xl mb-12">Find the perfect apparel for any occasion.</p>
+    </div>
+
+    <!-- Auto-scrolling categories container - Full Width -->
+    <div class="relative overflow-hidden w-full py-4">
+        <div class="categories-scroll">
+          <!-- Card 1 - T-Shirts -->
+          <div class="bg-[#1273EB] rounded-lg shadow-lg overflow-hidden group flex-shrink-0 w-[280px] md:w-[300px]">
+            <div class="overflow-hidden">
+              <img src="images/t_shirt.png" alt="T-Shirts"
+                class="w-full h-100 object-cover transition-transform duration-500 group-hover:scale-110">
+            </div>
+            <div class="p-4 flex items-center justify-center">
+              <h3 class="font-semibold text-lg text-white text-center">T-Shirts</h3>
+            </div>
+          </div>
+
+          <!-- Card 2 - Hoodies -->
+          <div class="bg-[#1273EB] rounded-lg shadow-lg overflow-hidden group flex-shrink-0 w-[280px] md:w-[300px]">
+            <div class="overflow-hidden">
+              <img src="images/hoodie.png" alt="Hoodies"
+                class="w-full h-100 object-cover transition-transform duration-500 group-hover:scale-110">
+            </div>
+            <div class="p-4 flex items-center justify-center">
+              <h3 class="font-semibold text-lg text-white text-center">Hoodies</h3>
+            </div>
+          </div>
+
+          <!-- Card 3 - Jackets -->
+          <div class="bg-[#1273EB] rounded-lg shadow-lg overflow-hidden group flex-shrink-0 w-[280px] md:w-[300px]">
+            <div class="overflow-hidden">
+              <img src="images/jacket.png" alt="Jackets"
+                class="w-full h-100 object-cover transition-transform duration-500 group-hover:scale-110">
+            </div>
+            <div class="p-4 flex items-center justify-center">
+              <h3 class="font-semibold text-lg text-white text-center">Jackets</h3>
+            </div>
+          </div>
+
+          <!-- Card 4 - Uniforms -->
+          <div class="bg-[#1273EB] rounded-lg shadow-lg overflow-hidden group flex-shrink-0 w-[280px] md:w-[300px]">
+            <div class="overflow-hidden">
+              <img src="images/uniform_set.png" alt="Uniforms"
+                class="w-full h-100 object-cover transition-transform duration-500 group-hover:scale-110">
+            </div>
+            <div class="p-4 flex items-center justify-center">
+              <h3 class="font-semibold text-lg text-white text-center">Uniforms</h3>
+            </div>
+          </div>
+
+          <!-- Card 5 - Sweatshirts -->
+          <div class="bg-[#1273EB] rounded-lg shadow-lg overflow-hidden group flex-shrink-0 w-[280px] md:w-[300px]">
+            <div class="overflow-hidden">
+              <img src="images/sweat_shirt.png" alt="Sweatshirts"
+                class="w-full h-100 object-cover transition-transform duration-500 group-hover:scale-110">
+            </div>
+            <div class="p-4 flex items-center justify-center">
+              <h3 class="font-semibold text-lg text-white text-center">Sweatshirts</h3>
+            </div>
+          </div>
+
+          <!-- Card 6 - Cap -->
+          <div class="bg-[#1273EB] rounded-lg shadow-lg overflow-hidden group flex-shrink-0 w-[280px] md:w-[300px]">
+            <div class="overflow-hidden">
+              <img src="images/hat.png" alt="Cap"
+                class="w-full h-100 object-cover transition-transform duration-500 group-hover:scale-110">
+            </div>
+            <div class="p-4 flex items-center justify-center">
+              <h3 class="font-semibold text-lg text-white text-center">Cap</h3>
+            </div>
+          </div>
+
+          <!-- Card 7 - Shirts -->
+          <div class="bg-[#1273EB] rounded-lg shadow-lg overflow-hidden group flex-shrink-0 w-[280px] md:w-[300px]">
+            <div class="overflow-hidden">
+              <img src="images/shirt.png" alt="Shirts"
+                class="w-full h-100 object-cover transition-transform duration-500 group-hover:scale-110">
+            </div>
+            <div class="p-4 flex items-center justify-center">
+              <h3 class="font-semibold text-lg text-white text-center">Shirts</h3>
+            </div>
+          </div>
+
+          <!-- Duplicate cards for seamless infinite scroll -->
+          <!-- Card 1 Duplicate - T-Shirts -->
+          <div class="bg-[#1273EB] rounded-lg shadow-lg overflow-hidden group flex-shrink-0 w-[280px] md:w-[300px]">
+            <div class="overflow-hidden">
+              <img src="images/t_shirt.png" alt="T-Shirts"
+                class="w-full h-100 object-cover transition-transform duration-500 group-hover:scale-110">
+            </div>
+            <div class="p-4 flex items-center justify-center">
+              <h3 class="font-semibold text-lg text-white text-center">T-Shirts</h3>
+            </div>
+          </div>
+
+          <!-- Card 2 Duplicate - Hoodies -->
+          <div class="bg-[#1273EB] rounded-lg shadow-lg overflow-hidden group flex-shrink-0 w-[280px] md:w-[300px]">
+            <div class="overflow-hidden">
+              <img src="images/hoodie.png" alt="Hoodies"
+                class="w-full h-100 object-cover transition-transform duration-500 group-hover:scale-110">
+            </div>
+            <div class="p-4 flex items-center justify-center">
+              <h3 class="font-semibold text-lg text-white text-center">Hoodies</h3>
+            </div>
+          </div>
+
+          <!-- Card 3 Duplicate - Jackets -->
+          <div class="bg-[#1273EB] rounded-lg shadow-lg overflow-hidden group flex-shrink-0 w-[280px] md:w-[300px]">
+            <div class="overflow-hidden">
+              <img src="images/jacket.png" alt="Jackets"
+                class="w-full h-100 object-cover transition-transform duration-500 group-hover:scale-110">
+            </div>
+            <div class="p-4 flex items-center justify-center">
+              <h3 class="font-semibold text-lg text-white text-center">Jackets</h3>
+            </div>
+          </div>
+
+          <!-- Card 4 Duplicate - Uniforms -->
+          <div class="bg-[#1273EB] rounded-lg shadow-lg overflow-hidden group flex-shrink-0 w-[280px] md:w-[300px]">
+            <div class="overflow-hidden">
+              <img src="images/uniform_set.png" alt="Uniforms"
+                class="w-full h-100 object-cover transition-transform duration-500 group-hover:scale-110">
+            </div>
+            <div class="p-4 flex items-center justify-center">
+              <h3 class="font-semibold text-lg text-white text-center">Uniforms</h3>
+            </div>
+          </div>
+
+          <!-- Card 5 Duplicate - Sweatshirts -->
+          <div class="bg-[#1273EB] rounded-lg shadow-lg overflow-hidden group flex-shrink-0 w-[280px] md:w-[300px]">
+            <div class="overflow-hidden">
+              <img src="images/sweat_shirt.png" alt="Sweatshirts"
+                class="w-full h-100 object-cover transition-transform duration-500 group-hover:scale-110">
+            </div>
+            <div class="p-4 flex items-center justify-center">
+              <h3 class="font-semibold text-lg text-white text-center">Sweatshirts</h3>
+            </div>
+          </div>
+
+          <!-- Card 6 Duplicate - Cap -->
+          <div class="bg-[#1273EB] rounded-lg shadow-lg overflow-hidden group flex-shrink-0 w-[280px] md:w-[300px]">
+            <div class="overflow-hidden">
+              <img src="images/hat.png" alt="Cap"
+                class="w-full h-100 object-cover transition-transform duration-500 group-hover:scale-110">
+            </div>
+            <div class="p-4 flex items-center justify-center">
+              <h3 class="font-semibold text-lg text-white text-center">Cap</h3>
+            </div>
+          </div>
+
+          <!-- Card 7 Duplicate - Shirts -->
+          <div class="bg-[#1273EB] rounded-lg shadow-lg overflow-hidden group flex-shrink-0 w-[280px] md:w-[300px]">
+            <div class="overflow-hidden">
+              <img src="images/shirt.png" alt="Shirts"
+                class="w-full h-100 object-cover transition-transform duration-500 group-hover:scale-110">
+            </div>
+            <div class="p-4 flex items-center justify-center">
+              <h3 class="font-semibold text-lg text-white text-center">Shirts</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+  </section>
+
+
+  <!-- Customers -->
+  <section id="customers" class="py-20 bg-[#0b1622] text-white">
+    <div class="container mx-auto px-6 text-center">
+      <h2 class="text-3xl md:text-4xl font-bold mb-4">
+        Designed for <span class="text-[#1273EB]">You</span>
+      </h2>
+      <p class="text-gray-400 mb-12 max-w-2xl mx-auto">
+        From single custom pieces to large-scale orders, we provide a seamless experience tailored to your needs.
+      </p>
+
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Card 1 -->
+        <div
+          class="reveal bg-[#0e1b2a] border border-[#1f2a3a] p-8 rounded-lg shadow-lg hover:shadow-blue-500/10 transition">
+          <i data-lucide="package" class="w-10 h-10 text-[#1273EB] mx-auto"></i>
+          <h3 class="mt-4 font-semibold text-lg text-white">Bulk & Custom Orders</h3>
+          <p class="text-gray-400 mt-2">
+            Easily order any quantity, from a single piece to thousands.
+          </p>
+        </div>
+
+        <!-- Card 2 -->
+        <div
+          class="reveal bg-[#0e1b2a] border border-[#1f2a3a] p-8 rounded-lg shadow-lg hover:shadow-blue-500/10 transition">
+          <i data-lucide="shirt" class="w-10 h-10 text-[#1273EB] mx-auto"></i>
+          <h3 class="mt-4 font-semibold text-lg text-white">Premium Fabrics</h3>
+          <p class="text-gray-400 mt-2">
+            Choose from a wide range of high-quality materials.
+          </p>
+        </div>
+
+        <!-- Card 3 -->
+        <div
+          class="reveal bg-[#0e1b2a] border border-[#1f2a3a] p-8 rounded-lg shadow-lg hover:shadow-blue-500/10 transition">
+          <i data-lucide="palette" class="w-10 h-10 text-[#1273EB] mx-auto"></i>
+          <h3 class="mt-4 font-semibold text-lg text-white">Customizable Printing</h3>
+          <p class="text-gray-400 mt-2">
+            Screen print, embroidery, DTF, and more options.
+          </p>
+        </div>
+
+        <!-- Card 4 -->
+        <div
+          class="reveal bg-[#0e1b2a] border border-[#1f2a3a] p-8 rounded-lg shadow-lg hover:shadow-blue-500/10 transition">
+          <i data-lucide="rocket" class="w-10 h-10 text-[#1273EB] mx-auto"></i>
+          <h3 class="mt-4 font-semibold text-lg text-white">Doorstep Delivery</h3>
+          <p class="text-gray-400 mt-2">
+            Convenient and fast delivery right to your location.
+          </p>
+        </div>
+
+        <!-- Card 5 -->
+        <div
+          class="reveal bg-[#0e1b2a] border border-[#1f2a3a] p-8 rounded-lg shadow-lg hover:shadow-blue-500/10 transition">
+          <i data-lucide="clock" class="w-10 h-10 text-[#1273EB] mx-auto"></i>
+          <h3 class="mt-4 font-semibold text-lg text-white">Real-Time Tracking</h3>
+          <p class="text-gray-400 mt-2">
+            Track your order from our facility to your doorstep.
+          </p>
+        </div>
+
+        <!-- Card 6 -->
+        <div
+          class="reveal bg-[#0e1b2a] border border-[#1f2a3a] p-8 rounded-lg shadow-lg hover:shadow-blue-500/10 transition">
+          <i data-lucide="users" class="w-10 h-10 text-[#1273EB] mx-auto"></i>
+          <h3 class="mt-4 font-semibold text-lg text-white">For Teams & Events</h3>
+          <p class="text-gray-400 mt-2">
+            Perfect for corporate events, college fests, and teams.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="customers" class="w-full bg-[#FFCC00] py-12 md:py-23 overflow-hidden">
+    <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-x-20 gap-y-6 md:gap-y-10 items-center">
+
+      <!-- 1. Title & Features -->
+      <div class="space-y-6 md:space-y-10 md:col-start-1 md:row-start-1">
+
+        <h2 class="text-4xl md:text-6xl font-bold text-[#1273EB] leading-tight animate-reveal-text">
+          Customize your <br /> apparel the way you want
+        </h2>
+
+        <!-- Feature #1 -->
+        <div class="animate-stagger-item [animation-delay:0.3s]">
+          <div class="flex items-center gap-3">
+            <span class="text-3xl text-white animate-pop">→</span>
+            <h3 class="text-xl md:text-2xl font-semibold text-white">Upload your reference image</h3>
+          </div>
+          <p class="ml-8 mt-2 text-[#333] text-base md:text-lg max-w-md">
+            Share any photo, artwork, logo, or sketch—our system recreates it on your T-shirts, hoodies, jackets, or
+            tracks.
+          </p>
+        </div>
+
+        <!-- Feature #2 -->
+        <div class="animate-stagger-item [animation-delay:0.5s]">
+          <h3 class="text-xl md:text-2xl font-semibold text-white">Choose your product & style</h3>
+          <p class="mt-2 text-[#333] text-base md:text-lg max-w-md">
+            Select fabric, colors, print type (DTG, embroidery, screen-print) and customize it your way.
+          </p>
+        </div>
+      </div>
+
+      <!-- 2. Video (Mobile: Order 2, Desktop: Right Column) -->
+      <div class="flex justify-center md:col-start-2 md:row-start-1 md:row-span-2">
+        <div class="rounded-3xl shadow-xl bg-gray-900 border border-white/10
+           w-full max-w-[380px] aspect-video
+           sm:max-w-[480px]
+           md:max-w-[600px]
+           lg:max-w-[1200px]
+           flex items-center justify-center overflow-hidden">
+
+          <video src="images/ImpromptuIndian.mp4" autoplay loop muted playsinline
+            class="w-full h-full object-cover">
+          </video>
+
+        </div>
+      </div>
+
+
+      <!-- 3. CTA Button (Mobile: Order 3, Desktop: Left Column, below features) -->
+      <div class="md:col-start-1 md:row-start-2 md:self-start">
+        <a href="register.html" class="inline-block bg-[#1273EB] text-white px-8 md:px-12 py-3 md:py-4 rounded-full text-base md:text-lg font-semibold shadow-lg 
+        hover:scale-[1.05] hover:shadow-xl transition-transform duration-300 animate-cta-bounce [animation-delay:1s]">
+          Start Customizing
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Delivery Partners Section -->
+  <section id="delivery" class="w-full bg-white py-12 md:py-28 overflow-hidden">
+    <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-8 md:gap-y-10 items-center">
+
+      <!-- Left: Image -->
+      <div class="flex justify-center md:justify-start">
+        <img src="images/delivery-rider.png" alt="Delivery Partner"
+          class="rounded-2xl shadow-xl w-full max-w-sm md:max-w-md object-cover" />
+      </div>
+
+      <!-- Right: Content -->
+      <div class="space-y-4 md:space-y-6">
+
+        <!-- Title -->
+        <h2 class="text-3xl md:text-5xl font-bold text-gray-900 leading-tight">
+          A Growth Opportunity<br />
+          for <span class="text-[#1273EB]">Delivery Partners</span>
+        </h2>
+
+        <!-- Subtitle -->
+        <p class="text-gray-600 text-base md:text-lg max-w-lg">
+          Join our network of trusted delivery professionals and unlock new opportunities to earn on your terms.
+        </p>
+
+        <!-- Features Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 pt-2 md:pt-4">
+
+          <!-- Feature 1 -->
+          <div class="flex gap-3 md:gap-4">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#1273EB]/10 flex items-center justify-center">
+                <i data-lucide="dollar-sign" class="w-5 h-5 md:w-6 md:h-6 text-[#1273EB]"></i>
+              </div>
+            </div>
+            <div>
+              <h3 class="font-semibold text-gray-900 text-base md:text-lg mb-1">Flexible Earnings</h3>
+              <p class="text-gray-600 text-xs md:text-sm">
+                Earn competitive payouts with distance bonuses and incentives.
+              </p>
+            </div>
+          </div>
+
+          <!-- Feature 2 -->
+          <div class="flex gap-3 md:gap-4">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#1273EB]/10 flex items-center justify-center">
+                <i data-lucide="truck" class="w-5 h-5 md:w-6 md:h-6 text-[#1273EB]"></i>
+              </div>
+            </div>
+            <div>
+              <h3 class="font-semibold text-gray-900 text-base md:text-lg mb-1">Real-Time Tracking</h3>
+              <p class="text-gray-600 text-xs md:text-sm">
+                Get instant assignments with live navigation and route optimization.
+              </p>
+            </div>
+          </div>
+
+          <!-- Feature 3 -->
+          <div class="flex gap-3 md:gap-4">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#1273EB]/10 flex items-center justify-center">
+                <i data-lucide="calendar" class="w-5 h-5 md:w-6 md:h-6 text-[#1273EB]"></i>
+              </div>
+            </div>
+            <div>
+              <h3 class="font-semibold text-gray-900 text-base md:text-lg mb-1">Weekly Payouts</h3>
+              <p class="text-gray-600 text-xs md:text-sm">
+                Receive timely payments directly to your account every week.
+              </p>
+            </div>
+          </div>
+
+          <!-- Feature 4 -->
+          <div class="flex gap-3 md:gap-4">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#1273EB]/10 flex items-center justify-center">
+                <i data-lucide="headphones" class="w-5 h-5 md:w-6 md:h-6 text-[#1273EB]"></i>
+              </div>
+            </div>
+            <div>
+              <h3 class="font-semibold text-gray-900 text-base md:text-lg mb-1">24/7 Support</h3>
+              <p class="text-gray-600 text-xs md:text-sm">
+                Access dedicated support team anytime you need assistance.
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- CTA Button -->
+        <div class="pt-2 md:pt-4">
+          <a href="rider-register.html" class="inline-block bg-[#1273EB] text-white px-6 md:px-8 py-2.5 md:py-3 rounded-lg text-base md:text-lg font-semibold shadow-lg 
+                    hover:bg-[#0d61c9] hover:shadow-xl transition-all duration-300">
+            Join as Rider →
+          </a>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- Our Promise to You -->
+  <section id="promise" class="py-20 bg-[#0b1622] text-white">
+    <div class="container mx-auto px-6 text-center reveal">
+      <h2 class="text-3xl md:text-4xl font-bold mb-4">Our Promise to You</h2>
+      <p class="text-gray-400 max-w-2xl mx-auto mb-12">
+        We are committed to delivering excellence at every step of your journey with us.
+      </p>
+
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- Card 1 -->
+        <div class="border border-gray-700 rounded-xl p-6 text-left hover:border-blue-500 transition reveal">
+          <i data-lucide="rocket" class="w-8 h-8 text-[#1273EB] mb-4"></i>
+          <h3 class="font-semibold text-lg mb-2">Express Delivery</h3>
+          <p class="text-gray-400 text-sm">
+            On-time delivery, every time. We respect your deadlines.
+          </p>
+        </div>
+
+        <!-- Card 2 (NEW - Real-Time Support) -->
+        <div class="border border-gray-700 rounded-xl p-6 text-left hover:border-blue-500 transition reveal">
+          <i data-lucide="messages-square" class="w-8 h-8 text-[#1273EB] mb-4"></i>
+          <h3 class="font-semibold text-lg mb-2">Real-Time Support</h3>
+          <p class="text-gray-400 text-sm">
+            A dedicated support team is available throughout your order journey—for updates, changes, and special
+            requests.
+          </p>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="border border-gray-700 rounded-xl p-6 text-left hover:border-blue-500 transition reveal">
+          <i data-lucide="package" class="w-8 h-8 text-[#1273EB] mb-4"></i>
+          <h3 class="font-semibold text-lg mb-2">Doorstep Service</h3>
+          <p class="text-gray-400 text-sm">
+            Convenience from order placement to final delivery.
+          </p>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="border border-gray-700 rounded-xl p-6 text-left hover:border-blue-500 transition reveal">
+          <i data-lucide="smartphone" class="w-8 h-8 text-[#1273EB] mb-4"></i>
+          <h3 class="font-semibold text-lg mb-2">Easy Management</h3>
+          <p class="text-gray-400 text-sm">
+            Track your order with real-time updates from start to finish.
+          </p>
+        </div>
+
+        <!-- Card 5 (NEW - Easy Reorder Option) -->
+        <div class="border border-gray-700 rounded-xl p-6 text-left hover:border-blue-500 transition reveal">
+          <i data-lucide="refresh-ccw" class="w-8 h-8 text-[#1273EB] mb-4"></i>
+          <h3 class="font-semibold text-lg mb-2">Easy Reorder Option</h3>
+          <p class="text-gray-400 text-sm">
+            Reorder past designs and orders instantly with one click—perfect for teams and recurring events.
+          </p>
+        </div>
+
+        <!-- Card 6 -->
+        <div class="border border-gray-700 rounded-xl p-6 text-left hover:border-blue-500 transition reveal">
+          <i data-lucide="shield-check" class="w-8 h-8 text-[#1273EB] mb-4"></i>
+          <h3 class="font-semibold text-lg mb-2">Quality Guaranteed</h3>
+          <p class="text-gray-400 text-sm">
+            Rigorous quality checks ensure you get the best product.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact CTA -->
+  <section id="contact" class="py-24 bg-[#FFCC00] text-center reveal">
+    <h2 class="text-3xl md:text-4xl font-bold text-black mb-4">
+      Ready to Create Your Perfect Custom Wear?
+    </h2>
+    <p class="text-black-100 max-w-2xl mx-auto mb-10">
+      Let's get started on your project today. Join thousands of happy customers
+      and vendors.
+    </p>
+
+    <a href="register.html" class="inline-block bg-[#1273EB]  text-white font-semibold px-8 py-3 rounded-lg transition">
+      Get Started Now →
+    </a>
+  </section>
+
+
+  <!-- Footer -->
+  <footer class="bg-white text-gray-700 pt-8 md:pt-12 pb-4 md:pb-6">
+    <div class="container mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 reveal">
+
+      <!-- Branding -->
+      <div class="col-span-2 md:col-span-1">
+        <div class="flex items-center gap-2 text-lg md:text-xl font-bold">
+          <i data-lucide="shirt" class="w-5 h-5 md:w-6 md:h-6 text-[#FFCC00]"></i>
+          <span class="text-[#1273EB]">Impromptu<span class="text-[#FFCC00]">Indian</span></span>
+        </div>
+
+        <p class="text-gray-500 mt-2 text-sm md:text-base">The best platform for custom apparel.</p>
+        <ul class="space-y-1.5 md:space-y-2 text-gray-600 mt-3 text-sm md:text-base">
+          <li><a href="about.html" class="hover:text-[#1273EB]">About Us</a></li>
+          <li><a href="#" class="hover:text-blue-600">Terms & Policies</a></li>
+          <li><a href="#" class="hover:text-blue-600">Support Center</a></li>
+        </ul>
+        <div class="flex gap-3 md:gap-4 mt-3 md:mt-4 text-gray-500">
+          <a href="#"><i data-lucide="facebook" class="w-4 h-4 md:w-5 md:h-5 hover:text-blue-600"></i></a>
+          <a href="#"><i data-lucide="twitter" class="w-4 h-4 md:w-5 md:h-5 hover:text-blue-400"></i></a>
+          <a href="#"><i data-lucide="instagram" class="w-4 h-4 md:w-5 md:h-5 hover:text-pink-500"></i></a>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div>
+        <h3 class="font-semibold mb-2 md:mb-3 text-sm md:text-base">Quick Links</h3>
+        <ul class="space-y-1.5 md:space-y-2 text-gray-600 text-sm md:text-base">
+          <li><a href="#home" class="hover:text-[#1273EB]">Home</a></li>
+          <li><a href="blog.html" class="hover:text-[#1273EB]">Blogs</a></li>
+          <li><a href="#customers" class="hover:text-[#1273EB]">For Customers</a></li>
+          <li><a href="#vendors" class="hover:text-[#1273EB]">For Vendors</a></li>
+          <li><a href="#promise" class="hover:text-[#1273EB]">Our Promise</a></li>
+        </ul>
+      </div>
+
+      <!-- For Customers -->
+      <div>
+        <h3 class="font-semibold mb-2 md:mb-3 text-sm md:text-base">For Customers</h3>
+        <ul class="space-y-1.5 md:space-y-2 text-gray-600 text-sm md:text-base">
+          <li><a href="#" class="hover:text-[#1273EB]">Create an Order</a></li>
+          <li><a href="#" class="hover:text-[#1273EB]">Track Order</a></li>
+          <li><a href="#" class="hover:text-[#1273EB]">FAQs</a></li>
+          <li><a href="#" class="hover:text-[#1273EB]">Customer Support</a></li>
+        </ul>
+      </div>
+
+      <!-- For Vendors -->
+      <div>
+        <h3 class="font-semibold mb-2 md:mb-3 text-sm md:text-base">For Vendors</h3>
+        <ul class="space-y-1.5 md:space-y-2 text-gray-600 text-sm md:text-base">
+          <li><a href="#" class="hover:text-[#1273EB]">Become a Vendor</a></li>
+          <li><a href="#" class="hover:text-[#1273EB]">Vendor Dashboard</a></li>
+          <li><a href="#" class="hover:text-[#1273EB]">Vendor Support</a></li>
+        </ul>
+      </div>
+
+      <!-- Copyright -->
+      <div class="col-span-2 md:col-span-4 mt-4 md:mt-6 reveal">
+        <div class="border-t pt-3 md:pt-4 text-center text-gray-500 text-xs md:text-sm">
+          <p>&copy; 2025 Impromptu Indian. All rights reserved.</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/index.js"></script>
+
+</body>
+
+</html>

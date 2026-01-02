@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notifications – ImpromptuIndian Rider</title>
+    <meta name="description" content="View all your notifications" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/rider-global.css" />
+    <link rel="stylesheet" href="css/notifications.css" />
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <!-- Header -->
+            <div class="dashboard-header mb-8">
+                <div>
+                    <h1 class="dashboard-title">Notifications</h1>
+                    <p class="dashboard-subtitle">Stay updated with all your alerts</p>
+                </div>
+                <div class="flex gap-2">
+                    <button class="btn-secondary" onclick="markAllAsRead()">
+                        <i data-lucide="check-check" class="w-5 h-5"></i>
+                        Mark All Read
+                    </button>
+                    <button class="btn-refresh-modern" onclick="loadNotifications()">
+                        <i data-lucide="refresh-ccw" class="w-5 h-5"></i>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter Tabs -->
+            <div class="flex gap-2 mb-6 overflow-x-auto">
+                <button class="filter-tab active" data-filter="all" onclick="filterNotifications('all')">
+                    All Notifications
+                </button>
+                <button class="filter-tab" data-filter="unread" onclick="filterNotifications('unread')">
+                    Unread
+                </button>
+                <button class="filter-tab" data-filter="job" onclick="filterNotifications('job')">
+                    Job Notifications
+                </button>
+                <button class="filter-tab" data-filter="payment" onclick="filterNotifications('payment')">
+                    Payment
+                </button>
+                <button class="filter-tab" data-filter="admin" onclick="filterNotifications('admin')">
+                    Admin Messages
+                </button>
+                <button class="filter-tab" data-filter="system" onclick="filterNotifications('system')">
+                    System Alerts
+                </button>
+            </div>
+
+            <!-- Notifications Container -->
+            <div id="notificationsContainer">
+                <!-- Notifications will be loaded here -->
+            </div>
+        </main>
+    </div>
+
+    <script src="js/notifications.js"></script>
+</body>
+
+</html>

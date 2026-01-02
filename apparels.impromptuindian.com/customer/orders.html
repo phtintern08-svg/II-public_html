@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ImpromptuIndian - My Orders</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="shortcut icon" href="images/favicon.ico" type="images/x-icon">
+</head>
+
+<body class="text-white">
+
+  <div class="flex h-screen overflow-hidden">
+
+    <!-- SIDEBAR CONTAINER -->
+    <div id="sidebar-container"></div>
+
+    <!-- Sidebar Script -->
+    <script src="js/sidebar.js"></script>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 p-10 overflow-y-auto">
+
+      <h1 class="text-3xl font-bold">My Orders</h1>
+      <p class="opacity-70 mb-10">Track and manage all your orders.</p>
+
+      <div class="bg-[#111827] border border-gray-800 rounded-xl p-6">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-semibold">Order History</h2>
+          <a href="new-order.html">
+            <button
+              class="flex items-center gap-2 bg-[#FFCC00] hover:bg-yellow-400 text-black font-semibold px-4 py-2 rounded-lg transition-colors">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i> New Order
+            </button>
+          </a>
+        </div>
+
+        <div class="flex items-center gap-3 mt-5">
+          <input id="searchInput" placeholder="Search by order ID or vendor..."
+            class="px-4 py-2 bg-[#0f172a] border border-gray-700 rounded-lg w-80" />
+
+          <button class="px-4 py-2 bg-[#1f2937] border border-gray-700 rounded-lg flex items-center gap-2">
+            <i data-lucide="list-filter" class="w-4 h-4"></i> Filter
+          </button>
+        </div>
+
+        <div class="mt-6 overflow-hidden rounded-lg border border-gray-700">
+          <table class="w-full text-sm">
+            <thead class="bg-[#1f2937] text-gray-300">
+              <tr>
+                <th class="px-4 py-3 text-left">Order ID</th>
+                <th class="px-4 py-3 text-left">Product</th>
+                <th class="px-4 py-3 text-left">Status</th>
+                <th class="px-4 py-3 text-left">Quantity</th>
+                <th class="px-4 py-3 text-left">Deadline</th>
+                <th class="px-4 py-3 text-right">Sample Paid</th>
+                <th class="px-4 py-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTable"></tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Orders Script -->
+  <script src="js/orders.js"></script>
+
+</body>
+
+</html>

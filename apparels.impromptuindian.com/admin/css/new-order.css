@@ -1,0 +1,189 @@
+/* new-orders.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-dark);
+}
+
+.reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reveal.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Summary cards override */
+.summary-card {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+.summary-card:hover {
+    border-color: var(--primary-blue);
+    transform: translateY(-5px);
+    box-shadow: 0 20px 30px -10px rgba(15, 131, 255, 0.2);
+}
+
+.summary-icon {
+    background: linear-gradient(135deg, var(--primary-blue) 0%, #0056b3 100%);
+    box-shadow: 0 8px 20px -6px rgba(15, 131, 255, 0.6);
+}
+
+.summary-value {
+    letter-spacing: -0.025em;
+    font-size: 2.25rem;
+}
+
+/* Card & Table Customizations */
+.card {
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(30, 41, 59, 0.4);
+    backdrop-filter: blur(12px);
+}
+
+.card-header {
+    background: rgba(15, 131, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.table-container {
+    border-radius: 0 0 1rem 1rem;
+}
+
+table thead th {
+    background: rgba(15, 131, 255, 0.08);
+    border-bottom: 2px solid rgba(15, 131, 255, 0.2);
+}
+
+table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+table tbody tr:last-child {
+    border-bottom: none;
+}
+
+/* Filters bar integration */
+.filters-bar {
+    background: rgba(30, 41, 59, 0.3);
+    padding: 1rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(8px);
+}
+
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    padding: 0 1rem;
+    transition: all 0.3s ease;
+}
+
+.search-input-wrapper:focus-within {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(15, 131, 255, 0.1);
+}
+
+.search-input-wrapper i {
+    color: var(--text-muted);
+}
+
+.search-input {
+    background: transparent;
+    border: none;
+    width: 100%;
+    padding: 0.75rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* Modal Enhancements */
+.modal {
+    background: rgba(2, 6, 23, 0.85);
+}
+
+.modal-content {
+    background: var(--bg-darker);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6);
+}
+
+.modal-header {
+    background: linear-gradient(to right, rgba(15, 131, 255, 0.05), transparent);
+}
+
+.modal-footer {
+    background: rgba(30, 41, 59, 0.2);
+}
+
+/* Custom Scrollbar for Modal and Table */
+.modal-content::-webkit-scrollbar,
+.modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-content::-webkit-scrollbar-thumb,
+.modal-body::-webkit-scrollbar-thumb {
+    background: rgba(15, 131, 255, 0.2);
+    border-radius: 10px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover,
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(15, 131, 255, 0.4);
+}
+
+/* Toast animations */
+@keyframes toastSlide {
+    from {
+        opacity: 0;
+        transform: translateX(100%) translateY(0);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0) translateY(0);
+    }
+}
+
+.toast {
+    animation: toastSlide 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-darker) 100%);
+    border: 1px solid var(--primary-blue);
+    border-left: 4px solid var(--primary-blue);
+}
+
+/* Status Badges - Fine tuning */
+.status-unassigned {
+    background: rgba(255, 212, 59, 0.1);
+    color: var(--primary-yellow);
+    border: 1px solid rgba(255, 212, 59, 0.2);
+}
+
+.status-assigned {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+/* Typography Helpers */
+.font-mono {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.tracking-widest {
+    letter-spacing: 0.1em;
+}
+
+.tracking-tighter {
+    letter-spacing: -0.05em;
+}

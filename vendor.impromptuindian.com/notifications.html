@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notifications – ImpromptuIndian Vendor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/notifications.css">
+</head>
+
+<body class="text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <div class="reveal mb-8 flex items-start justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold tracking-tight">Notifications</h1>
+                    <p class="text-gray-400 mt-1">Stay updated with all your alerts and messages.</p>
+                </div>
+                <button class="btn-mark-all" onclick="markAllAsRead()">
+                    <i data-lucide="check-check" class="w-4 h-4"></i>
+                    Mark All Read
+                </button>
+            </div>
+
+            <div class="reveal filters-bar mb-6" style="transition-delay: 100ms;">
+                <button class="filter-btn active" onclick="filterNotifications('all')">All</button>
+                <button class="filter-btn" onclick="filterNotifications('orders')">Orders</button>
+                <button class="filter-btn" onclick="filterNotifications('payments')">Payments</button>
+                <button class="filter-btn" onclick="filterNotifications('deadlines')">Deadlines</button>
+                <button class="filter-btn" onclick="filterNotifications('verification')">Verification</button>
+                <button class="filter-btn" onclick="filterNotifications('system')">System</button>
+            </div>
+
+            <div class="reveal card" style="transition-delay: 200ms;">
+                <div class="card-header">
+                    <h3 class="card-title">Recent Notifications</h3>
+                    <p class="card-description" id="notif-count">0 unread notifications</p>
+                </div>
+                <div class="card-body">
+                    <div class="notifications-list" id="notifications-list"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="success-toast" class="toast hidden">
+        <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+        <span id="toast-message">Action completed!</span>
+    </div>
+
+    <script src="js/notifications.js"></script>
+</body>
+
+</html>

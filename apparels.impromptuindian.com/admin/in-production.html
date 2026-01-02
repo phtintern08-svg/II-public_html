@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>In Production – ImpromptuIndian Admin</title>
+    <meta name="description" content="Monitor vendor production progress and stages" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/admin-global.css" />
+    <link rel="stylesheet" href="css/in-production.css" />
+    <link rel="shortcut icon" href="images/favicon.ico" type="images/x-icon">
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <div class="reveal mb-8 flex items-start justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">In Production</h1>
+                    <p class="text-gray-400 mt-1">Monitor vendor progress and intervene if needed</p>
+                </div>
+                <div class="flex gap-3">
+                    <a href="orders.html"
+                        class="flex items-center gap-2 px-4 py-2 bg-[#1273EB] text-white rounded-lg transition-colors border border-gray-700">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i> Back
+                    </a>
+                    <button class="btn-refresh" onclick="refreshProduction()"><i data-lucide="refresh-ccw"
+                            class="w-4 h-4"></i> Refresh</button>
+                </div>
+            </div>
+
+            <div class="reveal filters-bar mb-6" style="transition-delay: 100ms;">
+                <select id="stage-filter" class="filter-select" onchange="filterProduction()">
+                    <option value="all">All Stages</option>
+                    <option value="assigned">Assigned</option>
+                    <option value="accepted">Accepted</option>
+                    <option value="material">Material Prep</option>
+                    <option value="print">Printing</option>
+                    <option value="quality">Quality Check</option>
+                    <option value="packed">Packed & Ready</option>
+                </select>
+                <input type="text" id="search-prod" class="search-input" placeholder="Search order ID..."
+                    oninput="filterProduction()" />
+            </div>
+
+            <div class="reveal card" style="transition-delay: 200ms;">
+                <div class="card-header">
+                    <h3 class="card-title">Production Orders</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Vendor</th>
+                                    <th>Current Stage</th>
+                                    <th>Deadline</th>
+                                    <th>Progress</th>
+                                    <th class="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="production-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Production Detail Modal -->
+    <div id="prod-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeProdModal()"></div>
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modal-title">Production Details</h2>
+                <button class="modal-close" onclick="closeProdModal()"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="modal-body" id="modal-body"></div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeProdModal()">Close</button>
+                <button class="btn-danger" onclick="reassignVendor()"><i data-lucide="shuffle"
+                        class="w-4 h-4"></i>Reassign Vendor</button>
+                <button class="btn-primary" onclick="sendReminder()"><i data-lucide="bell" class="w-4 h-4"></i>Send
+                    Reminder</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast hidden"><i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i><span
+            id="toast-msg">Action completed!</span></div>
+
+    <script src="js/in-production.js"></script>
+</body>
+
+</html>

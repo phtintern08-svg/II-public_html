@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings – ImpromptuIndian</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="shortcut icon" href="images/favicon.ico" type="images/x-icon">
+</head>
+
+<body class="text-white">
+
+  <div class="flex h-screen overflow-hidden">
+
+    <!-- SIDEBAR CONTAINER -->
+    <div id="sidebar-container"></div>
+
+    <!-- Sidebar Script -->
+    <script src="js/sidebar.js"></script>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 overflow-y-auto p-10 no-scrollbar">
+
+      <!-- PAGE HEADER -->
+      <h1 class="text-4xl font-bold">Settings</h1>
+      <p class="opacity-70 mt-1 mb-10">Manage your account and notification preferences.</p>
+
+      <div class="space-y-10">
+
+        <!-- NOTIFICATIONS CARD -->
+        <div class="bg-[#111827] border border-gray-700 rounded-xl p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <i data-lucide="bell" class="w-6 h-6 text-white"></i>
+            <h2 class="text-xl font-bold">Notifications</h2>
+          </div>
+          <p class="opacity-70 mb-6">Choose how you want to be notified.</p>
+
+          <div class="space-y-4">
+
+            <!-- ORDER STATUS UPDATES -->
+            <div class="flex items-center justify-between border border-gray-700 p-4 rounded-lg">
+              <div>
+                <p class="font-medium">Order Status Updates</p>
+                <p class="text-sm text-gray-400">
+                  Receive email notifications when your order status changes.
+                </p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" checked class="sr-only peer">
+                <div
+                  class="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:bg-blue-600 peer-focus:ring-2 peer-focus:ring-blue-300 transition">
+                </div>
+                <span
+                  class="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow transform peer-checked:translate-x-5 transition"></span>
+              </label>
+            </div>
+
+            <!-- PROMOTIONS & OFFERS -->
+            <div class="flex items-center justify-between border border-gray-700 p-4 rounded-lg">
+              <div>
+                <p class="font-medium">Promotions & Offers</p>
+                <p class="text-sm text-gray-400">
+                  Get notified about new products and special discounts.
+                </p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer">
+                <div
+                  class="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:bg-blue-600 peer-focus:ring-2 peer-focus:ring-blue-300 transition">
+                </div>
+                <span
+                  class="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow transform peer-checked:translate-x-5 transition"></span>
+              </label>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- PRIVACY CARD -->
+        <div class="bg-[#111827] border border-gray-700 rounded-xl p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <i data-lucide="shield" class="w-6 h-6 text-white"></i>
+            <h2 class="text-xl font-bold">Privacy</h2>
+          </div>
+          <p class="opacity-70 mb-6">Control your data and privacy settings.</p>
+
+          <div class="space-y-4">
+
+            <!-- PROFILE VISIBILITY -->
+            <div class="flex items-center justify-between border border-gray-700 p-4 rounded-lg">
+              <div>
+                <p class="font-medium">Profile Visibility</p>
+                <p class="text-sm text-gray-400">
+                  Allow vendors to see your profile information.
+                </p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" checked class="sr-only peer">
+                <div
+                  class="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:bg-blue-600 peer-focus:ring-2 peer-focus:ring-blue-300 transition">
+                </div>
+                <span
+                  class="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow transform peer-checked:translate-x-5 transition"></span>
+              </label>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- DANGER ZONE -->
+        <div class="bg-[#111827] border border-red-700 rounded-xl p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <i data-lucide="alert-triangle" class="w-6 h-6 text-red-500"></i>
+            <h2 class="text-xl font-bold text-red-500">Danger Zone</h2>
+          </div>
+          <p class="opacity-70 mb-6">Irreversible actions that affect your account.</p>
+
+          <button
+            class="px-5 py-2 bg-[#FFCC00] hover:bg-yellow-400 text-black font-semibold rounded-lg transition-colors">
+            Delete Account
+          </button>
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- Settings Script -->
+  <script src="js/settings.js"></script>
+
+</body>
+
+</html>

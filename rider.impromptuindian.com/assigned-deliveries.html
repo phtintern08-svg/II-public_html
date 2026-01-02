@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Assigned Deliveries – ImpromptuIndian Rider</title>
+    <meta name="description" content="View and manage your assigned deliveries" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/rider-global.css" />
+    <link rel="stylesheet" href="css/assigned-deliveries.css" />
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <!-- Header -->
+            <div class="dashboard-header mb-8">
+                <div>
+                    <h1 class="dashboard-title">Assigned Deliveries</h1>
+                    <p class="dashboard-subtitle">Manage your delivery tasks</p>
+                </div>
+                <button class="btn-refresh-modern" onclick="loadDeliveries()">
+                    <i data-lucide="refresh-ccw" class="w-5 h-5"></i>
+                    Refresh
+                </button>
+            </div>
+
+            <!-- Filter Tabs -->
+            <div class="flex gap-2 mb-6 overflow-x-auto">
+                <button class="filter-tab active" data-status="all" onclick="filterDeliveries('all')">
+                    All Deliveries
+                </button>
+                <button class="filter-tab" data-status="assigned" onclick="filterDeliveries('assigned')">
+                    Pending Pickup
+                </button>
+                <button class="filter-tab" data-status="picked_up" onclick="filterDeliveries('picked_up')">
+                    Picked Up
+                </button>
+                <button class="filter-tab" data-status="out_for_delivery"
+                    onclick="filterDeliveries('out_for_delivery')">
+                    Out for Delivery
+                </button>
+                <button class="filter-tab" data-status="delivered" onclick="filterDeliveries('delivered')">
+                    Delivered
+                </button>
+            </div>
+
+            <!-- Deliveries Container -->
+            <div id="deliveries-container">
+                <!-- Deliveries will be loaded here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Delivery Details Modal -->
+    <div id="deliveryModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Delivery Details</h2>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div id="modalContent">
+                <!-- Modal content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Pickup Proof Modal -->
+    <div id="pickupProofModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Upload Pickup Proof</h2>
+                <button class="modal-close" onclick="closePickupProofModal()">×</button>
+            </div>
+            <form id="pickupProofForm" onsubmit="uploadPickupProof(event)">
+                <div class="form-group">
+                    <label class="form-label">Proof Photo *</label>
+                    <div class="camera-wrapper bg-gray-800 rounded-lg p-3 border border-gray-700">
+                        <!-- Camera View -->
+                        <div id="pickupCamera" class="camera-view hidden relative">
+                            <video id="pickupVideo" autoplay playsinline
+                                class="w-full h-64 object-cover rounded-lg bg-black"></video>
+                            <canvas id="pickupCanvas" class="hidden"></canvas>
+                        </div>
+
+                        <!-- Preview Captured Image -->
+                        <div id="pickupPreviewContainer" class="preview-view hidden">
+                            <img id="pickupPreview" class="w-full h-64 object-cover rounded-lg border border-gray-600">
+                        </div>
+
+                        <!-- Placeholder/Initial State -->
+                        <div id="pickupCameraPlaceholder"
+                            class="h-32 flex flex-col items-center justify-center bg-gray-800/50 rounded-lg border-2 border-dashed border-gray-600 text-gray-400">
+                            <i data-lucide="camera" class="w-8 h-8 mb-2"></i>
+                            <span class="text-sm">Camera Off</span>
+                        </div>
+
+                        <!-- Controls -->
+                        <div class="camera-actions mt-3 flex gap-2">
+                            <button type="button" id="btnStartPickupCam"
+                                class="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+                                onclick="startCamera('pickup')">
+                                <i data-lucide="camera" class="w-4 h-4"></i> Open Camera
+                            </button>
+                            <button type="button" id="btnCapturePickup"
+                                class="flex-1 bg-green-600 hover:bg-green-500 text-white py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 hidden"
+                                onclick="capturePhoto('pickup')">
+                                <i data-lucide="aperture" class="w-4 h-4"></i> Capture
+                            </button>
+                            <button type="button" id="btnRetakePickup"
+                                class="flex-1 bg-gray-600 hover:bg-gray-500 text-white py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 hidden"
+                                onclick="retakePhoto('pickup')">
+                                <i data-lucide="refresh-cw" class="w-4 h-4"></i> Retake
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notes (Optional)</label>
+                    <textarea id="pickupNotes" class="form-textarea"
+                        placeholder="Any notes about the pickup..."></textarea>
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="btn-primary flex-1">
+                        <i data-lucide="upload" class="w-4 h-4"></i>
+                        Upload & Mark Picked Up
+                    </button>
+                    <button type="button" onclick="closePickupProofModal()" class="btn-secondary">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delivery Proof Modal -->
+    <div id="deliveryProofModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Complete Delivery</h2>
+                <button class="modal-close" onclick="closeDeliveryProofModal()">×</button>
+            </div>
+            <form id="deliveryProofForm" onsubmit="uploadDeliveryProof(event)">
+                <div class="form-group">
+                    <label class="form-label">Delivery Proof Photo *</label>
+                    <div class="camera-wrapper bg-gray-800 rounded-lg p-3 border border-gray-700">
+                        <!-- Camera View -->
+                        <div id="deliveryCamera" class="camera-view hidden relative">
+                            <video id="deliveryVideo" autoplay playsinline
+                                class="w-full h-64 object-cover rounded-lg bg-black"></video>
+                            <canvas id="deliveryCanvas" class="hidden"></canvas>
+                        </div>
+
+                        <!-- Preview Captured Image -->
+                        <div id="deliveryPreviewContainer" class="preview-view hidden">
+                            <img id="deliveryPreview"
+                                class="w-full h-64 object-cover rounded-lg border border-gray-600">
+                        </div>
+
+                        <!-- Placeholder/Initial State -->
+                        <div id="deliveryCameraPlaceholder"
+                            class="h-32 flex flex-col items-center justify-center bg-gray-800/50 rounded-lg border-2 border-dashed border-gray-600 text-gray-400">
+                            <i data-lucide="camera" class="w-8 h-8 mb-2"></i>
+                            <span class="text-sm">Camera Off</span>
+                        </div>
+
+                        <!-- Controls -->
+                        <div class="camera-actions mt-3 flex gap-2">
+                            <button type="button" id="btnStartDeliveryCam"
+                                class="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+                                onclick="startCamera('delivery')">
+                                <i data-lucide="camera" class="w-4 h-4"></i> Open Camera
+                            </button>
+                            <button type="button" id="btnCaptureDelivery"
+                                class="flex-1 bg-green-600 hover:bg-green-500 text-white py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 hidden"
+                                onclick="capturePhoto('delivery')">
+                                <i data-lucide="aperture" class="w-4 h-4"></i> Capture
+                            </button>
+                            <button type="button" id="btnRetakeDelivery"
+                                class="flex-1 bg-gray-600 hover:bg-gray-500 text-white py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 hidden"
+                                onclick="retakePhoto('delivery')">
+                                <i data-lucide="refresh-cw" class="w-4 h-4"></i> Retake
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">OTP (if provided by customer)</label>
+                    <input type="text" id="deliveryOtp" class="form-input" placeholder="Enter 6-digit OTP"
+                        maxlength="6">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notes (Optional)</label>
+                    <textarea id="deliveryNotes" class="form-textarea"
+                        placeholder="Any notes about the delivery..."></textarea>
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="btn-primary flex-1">
+                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                        Complete Delivery
+                    </button>
+                    <button type="button" onclick="closeDeliveryProofModal()" class="btn-secondary">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/assigned-deliveries.js"></script>
+</body>
+
+</html>

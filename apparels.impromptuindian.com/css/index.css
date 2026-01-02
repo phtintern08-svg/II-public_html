@@ -1,0 +1,163 @@
+/* Hide scrollbar for Chrome, Safari and Opera */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+html {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeUp {
+  animation: fadeUp 0.9s ease-out forwards;
+}
+
+/* TEXT MASK REVEAL (Unique & Modern) */
+@keyframes revealText {
+  0% {
+    clip-path: inset(0 100% 0 0);
+    opacity: 0;
+  }
+
+  100% {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+  }
+}
+
+.animate-reveal-text {
+  animation: revealText 1.2s cubic-bezier(.25, .46, .45, .94) both;
+}
+
+/* STAGGERED FLOAT IN */
+@keyframes staggerItem {
+  0% {
+    opacity: 0;
+    transform: translateY(25px) scale(.98);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-stagger-item {
+  animation: staggerItem .9s ease-out forwards;
+}
+
+/* POPPING ARROW */
+@keyframes popIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  70% {
+    transform: scale(1.15);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-pop {
+  animation: popIn .4s ease-out forwards;
+}
+
+/* CTA BOUNCE ENTRANCE */
+@keyframes ctaBounce {
+  0% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  60% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+
+  80% {
+    transform: translateY(3px);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.animate-cta-bounce {
+  animation: ctaBounce 0.9s ease-out forwards;
+}
+
+/* FLOAT & SLIGHT TILT (Image animation) */
+@keyframes floatTilt {
+  0% {
+    transform: translateY(0px) rotate3d(1, 1, 0, 0deg);
+  }
+
+  50% {
+    transform: translateY(-12px) rotate3d(1, 1, 0, 3deg);
+  }
+
+  100% {
+    transform: translateY(0px) rotate3d(1, 1, 0, 0deg);
+  }
+}
+
+.animate-float-tilt {
+  animation: floatTilt 5s ease-in-out infinite;
+}
+
+/* Auto-scrolling categories - Infinite Repeat Mode */
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.categories-scroll {
+  display: flex;
+  gap: 1.5rem;
+  animation: scroll 40s linear infinite;
+  width: max-content;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  will-change: transform;
+}
+
+.categories-scroll > * {
+  flex-shrink: 0;
+}
+
+.categories-scroll:hover {
+  animation-play-state: paused;
+  cursor: pointer;
+}
+
+/* Ensure smooth scrolling on all devices */
+@media (prefers-reduced-motion: reduce) {
+  .categories-scroll {
+    animation: none;
+  }
+}

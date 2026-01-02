@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Machine Slots – ImpromptuIndian Vendor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/machine-slots.css">
+</head>
+
+<body class="text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <div class="reveal mb-8 flex items-start justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold tracking-tight">Machine Slots</h1>
+                    <p class="text-gray-400 mt-1">Manage your printing equipment and workload.</p>
+                </div>
+                <button class="btn-add" onclick="openAddMachineModal()">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    Add Machine
+                </button>
+            </div>
+
+            <div class="reveal machines-grid mb-8" style="transition-delay: 100ms;" id="machines-grid"></div>
+
+            <div class="reveal card" style="transition-delay: 200ms;">
+                <div class="card-header">
+                    <h3 class="card-title">Machine Assignments</h3>
+                    <p class="card-description">Current job allocations</p>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Machine</th>
+                                    <th>Order ID</th>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Progress</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="assignments-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="add-machine-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeAddMachineModal()"></div>
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2 class="modal-title">Add New Machine</h2>
+                <button class="modal-close" onclick="closeAddMachineModal()"><i data-lucide="x"
+                        class="w-5 h-5"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Machine Name</label>
+                    <input type="text" id="machine-name" placeholder="e.g., DTF Printer 1" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label>Machine Type</label>
+                    <select id="machine-type" class="form-select">
+                        <option value="dtf">DTF Printer</option>
+                        <option value="screen">Screen Printer</option>
+                        <option value="sublimation">Sublimation</option>
+                        <option value="embroidery">Embroidery</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Capacity (units/day)</label>
+                    <input type="number" id="machine-capacity" placeholder="100" class="form-input">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeAddMachineModal()">Cancel</button>
+                <button class="btn-primary" onclick="addMachine()"><i data-lucide="plus" class="w-4 h-4"></i>Add
+                    Machine</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="success-toast" class="toast hidden">
+        <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+        <span id="toast-message">Machine added successfully!</span>
+    </div>
+
+    <script src="js/machine-slots.js"></script>
+</body>
+
+</html>
