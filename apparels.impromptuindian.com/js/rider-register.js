@@ -96,6 +96,12 @@ function showOtpInput(field) {
 
 // Verify OTP
 async function verifyOtp(field) {
+    // Phone OTP is disabled - DISABLED
+    if (field.includes('Phone')) {
+        showAlert('Phone OTP Disabled', 'Phone OTP authentication is currently disabled. Please use email for OTP verification.', 'error');
+        return;
+    }
+    
     const otpInputs = document.querySelectorAll(`#otp-inputs-${field} input`);
     const otp = Array.from(otpInputs).map(input => input.value).join('');
 

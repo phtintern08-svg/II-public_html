@@ -276,13 +276,21 @@ async function handleGetOtp(fieldId) {
     // Determine type
     const type = fieldId.toLowerCase().includes('email') ? 'email' : 'phone';
 
-    // Validate Indian phone number before sending OTP
+    // Phone OTP is disabled - DISABLED
     if (type === 'phone') {
-        if (!validateIndianPhone(inputField.value)) {
-            showAlert('Invalid Mobile Number', 'The mobile number you entered is not valid. Please provide a 10-digit mobile number.', 'error');
-            return;
-        }
+        showAlert('Phone OTP Disabled', 'Phone OTP authentication is currently disabled. Please use email for OTP verification.', 'error');
+        getOtpBtn.disabled = false;
+        getOtpBtn.innerText = "Get OTP";
+        return;
     }
+
+    // Validate Indian phone number before sending OTP - DISABLED
+    // if (type === 'phone') {
+    //     if (!validateIndianPhone(inputField.value)) {
+    //         showAlert('Invalid Mobile Number', 'The mobile number you entered is not valid. Please provide a 10-digit mobile number.', 'error');
+    //         return;
+    //     }
+    // }
 
     // Disable button temporarily
     getOtpBtn.disabled = true;
@@ -348,6 +356,14 @@ function startTimer(fieldId, button, timerDiv) {
 
 async function verifyOtp(fieldId) {
     const inputField = document.getElementById(fieldId);
+    
+    // Phone OTP is disabled - DISABLED
+    const type = fieldId.toLowerCase().includes('email') ? 'email' : 'phone';
+    if (type === 'phone') {
+        showAlert('Phone OTP Disabled', 'Phone OTP authentication is currently disabled. Please use email for OTP verification.', 'error');
+        return;
+    }
+    
     const otpContainer = document.getElementById(`otp-${fieldId}`);
     const getOtpBtn = document.getElementById(`${fieldId}OtpBtn`);
     const timerDiv = document.getElementById(`timer-${fieldId}`);
