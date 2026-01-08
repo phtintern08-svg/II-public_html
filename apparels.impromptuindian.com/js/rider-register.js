@@ -40,7 +40,26 @@ async function handleGetOtp(field) {
             })
         });
 
-        const data = await response.json();
+        // Handle response - check for HTML error pages
+        let data;
+        try {
+            const text = await response.text();
+            
+            // Check if response is HTML (error page)
+            if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html') || text.trim().startsWith('<?xml')) {
+                console.error('Server returned HTML instead of JSON. This usually means the API endpoint is not found or the server is returning an error page.');
+                showAlert('Server Error', 'Unable to reach the OTP service. Please check if the server is running.', 'error');
+                return;
+            }
+            
+            // Try to parse as JSON
+            data = JSON.parse(text);
+        } catch (parseError) {
+            // If JSON parsing fails, show a more helpful error
+            console.error('Failed to parse response as JSON:', parseError);
+            showAlert('Server Error', 'Server returned an invalid response. Please try again later.', 'error');
+            return;
+        }
 
         if (response.ok) {
             otpState[field].sent = true;
@@ -48,11 +67,11 @@ async function handleGetOtp(field) {
             startTimer(field, 120); // 2 minutes
             showAlert('Success', `OTP sent to your ${field.includes('Email') ? 'email' : 'phone'}`, 'success');
         } else {
-            showAlert('Error', data.message || 'Failed to send OTP', 'error');
+            showAlert('Error', data.error || data.message || 'Failed to send OTP', 'error');
         }
     } catch (error) {
         console.error('Error sending OTP:', error);
-        showAlert('Error', 'Network error. Please try again.', 'error');
+        showAlert('Connection Error', 'Failed to connect to server. Please check your internet connection.', 'error');
     }
 }
 
@@ -123,9 +142,28 @@ async function verifyOtp(field) {
             })
         });
 
-        const data = await response.json();
+        // Handle response - check for HTML error pages
+        let data;
+        try {
+            const text = await response.text();
+            
+            // Check if response is HTML (error page)
+            if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html') || text.trim().startsWith('<?xml')) {
+                console.error('Server returned HTML instead of JSON. This usually means the API endpoint is not found or the server is returning an error page.');
+                showAlert('Server Error', 'Unable to reach the OTP verification service. Please check if the server is running.', 'error');
+                return;
+            }
+            
+            // Try to parse as JSON
+            data = JSON.parse(text);
+        } catch (parseError) {
+            // If JSON parsing fails, show a more helpful error
+            console.error('Failed to parse response as JSON:', parseError);
+            showAlert('Server Error', 'Server returned an invalid response. Please try again later.', 'error');
+            return;
+        }
 
-        if (response.ok) {
+        if (response.ok && data.verified) {
             otpState[field].verified = true;
             clearInterval(otpState[field].timer);
 
@@ -136,7 +174,7 @@ async function verifyOtp(field) {
 
             showAlert('Success', 'Verification successful!', 'success');
         } else {
-            showAlert('Error', data.message || 'Invalid OTP', 'error');
+            showAlert('Error', data.error || data.message || 'Invalid OTP', 'error');
         }
     } catch (error) {
         console.error('Error verifying OTP:', error);
