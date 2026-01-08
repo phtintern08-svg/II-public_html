@@ -81,8 +81,19 @@ if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const identifier = document.getElementById('identifier').value;
+        const identifier = document.getElementById('identifier').value.trim();
         const password = document.getElementById('password').value;
+
+        // Validate input before making API call
+        if (!identifier || identifier.length === 0) {
+            showAlert('Validation Error', 'Please enter your email or phone number.', 'error');
+            return;
+        }
+
+        if (!password || password.length === 0) {
+            showAlert('Validation Error', 'Please enter your password.', 'error');
+            return;
+        }
 
         try {
             const response = await ThreadlyApi.fetch('/login', {
@@ -93,22 +104,30 @@ if (loginForm) {
                 body: JSON.stringify({ identifier, password })
             });
 
+            // Check for 404 specifically (endpoint not found)
+            if (response.status === 404) {
+                console.error('Login endpoint not found (404). Check if the server route is properly configured.');
+                showAlert('Server Error', 'Login service is not available. Please contact support or try again later.', 'error');
+                return;
+            }
+
+            // Check for other HTTP errors before parsing
+            if (!response.ok && response.status >= 500) {
+                showAlert('Server Error', 'The server encountered an error. Please try again later.', 'error');
+                return;
+            }
+
             // Try to parse response as JSON, handle HTML error pages gracefully
             let result;
             try {
-                // Check if response is ok and has content
-                if (!response.ok && response.status >= 500) {
-                    showAlert('Server Error', 'The server encountered an error. Please try again later.', 'error');
-                    return;
-                }
-                
                 // Check content type before reading response
-                const contentType = response.headers.get('content-type');
-                if (contentType && !contentType.includes('application/json')) {
-                    if (contentType.includes('text/html')) {
-                        showAlert('Server Error', 'Unable to reach the login service. The endpoint may not be available.', 'error');
-                        return;
-                    }
+                const contentType = response.headers.get('content-type') || '';
+                
+                // If content type is HTML, it means the endpoint returned HTML instead of JSON
+                if (contentType.includes('text/html')) {
+                    console.error('Server returned HTML instead of JSON. This usually means the endpoint is not found or misconfigured.');
+                    showAlert('Server Error', 'Unable to reach the login service. The endpoint may not be available.', 'error');
+                    return;
                 }
                 
                 const text = await response.text();
@@ -122,7 +141,7 @@ if (loginForm) {
                 // Check if response is HTML (error page) - check before parsing
                 const trimmedText = text.trim();
                 if (trimmedText.startsWith('<!DOCTYPE') || trimmedText.startsWith('<html') || trimmedText.startsWith('<?xml')) {
-                    // Silently handle HTML responses without logging to console
+                    console.error('Server returned HTML page instead of JSON response. Status:', response.status);
                     showAlert('Server Error', 'Unable to reach the login service. Please check if the server is running.', 'error');
                     return;
                 }
@@ -133,17 +152,18 @@ if (loginForm) {
                 } catch (jsonError) {
                     // If JSON parsing fails, check if it's HTML and handle silently
                     if (trimmedText.startsWith('<!DOCTYPE') || trimmedText.startsWith('<html')) {
+                        console.error('Failed to parse HTML response as JSON. Status:', response.status);
                         showAlert('Server Error', 'Unable to reach the login service. Please check if the server is running.', 'error');
                         return;
                     }
                     // Only log non-HTML parsing errors
-                    console.warn('Failed to parse response as JSON. Response:', text.substring(0, 200));
+                    console.error('Failed to parse response as JSON. Status:', response.status, 'Response:', text.substring(0, 200));
                     showAlert('Server Error', 'Server returned an invalid response. Please try again later.', 'error');
                     return;
                 }
             } catch (parseError) {
                 // If reading response fails, show a helpful error
-                console.warn('Failed to read response:', parseError);
+                console.error('Failed to read response:', parseError, 'Status:', response.status);
                 showAlert('Server Error', 'Unable to read server response. Please check your connection and try again.', 'error');
                 return;
             }
