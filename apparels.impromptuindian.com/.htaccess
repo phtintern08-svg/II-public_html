@@ -1,3 +1,15 @@
+# Allow API POSTs through ModSecurity
+<IfModule mod_security2.c>
+    SecRuleRemoveById 949110
+    SecRuleRemoveById 920350
+    SecRuleRemoveById 920420
+    SecRuleRemoveById 930120
+    SecRuleRemoveById 942100
+    SecRuleRemoveById 942110
+    SecRuleRemoveById 942200
+    SecRuleRemoveById 942260
+</IfModule>
+
 # ================================
 # Passenger Python App Config
 # ================================
