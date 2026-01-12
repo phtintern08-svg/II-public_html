@@ -96,7 +96,7 @@ if (loginForm) {
         }
 
         try {
-            const response = await ThreadlyApi.fetch('/login', {
+            const response = await ThreadlyApi.fetch('/api/authenticate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
