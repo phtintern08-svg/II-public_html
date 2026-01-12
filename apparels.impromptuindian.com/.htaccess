@@ -1,3 +1,17 @@
+# ================================
+# Passenger Python App Config
+# ================================
+
+PassengerEnabled on
+PassengerAppRoot /home/impromptuindian/Backend
+PassengerBaseURI /
+PassengerPython /home/impromptuindian/virtualenv/Backend/3.13/bin/python
+
+PassengerLogFile /home/impromptuindian/logs/stderr.log
+PassengerStdoutLogFile /home/impromptuindian/logs/stdout.log
+PassengerFriendlyErrorPages off
+PassengerShowVersionInHeader off
+
 # ===============================
 # Impromptu Indian – Flask + SPA
 # ===============================
@@ -58,7 +72,7 @@ RewriteRule ^ index.html [L]
 # -------------------------------------------------
 # 7. Block sensitive files
 # -------------------------------------------------
-<FilesMatch "\.(env|py|pyc|log|sql|md|bak|tmp)$">
+<FilesMatch "\.(env|pyc|log|sql|md|bak|tmp)$">
     Order allow,deny
     Deny from all
 </FilesMatch>
