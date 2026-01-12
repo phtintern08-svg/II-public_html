@@ -1,6 +1,21 @@
 # Impromptu Indian - Apparels Subdomain Apache Configuration
 # For: apparels.impromptuindian.com
 
+# Disable mod_security to allow JSON POSTs to API endpoints
+<IfModule mod_security2.c>
+    SecRuleEngine Off
+</IfModule>
+
+<IfModule mod_security.c>
+    SecFilterEngine Off
+    SecFilterScanPOST Off
+</IfModule>
+
+RewriteEngine On
+
+# Allow Flask API endpoints
+RewriteRule ^login$ - [L]
+
 # Enable Rewrite Engine
 RewriteEngine On
 
