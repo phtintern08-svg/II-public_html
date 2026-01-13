@@ -175,8 +175,8 @@ class LocationService {
         const url = `/api/reverse-geocode?lat=${lat}&lng=${lon}`;
 
         let response;
-        if (window.ThreadlyApi) {
-            response = await window.ThreadlyApi.fetch(url);
+        if (window.ImpromptuIndianApi) {
+            response = await window.ImpromptuIndianApi.fetch(url);
         } else {
             response = await fetch(url);
         }

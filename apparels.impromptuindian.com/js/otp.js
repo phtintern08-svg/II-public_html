@@ -1,8 +1,8 @@
-const ThreadlyApi = window.ThreadlyApi || (() => {
+const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
     const rawBase =
-        window.THREADLY_API_BASE ||
+        window.IMPROMPTU_INDIAN_API_BASE ||
         window.APP_API_BASE ||
-        localStorage.getItem('THREADLY_API_BASE') ||
+        localStorage.getItem('IMPROMPTU_INDIAN_API_BASE') ||
         '';
 
     let base = rawBase.trim().replace(/\/$/, '');
@@ -23,7 +23,7 @@ const ThreadlyApi = window.ThreadlyApi || (() => {
         fetch: (path, options = {}) => fetch(buildUrl(path), options)
     };
 })();
-window.ThreadlyApi = ThreadlyApi;
+window.ImpromptuIndianApi = ImpromptuIndianApi;
 
 // --- Custom Alert Logic ---
 const customAlert = document.getElementById('customAlert');
@@ -128,7 +128,7 @@ async function verifyOtp() {
     }
 
     try {
-        const res = await ThreadlyApi.fetch("/verify-otp", {
+        const res = await ImpromptuIndianApi.fetch("/api/verify-otp", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ recipient: savedEmail, otp })
@@ -164,7 +164,7 @@ async function resendOtp() {
     }
 
     try {
-        const res = await ThreadlyApi.fetch("/send-otp", {
+        const res = await ImpromptuIndianApi.fetch("/api/send-otp", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ recipient: savedEmail, type: 'email' })

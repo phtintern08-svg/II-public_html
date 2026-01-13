@@ -33,10 +33,16 @@ async function fetchProductionOrders() {
     }
 
     try {
-        const response = await ThreadlyApi.fetch(`/vendor/in-production-orders/${vendorId}`);
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/vendor/orders?status=in_production`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         if (!response.ok) throw new Error('Failed to fetch production orders');
 
-        const data = await response.json();
+        const responseData = await response.json();
+        const data = responseData.orders || responseData;
 
         productionOrders = data.map(o => ({
             ...o,
@@ -217,14 +223,16 @@ async function quickAdvance(orderId) {
     const nextStage = PRODUCTION_STAGES[currentIndex + 1].id;
 
     try {
-        const response = await ThreadlyApi.fetch('/vendor/update-production-stage', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/orders/${orderId}/status`, {
+            method: 'PUT',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify({
-                order_id: orderId,
-                vendor_id: vendorId,
-                stage_id: nextStage,
-                notes: 'Quick check-off from technical pipeline dashboard.'
+                status: nextStage,
+                remarks: 'Quick check-off from technical pipeline dashboard.'
             })
         });
 
@@ -420,14 +428,16 @@ async function saveUpdate() {
     const notes = document.getElementById('internal-notes')?.value || '';
 
     try {
-        const response = await ThreadlyApi.fetch('/vendor/update-production-stage', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/orders/${currentOrderId}/status`, {
+            method: 'PUT',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify({
-                order_id: currentOrderId,
-                vendor_id: vendorId,
-                stage_id: stageId,
-                notes: notes
+                status: stageId,
+                remarks: notes
             })
         });
 

@@ -14,13 +14,19 @@ let dropdownElement = null;
 ---------------------------*/
 async function fetchCustomers() {
     try {
-        const response = await ThreadlyApi.fetch('/customers');
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch('/api/admin/customers', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         if (!response.ok) throw new Error('Failed to fetch customers');
 
         const data = await response.json();
+        const customersData = data.customers || data;
 
         // Map backend data to frontend format
-        customers = data.map(c => ({
+        customers = customersData.map(c => ({
             id: c.id,
             name: c.name || c.username || 'Unknown',
             email: c.email,

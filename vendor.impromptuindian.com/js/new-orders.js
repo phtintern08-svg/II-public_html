@@ -19,7 +19,12 @@ async function fetchOrders() {
     }
 
     try {
-        const response = await ThreadlyApi.fetch(`/vendor/new-orders/${vendorId}`);
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/vendor/orders?status=new`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         if (!response.ok) throw new Error('Failed to fetch new orders');
 
         const data = await response.json();
@@ -268,12 +273,15 @@ async function moveToProduction() {
     if (!currentOrderId) return;
 
     try {
-        const response = await ThreadlyApi.fetch('/vendor/move-to-production', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/orders/${currentOrderId}/status`, {
+            method: 'PUT',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify({
-                order_id: currentOrderId,
-                vendor_id: vendorId
+                status: 'accepted_by_vendor'
             })
         });
 
@@ -328,13 +336,16 @@ async function confirmReject() {
     const fullReason = notes ? `${reason}: ${notes}` : reason;
 
     try {
-        const response = await ThreadlyApi.fetch('/vendor/reject-order', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/orders/${currentOrderId}/status`, {
+            method: 'PUT',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify({
-                order_id: currentOrderId,
-                vendor_id: vendorId,
-                reason: fullReason
+                status: 'rejected_by_vendor',
+                remarks: fullReason
             })
         });
 

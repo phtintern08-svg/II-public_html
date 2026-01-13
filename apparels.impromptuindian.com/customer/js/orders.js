@@ -1,11 +1,11 @@
 // Orders Page JavaScript
 lucide.createIcons();
 
-const ThreadlyApi = window.ThreadlyApi || (() => {
+const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
     const rawBase =
-        window.THREADLY_API_BASE ||
+        window.IMPROMPTU_INDIAN_API_BASE ||
         window.APP_API_BASE ||
-        localStorage.getItem('THREADLY_API_BASE') ||
+        localStorage.getItem('IMPROMPTU_INDIAN_API_BASE') ||
         '';
 
     let base = rawBase.trim().replace(/\/$/, '');
@@ -26,7 +26,7 @@ const ThreadlyApi = window.ThreadlyApi || (() => {
         fetch: (path, options = {}) => fetch(buildUrl(path), options)
     };
 })();
-window.ThreadlyApi = ThreadlyApi;
+window.ImpromptuIndianApi = ImpromptuIndianApi;
 
 /* Auto-highlight sidebar */
 const currentPage = window.location.pathname.split("/").pop();
@@ -83,9 +83,15 @@ async function fetchOrders() {
     }
 
     try {
-        const response = await ThreadlyApi.fetch(`/orders/customer/${userId}`);
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/customer/orders`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         if (response.ok) {
-            allOrders = await response.json();
+            const data = await response.json();
+            allOrders = data.orders || data; // Handle both formats
             renderOrders(allOrders);
         } else {
             console.error('Failed to fetch orders');

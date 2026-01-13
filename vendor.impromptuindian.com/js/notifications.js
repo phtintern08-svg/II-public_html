@@ -1,11 +1,11 @@
 (function () {
     // Standardize API access
-    if (typeof window.ThreadlyApi === 'undefined') {
-        window.ThreadlyApi = (() => {
+    if (typeof window.ImpromptuIndianApi === 'undefined') {
+        window.ImpromptuIndianApi = (() => {
             const rawBase =
-                window.THREADLY_API_BASE ||
+                window.IMPROMPTU_INDIAN_API_BASE ||
                 window.APP_API_BASE ||
-                localStorage.getItem('THREADLY_API_BASE') ||
+                localStorage.getItem('IMPROMPTU_INDIAN_API_BASE') ||
                 '';
 
             let base = rawBase.trim().replace(/\/$/, '');
@@ -28,7 +28,7 @@
         })();
     }
 
-    const ThreadlyApi = window.ThreadlyApi;
+    const ImpromptuIndianApi = window.ImpromptuIndianApi;
 
     let notifications = [];
     let currentFilter = 'all';
@@ -38,10 +38,16 @@
         if (!vendorId) return;
 
         try {
-            const response = await ThreadlyApi.fetch(`/vendor/notifications/${vendorId}`);
+            const token = localStorage.getItem('token');
+            const response = await ImpromptuIndianApi.fetch(`/api/vendor/notifications`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
             if (response.ok) {
                 const data = await response.json();
-                notifications = data.map(n => ({
+                const notificationsData = data.notifications || data;
+                notifications = notificationsData.map(n => ({
                     id: n.id,
                     type: n.type || 'system',
                     title: n.title,
@@ -127,7 +133,7 @@
         const notif = notifications.find(n => n.id === id);
         if (notif && !notif.read) {
             try {
-                const response = await ThreadlyApi.fetch(`/vendor/notifications/${id}/read`, {
+                const response = await ImpromptuIndianApi.fetch(`/vendor/notifications/${id}/read`, {
                     method: 'POST'
                 });
                 if (response.ok) {

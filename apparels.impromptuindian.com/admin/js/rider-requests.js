@@ -16,10 +16,16 @@ let currentRiderId = null;
 
 async function fetchRiderRequests() {
     try {
-        const response = await ThreadlyApi.fetch('/admin/rider-requests');
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch('/api/admin/riders?status=pending', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         if (!response.ok) throw new Error('Failed to fetch rider requests');
 
-        const all = await response.json();
+        const data = await response.json();
+        const all = data.riders || data;
         // The endpoint returns pending, under-review, and rejected.
         // We might want to filter or just show all in the table and let frontend filter handle it.
         riderRequests = all;
@@ -157,7 +163,7 @@ function openRiderModal(id) {
                         ${statusBadge}
                         <div class="flex gap-2 mt-1">
                           ${doc.fileName ?
-                    `<button onclick="previewDocument('${ThreadlyApi.baseUrl}/rider/verification/document/${rider.id}/${key}', '${doc.fileName}', '${key}')" 
+                    `<button onclick="previewDocument('${ImpromptuIndianApi.baseUrl}/rider/verification/document/${rider.id}/${key}', '${doc.fileName}', '${key}')" 
                                   class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors cursor-pointer bg-transparent border-none">
                                   View <i data-lucide="eye" class="w-3 h-3"></i>
                               </button>` : ''
@@ -346,8 +352,17 @@ async function approveRider() {
 
 async function performApprove() {
     try {
-        const resp = await ThreadlyApi.fetch(`/admin/rider-requests/${currentRiderId}/approve`, {
-            method: 'POST'
+        const token = localStorage.getItem('token');
+        const resp = await ImpromptuIndianApi.fetch(`/api/admin/riders/${currentRiderId}/verify`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                status: 'verified',
+                remarks: 'Approved by admin'
+            })
         });
         if (resp.ok) {
             closeRiderModal();
@@ -438,10 +453,17 @@ async function executeRejection(reason, rejectedDocs = {}) {
             rejected_documents: rejectedDocs
         };
 
-        const response = await ThreadlyApi.fetch(`/admin/rider-requests/${currentRiderId}/reject`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/admin/riders/${currentRiderId}/verify`, {
+            method: 'PUT',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                status: 'rejected',
+                remarks: payload.reason || 'Rejected by admin'
+            })
         });
 
         if (response.ok) {
@@ -529,10 +551,17 @@ async function confirmRejectRider() {
     lucide.createIcons();
 
     try {
-        const resp = await ThreadlyApi.fetch(`/admin/rider-requests/${currentRiderId}/reject`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reason: reason })
+        const token = localStorage.getItem('token');
+        const resp = await ImpromptuIndianApi.fetch(`/api/admin/riders/${currentRiderId}/verify`, {
+            method: 'PUT',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                status: 'rejected',
+                remarks: reason
+            })
         });
 
         if (resp.ok) {
@@ -558,7 +587,7 @@ async function deleteRiderRequest() {
     if (!confirm('Are you sure you want to DELETE this request? This cannot be undone.')) return;
 
     try {
-        const resp = await ThreadlyApi.fetch(`/admin/rider-requests/${currentRiderId}`, {
+        const resp = await ImpromptuIndianApi.fetch(`/admin/rider-requests/${currentRiderId}`, {
             method: 'DELETE'
         });
         if (resp.ok) {
@@ -592,7 +621,7 @@ async function rejectSpecificDocument(docType) {
     }
 
     try {
-        const response = await ThreadlyApi.fetch(`/admin/rider-requests/${currentRiderId}/document/${docType}/status`, {
+        const response = await ImpromptuIndianApi.fetch(`/admin/rider-requests/${currentRiderId}/document/${docType}/status`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: 'rejected', reason: reason })

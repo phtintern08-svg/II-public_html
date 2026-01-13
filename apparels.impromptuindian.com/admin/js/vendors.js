@@ -1,7 +1,7 @@
 // vendors.js - Vendor management specific logic
 // Ensure backend connectivity
-window.THREADLY_API_BASE = 'https://apparels.impromptuindian.com';
-// ThreadlyApi is provided by sidebar.js
+window.IMPROMPTU_INDIAN_API_BASE = 'https://apparels.impromptuindian.com';
+// ImpromptuIndianApi is provided by sidebar.js
 
 // Reveal on scroll animation
 function onScroll() {
@@ -17,7 +17,7 @@ async function fetchVendorCounts() {
         let pendingRequests = 0;
         let rejectedRequests = 0;
         // Fetch vendor requests (pending, under-review, rejected)
-        const requestsResponse = await ThreadlyApi.fetch('/admin/vendor-requests');
+        const requestsResponse = await ImpromptuIndianApi.fetch('/admin/vendor-requests');
 
         if (requestsResponse.ok) {
             const requests = await requestsResponse.json();
@@ -40,7 +40,7 @@ async function fetchVendorCounts() {
         }
 
         // Fetch quotation submissions (pending)
-        const quotationsResponse = await ThreadlyApi.fetch('/admin/quotation-submissions');
+        const quotationsResponse = await ImpromptuIndianApi.fetch('/admin/quotation-submissions');
         let pendingQuotations = 0;
         if (quotationsResponse.ok) {
             const quotations = await quotationsResponse.json();
@@ -55,7 +55,7 @@ async function fetchVendorCounts() {
         }
 
         // Fetch verified vendors (approved, active)
-        const verifiedResponse = await ThreadlyApi.fetch('/admin/verified-vendors');
+        const verifiedResponse = await ImpromptuIndianApi.fetch('/admin/verified-vendors');
         let verifiedCount = 0;
         if (verifiedResponse.ok) {
             const verified = await verifiedResponse.json();

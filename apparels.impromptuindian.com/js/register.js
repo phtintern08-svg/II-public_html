@@ -1,8 +1,8 @@
-const ThreadlyApi = window.ThreadlyApi || (() => {
+const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
     const rawBase =
-        window.THREADLY_API_BASE ||
+        window.IMPROMPTU_INDIAN_API_BASE ||
         window.APP_API_BASE ||
-        localStorage.getItem('THREADLY_API_BASE') ||
+        localStorage.getItem('IMPROMPTU_INDIAN_API_BASE') ||
         '';
 
     let base = rawBase.trim().replace(/\/$/, '');
@@ -24,7 +24,7 @@ const ThreadlyApi = window.ThreadlyApi || (() => {
         fetch: (path, options = {}) => fetch(buildUrl(path), options)
     };
 })();
-window.ThreadlyApi = ThreadlyApi;
+window.ImpromptuIndianApi = ImpromptuIndianApi;
 
 const tabCustomer = document.getElementById("tabCustomer");
 const tabVendor = document.getElementById("tabVendor");
@@ -309,7 +309,7 @@ async function handleGetOtp(fieldId) {
     getOtpBtn.innerText = "Sending...";
 
     try {
-        const response = await ThreadlyApi.fetch('/send-otp', {
+        const response = await ImpromptuIndianApi.fetch('/api/send-otp', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ recipient: inputField.value, type: type })
@@ -413,7 +413,7 @@ async function verifyOtp(fieldId) {
     }
 
     try {
-        const response = await ThreadlyApi.fetch('/verify-otp', {
+        const response = await ImpromptuIndianApi.fetch('/api/verify-otp', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -477,7 +477,7 @@ async function verifyOtp(fieldId) {
 
 async function registerUser(data) {
     try {
-        const response = await ThreadlyApi.fetch('/register', {
+        const response = await ImpromptuIndianApi.fetch('/api/register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

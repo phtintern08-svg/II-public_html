@@ -14,12 +14,18 @@ async function fetchOTPLogs() {
     }
 
     try {
-        // Use ThreadlyApi if available, otherwise fetch directly
-        const fetchFn = window.ThreadlyApi ? window.ThreadlyApi.fetch : fetch;
-        const response = await fetchFn('/admin/otp-logs');
+        // Use ImpromptuIndianApi if available, otherwise fetch directly
+        const token = localStorage.getItem('token');
+        const fetchFn = window.ImpromptuIndianApi ? window.ImpromptuIndianApi.fetch : fetch;
+        const response = await fetchFn('/api/admin/otp-logs?limit=100', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
 
         if (response.ok) {
-            const logs = await response.json();
+            const data = await response.json();
+            const logs = data.logs || data;
             renderLogs(logs);
         } else {
             console.error('Failed to fetch OTP logs');

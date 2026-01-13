@@ -1,11 +1,11 @@
 // Vendor Profile Page JavaScript
 lucide.createIcons();
 
-const ThreadlyApi = window.ThreadlyApi || (() => {
+const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
     const rawBase =
-        window.THREADLY_API_BASE ||
+        window.IMPROMPTU_INDIAN_API_BASE ||
         window.APP_API_BASE ||
-        localStorage.getItem('THREADLY_API_BASE') ||
+        localStorage.getItem('IMPROMPTU_INDIAN_API_BASE') ||
         '';
 
     let base = rawBase.trim().replace(/\/$/, '');
@@ -26,7 +26,7 @@ const ThreadlyApi = window.ThreadlyApi || (() => {
         fetch: (path, options = {}) => fetch(buildUrl(path), options)
     };
 })();
-window.ThreadlyApi = ThreadlyApi;
+window.ImpromptuIndianApi = ImpromptuIndianApi;
 
 // Save bank details
 function saveBankDetails() {
@@ -75,7 +75,12 @@ async function loadVendorProfile() {
         // let's assume one exists or we might need to add it.
         // Actually, many pages use /vendor/status/ID, let's see if that has profile info.
 
-        const response = await ThreadlyApi.fetch(`/vendor/profile/${userId}`);
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/vendor/profile`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         if (response.ok) {
             const data = await response.json();
             document.getElementById('profileBusinessName').value = data.business_name || '';
@@ -148,13 +153,15 @@ async function saveProfileChanges() {
     }
 
     try {
-        const response = await ThreadlyApi.fetch(`/vendor/update-profile`, {
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/vendor/profile`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify({
-                vendor_id: userId,
                 business_name: businessName,
-                email: email,
                 phone: phone,
                 business_type: businessType,
                 bio: bio
@@ -192,11 +199,14 @@ async function saveLocation() {
     const coords = window.currentCoords || { lat: null, lon: null };
 
     try {
-        const response = await ThreadlyApi.fetch(`/vendor/update-location-details`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/vendor/profile`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify({
-                vendor_id: userId,
                 address: fullAddress,
                 city: city,
                 state: state,
@@ -252,7 +262,7 @@ function initMapEvents() {
         confirmLocationBtn.disabled = true;
 
         try {
-            const res = await ThreadlyApi.fetch(`/api/reverse-geocode?lat=${lat}&lng=${lng}`);
+            const res = await ImpromptuIndianApi.fetch(`/api/reverse-geocode?lat=${lat}&lng=${lng}`);
             const data = await res.json();
 
             if (data && !data.error) {
@@ -361,9 +371,13 @@ async function changePassword() {
     }
 
     try {
-        const response = await ThreadlyApi.fetch(`/change-password`, {
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/vendor/change-password`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify({
                 user_id: userId,
                 role: 'vendor',
@@ -401,4 +415,80 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('saveLocationBtn').onclick = saveAddress; // Map to saveLocation
     // Re-linking since I used both names
     window.saveAddress = saveLocation;
+    
+    // Load Mappls configuration
+    loadMapplsConfig();
+    
+    // Modal animation helper
+    const useCurrentLocationBtn = document.getElementById('useCurrentLocationBtn');
+    if (useCurrentLocationBtn) {
+        useCurrentLocationBtn.addEventListener('click', () => {
+            const modal = document.getElementById('mapModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    const activeModal = modal.querySelector('.active-modal');
+                    if (activeModal) {
+                        activeModal.classList.add('show');
+                    }
+                }, 10);
+            }
+        });
+    }
+    
+    // Close map modal helper
+    function closeMapModal() {
+        const modal = document.getElementById('mapModal');
+        if (modal) {
+            const inner = modal.querySelector('.active-modal');
+            if (inner) {
+                inner.classList.remove('show');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        }
+    }
+    window.closeMapModal = closeMapModal;
 });
+
+// Load Mappls API key from backend and inject into SDK URLs
+async function loadMapplsConfig() {
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            console.warn('No authentication token found. Map features may not work.');
+            return;
+        }
+        
+        const response = await fetch('/api/config', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const config = await response.json();
+            const apiKey = config.mapplsApiKey || '';
+            
+            if (apiKey) {
+                // Update CSS link
+                const cssLink = document.getElementById('mappls-css');
+                if (cssLink) {
+                    cssLink.href = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk_plugins/v3.0/styles/mappls.css`;
+                }
+                
+                // Load script
+                const script = document.getElementById('mappls-script');
+                if (script) {
+                    script.src = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk?v=3.0&layer=vector&libraries=services`;
+                    script.onload = () => console.log('Mappls SDK loaded');
+                    script.onerror = () => console.error('Mappls SDK failed to load');
+                }
+            } else {
+                console.warn('Mappls API key not configured');
+            }
+        }
+    } catch (error) {
+        console.error('Failed to load map configuration:', error);
+    }
+}

@@ -28,7 +28,12 @@
     async function fetchRiderStatus() {
         if (!riderId) return;
         try {
-            const response = await fetch(`${getApiBase()}/rider/status/${riderId}`);
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${getApiBase()}/api/rider/profile`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
             if (response.ok) {
                 const data = await response.json();
                 updateDashboardStats(data);
@@ -95,11 +100,14 @@
                 }
             }
 
-            const response = await fetch(`${getApiBase()}/rider/update-presence`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${getApiBase()}/api/rider/presence`, {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({
-                    rider_id: riderId,
                     is_online: newState,
                     latitude: coords.lat,
                     longitude: coords.lon
@@ -149,11 +157,14 @@
         locationInterval = setInterval(async () => {
             try {
                 const coords = await getCurrentLocation();
-                await fetch(`${getApiBase()}/rider/update-presence`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                const token = localStorage.getItem('token');
+                await fetch(`${getApiBase()}/api/rider/presence`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
                     body: JSON.stringify({
-                        rider_id: riderId,
                         latitude: coords.lat,
                         longitude: coords.lon
                     })
@@ -190,8 +201,12 @@
         if (!container || !riderId) return;
 
         try {
-            const response = await fetch(`${getApiBase()}/rider/deliveries/assigned?rider_id=${riderId}`, {
-                method: 'GET'
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${getApiBase()}/api/rider/deliveries/assigned`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
 
             if (response.ok) {
@@ -261,7 +276,7 @@
     }
 
     function getApiBase() {
-        return window.THREADLY_API_BASE || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://apparels.impromptuindian.com');
+        return window.IMPROMPTU_INDIAN_API_BASE || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://apparels.impromptuindian.com');
     }
 
     function refreshDashboard() {

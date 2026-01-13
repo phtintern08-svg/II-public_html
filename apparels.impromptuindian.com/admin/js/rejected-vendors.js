@@ -1,5 +1,5 @@
 // rejected-vendors.js – admin rejected vendor re-application review (live data)
-// ThreadlyApi is provided by sidebar.js
+// ImpromptuIndianApi is provided by sidebar.js
 
 function showToast(msg) {
   const toast = document.getElementById('toast');
@@ -15,10 +15,16 @@ let currentVendorId = null;
 
 async function fetchRejectedVendors() {
   try {
-    const response = await ThreadlyApi.fetch('/admin/rejected-vendors');
+    const token = localStorage.getItem('token');
+    const response = await ImpromptuIndianApi.fetch('/api/admin/vendors?status=rejected', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
     if (!response.ok) throw new Error('Failed to fetch rejected vendors');
 
-    const all = await response.json();
+    const data = await response.json();
+    const all = data.vendors || data;
     rejectedVendors = all
       // .filter(v => v.status === 'rejected') // No longer needed
       .map(v => ({

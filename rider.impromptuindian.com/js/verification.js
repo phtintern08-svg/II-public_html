@@ -50,7 +50,7 @@ const riderId = user.user_id;
 async function fetchVerificationStatus() {
     if (!riderId) return;
     try {
-        const response = await ThreadlyApi.fetch(`/rider/verification/status/${riderId}`);
+        const response = await ImpromptuIndianApi.fetch(`/rider/verification/status/${riderId}`);
         if (response.ok) {
             const data = await response.json();
 
@@ -508,7 +508,7 @@ async function confirmUpload() {
     }
 
     try {
-        const response = await ThreadlyApi.fetch('/rider/verification/upload', {
+        const response = await ImpromptuIndianApi.fetch('/rider/verification/upload', {
             method: 'POST',
             body: formData
         });
@@ -654,7 +654,7 @@ async function submitVerification() {
                     });
                 }
 
-                const resp = await ThreadlyApi.fetch('/rider/verification/upload', {
+                const resp = await ImpromptuIndianApi.fetch('/rider/verification/upload', {
                     method: 'POST',
                     body: formData
                 });
@@ -674,13 +674,13 @@ async function submitVerification() {
         vehicleData.append('vehicle_number', vehicleNumber);
         vehicleData.append('service_zone', serviceZone);
 
-        await ThreadlyApi.fetch('/rider/update-vehicle', {
+        await ImpromptuIndianApi.fetch('/rider/update-vehicle', {
             method: 'POST',
             body: vehicleData
         });
 
         // 5. Final Submit to Change Status
-        const submitResp = await ThreadlyApi.fetch('/rider/verification/submit', {
+        const submitResp = await ImpromptuIndianApi.fetch('/rider/verification/submit', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ rider_id: riderId, ...extraData })

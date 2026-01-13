@@ -14,7 +14,7 @@ let production = [];
 
 async function fetchProduction() {
   try {
-    const response = await ThreadlyApi.fetch('/admin/production-orders');
+    const response = await ImpromptuIndianApi.fetch('/admin/production-orders');
     if (!response.ok) throw new Error('Failed to fetch production data');
     production = await response.json();
     renderProduction();

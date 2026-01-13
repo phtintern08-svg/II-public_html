@@ -1,5 +1,5 @@
 // vendor-requests.js – admin vendor verification workflow
-// ThreadlyApi is provided by sidebar.js
+// ImpromptuIndianApi is provided by sidebar.js
 
 
 function showToast(msg) {
@@ -24,9 +24,15 @@ let currentVendorId = null;
 
 async function fetchRequests() {
   try {
-    const response = await ThreadlyApi.fetch('/admin/vendor-requests');
+    const token = localStorage.getItem('token');
+    const response = await ImpromptuIndianApi.fetch('/api/admin/vendors?status=pending', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
     if (!response.ok) throw new Error('Failed to fetch requests');
-    requests = await response.json();
+    const data = await response.json();
+    requests = data.vendors || data;
     console.log('Fetched requests:', requests);
     renderRequests();
   } catch (e) {
@@ -179,7 +185,7 @@ function openVendorModal(id) {
                       ${statusBadge}
                       <div class="flex gap-2 mt-1">
                         ${doc.fileName ?
-          `<button onclick="previewDocument('${ThreadlyApi.baseUrl}/vendor/verification/document/${vendor.id}/${key}', '${doc.fileName}', '${key}')" 
+          `<button onclick="previewDocument('${ImpromptuIndianApi.baseUrl}/vendor/verification/document/${vendor.id}/${key}', '${doc.fileName}', '${key}')" 
                               class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors cursor-pointer bg-transparent border-none">
                               View <i data-lucide="eye" class="w-3 h-3"></i>
                            </button>` : ''
@@ -291,10 +297,17 @@ async function approveVendor() {
   if (!currentVendorId) return;
 
   try {
-    const response = await ThreadlyApi.fetch(`/admin/vendor-requests/${currentVendorId}/approve`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({})
+    const token = localStorage.getItem('token');
+    const response = await ImpromptuIndianApi.fetch(`/api/admin/vendors/${currentVendorId}/verify`, {
+      method: 'PUT',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        status: 'verified',
+        remarks: 'Approved by admin'
+      })
     });
 
     if (response.ok) {
@@ -382,10 +395,15 @@ async function rejectVendor() {
   }
 
   try {
-    const response = await ThreadlyApi.fetch(`/admin/vendor-requests/${currentVendorId}/reject`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const token = localStorage.getItem('token');
+    const response = await ImpromptuIndianApi.fetch(`/api/admin/vendors/${currentVendorId}/verify`, {
+      method: 'PUT',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify({
+        status: 'rejected',
         reason: reason,
         rejected_documents: rejectedDocs
       })
@@ -411,7 +429,7 @@ async function deleteVendorRequest() {
 
   showAlert('Confirm Delete', 'Are you sure you want to delete this vendor request? This will reset their verification status and remove all documents.', 'confirm', async () => {
     try {
-      const response = await ThreadlyApi.fetch(`/ admin / vendor - requests / ${currentVendorId}/delete`, {
+      const response = await ImpromptuIndianApi.fetch(`/ admin / vendor - requests / ${currentVendorId}/delete`, {
         method: 'DELETE'
       });
 

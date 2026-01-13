@@ -1,5 +1,5 @@
 // new-orders.js – admin escrow order management (mock)
-// ThreadlyApi is provided by sidebar.js
+// ImpromptuIndianApi is provided by sidebar.js
 
 function showToast(msg) {
   const toast = document.getElementById('toast');
@@ -15,9 +15,15 @@ let approvedVendors = [];
 
 async function fetchApprovedVendors() {
   try {
-    const response = await ThreadlyApi.fetch('/admin/approved-vendors');
+    const token = localStorage.getItem('token');
+    const response = await ImpromptuIndianApi.fetch('/api/admin/vendors?status=verified', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
     if (!response.ok) throw new Error('Failed to fetch vendors');
-    approvedVendors = await response.json();
+    const data = await response.json();
+    approvedVendors = data.vendors || data;
     console.log('Approved vendors fetched:', approvedVendors);
   } catch (e) {
     console.error('Failed to fetch approved vendors', e);
@@ -27,9 +33,15 @@ async function fetchApprovedVendors() {
 
 async function fetchOrders() {
   try {
-    const response = await ThreadlyApi.fetch('/orders');
+    const token = localStorage.getItem('token');
+    const response = await ImpromptuIndianApi.fetch('/api/orders/', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
     if (!response.ok) throw new Error('Network response was not ok');
-    const data = await response.json();
+    const responseData = await response.json();
+    const data = responseData.orders || responseData;
 
     const productionStatuses = ['assigned', 'accepted', 'material_prep', 'printing', 'quality_check', 'packed'];
 
@@ -232,7 +244,7 @@ async function assignVendor() {
   }
 
   try {
-    const response = await ThreadlyApi.fetch('/admin/assign-vendor', {
+    const response = await ImpromptuIndianApi.fetch('/admin/assign-vendor', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

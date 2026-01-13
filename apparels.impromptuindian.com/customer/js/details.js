@@ -1,11 +1,11 @@
 // Details Page JavaScript
 lucide.createIcons();
 
-const ThreadlyApi = window.ThreadlyApi || (() => {
+const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
     const rawBase =
-        window.THREADLY_API_BASE ||
+        window.IMPROMPTU_INDIAN_API_BASE ||
         window.APP_API_BASE ||
-        localStorage.getItem('THREADLY_API_BASE') ||
+        localStorage.getItem('IMPROMPTU_INDIAN_API_BASE') ||
         '';
 
     let base = rawBase.trim().replace(/\/$/, '');
@@ -26,7 +26,7 @@ const ThreadlyApi = window.ThreadlyApi || (() => {
         fetch: (path, options = {}) => fetch(buildUrl(path), options)
     };
 })();
-window.ThreadlyApi = ThreadlyApi;
+window.ImpromptuIndianApi = ImpromptuIndianApi;
 
 // Get order ID from URL
 const urlParams = new URLSearchParams(window.location.search);
@@ -42,7 +42,12 @@ let currentOrder = null;
 // Fetch Order Details
 async function fetchOrderDetails() {
     try {
-        const response = await ThreadlyApi.fetch(`/orders/${orderId}`);
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/orders/${orderId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         if (!response.ok) {
             throw new Error("Order not found");
         }
@@ -186,8 +191,12 @@ async function requestBulkOrder() {
     if (!confirm("Proceed to place a bulk order based on this sample?")) return;
 
     try {
-        const response = await ThreadlyApi.fetch(`/orders/${orderId}/request-bulk`, {
-            method: 'POST'
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/orders/${orderId}/request-bulk`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         });
 
         if (response.ok) {
@@ -223,7 +232,12 @@ async function openTrackingModal() {
     lucide.createIcons();
 
     try {
-        const response = await ThreadlyApi.fetch(`/orders/${orderId}/tracking`);
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/orders/${orderId}/tracking`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         if (!response.ok) throw new Error('Failed to fetch tracking data');
 
         const data = await response.json();

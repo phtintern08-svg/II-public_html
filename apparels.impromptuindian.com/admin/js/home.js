@@ -56,9 +56,36 @@ const dashboardData = {
     ]
 };
 
+// Fetch dashboard stats from API
+async function fetchDashboardStats() {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch('/api/admin/dashboard/stats', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (response.ok) {
+            const stats = await response.json();
+            // Update with real data
+            document.getElementById('pending-orders').textContent = stats.pending_orders || 0;
+            document.getElementById('in-production').textContent = stats.in_production || 0;
+            document.getElementById('ready-dispatch').textContent = stats.ready_dispatch || 0;
+            document.getElementById('delivered').textContent = stats.completed_orders || 0;
+            // Update vendor counts
+            document.getElementById('vendor-pending').textContent = stats.vendor_pending || 0;
+            document.getElementById('vendor-approved').textContent = stats.total_vendors || 0;
+            // Update rider counts
+            document.getElementById('rider-active').textContent = stats.total_riders || 0;
+        }
+    } catch (error) {
+        console.error('Error fetching dashboard stats:', error);
+    }
+}
+
 // Populate dashboard on load
 function populateDashboard() {
-    // Order Statistics
+    // Order Statistics (use mock data as fallback)
     document.getElementById('orders-today').textContent = dashboardData.orders.today;
     document.getElementById('orders-week').textContent = dashboardData.orders.week;
     document.getElementById('orders-month').textContent = dashboardData.orders.month;
@@ -195,6 +222,7 @@ function clearAlerts() {
 // Initialize on page load
 window.addEventListener('DOMContentLoaded', () => {
     populateDashboard();
+    fetchDashboardStats(); // Fetch real stats from API
 
     // Initialize Lucide icons
     if (window.lucide) {
@@ -246,7 +274,7 @@ async function fetchOTPLogs() {
     if (!tbody) return;
 
     try {
-        const fetchFn = window.ThreadlyApi ? window.ThreadlyApi.fetch : fetch;
+        const fetchFn = window.ImpromptuIndianApi ? window.ImpromptuIndianApi.fetch : fetch;
         const response = await fetchFn('/admin/otp-logs');
 
         if (response.ok) {
@@ -289,7 +317,7 @@ async function fetchOTPLogs() {
 // Fetch and display system statistics
 async function fetchSystemStats() {
     try {
-        const fetchFn = window.ThreadlyApi ? window.ThreadlyApi.fetch : fetch;
+        const fetchFn = window.ImpromptuIndianApi ? window.ImpromptuIndianApi.fetch : fetch;
         const response = await fetchFn('/admin/system-stats');
 
         if (response.ok) {

@@ -1,10 +1,10 @@
 lucide.createIcons(); // activate icons
 
-const ThreadlyApi = window.ThreadlyApi || (() => {
+const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
     const rawBase =
-        window.THREADLY_API_BASE ||
+        window.IMPROMPTU_INDIAN_API_BASE ||
         window.APP_API_BASE ||
-        localStorage.getItem('THREADLY_API_BASE') ||
+        localStorage.getItem('IMPROMPTU_INDIAN_API_BASE') ||
         '';
 
     let base = rawBase.trim().replace(/\/$/, '');
@@ -43,7 +43,7 @@ const ThreadlyApi = window.ThreadlyApi || (() => {
         }
     };
 })();
-window.ThreadlyApi = ThreadlyApi;
+window.ImpromptuIndianApi = ImpromptuIndianApi;
 
 const loginForm = document.getElementById('loginForm');
 
@@ -96,7 +96,7 @@ if (loginForm) {
         }
 
         try {
-            const response = await ThreadlyApi.fetch('/api/authenticate', {
+            const response = await ImpromptuIndianApi.fetch('/api/authenticate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

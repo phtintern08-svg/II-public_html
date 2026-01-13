@@ -56,7 +56,12 @@ async function fetchDashboardStats() {
     if (!vId) return;
 
     try {
-        const response = await ThreadlyApi.fetch(`/vendor/dashboard-stats/${vId}`);
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/vendor/dashboard/stats`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         if (!response.ok) throw new Error('Failed to fetch stats');
         const data = await response.json();
 
@@ -72,7 +77,12 @@ async function fetchUpcomingDeadlines() {
     if (!vId) return;
 
     try {
-        const response = await ThreadlyApi.fetch(`/vendor/new-orders/${vId}`);
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/vendor/orders?status=new`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         if (!response.ok) throw new Error('Failed to fetch deadlines');
         const data = await response.json();
 

@@ -29,9 +29,10 @@ async function checkOnlineStatus() {
             return;
         }
 
-        const response = await ThreadlyApi.fetch(`/rider/profile?rider_id=${riderId}`, {
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/rider/profile`, {
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('rider_token')}`
+                'Authorization': `Bearer ${token}`
             }
         });
 
@@ -72,9 +73,10 @@ async function loadDeliveries() {
             return;
         }
 
-        const response = await ThreadlyApi.fetch(`/rider/deliveries/assigned?rider_id=${riderId}`, {
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/assigned`, {
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('rider_token')}`
+                'Authorization': `Bearer ${token}`
             }
         });
 
@@ -331,7 +333,11 @@ async function markReachedVendor(deliveryId) {
        For now, just update status.
     */
     try {
-        const response = await ThreadlyApi.fetch(`/rider/delivery/${deliveryId}/status`, {
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${deliveryId}/status`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('rider_token')}`,
@@ -410,7 +416,11 @@ async function uploadPickupProof(event) {
     formData.append('notes', document.getElementById('pickupNotes').value);
 
     try {
-        const response = await ThreadlyApi.fetch(`/rider/delivery/${currentDeliveryId}/pickup-proof`, {
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${currentDeliveryId}/pickup-proof`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('rider_token')}`
@@ -467,7 +477,11 @@ async function uploadDeliveryProof(event) {
     formData.append('notes', document.getElementById('deliveryNotes').value);
 
     try {
-        const response = await ThreadlyApi.fetch(`/rider/delivery/${currentDeliveryId}/delivery-proof`, {
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${currentDeliveryId}/delivery-proof`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('rider_token')}`
@@ -661,7 +675,11 @@ async function startDelivery(deliveryId) {
     }
 
     try {
-        const response = await ThreadlyApi.fetch(`/rider/delivery/${deliveryId}/status`, {
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${deliveryId}/status`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -716,7 +734,11 @@ async function markReachedVendor(deliveryId) {
             }
         }
 
-        const response = await ThreadlyApi.fetch(`/rider/delivery/${deliveryId}/status`, {
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${deliveryId}/status`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -748,7 +770,11 @@ async function navigateToPickup(deliveryId) {
         showToast('Fetching delivery route...', 'info');
 
         // 1. Fetch delivery details from backend to get addresses
-        const response = await ThreadlyApi.fetch(`/rider/delivery/${deliveryId}/details`, {
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${deliveryId}/details`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('rider_token')}`
             }
@@ -841,7 +867,7 @@ function navigateToCustomer(deliveryId) {
 async function viewDeliveryDetails(deliveryId) {
     try {
         const riderId = localStorage.getItem('user_id');
-        const response = await ThreadlyApi.fetch(`/rider/delivery/${deliveryId}/details?rider_id=${riderId}`);
+        const response = await ImpromptuIndianApi.fetch(`/rider/delivery/${deliveryId}/details?rider_id=${riderId}`);
 
         if (response.ok) {
             const delivery = await response.json();
@@ -970,7 +996,11 @@ async function sendLocationUpdate(deliveryId) {
             });
         });
 
-        const response = await ThreadlyApi.fetch(`/rider/delivery/${deliveryId}/location`, {
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${deliveryId}/location`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

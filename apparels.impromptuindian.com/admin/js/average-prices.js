@@ -1,6 +1,6 @@
 lucide.createIcons();
 
-const ThreadlyApi = window.ThreadlyApi || (() => {
+const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
     const base = window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://apparels.impromptuindian.com';
     return {
         baseUrl: base,
@@ -16,7 +16,7 @@ let filteredPrices = [];
 ---------------------------*/
 async function fetchStats() {
     try {
-        const response = await ThreadlyApi.fetch('/admin/quotations/stats');
+        const response = await ImpromptuIndianApi.fetch('/admin/quotations/stats');
         if (!response.ok) throw new Error('Failed to fetch stats');
 
         const stats = await response.json();
@@ -36,7 +36,7 @@ async function fetchStats() {
 ---------------------------*/
 async function fetchAveragePrices() {
     try {
-        const response = await ThreadlyApi.fetch('/admin/average-prices');
+        const response = await ImpromptuIndianApi.fetch('/admin/average-prices');
         if (!response.ok) throw new Error('Failed to fetch prices');
 
         allPrices = await response.json();

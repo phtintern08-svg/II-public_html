@@ -31,7 +31,7 @@ async function handleGetOtp(field) {
     }
 
     try {
-        const response = await fetch(`${getApiBase()}/send-otp`, {
+        const response = await fetch(`${getApiBase()}/api/send-otp`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -133,7 +133,7 @@ async function verifyOtp(field) {
     const value = inputElement.value.trim();
 
     try {
-        const response = await fetch(`${getApiBase()}/verify-otp`, {
+        const response = await fetch(`${getApiBase()}/api/verify-otp`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -246,7 +246,7 @@ document.getElementById('riderForm').addEventListener('submit', async (e) => {
 
     // Submit registration
     try {
-        const response = await fetch(`${getApiBase()}/register`, {
+        const response = await fetch(`${getApiBase()}/api/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -286,7 +286,7 @@ function isValidPhone(phone) {
 }
 
 function getApiBase() {
-    return window.THREADLY_API_BASE || 'https://apparels.impromptuindian.com';
+    return window.IMPROMPTU_INDIAN_API_BASE || 'https://apparels.impromptuindian.com';
 }
 
 // Alert Functions

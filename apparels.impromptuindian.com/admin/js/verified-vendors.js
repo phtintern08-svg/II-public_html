@@ -1,5 +1,5 @@
 // verified-vendors.js – admin verified vendor management
-// ThreadlyApi is provided by sidebar.js
+// ImpromptuIndianApi is provided by sidebar.js
 
 function showToast(msg, type = 'success') {
   let title = 'Success';
@@ -19,9 +19,15 @@ let currentVendorId = null;
 
 async function fetchVendors() {
   try {
-    const response = await ThreadlyApi.fetch('/admin/verified-vendors');
+    const token = localStorage.getItem('token');
+    const response = await ImpromptuIndianApi.fetch('/api/admin/vendors?status=verified', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
     if (!response.ok) throw new Error('Failed to fetch verified vendors');
-    vendors = await response.json();
+    const data = await response.json();
+    vendors = data.vendors || data;
     renderVendors();
   } catch (e) {
     console.error(e);

@@ -6,10 +6,16 @@ let currentRiderId = null;
 async function fetchRejectedRiders() {
     try {
         // Fetch rejected riders from new endpoint (filtered by backend)
-        const response = await ThreadlyApi.fetch('/admin/rejected-riders');
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch('/api/admin/riders?status=rejected', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         if (!response.ok) throw new Error('Failed to fetch rejected riders');
 
-        const all = await response.json();
+        const data = await response.json();
+        const all = data.riders || data;
         rejectedRiders = all; // Already filtered by backend
 
         renderRejected(rejectedRiders);
@@ -93,8 +99,17 @@ async function approveReapply() {
 
     if (confirm('Approve this rider?')) {
         try {
-            const resp = await ThreadlyApi.fetch(`/admin/rider-requests/${currentRiderId}/approve`, {
-                method: 'POST'
+            const token = localStorage.getItem('token');
+            const resp = await ImpromptuIndianApi.fetch(`/api/admin/riders/${currentRiderId}/verify`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    status: 'verified',
+                    remarks: 'Approved after re-application'
+                })
             });
             if (resp.ok) {
                 closeReapplyModal();

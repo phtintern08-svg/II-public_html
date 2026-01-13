@@ -29,13 +29,13 @@
     }
   })();
 
-  // Use a safe way to declare ThreadlyApi to avoid "already declared" errors
-  if (typeof window.ThreadlyApi === 'undefined') {
-    window.ThreadlyApi = (() => {
+  // Use a safe way to declare ImpromptuIndianApi to avoid "already declared" errors
+  if (typeof window.ImpromptuIndianApi === 'undefined') {
+    window.ImpromptuIndianApi = (() => {
       const rawBase =
-        window.THREADLY_API_BASE ||
+        window.IMPROMPTU_INDIAN_API_BASE ||
         window.APP_API_BASE ||
-        localStorage.getItem('THREADLY_API_BASE') ||
+        localStorage.getItem('IMPROMPTU_INDIAN_API_BASE') ||
         '';
 
       let base = rawBase.trim().replace(/\/$/, '');
@@ -53,7 +53,7 @@
     })();
   }
 
-  const ThreadlyApi = window.ThreadlyApi;
+  const ImpromptuIndianApi = window.ImpromptuIndianApi;
 
   const sidebarHTML = `
   <aside class="sidebar bg-[#1273EB] flex flex-col justify-between h-screen fixed md:relative z-50 transition-all duration-300 -translate-x-full md:translate-x-0 w-[265px] shrink-0">
@@ -113,20 +113,20 @@
     if (!vendorId) return;
 
     try {
-      const verRes = await ThreadlyApi.fetch(`/vendor/verification/status/${vendorId}`);
+      const verRes = await ImpromptuIndianApi.fetch(`/vendor/verification/status/${vendorId}`);
       if (verRes.ok) {
         const verData = await verRes.json();
         localStorage.setItem('vendorVerificationStatus', verData.status);
 
         if (verData.status === 'approved') {
-          const quotRes = await ThreadlyApi.fetch(`/vendor/quotation/status/${vendorId}`);
+          const quotRes = await ImpromptuIndianApi.fetch(`/vendor/quotation/status/${vendorId}`);
           if (quotRes.ok) {
             const quotData = await quotRes.json();
             localStorage.setItem('vendorQuotationStatus', quotData.status === 'approved' ? 'approved' : (quotData.status || 'pending'));
           }
         }
 
-        const notifRes = await ThreadlyApi.fetch(`/vendor/notifications/${vendorId}`);
+        const notifRes = await ImpromptuIndianApi.fetch(`/vendor/notifications/${vendorId}`);
         if (notifRes.ok) {
           const notifs = await notifRes.json();
           const unreadCount = notifs.filter(n => !n.is_read).length;
@@ -134,7 +134,7 @@
         }
 
         // Fetch Vendor Order Stats for Sidebar
-        const orderStatsRes = await ThreadlyApi.fetch(`/api/vendor/${vendorId}/order-stats`);
+        const orderStatsRes = await ImpromptuIndianApi.fetch(`/api/vendor/${vendorId}/order-stats`);
         if (orderStatsRes.ok) {
           const stats = await orderStatsRes.json();
           localStorage.setItem('vendorNewOrdersCount', stats.newOrders || 0);

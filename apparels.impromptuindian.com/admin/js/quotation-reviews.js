@@ -1,5 +1,5 @@
 // quotation-reviews.js - Admin Quotation Review Workflow
-// ThreadlyApi is provided by sidebar.js
+// ImpromptuIndianApi is provided by sidebar.js
 
 function showToast(msg, type = 'success') {
     let title = 'Success';
@@ -19,7 +19,7 @@ let currentSubmissionId = null;
 
 async function fetchQuotations() {
     try {
-        const response = await ThreadlyApi.fetch('/admin/quotation-submissions');
+        const response = await ImpromptuIndianApi.fetch('/admin/quotation-submissions');
         if (!response.ok) throw new Error('Failed to fetch submissions');
         submissions = await response.json();
         renderQuotations();
@@ -92,7 +92,7 @@ function openQuotationModal(id) {
 
     // Set download link
     const downloadLink = document.getElementById('modal-download-link');
-    downloadLink.href = ThreadlyApi.buildUrl(`/vendor/quotation/download/${sub.vendor_id}`);
+    downloadLink.href = ImpromptuIndianApi.buildUrl(`/vendor/quotation/download/${sub.vendor_id}`);
 
     document.getElementById('quotation-modal').classList.remove('hidden');
 }
@@ -112,7 +112,7 @@ async function approveQuotation() {
     }
 
     try {
-        const response = await ThreadlyApi.fetch(`/admin/quotation-submissions/${currentSubmissionId}/approve`, {
+        const response = await ImpromptuIndianApi.fetch(`/admin/quotation-submissions/${currentSubmissionId}/approve`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ commission_rate: commission })
@@ -142,7 +142,7 @@ async function rejectQuotation() {
     }
 
     try {
-        const response = await ThreadlyApi.fetch(`/admin/quotation-submissions/${currentSubmissionId}/reject`, {
+        const response = await ImpromptuIndianApi.fetch(`/admin/quotation-submissions/${currentSubmissionId}/reject`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ remarks: remarks })

@@ -1,11 +1,11 @@
 (function () {
-  // Use a safe way to declare ThreadlyApi to avoid "already declared" errors
-  if (typeof window.ThreadlyApi === 'undefined') {
-    window.ThreadlyApi = (() => {
+  // Use a safe way to declare ImpromptuIndianApi to avoid "already declared" errors
+  if (typeof window.ImpromptuIndianApi === 'undefined') {
+    window.ImpromptuIndianApi = (() => {
       const rawBase =
-        window.THREADLY_API_BASE ||
+        window.IMPROMPTU_INDIAN_API_BASE ||
         window.APP_API_BASE ||
-        localStorage.getItem('THREADLY_API_BASE') ||
+        localStorage.getItem('IMPROMPTU_INDIAN_API_BASE') ||
         '';
 
       let base = rawBase.trim().replace(/\/$/, '');
@@ -28,7 +28,7 @@
     })();
   }
 
-  const ThreadlyApi = window.ThreadlyApi;
+  const ImpromptuIndianApi = window.ImpromptuIndianApi;
 
   const sidebarHTML = `
   <aside class="sidebar bg-[#1273EB] flex flex-col justify-between h-screen fixed md:relative z-50 transition-all duration-300 -translate-x-full md:translate-x-0 w-[265px] shrink-0">
@@ -181,7 +181,7 @@
   async function fetchSidebarCounts() {
     try {
       // Fetch Order Stats
-      const orderStatsResponse = await ThreadlyApi.fetch('/api/admin/order-stats');
+      const orderStatsResponse = await ImpromptuIndianApi.fetch('/api/admin/order-stats');
       if (orderStatsResponse.ok) {
         const stats = await orderStatsResponse.json();
         const ordersBadge = document.getElementById('orders-count-badge');
@@ -195,7 +195,7 @@
         }
       }
 
-      const vendorRequestsResponse = await ThreadlyApi.fetch('/admin/vendor-requests');
+      const vendorRequestsResponse = await ImpromptuIndianApi.fetch('/admin/vendor-requests');
       if (vendorRequestsResponse.ok) {
         const vendorRequests = await vendorRequestsResponse.json();
         const pendingCount = vendorRequests.filter(v => v.status === 'pending').length;
@@ -206,7 +206,7 @@
         }
       }
 
-      const quotationResponse = await ThreadlyApi.fetch('/admin/quotation-submissions');
+      const quotationResponse = await ImpromptuIndianApi.fetch('/admin/quotation-submissions');
       if (quotationResponse.ok) {
         const quotations = await quotationResponse.json();
         const el = document.getElementById('quotation-reviews-count');
@@ -216,7 +216,7 @@
         }
       }
 
-      const riderRequestsResponse = await ThreadlyApi.fetch('/admin/rider-requests');
+      const riderRequestsResponse = await ImpromptuIndianApi.fetch('/admin/rider-requests');
       if (riderRequestsResponse.ok) {
         const riderRequests = await riderRequestsResponse.json();
         const pendingRiders = riderRequests.filter(r => r.status === 'pending' || r.status === 'verification_submitted').length;

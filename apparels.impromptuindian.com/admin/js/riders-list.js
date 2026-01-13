@@ -12,7 +12,7 @@ let riders = [];
 
 async function fetchRiders() {
     try {
-        const response = await ThreadlyApi.fetch('/riders');
+        const response = await ImpromptuIndianApi.fetch('/riders');
         if (response.ok) {
             let allRiders = await response.json();
             // Filter to show only approved (active) riders as requested
@@ -82,7 +82,7 @@ async function approveRider(id) {
     if (!confirm('Are you sure you want to approve this rider?')) return;
 
     try {
-        const response = await ThreadlyApi.fetch(`/rider/approve/${id}`, { method: 'POST' });
+        const response = await ImpromptuIndianApi.fetch(`/rider/approve/${id}`, { method: 'POST' });
         if (response.ok) {
             showToast('Rider approved successfully');
             fetchRiders();

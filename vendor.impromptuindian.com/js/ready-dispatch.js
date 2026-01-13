@@ -23,10 +23,16 @@ async function fetchDispatchOrders() {
     if (!vendorId) return;
 
     try {
-        const response = await ThreadlyApi.fetch(`/vendor/in-production-orders/${vendorId}`);
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/vendor/orders?status=in_production`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         if (!response.ok) throw new Error('Failed to fetch orders');
 
-        const allOrders = await response.json();
+        const responseData = await response.json();
+        const allOrders = responseData.orders || responseData;
 
         // Filter for 'packed_ready' orders
         dispatchOrders = allOrders.filter(o => o.currentStage === 'packed_ready' || o.currentStage === 'packed');
@@ -120,7 +126,18 @@ async function confirmDispatch() {
     const vendorId = localStorage.getItem('user_id');
 
     try {
-        const response = await ThreadlyApi.fetch('/vendor/update-production-stage', {
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/orders/${selectedOrderId}/status`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                status: 'dispatched',
+                remarks: 'Order dispatched by vendor logistics.'
+            })
+        });
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

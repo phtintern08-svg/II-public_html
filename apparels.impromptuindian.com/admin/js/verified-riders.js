@@ -12,10 +12,16 @@ let verifiedRiders = [];
 
 async function fetchVerifiedRiders() {
     try {
-        const response = await ThreadlyApi.fetch('/admin/verified-riders');
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch('/api/admin/riders?status=verified', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         if (!response.ok) throw new Error('Failed to fetch verified riders');
 
-        verifiedRiders = await response.json();
+        const data = await response.json();
+        verifiedRiders = data.riders || data;
         renderRiders(verifiedRiders);
     } catch (e) {
         console.error('Error loading verified riders', e);

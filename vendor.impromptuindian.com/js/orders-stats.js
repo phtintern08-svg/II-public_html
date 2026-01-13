@@ -4,7 +4,7 @@ async function fetchOrderStats() {
     if (!vendorId) return;
 
     try {
-        const response = await ThreadlyApi.fetch(`/api/vendor/${vendorId}/order-stats`);
+        const response = await ImpromptuIndianApi.fetch(`/api/vendor/${vendorId}/order-stats`);
         if (!response.ok) throw new Error('Failed to fetch stats');
         const data = await response.json();
 

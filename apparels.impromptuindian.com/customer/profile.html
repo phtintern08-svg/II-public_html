@@ -179,46 +179,6 @@
   <!-- MapmyIndia SDK - API key will be loaded dynamically from backend -->
   <link rel="stylesheet" id="mappls-css" href="">
   <script id="mappls-script" src=""></script>
-  <script>
-    // Load Mappls API key from backend and inject into SDK URLs
-    (async function() {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          console.warn('No authentication token found. Map features may not work.');
-          return;
-        }
-        
-        const response = await fetch('/api/config', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (response.ok) {
-          const config = await response.json();
-          const apiKey = config.mapplsApiKey || '';
-          
-          if (apiKey) {
-            // Update CSS link
-            const cssLink = document.getElementById('mappls-css');
-            cssLink.href = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk_plugins/v3.0/styles/mappls.css`;
-            
-            // Load script
-            const script = document.getElementById('mappls-script');
-            script.src = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk?v=3.0&layer=vector&libraries=services`;
-            script.onload = () => console.log('Mappls SDK loaded');
-            script.onerror = () => console.error('Mappls SDK failed to load');
-          } else {
-            console.warn('Mappls API key not configured');
-          }
-        }
-      } catch (error) {
-        console.error('Failed to load map configuration:', error);
-      }
-    })();
-  </script>
 
   <!-- MAP MODAL -->
   <div id="mapModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 hidden z-50 px-4">

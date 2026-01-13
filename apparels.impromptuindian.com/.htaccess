@@ -70,7 +70,6 @@ RewriteRule ^ - [L]
 RewriteCond %{REQUEST_METHOD} GET
 RewriteCond %{REQUEST_URI} !^/(login|register|send-otp|verify-otp|api)
 RewriteRule ^ index.html [L]
-
 # -------------------------------------------------
 # 6. Security headers
 # -------------------------------------------------
@@ -103,3 +102,4 @@ RewriteRule ^ index.html [L]
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json
 </IfModule>
+

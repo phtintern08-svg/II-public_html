@@ -1,11 +1,11 @@
 // Profile Page JavaScript
 lucide.createIcons();
 
-const ThreadlyApi = window.ThreadlyApi || (() => {
+const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
     const rawBase =
-        window.THREADLY_API_BASE ||
+        window.IMPROMPTU_INDIAN_API_BASE ||
         window.APP_API_BASE ||
-        localStorage.getItem('THREADLY_API_BASE') ||
+        localStorage.getItem('IMPROMPTU_INDIAN_API_BASE') ||
         '';
 
     let base = rawBase.trim().replace(/\/$/, '');
@@ -26,7 +26,7 @@ const ThreadlyApi = window.ThreadlyApi || (() => {
         fetch: (path, options = {}) => fetch(buildUrl(path), options)
     };
 })();
-window.ThreadlyApi = ThreadlyApi;
+window.ImpromptuIndianApi = ImpromptuIndianApi;
 
 // Load user data from localStorage
 function loadUserProfile() {
@@ -64,16 +64,15 @@ async function saveProfileChanges() {
     }
 
     try {
-        const response = await ThreadlyApi.fetch(`/update-profile`, {
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/customer/profile`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
-                user_id: userId,
-                role: role,
                 username: username,
-                email: email,
                 phone: phone
             })
         });
@@ -125,7 +124,7 @@ async function changePassword() {
     }
 
     try {
-        const response = await ThreadlyApi.fetch(`/change-password`, {
+        const response = await ImpromptuIndianApi.fetch(`/change-password`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -354,7 +353,7 @@ function initAddressEvents() {
             try {
                 // Using backend proxy if possible, or try client side reverse if key allows.
                 // We established backend proxy '/api/reverse-geocode' is safer/better
-                const response = await ThreadlyApi.fetch(`/api/reverse-geocode?lat=${lat}&lng=${lng}`);
+                const response = await ImpromptuIndianApi.fetch(`/api/reverse-geocode?lat=${lat}&lng=${lng}`);
                 const data = await response.json();
 
                 if (data && !data.error) {
@@ -566,10 +565,16 @@ async function loadAddressForType(type) {
 
     try {
         // Fetch all addresses for the user
-        const response = await ThreadlyApi.fetch(`/addresses/${userId}`);
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/customer/addresses`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
 
         if (response.ok) {
-            const list = await response.json();
+            const data = await response.json();
+            const list = data.addresses || data; // Handle both formats
             const address = list.find(a => a.address_type === type);
 
             if (address) {
@@ -678,19 +683,26 @@ async function saveAddress() {
         // Check if address already exists (either in memory or we can try update)
         const existingAddress = addressesData[currentAddressType];
 
+        const token = localStorage.getItem('token');
         let response;
         if (existingAddress && existingAddress.id) {
             // Update existing address
-            response = await ThreadlyApi.fetch(`/addresses/${existingAddress.id}`, {
+            response = await ImpromptuIndianApi.fetch(`/api/customer/addresses/${existingAddress.id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify(addressData)
             });
         } else {
             // Create new address
-            response = await ThreadlyApi.fetch('/addresses', {
+            response = await ImpromptuIndianApi.fetch('/api/customer/addresses', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify(addressData)
             });
         }
@@ -716,10 +728,16 @@ async function loadAllAddresses() {
     if (!userId) return;
 
     try {
-        const response = await ThreadlyApi.fetch(`/addresses/${userId}`);
+        const token = localStorage.getItem('token');
+        const response = await ImpromptuIndianApi.fetch(`/api/customer/addresses`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
 
         if (response.ok) {
-            const addresses = await response.json();
+            const data = await response.json();
+            const addresses = data.addresses || data; // Handle both formats
 
             // Store addresses by type
             addresses.forEach(address => {
@@ -749,10 +767,54 @@ function revealOnScroll() {
 window.addEventListener('scroll', revealOnScroll);
 window.addEventListener('load', revealOnScroll);
 
+// Load Mappls API key from backend and inject into SDK URLs
+async function loadMapplsConfig() {
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            console.warn('No authentication token found. Map features may not work.');
+            return;
+        }
+        
+        const response = await fetch('/api/config', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const config = await response.json();
+            const apiKey = config.mapplsApiKey || '';
+            
+            if (apiKey) {
+                // Update CSS link
+                const cssLink = document.getElementById('mappls-css');
+                if (cssLink) {
+                    cssLink.href = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk_plugins/v3.0/styles/mappls.css`;
+                }
+                
+                // Load script
+                const script = document.getElementById('mappls-script');
+                if (script) {
+                    script.src = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk?v=3.0&layer=vector&libraries=services`;
+                    script.onload = () => console.log('Mappls SDK loaded');
+                    script.onerror = () => console.error('Mappls SDK failed to load');
+                }
+            } else {
+                console.warn('Mappls API key not configured');
+            }
+        }
+    } catch (error) {
+        console.error('Failed to load map configuration:', error);
+    }
+}
+
 // Load profile data when page loads
 document.addEventListener('DOMContentLoaded', () => {
     loadUserProfile();
     initAddressEvents();
     loadAllAddresses();
     revealOnScroll();
+    loadMapplsConfig(); // Load Mappls configuration
 });

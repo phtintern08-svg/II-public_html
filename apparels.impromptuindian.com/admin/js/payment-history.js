@@ -14,7 +14,7 @@ let payments = [];
 // Fetch payments from backend
 async function fetchPayments() {
     try {
-        const response = await ThreadlyApi.fetch('/api/admin/payments');
+        const response = await ImpromptuIndianApi.fetch('/api/admin/payments');
 
         console.log('Payment fetch response status:', response.status);
 
@@ -220,7 +220,7 @@ function filterPayments() {
 
 async function viewDetails(paymentId) {
     try {
-        const response = await ThreadlyApi.fetch(`/payments/${paymentId}`);
+        const response = await ImpromptuIndianApi.fetch(`/payments/${paymentId}`);
         if (!response.ok) throw new Error('Failed to fetch payment details');
 
         const payment = await response.json();

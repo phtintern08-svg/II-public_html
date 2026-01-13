@@ -1,12 +1,12 @@
 // riders.js - Rider management specific logic
 // Ensure backend connectivity
-window.THREADLY_API_BASE = 'https://apparels.impromptuindian.com';
-// ThreadlyApi is provided by sidebar.jsction
+window.IMPROMPTU_INDIAN_API_BASE = 'https://apparels.impromptuindian.com';
+// ImpromptuIndianApi is provided by sidebar.jsction
 
 async function fetchRiderStats() {
     try {
         // 1. Pending Requests
-        const reqResp = await ThreadlyApi.fetch('/admin/rider-requests');
+        const reqResp = await ImpromptuIndianApi.fetch('/admin/rider-requests');
         if (reqResp.ok) {
             const requests = await reqResp.json();
             const pending = requests.filter(r => r.status === 'pending' || r.status === 'verification_submitted').length;
@@ -33,7 +33,7 @@ async function fetchRiderStats() {
         }
 
         // 2. Verified Riders
-        const verResp = await ThreadlyApi.fetch('/admin/verified-riders');
+        const verResp = await ImpromptuIndianApi.fetch('/admin/verified-riders');
         if (verResp.ok) {
             const verified = await verResp.json();
             document.getElementById('verified-riders-count').innerText = verified.length;
@@ -42,7 +42,7 @@ async function fetchRiderStats() {
         // 3. Total Riders (Active + Pending + Rejected or just All)
         // For total count we might want to sum distinct IDs from various lists or use a dedicated endpoint
         // Using /riders (from app.py route @app.route('/riders')) which returns all
-        const allResp = await ThreadlyApi.fetch('/riders'); // Using the public/generic endpoint or admin one
+        const allResp = await ImpromptuIndianApi.fetch('/riders'); // Using the public/generic endpoint or admin one
         if (allResp.ok) {
             const all = await allResp.json();
             document.getElementById('total-riders-count').innerText = all.length;

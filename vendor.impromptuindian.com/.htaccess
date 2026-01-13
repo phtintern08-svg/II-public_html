@@ -33,7 +33,6 @@
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} !^/api/
     RewriteRule ^ home.html [L]
-
     # Security Headers
     <IfModule mod_headers.c>
         # Prevent clickjacking
@@ -139,4 +138,5 @@
     # Custom error pages (optional)
     # ErrorDocument 404 /404.html
     # ErrorDocument 500 /500.html
+
 

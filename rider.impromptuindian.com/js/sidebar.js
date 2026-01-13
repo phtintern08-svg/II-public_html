@@ -31,11 +31,11 @@
   }
 })();
 
-const ThreadlyApi = window.ThreadlyApi || (() => {
+const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
   const rawBase =
-    window.THREADLY_API_BASE ||
+    window.IMPROMPTU_INDIAN_API_BASE ||
     window.APP_API_BASE ||
-    localStorage.getItem('THREADLY_API_BASE') ||
+    localStorage.getItem('IMPROMPTU_INDIAN_API_BASE') ||
     '';
 
   let base = rawBase.trim().replace(/\/$/, '');
@@ -53,7 +53,7 @@ const ThreadlyApi = window.ThreadlyApi || (() => {
     fetch: (path, options = {}) => fetch(buildUrl(path), options),
   };
 })();
-window.ThreadlyApi = ThreadlyApi;
+window.ImpromptuIndianApi = ImpromptuIndianApi;
 
 const sidebarHTML = (status) => {
   const isVerified = status === 'active' || status === 'approved';
@@ -233,7 +233,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (user) {
         // Try to get fresh status from API
         try {
-          const response = await ThreadlyApi.fetch(`/rider/status/${user.user_id}`);
+          const token = localStorage.getItem('token');
+          const response = await ImpromptuIndianApi.fetch(`/api/rider/profile`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
           if (response.ok) {
             const data = await response.json();
             // Use verification_status from the API response
@@ -305,7 +310,12 @@ async function fetchNotificationCount() {
       return;
     }
 
-    const response = await ThreadlyApi.fetch(`/rider/notifications?rider_id=${user.user_id}&unread_only=true`);
+    const token = localStorage.getItem('token');
+    const response = await ImpromptuIndianApi.fetch(`/api/rider/notifications?unread_only=true`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
     if (response.ok) {
       const data = await response.json();
       const notificationsCountEl = document.getElementById('notifications-count');
