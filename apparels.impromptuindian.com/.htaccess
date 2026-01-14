@@ -28,47 +28,22 @@ PassengerShowVersionInHeader off
 # Impromptu Indian – Flask + SPA
 # ===============================
 
+# -------------------------------------------------
+# Rewrite Rules - Safe and Simple
+# -------------------------------------------------
 RewriteEngine On
 
-# -------------------------------------------------
-# 1. Disable ModSecurity (WAF) for JSON APIs
-# -------------------------------------------------
-<IfModule mod_security2.c>
-    SecRuleEngine Off
-</IfModule>
+# Let Passenger handle all API routes
+RewriteRule ^api(/.*)?$ - [L]
 
-<IfModule mod_security.c>
-    SecFilterEngine Off
-    SecFilterScanPOST Off
-</IfModule>
-
-# -------------------------------------------------
-# 2. Let Flask handle all API endpoints
-# -------------------------------------------------
-# These must NEVER be rewritten to index.html
-RewriteRule ^/?api/authenticate$ - [L]
-RewriteRule ^/?(login|register|send-otp|verify-otp|api)(/.*)?$ - [L]
-
-# -------------------------------------------------
-# 3. Never rewrite POST/PUT/PATCH/DELETE requests
-# -------------------------------------------------
-RewriteCond %{REQUEST_METHOD} ^(POST|PUT|PATCH|DELETE)$
-RewriteRule ^ - [L]
-
-# -------------------------------------------------
-# 4. Serve real files and folders directly
-# -------------------------------------------------
+# Serve real files directly
 RewriteCond %{REQUEST_FILENAME} -f
 RewriteRule ^ - [L]
 
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# -------------------------------------------------
-# 5. SPA Routing (GET requests only)
-# -------------------------------------------------
-RewriteCond %{REQUEST_METHOD} GET
-RewriteCond %{REQUEST_URI} !^/(login|register|send-otp|verify-otp|api)
+# SPA fallback (only for frontend routes)
 RewriteRule ^ index.html [L]
 # -------------------------------------------------
 # 6. Security headers
