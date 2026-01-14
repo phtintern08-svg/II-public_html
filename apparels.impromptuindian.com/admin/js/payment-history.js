@@ -220,7 +220,7 @@ function filterPayments() {
 
 async function viewDetails(paymentId) {
     try {
-        const response = await ImpromptuIndianApi.fetch(`/payments/${paymentId}`);
+        const response = await ImpromptuIndianApi.fetch(`/api/admin/payments/${paymentId}`);
         if (!response.ok) throw new Error('Failed to fetch payment details');
 
         const payment = await response.json();

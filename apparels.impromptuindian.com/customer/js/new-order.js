@@ -13,7 +13,8 @@ const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
     if (origin && origin.startsWith('http')) {
       base = origin.replace(/\/$/, '');
     } else {
-      base = window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://apparels.impromptuindian.com';
+      // Use relative paths - no absolute URLs
+      base = '';
     }
   }
 

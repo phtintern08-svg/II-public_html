@@ -1,7 +1,8 @@
 lucide.createIcons();
 
 const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
-    const base = window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://apparels.impromptuindian.com';
+    // Use relative paths - no absolute URLs
+const base = '';
     return {
         baseUrl: base,
         fetch: (path, options = {}) => fetch(`${base}${path}`, options),
@@ -16,7 +17,7 @@ let filteredPrices = [];
 ---------------------------*/
 async function fetchStats() {
     try {
-        const response = await ImpromptuIndianApi.fetch('/admin/quotations/stats');
+        const response = await ImpromptuIndianApi.fetch('/api/admin/quotations/stats');
         if (!response.ok) throw new Error('Failed to fetch stats');
 
         const stats = await response.json();
@@ -36,7 +37,7 @@ async function fetchStats() {
 ---------------------------*/
 async function fetchAveragePrices() {
     try {
-        const response = await ImpromptuIndianApi.fetch('/admin/average-prices');
+        const response = await ImpromptuIndianApi.fetch('/api/admin/average-prices');
         if (!response.ok) throw new Error('Failed to fetch prices');
 
         allPrices = await response.json();

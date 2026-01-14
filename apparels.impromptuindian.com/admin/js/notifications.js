@@ -1,6 +1,7 @@
 // notifications.js – admin notification center (backend integration)
 
-const API_BASE = 'https://apparels.impromptuindian.com';
+// Use relative paths - no absolute URLs
+const API_BASE = '';
 
 function showToast(msg) {
     const toast = document.getElementById('toast');

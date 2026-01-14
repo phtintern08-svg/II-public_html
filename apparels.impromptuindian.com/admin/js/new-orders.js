@@ -244,7 +244,7 @@ async function assignVendor() {
   }
 
   try {
-    const response = await ImpromptuIndianApi.fetch('/admin/assign-vendor', {
+    const response = await ImpromptuIndianApi.fetch('/api/admin/assign-vendor', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

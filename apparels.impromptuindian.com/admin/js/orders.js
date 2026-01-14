@@ -1,6 +1,7 @@
 // orders.js - Orders landing page with category navigation
 // Ensure backend connectivity
-window.IMPROMPTU_INDIAN_API_BASE = 'https://apparels.impromptuindian.com';
+// Use relative paths - no absolute URLs
+window.IMPROMPTU_INDIAN_API_BASE = '';
 // ImpromptuIndianApi is provided by sidebar.js
 
 // Reveal on scroll animation

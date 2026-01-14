@@ -19,7 +19,7 @@ let currentSubmissionId = null;
 
 async function fetchQuotations() {
     try {
-        const response = await ImpromptuIndianApi.fetch('/admin/quotation-submissions');
+        const response = await ImpromptuIndianApi.fetch('/api/admin/quotation-submissions');
         if (!response.ok) throw new Error('Failed to fetch submissions');
         submissions = await response.json();
         renderQuotations();
@@ -112,7 +112,7 @@ async function approveQuotation() {
     }
 
     try {
-        const response = await ImpromptuIndianApi.fetch(`/admin/quotation-submissions/${currentSubmissionId}/approve`, {
+        const response = await ImpromptuIndianApi.fetch(`/api/admin/quotation-submissions/${currentSubmissionId}/approve`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ commission_rate: commission })
@@ -142,7 +142,7 @@ async function rejectQuotation() {
     }
 
     try {
-        const response = await ImpromptuIndianApi.fetch(`/admin/quotation-submissions/${currentSubmissionId}/reject`, {
+        const response = await ImpromptuIndianApi.fetch(`/api/admin/quotation-submissions/${currentSubmissionId}/reject`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ remarks: remarks })

@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadDeliveryInfo() {
     try {
-        const response = await ImpromptuIndianApi.fetch(`/vendor/track-delivery/${deliveryId}`);
+        const response = await ImpromptuIndianApi.fetch(`/api/vendor/track-delivery/${deliveryId}`);
 
         if (response.ok) {
             const data = await response.json();
@@ -189,7 +189,7 @@ function stopTracking() {
 
 async function updateRiderLocation() {
     try {
-        const response = await ImpromptuIndianApi.fetch(`/vendor/track-delivery/${deliveryId}`);
+        const response = await ImpromptuIndianApi.fetch(`/api/vendor/track-delivery/${deliveryId}`);
 
         if (response.ok) {
             const data = await response.json();

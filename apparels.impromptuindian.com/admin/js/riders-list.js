@@ -12,7 +12,7 @@ let riders = [];
 
 async function fetchRiders() {
     try {
-        const response = await ImpromptuIndianApi.fetch('/riders');
+        const response = await ImpromptuIndianApi.fetch('/api/admin/riders');
         if (response.ok) {
             let allRiders = await response.json();
             // Filter to show only approved (active) riders as requested

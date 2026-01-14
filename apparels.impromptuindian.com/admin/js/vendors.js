@@ -1,6 +1,7 @@
 // vendors.js - Vendor management specific logic
 // Ensure backend connectivity
-window.IMPROMPTU_INDIAN_API_BASE = 'https://apparels.impromptuindian.com';
+// Use relative paths - no absolute URLs
+window.IMPROMPTU_INDIAN_API_BASE = '';
 // ImpromptuIndianApi is provided by sidebar.js
 
 // Reveal on scroll animation
@@ -17,7 +18,7 @@ async function fetchVendorCounts() {
         let pendingRequests = 0;
         let rejectedRequests = 0;
         // Fetch vendor requests (pending, under-review, rejected)
-        const requestsResponse = await ImpromptuIndianApi.fetch('/admin/vendor-requests');
+        const requestsResponse = await ImpromptuIndianApi.fetch('/api/admin/vendor-requests');
 
         if (requestsResponse.ok) {
             const requests = await requestsResponse.json();
@@ -40,7 +41,7 @@ async function fetchVendorCounts() {
         }
 
         // Fetch quotation submissions (pending)
-        const quotationsResponse = await ImpromptuIndianApi.fetch('/admin/quotation-submissions');
+        const quotationsResponse = await ImpromptuIndianApi.fetch('/api/admin/quotation-submissions');
         let pendingQuotations = 0;
         if (quotationsResponse.ok) {
             const quotations = await quotationsResponse.json();
@@ -55,7 +56,7 @@ async function fetchVendorCounts() {
         }
 
         // Fetch verified vendors (approved, active)
-        const verifiedResponse = await ImpromptuIndianApi.fetch('/admin/verified-vendors');
+        const verifiedResponse = await ImpromptuIndianApi.fetch('/api/admin/verified-vendors');
         let verifiedCount = 0;
         if (verifiedResponse.ok) {
             const verified = await verifiedResponse.json();

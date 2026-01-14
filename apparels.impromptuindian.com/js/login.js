@@ -9,13 +9,8 @@ const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
 
     let base = rawBase.trim().replace(/\/$/, '');
     if (!base) {
-        const origin = window.location.origin;
-        if (origin && origin.startsWith('http')) {
-            base = origin.replace(/\/$/, '');
-        } else {
-            // PRODUCTION ONLY - Use production domain
-            base = 'https://apparels.impromptuindian.com';
-        }
+        // Use relative paths - no absolute URLs
+        base = '';
     }
 
     const buildUrl = (path = '') => `${base}${path.startsWith('/') ? path : `/${path}`}`;

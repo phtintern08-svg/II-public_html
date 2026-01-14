@@ -12,7 +12,8 @@ const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
             base = origin.replace(/\/$/, '');
         } else {
             // PRODUCTION ONLY - Use production domain
-            base = 'https://apparels.impromptuindian.com';
+            // Use relative paths - no absolute URLs
+            base = '';
         }
     }
 

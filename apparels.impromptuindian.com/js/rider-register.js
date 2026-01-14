@@ -286,7 +286,8 @@ function isValidPhone(phone) {
 }
 
 function getApiBase() {
-    return window.IMPROMPTU_INDIAN_API_BASE || 'https://apparels.impromptuindian.com';
+    // Use relative paths - no absolute URLs
+    return window.IMPROMPTU_INDIAN_API_BASE || '';
 }
 
 // Alert Functions

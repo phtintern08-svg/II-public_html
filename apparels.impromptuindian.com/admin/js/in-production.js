@@ -14,7 +14,7 @@ let production = [];
 
 async function fetchProduction() {
   try {
-    const response = await ImpromptuIndianApi.fetch('/admin/production-orders');
+    const response = await ImpromptuIndianApi.fetch('/api/admin/production-orders');
     if (!response.ok) throw new Error('Failed to fetch production data');
     production = await response.json();
     renderProduction();

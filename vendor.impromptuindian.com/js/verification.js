@@ -212,7 +212,7 @@ async function submitVerification() {
             ...extraData
         };
 
-        const response = await ImpromptuIndianApi.fetch('/vendor/verification/submit', {
+        const response = await ImpromptuIndianApi.fetch('/api/vendor/verification/submit', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -339,7 +339,7 @@ async function fetchVerificationStatus() {
     }
 
     try {
-        const response = await ImpromptuIndianApi.fetch(`/vendor/verification/status/${vendorId}`);
+        const response = await ImpromptuIndianApi.fetch(`/api/vendor/verification/status/${vendorId}`);
         if (response.ok) {
 
             const data = await response.json();
@@ -424,7 +424,7 @@ function freezeVerificationUI() {
 ---------------------------*/
 async function fetchQuotationStatus() {
     try {
-        const response = await ImpromptuIndianApi.fetch(`/vendor/quotation/status/${vendorId}`);
+        const response = await ImpromptuIndianApi.fetch(`/api/vendor/quotation/status/${vendorId}`);
         const data = await response.json();
         const section = document.getElementById('quotation-section');
 
@@ -543,7 +543,7 @@ async function submitQuotation() {
         btn.textContent = "Submitting...";
         btn.disabled = true;
 
-        const response = await ImpromptuIndianApi.fetch('/vendor/quotation/submit', {
+        const response = await ImpromptuIndianApi.fetch('/api/vendor/quotation/submit', {
             method: 'POST',
             body: formData
         });
@@ -845,7 +845,7 @@ async function confirmUpload() {
     }
 
     try {
-        const response = await ImpromptuIndianApi.fetch('/vendor/verification/upload', {
+        const response = await ImpromptuIndianApi.fetch('/api/vendor/verification/upload', {
             method: 'POST',
             body: formData
         });
@@ -915,7 +915,7 @@ async function submitVerification() {
     }
 
     try {
-        const response = await ImpromptuIndianApi.fetch('/vendor/verification/submit', {
+        const response = await ImpromptuIndianApi.fetch('/api/vendor/verification/submit', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ vendor_id: vendorId })
@@ -973,7 +973,7 @@ function closeRemarksModal() {
 ---------------------------*/
 function viewDocument(docId) {
     if (!vendorId) return;
-    const url = ImpromptuIndianApi.buildUrl(`/vendor/verification/document/${vendorId}/${docId}`);
+    const url = ImpromptuIndianApi.buildUrl(`/api/vendor/verification/document/${vendorId}/${docId}`);
     window.open(url, '_blank');
 }
 

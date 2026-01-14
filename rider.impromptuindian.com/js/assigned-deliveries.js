@@ -867,7 +867,7 @@ function navigateToCustomer(deliveryId) {
 async function viewDeliveryDetails(deliveryId) {
     try {
         const riderId = localStorage.getItem('user_id');
-        const response = await ImpromptuIndianApi.fetch(`/rider/delivery/${deliveryId}/details?rider_id=${riderId}`);
+        const response = await ImpromptuIndianApi.fetch(`/api/rider/delivery/${deliveryId}/details?rider_id=${riderId}`);
 
         if (response.ok) {
             const delivery = await response.json();

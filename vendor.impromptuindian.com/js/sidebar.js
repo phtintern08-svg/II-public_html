@@ -40,7 +40,8 @@
 
       let base = rawBase.trim().replace(/\/$/, '');
       if (!base) {
-        base = window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://apparels.impromptuindian.com';
+        // Use relative paths - no absolute URLs
+        base = '';
       }
 
       const buildUrl = (path = '') => `${base}${path.startsWith('/') ? path : `/${path}`}`;
@@ -113,20 +114,20 @@
     if (!vendorId) return;
 
     try {
-      const verRes = await ImpromptuIndianApi.fetch(`/vendor/verification/status/${vendorId}`);
+      const verRes = await ImpromptuIndianApi.fetch(`/api/vendor/verification/status/${vendorId}`);
       if (verRes.ok) {
         const verData = await verRes.json();
         localStorage.setItem('vendorVerificationStatus', verData.status);
 
         if (verData.status === 'approved') {
-          const quotRes = await ImpromptuIndianApi.fetch(`/vendor/quotation/status/${vendorId}`);
+          const quotRes = await ImpromptuIndianApi.fetch(`/api/vendor/quotation/status/${vendorId}`);
           if (quotRes.ok) {
             const quotData = await quotRes.json();
             localStorage.setItem('vendorQuotationStatus', quotData.status === 'approved' ? 'approved' : (quotData.status || 'pending'));
           }
         }
 
-        const notifRes = await ImpromptuIndianApi.fetch(`/vendor/notifications/${vendorId}`);
+        const notifRes = await ImpromptuIndianApi.fetch(`/api/vendor/notifications/${vendorId}`);
         if (notifRes.ok) {
           const notifs = await notifRes.json();
           const unreadCount = notifs.filter(n => !n.is_read).length;
@@ -219,7 +220,7 @@
   function logout(event) {
     if (event) event.preventDefault();
     localStorage.clear();
-    window.location.href = window.location.hostname === 'localhost' ? 'http://localhost:5000/' : 'https://apparels.impromptuindian.com/';
+    window.location.href = '/';
   }
 
   // Initialize

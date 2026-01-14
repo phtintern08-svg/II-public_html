@@ -142,7 +142,7 @@ function logout(event) {
   // localStorage.removeItem('threadly_cart');
 
   // Redirect to landing page
-  window.location.href = window.location.hostname === 'localhost' ? 'http://localhost:5000/' : 'https://apparels.impromptuindian.com/';
+  window.location.href = '/';
 }
 
 function updateCartBadge() {

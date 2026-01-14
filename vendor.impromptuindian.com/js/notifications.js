@@ -14,7 +14,8 @@
                 if (origin && origin.startsWith('http')) {
                     base = origin.replace(/\/$/, '');
                 } else {
-                    base = window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://apparels.impromptuindian.com';
+                    // Use relative paths - no absolute URLs
+                    base = '';
                 }
             }
 
@@ -133,7 +134,7 @@
         const notif = notifications.find(n => n.id === id);
         if (notif && !notif.read) {
             try {
-                const response = await ImpromptuIndianApi.fetch(`/vendor/notifications/${id}/read`, {
+                const response = await ImpromptuIndianApi.fetch(`/api/vendor/notifications/${id}/read`, {
                     method: 'POST'
                 });
                 if (response.ok) {

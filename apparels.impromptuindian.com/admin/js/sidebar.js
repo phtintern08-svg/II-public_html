@@ -14,7 +14,8 @@
         if (origin && origin.startsWith('http')) {
           base = origin.replace(/\/$/, '');
         } else {
-          base = 'https://apparels.impromptuindian.com';
+          // Use relative paths - no absolute URLs
+          base = '';
         }
       }
 
@@ -195,7 +196,7 @@
         }
       }
 
-      const vendorRequestsResponse = await ImpromptuIndianApi.fetch('/admin/vendor-requests');
+      const vendorRequestsResponse = await ImpromptuIndianApi.fetch('/api/admin/vendor-requests');
       if (vendorRequestsResponse.ok) {
         const vendorRequests = await vendorRequestsResponse.json();
         const pendingCount = vendorRequests.filter(v => v.status === 'pending').length;
@@ -206,7 +207,7 @@
         }
       }
 
-      const quotationResponse = await ImpromptuIndianApi.fetch('/admin/quotation-submissions');
+      const quotationResponse = await ImpromptuIndianApi.fetch('/api/admin/quotation-submissions');
       if (quotationResponse.ok) {
         const quotations = await quotationResponse.json();
         const el = document.getElementById('quotation-reviews-count');
@@ -216,7 +217,7 @@
         }
       }
 
-      const riderRequestsResponse = await ImpromptuIndianApi.fetch('/admin/rider-requests');
+      const riderRequestsResponse = await ImpromptuIndianApi.fetch('/api/admin/rider-requests');
       if (riderRequestsResponse.ok) {
         const riderRequests = await riderRequestsResponse.json();
         const pendingRiders = riderRequests.filter(r => r.status === 'pending' || r.status === 'verification_submitted').length;
@@ -234,7 +235,7 @@
   function logout(event) {
     if (event) event.preventDefault();
     localStorage.clear();
-    window.location.href = 'https://apparels.impromptuindian.com/';
+    window.location.href = '/';
   }
 
   document.addEventListener("DOMContentLoaded", () => {

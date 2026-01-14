@@ -42,7 +42,8 @@ const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
   if (!base) {
     // Force API to main domain (localhost:5000)
     // This handles requests from subdomains (rider.localhost) correctly
-    base = window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://apparels.impromptuindian.com';
+    // Use relative paths - no absolute URLs
+    base = '';
   }
 
   const buildUrl = (path = '') => `${base}${path.startsWith('/') ? path : `/${path}`}`;
@@ -337,5 +338,5 @@ function logout(event) {
   localStorage.removeItem('rider_email');
   localStorage.removeItem('rider_phone');
   localStorage.removeItem('role');
-  window.location.href = window.location.hostname === 'localhost' ? 'http://localhost:5000/' : 'https://apparels.impromptuindian.com/';
+  window.location.href = '/';
 }

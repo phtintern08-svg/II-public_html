@@ -276,7 +276,8 @@
     }
 
     function getApiBase() {
-        return window.IMPROMPTU_INDIAN_API_BASE || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://apparels.impromptuindian.com');
+        // Use relative paths - no absolute URLs
+        return window.IMPROMPTU_INDIAN_API_BASE || '';
     }
 
     function refreshDashboard() {
