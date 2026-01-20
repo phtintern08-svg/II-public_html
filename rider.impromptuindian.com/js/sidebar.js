@@ -344,12 +344,31 @@ async function fetchNotificationCount() {
   }
 }
 
-function logout(event) {
+async function logout(event) {
   event.preventDefault();
+
+  try {
+    // Call backend to delete HttpOnly cookie
+    await ImpromptuIndianApi.fetch('/api/logout', {
+      method: 'POST'
+    });
+  } catch (e) {
+    console.warn('Logout API call failed, proceeding with client-side logout');
+  }
+
+  // Clear all local storage related to auth
+  localStorage.removeItem('user');
+  localStorage.removeItem('user_id');
+  localStorage.removeItem('role');
+  localStorage.removeItem('username');
+  localStorage.removeItem('email');
+  localStorage.removeItem('phone');
   localStorage.removeItem('rider_id');
   localStorage.removeItem('rider_name');
   localStorage.removeItem('rider_email');
   localStorage.removeItem('rider_phone');
-  localStorage.removeItem('role');
-  window.location.href = '/';
+  localStorage.removeItem('rider_is_online');
+
+  // Redirect to CENTRAL login page
+  window.location.href = 'https://apparels.impromptuindian.com/login.html';
 }

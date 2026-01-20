@@ -1,5 +1,11 @@
 // Rider Home Page Logic
 (function () {
+    // Prevent back-button login after logout
+    window.history.pushState(null, '', window.location.href);
+    window.onpopstate = () => {
+        window.location.href = 'https://apparels.impromptuindian.com/login.html';
+    };
+    
     let riderId = null;
     let locationInterval = null;
 
