@@ -7,7 +7,7 @@
         // Verify authentication via API (using cookies) - works across subdomains
         try {
             const response = await ImpromptuIndianApi.fetch('/api/verify-token', {
-                method: 'POST',
+                method: 'GET',
                 credentials: 'include'  // Send cookies
             });
             

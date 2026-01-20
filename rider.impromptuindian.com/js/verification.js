@@ -43,7 +43,7 @@ let authComplete = false;
 (async () => {
     try {
         const response = await ImpromptuIndianApi.fetch('/api/verify-token', {
-            method: 'POST',
+            method: 'GET',
             credentials: 'include'  // Send cookies
         });
         
