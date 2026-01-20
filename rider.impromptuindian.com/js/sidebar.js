@@ -143,7 +143,7 @@ const sidebarHTML = (status) => {
 <aside class="sidebar bg-[#1273EB] flex flex-col justify-between h-screen fixed md:relative z-50 transition-all duration-300 -translate-x-full md:translate-x-0 w-[265px] shrink-0">
   <div class="p-5 flex items-center gap-3 text-xl font-bold">
     <i data-lucide="shirt" class="w-6 h-6 text-[#FFCC00]"></i>
-    <a href="#">
+    <a href="home.html">
       <span class="text-[#FFCC00]">Thread</span><span class="text-white">ly</span>
     </a>
   </div>
@@ -157,7 +157,7 @@ const sidebarHTML = (status) => {
     <div id="userAvatar" class="h-10 w-10 bg-black/30 rounded-full flex items-center justify-center font-bold">R</div>
     <div>
       <p id="userName" class="font-semibold text-sm">Rider</p>
-      <a href="javascript:void(0)" id="logoutBtn" class="text-xs opacity-80 hover:underline">Logout</a>
+      <button id="logoutBtn" type="button" class="text-xs opacity-80 hover:underline bg-transparent border-0 text-white cursor-pointer p-0">Logout</button>
     </div>
   </div>
 </aside>

@@ -25,7 +25,7 @@
                     <h1 class="dashboard-title">Rider Dashboard</h1>
                     <p class="dashboard-subtitle">Manage your deliveries and track earnings</p>
                 </div>
-                <button class="btn-refresh-modern" onclick="refreshDashboard()">
+                <button class="btn-refresh-modern" id="refreshBtn">
                     <i data-lucide="refresh-ccw" class="w-5 h-5"></i>
                     Refresh
                 </button>
@@ -37,7 +37,7 @@
                     <h3 class="font-semibold text-lg mb-1">Availability Status</h3>
                     <p class="text-sm text-muted">Toggle to receive new delivery assignments</p>
                 </div>
-                <div class="toggle-switch" id="availabilityToggle" onclick="toggleAvailability()">
+                <div class="toggle-switch" id="availabilityToggle">
                     <div class="toggle-slider"></div>
                 </div>
                 <div class="status-badge offline" id="statusBadge">

@@ -49,6 +49,17 @@
             lucide.createIcons();
         }
 
+        // Bind event listeners (replaces inline onclick handlers)
+        const refreshBtn = document.getElementById('refreshBtn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', refreshDashboard);
+        }
+
+        const toggle = document.getElementById('availabilityToggle');
+        if (toggle) {
+            toggle.addEventListener('click', toggleAvailability);
+        }
+
         // Initialize dashboard state
         fetchRiderStatus();
         fetchActiveTasks();
