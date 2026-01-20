@@ -129,7 +129,6 @@
     justify-content: center;
     border-radius: 0.75rem;
     flex-shrink: 0;
-    animation: float 3s ease-in-out infinite;
 }
 
 .stat-card-blue .stat-icon {
