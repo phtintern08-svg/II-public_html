@@ -157,7 +157,7 @@ const sidebarHTML = (status) => {
     <div id="userAvatar" class="h-10 w-10 bg-black/30 rounded-full flex items-center justify-center font-bold">R</div>
     <div>
       <p id="userName" class="font-semibold text-sm">Rider</p>
-      <a href="#" onclick="logout(event)" class="text-xs opacity-80 hover:underline">Logout</a>
+      <a href="javascript:void(0)" id="logoutBtn" class="text-xs opacity-80 hover:underline">Logout</a>
     </div>
   </div>
 </aside>
@@ -274,6 +274,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     container.innerHTML = sidebarHTML(status);
+
+    // Attach logout handler (must be after sidebar HTML is injected)
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', logout);
+    }
 
     if (window.lucide) {
       lucide.createIcons();
