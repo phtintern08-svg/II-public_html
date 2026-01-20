@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Live Tickets – ImpromptuIndian Support</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/support-global.css" />
+    <link rel="stylesheet" href="css/live-tickets.css" />
+    <link rel="shortcut icon" href="../images/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <!-- Header -->
+            <div class="dashboard-header mb-8">
+                <div>
+                    <h1 class="dashboard-title">Live Ticket Queue</h1>
+                    <p class="dashboard-subtitle">Real-time ticket list sorted by urgency</p>
+                </div>
+                <button class="btn-refresh-modern" id="refreshBtn">
+                    <i data-lucide="refresh-ccw" class="w-5 h-5"></i>
+                    Refresh
+                </button>
+            </div>
+
+            <!-- Filters Bar -->
+            <div class="filters-bar mb-6">
+                <select class="filter-select" id="filterUserType">
+                    <option value="">All User Types</option>
+                    <option value="customer">Customer</option>
+                    <option value="vendor">Vendor</option>
+                    <option value="rider">Rider</option>
+                </select>
+
+                <select class="filter-select" id="filterPriority">
+                    <option value="">All Priorities</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="critical">Critical</option>
+                </select>
+
+                <select class="filter-select" id="filterStatus">
+                    <option value="">All Status</option>
+                    <option value="open">Open</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="overdue">Overdue</option>
+                    <option value="resolved">Resolved</option>
+                </select>
+
+                <select class="filter-select" id="filterCategory">
+                    <option value="">All Categories</option>
+                    <option value="delivery">Delivery</option>
+                    <option value="payment">Payment</option>
+                    <option value="production">Production</option>
+                    <option value="account">Account</option>
+                    <option value="refund">Refund</option>
+                </select>
+
+                <input type="date" class="filter-select" id="filterDate" />
+
+                <input type="text" class="search-input" id="searchInput" placeholder="Search by Ticket ID, Order ID..." />
+            </div>
+
+            <!-- Tickets Table -->
+            <div class="table-container">
+                <table class="w-full">
+                    <thead>
+                        <tr>
+                            <th>Ticket ID</th>
+                            <th>User Type</th>
+                            <th>Order ID</th>
+                            <th>Category</th>
+                            <th>Priority</th>
+                            <th>Time Since Created</th>
+                            <th>SLA Timer</th>
+                            <th>Assigned Agent</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tickets-table-body">
+                        <tr>
+                            <td colspan="9" class="text-center py-8 text-gray-400">Loading tickets...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast hidden">
+        <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+        <span id="toast-msg">Action completed!</span>
+    </div>
+
+    <script src="js/live-tickets.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Support Agents – ImpromptuIndian Support</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/support-global.css" />
+    <link rel="stylesheet" href="css/support-agents.css" />
+    <link rel="shortcut icon" href="../images/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <!-- Header -->
+            <div class="dashboard-header mb-8">
+                <div>
+                    <h1 class="dashboard-title">Support Agent Management</h1>
+                    <p class="dashboard-subtitle">Manage support agents, assign tickets, and track performance</p>
+                </div>
+                <div class="flex gap-2">
+                    <button class="btn-add" id="addAgentBtn">
+                        <i data-lucide="user-plus" class="w-5 h-5"></i>
+                        Add Agent
+                    </button>
+                    <button class="btn-refresh-modern" id="refreshBtn">
+                        <i data-lucide="refresh-ccw" class="w-5 h-5"></i>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Agent Stats -->
+            <div class="stats-grid mb-8">
+                <div class="stat-card stat-card-blue" data-delay="0">
+                    <div class="stat-icon">
+                        <i data-lucide="users" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Total Agents</p>
+                        <p class="stat-value" id="total-agents">0</p>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-green" data-delay="100">
+                    <div class="stat-icon">
+                        <i data-lucide="user-check" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Active Agents</p>
+                        <p class="stat-value" id="active-agents-count">0</p>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-yellow" data-delay="200">
+                    <div class="stat-icon">
+                        <i data-lucide="clock" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Avg Response Time</p>
+                        <p class="stat-value" id="avg-response-time">0m</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agents Table -->
+            <div class="table-container">
+                <table class="w-full">
+                    <thead>
+                        <tr>
+                            <th>Agent Name</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Assigned Tickets</th>
+                            <th>Workload</th>
+                            <th>Avg Response Time</th>
+                            <th>Performance Score</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="agents-table-body">
+                        <tr>
+                            <td colspan="8" class="text-center py-8 text-gray-400">Loading agents...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Agent Modal -->
+    <div id="addAgentModal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeAddAgentModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add Support Agent</h3>
+                <button class="modal-close" onclick="closeAddAgentModal()">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addAgentForm" class="space-y-4">
+                    <div class="form-group">
+                        <label class="form-label">Agent Name</label>
+                        <input type="text" class="form-input" id="agent-name" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" id="agent-email" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone</label>
+                        <input type="tel" class="form-input" id="agent-phone" />
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="submit" class="btn-primary flex-1">Add Agent</button>
+                        <button type="button" class="btn-secondary" onclick="closeAddAgentModal()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast hidden">
+        <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+        <span id="toast-msg">Action completed!</span>
+    </div>
+
+    <script src="js/support-agents.js"></script>
+</body>
+
+</html>

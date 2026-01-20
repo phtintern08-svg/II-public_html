@@ -1,0 +1,21 @@
+/* settings.css - Settings Page Styling */
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 500;
+}
+
+.dashboard-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 0;
+}
+
+.dashboard-subtitle {
+    color: #9ca3af;
+    margin-top: 0.25rem;
+    font-size: 1rem;
+}

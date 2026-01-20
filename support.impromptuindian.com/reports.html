@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Support Reports – ImpromptuIndian Support</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/support-global.css" />
+    <link rel="stylesheet" href="css/reports.css" />
+    <link rel="shortcut icon" href="../images/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <!-- Header -->
+            <div class="dashboard-header mb-8">
+                <div>
+                    <h1 class="dashboard-title">Support Analytics & Reports</h1>
+                    <p class="dashboard-subtitle">Comprehensive reports on support performance and trends</p>
+                </div>
+                <div class="flex gap-2">
+                    <button class="btn-export" id="exportBtn">
+                        <i data-lucide="download" class="w-5 h-5"></i>
+                        Export Report
+                    </button>
+                    <button class="btn-refresh-modern" id="refreshBtn">
+                        <i data-lucide="refresh-ccw" class="w-5 h-5"></i>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Report Stats -->
+            <div class="stats-grid mb-8">
+                <div class="stat-card stat-card-blue" data-delay="0">
+                    <div class="stat-icon">
+                        <i data-lucide="bar-chart-3" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Most Common Issue</p>
+                        <p class="stat-value text-sm" id="most-common-issue">Delivery</p>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-yellow" data-delay="100">
+                    <div class="stat-icon">
+                        <i data-lucide="clock" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Avg Resolution Time</p>
+                        <p class="stat-value" id="avg-resolution-time">2h 30m</p>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-green" data-delay="200">
+                    <div class="stat-icon">
+                        <i data-lucide="smile" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Customer Satisfaction</p>
+                        <p class="stat-value" id="customer-satisfaction">92%</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Issue Types Chart -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Most Common Issue Types</h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="issueTypesChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Resolution Time Chart -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Average Resolution Time Trend</h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="resolutionTimeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Reports Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Detailed Reports</h3>
+                </div>
+                <div class="card-body p-0">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr>
+                                    <th>Report Type</th>
+                                    <th>Period</th>
+                                    <th>Vendor Complaints</th>
+                                    <th>Rider Issues</th>
+                                    <th>Refund Trends</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reports-table-body">
+                                <tr>
+                                    <td colspan="6" class="text-center py-8 text-gray-400">Loading reports...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast hidden">
+        <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+        <span id="toast-msg">Action completed!</span>
+    </div>
+
+    <script src="js/reports.js"></script>
+</body>
+
+</html>

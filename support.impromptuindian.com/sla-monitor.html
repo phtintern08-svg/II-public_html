@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SLA Monitor – ImpromptuIndian Support</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/support-global.css" />
+    <link rel="stylesheet" href="css/sla-monitor.css" />
+    <link rel="shortcut icon" href="../images/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <!-- Header -->
+            <div class="dashboard-header mb-8">
+                <div>
+                    <h1 class="dashboard-title">SLA & Escalation Monitor</h1>
+                    <p class="dashboard-subtitle">Track ticket resolution times and SLA compliance</p>
+                </div>
+                <button class="btn-refresh-modern" id="refreshBtn">
+                    <i data-lucide="refresh-ccw" class="w-5 h-5"></i>
+                    Refresh
+                </button>
+            </div>
+
+            <!-- SLA Stats -->
+            <div class="stats-grid mb-8">
+                <div class="stat-card stat-card-red" data-delay="0">
+                    <div class="stat-icon">
+                        <i data-lucide="alert-circle" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Overdue Tickets</p>
+                        <p class="stat-value" id="overdue-count">0</p>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-yellow" data-delay="100">
+                    <div class="stat-icon">
+                        <i data-lucide="clock" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">At Risk</p>
+                        <p class="stat-value" id="at-risk-count">0</p>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-green" data-delay="200">
+                    <div class="stat-icon">
+                        <i data-lucide="check-circle" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">On Time</p>
+                        <p class="stat-value" id="on-time-count">0</p>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-blue" data-delay="300">
+                    <div class="stat-icon">
+                        <i data-lucide="trending-up" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Avg Resolution Time</p>
+                        <p class="stat-value" id="avg-resolution">0h</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLA Tickets Table -->
+            <div class="table-container">
+                <table class="w-full">
+                    <thead>
+                        <tr>
+                            <th>Ticket ID</th>
+                            <th>Priority</th>
+                            <th>Max Resolution Time</th>
+                            <th>Time Remaining</th>
+                            <th>Status</th>
+                            <th>Auto-Escalated</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sla-tickets-table-body">
+                        <tr>
+                            <td colspan="7" class="text-center py-8 text-gray-400">Loading SLA data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast hidden">
+        <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+        <span id="toast-msg">Action completed!</span>
+    </div>
+
+    <script src="js/sla-monitor.js"></script>
+</body>
+
+</html>

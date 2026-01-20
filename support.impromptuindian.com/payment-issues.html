@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment Issues – ImpromptuIndian Support</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/support-global.css" />
+    <link rel="stylesheet" href="css/payment-issues.css" />
+    <link rel="shortcut icon" href="../images/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <!-- Header -->
+            <div class="dashboard-header mb-8">
+                <div>
+                    <h1 class="dashboard-title">Payment & Refund Control</h1>
+                    <p class="dashboard-subtitle">Manage payment disputes, vendor payouts, and refunds</p>
+                </div>
+                <button class="btn-refresh-modern" id="refreshBtn">
+                    <i data-lucide="refresh-ccw" class="w-5 h-5"></i>
+                    Refresh
+                </button>
+            </div>
+
+            <!-- Payment Stats -->
+            <div class="stats-grid mb-8">
+                <div class="stat-card stat-card-cyan" data-delay="0">
+                    <div class="stat-icon">
+                        <i data-lucide="dollar-sign" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Payment Issues</p>
+                        <p class="stat-value" id="payment-issues-count">0</p>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-yellow" data-delay="100">
+                    <div class="stat-icon">
+                        <i data-lucide="clock" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Pending Refunds</p>
+                        <p class="stat-value" id="pending-refunds">0</p>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-green" data-delay="200">
+                    <div class="stat-icon">
+                        <i data-lucide="check-circle" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Processed Refunds</p>
+                        <p class="stat-value" id="processed-refunds">0</p>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-blue" data-delay="300">
+                    <div class="stat-icon">
+                        <i data-lucide="trending-up" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Total Refund Amount</p>
+                        <p class="stat-value" id="total-refund-amount">$0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Issues Table -->
+            <div class="table-container">
+                <table class="w-full">
+                    <thead>
+                        <tr>
+                            <th>Ticket ID</th>
+                            <th>User</th>
+                            <th>Order ID</th>
+                            <th>Issue Type</th>
+                            <th>Amount</th>
+                            <th>Vendor Payout Status</th>
+                            <th>Refund Eligibility</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="payment-issues-table-body">
+                        <tr>
+                            <td colspan="9" class="text-center py-8 text-gray-400">Loading payment issues...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Refund Modal -->
+    <div id="refundModal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeRefundModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Initiate Refund</h3>
+                <button class="modal-close" onclick="closeRefundModal()">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="refund-modal-body">
+                <!-- Refund form will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast hidden">
+        <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+        <span id="toast-msg">Action completed!</span>
+    </div>
+
+    <script src="js/payment-issues.js"></script>
+</body>
+
+</html>

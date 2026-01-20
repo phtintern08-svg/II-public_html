@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Support Settings – ImpromptuIndian Support</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/support-global.css" />
+    <link rel="stylesheet" href="css/settings.css" />
+    <link rel="shortcut icon" href="../images/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <!-- Header -->
+            <div class="dashboard-header mb-8">
+                <div>
+                    <h1 class="dashboard-title">Support Settings</h1>
+                    <p class="dashboard-subtitle">Configure support system settings and preferences</p>
+                </div>
+            </div>
+
+            <!-- Settings Sections -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- SLA Settings -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">SLA Configuration</h3>
+                    </div>
+                    <div class="card-body space-y-4">
+                        <div class="form-group">
+                            <label class="form-label">Critical Priority Max Time (hours)</label>
+                            <input type="number" class="form-input" id="sla-critical" value="4" min="1" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">High Priority Max Time (hours)</label>
+                            <input type="number" class="form-input" id="sla-high" value="8" min="1" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Medium Priority Max Time (hours)</label>
+                            <input type="number" class="form-input" id="sla-medium" value="24" min="1" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Low Priority Max Time (hours)</label>
+                            <input type="number" class="form-input" id="sla-low" value="48" min="1" />
+                        </div>
+                        <button class="btn-save w-full" onclick="saveSLASettings()">Save SLA Settings</button>
+                    </div>
+                </div>
+
+                <!-- Auto-Escalation Settings -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Auto-Escalation Settings</h3>
+                    </div>
+                    <div class="card-body space-y-4">
+                        <div class="form-group">
+                            <label class="form-label flex items-center gap-2">
+                                <input type="checkbox" id="auto-escalate-enabled" checked class="w-4 h-4" />
+                                Enable Auto-Escalation
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Escalation Threshold (% of SLA)</label>
+                            <input type="number" class="form-input" id="escalation-threshold" value="80" min="0" max="100" />
+                            <p class="text-xs text-gray-400 mt-1">Escalate when ticket reaches this % of SLA time</p>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Auto-Upgrade Priority</label>
+                            <input type="checkbox" id="auto-upgrade-priority" checked class="w-4 h-4" />
+                            <p class="text-xs text-gray-400 mt-1">Automatically upgrade priority when SLA is breached</p>
+                        </div>
+                        <button class="btn-save w-full" onclick="saveEscalationSettings()">Save Escalation Settings</button>
+                    </div>
+                </div>
+
+                <!-- Notification Settings -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Notification Settings</h3>
+                    </div>
+                    <div class="card-body space-y-4">
+                        <div class="form-group">
+                            <label class="form-label flex items-center gap-2">
+                                <input type="checkbox" id="notify-overdue" checked class="w-4 h-4" />
+                                Notify Admin on Overdue Tickets
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label flex items-center gap-2">
+                                <input type="checkbox" id="notify-escalation" checked class="w-4 h-4" />
+                                Notify on Auto-Escalation
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label flex items-center gap-2">
+                                <input type="checkbox" id="notify-critical" checked class="w-4 h-4" />
+                                Notify on Critical Tickets
+                            </label>
+                        </div>
+                        <button class="btn-save w-full" onclick="saveNotificationSettings()">Save Notification Settings</button>
+                    </div>
+                </div>
+
+                <!-- Internal Notes Settings -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Internal Notes (Admin Only)</h3>
+                    </div>
+                    <div class="card-body space-y-4">
+                        <div class="form-group">
+                            <label class="form-label">Enable Internal Notes</label>
+                            <input type="checkbox" id="internal-notes-enabled" checked class="w-4 h-4" />
+                            <p class="text-xs text-gray-400 mt-1">Allow support agents to add internal notes (hidden from users)</p>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Notes Categories</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" checked class="w-4 h-4" />
+                                    Fraud Tracking
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" checked class="w-4 h-4" />
+                                    Blacklist Marking
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" checked class="w-4 h-4" />
+                                    Vendor Reliability
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" checked class="w-4 h-4" />
+                                    Rider Behavior Tracking
+                                </label>
+                            </div>
+                        </div>
+                        <button class="btn-save w-full" onclick="saveInternalNotesSettings()">Save Internal Notes Settings</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast hidden">
+        <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+        <span id="toast-msg">Action completed!</span>
+    </div>
+
+    <script src="js/settings.js"></script>
+</body>
+
+</html>

@@ -59,12 +59,7 @@ const dashboardData = {
 // Fetch dashboard stats from API
 async function fetchDashboardStats() {
     try {
-        const token = localStorage.getItem('token');
-        const response = await ImpromptuIndianApi.fetch('/api/admin/dashboard/stats', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
+        const response = await ImpromptuIndianApi.fetch('/api/admin/dashboard/stats');
         if (response.ok) {
             const stats = await response.json();
             // Update with real data

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ticket Details – ImpromptuIndian Support</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/support-global.css" />
+    <link rel="stylesheet" href="css/ticket-details.css" />
+    <link rel="shortcut icon" href="../images/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <!-- Header -->
+            <div class="dashboard-header mb-8">
+                <div>
+                    <h1 class="dashboard-title">Ticket Details</h1>
+                    <p class="dashboard-subtitle" id="ticket-id">Loading ticket...</p>
+                </div>
+                <button class="btn-secondary" onclick="window.history.back()">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                    Back
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Left Column: Ticket Info -->
+                <div class="lg:col-span-1 space-y-6">
+                    <!-- Ticket Info Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Ticket Information</h3>
+                        </div>
+                        <div class="card-body space-y-4">
+                            <div>
+                                <p class="text-sm text-gray-400 mb-1">Ticket ID</p>
+                                <p class="font-semibold" id="info-ticket-id">-</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400 mb-1">Created Date & Time</p>
+                                <p class="font-semibold" id="info-created">-</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400 mb-1">User Name</p>
+                                <p class="font-semibold" id="info-user-name">-</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400 mb-1">User Role</p>
+                                <p class="font-semibold capitalize" id="info-user-role">-</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400 mb-1">Phone / Email</p>
+                                <p class="font-semibold" id="info-contact">-</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400 mb-1">Related Order ID</p>
+                                <p class="font-semibold" id="info-order-id">-</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400 mb-1">Vendor & Rider</p>
+                                <p class="font-semibold" id="info-vendor-rider">-</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400 mb-1">Priority</p>
+                                <p id="info-priority">-</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400 mb-1">Status</p>
+                                <p id="info-status">-</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400 mb-1">Assigned Agent</p>
+                                <p class="font-semibold" id="info-assigned-agent">-</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Issue Description Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Issue Description</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-gray-300 mb-4" id="issue-description">-</p>
+                            <div id="issue-attachments" class="space-y-2">
+                                <!-- Attachments will be rendered here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Chat Window -->
+                <div class="lg:col-span-2">
+                    <div class="card h-[calc(100vh-12rem)] flex flex-col">
+                        <div class="card-header">
+                            <h3 class="card-title">Chat Window</h3>
+                        </div>
+                        <div class="card-body flex-1 overflow-y-auto p-0" id="chat-messages">
+                            <!-- Chat messages will be rendered here -->
+                            <div class="p-4 text-center text-gray-400">Loading chat messages...</div>
+                        </div>
+                        <div class="card-footer p-4 border-t border-gray-700">
+                            <div class="flex gap-2">
+                                <input type="text" class="form-input flex-1" id="chat-input" placeholder="Type your message..." />
+                                <button class="btn-primary" id="send-message-btn">
+                                    <i data-lucide="send" class="w-4 h-4"></i>
+                                    Send
+                                </button>
+                            </div>
+                            <div class="flex gap-2 mt-2">
+                                <input type="file" id="file-input" class="hidden" accept="image/*,.pdf,.doc,.docx" />
+                                <button class="btn-secondary text-xs" onclick="document.getElementById('file-input').click()">
+                                    <i data-lucide="paperclip" class="w-4 h-4"></i>
+                                    Attach File
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast hidden">
+        <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+        <span id="toast-msg">Action completed!</span>
+    </div>
+
+    <script src="js/ticket-details.js"></script>
+</body>
+
+</html>
