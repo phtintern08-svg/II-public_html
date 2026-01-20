@@ -351,6 +351,7 @@ async function fetchNotificationCount() {
 }
 
 async function logout(event) {
+  console.log('LOGOUT CLICKED');  // Debug: verify function is called
   event.preventDefault();
 
   try {
