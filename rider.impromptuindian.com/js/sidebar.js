@@ -40,14 +40,11 @@ const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
 
   let base = rawBase.trim().replace(/\/$/, '');
   
-  // FORCE backend to main API domain in production
-  // This ensures all API calls go to apparels.impromptuindian.com, not the current subdomain
+  // Use relative paths when base is empty
+  // This allows Passenger to route requests correctly on each subdomain
+  // Cookie is first-party, avoiding CORS issues
   if (!base) {
-    // Default to backend domain (apparels.impromptuindian.com) in production
-    // or localhost for local development
-    base = window.location.hostname === 'localhost' 
-      ? 'http://localhost:5000' 
-      : 'https://apparels.impromptuindian.com';
+    base = '';  // Relative paths - Passenger handles routing
   }
 
   const buildUrl = (path = '') => `${base}${path.startsWith('/') ? path : `/${path}`}`;

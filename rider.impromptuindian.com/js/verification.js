@@ -1,11 +1,4 @@
 // Rider Verification Page JavaScript
-// Defensive check: ensure API base is always set
-if (!window.IMPROMPTU_INDIAN_API_BASE) {
-    window.IMPROMPTU_INDIAN_API_BASE = window.location.hostname === 'localhost' 
-        ? 'http://localhost:5000' 
-        : 'https://apparels.impromptuindian.com';
-}
-
 lucide.createIcons();
 
 /* ---------------------------
