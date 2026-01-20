@@ -26,7 +26,7 @@
                     <h1 class="dashboard-title">Admin Dashboard</h1>
                     <p class="dashboard-subtitle">Real-time overview of operations</p>
                 </div>
-                <button class="btn-refresh-modern" onclick="refreshDashboard()">
+                <button class="btn-refresh-modern" id="refreshDashboardBtn">
                     <i data-lucide="refresh-ccw" class="w-5 h-5"></i>
                     Refresh
                 </button>
@@ -340,7 +340,7 @@
             <div class="reveal info-card mb-8" data-delay="1550">
                 <div class="info-card-header flex justify-between items-center">
                     <h3 class="info-card-title">Recent OTP Logs</h3>
-                    <button class="text-sm text-blue-400 hover:text-blue-300" onclick="fetchOTPLogs()">Refresh
+                    <button class="text-sm text-blue-400 hover:text-blue-300" id="refreshOtpBtn">Refresh
                         Logs</button>
                 </div>
                 <div class="info-card-body p-0">

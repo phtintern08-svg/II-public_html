@@ -229,6 +229,17 @@ window.addEventListener('DOMContentLoaded', () => {
         lucide.createIcons();
     }
 
+    // Bind event listeners (replaces inline onclick handlers)
+    const refreshBtn = document.getElementById('refreshDashboardBtn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', refreshDashboard);
+    }
+
+    const refreshOtpBtn = document.getElementById('refreshOtpBtn');
+    if (refreshOtpBtn) {
+        refreshOtpBtn.addEventListener('click', fetchOTPLogs);
+    }
+
     // Fetch OTP logs
     fetchOTPLogs();
 
