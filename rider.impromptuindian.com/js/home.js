@@ -1,12 +1,41 @@
 // Rider Home Page Logic
 (function () {
-    const user = JSON.parse(localStorage.getItem('user'));
-    const riderId = user ? user.user_id : null;
+    let riderId = null;
     let locationInterval = null;
 
     document.addEventListener('DOMContentLoaded', async () => {
-        if (!user || user.role !== 'rider') {
-            window.location.href = '../login.html';
+        // Verify authentication via API (using cookies) - works across subdomains
+        try {
+            const response = await ImpromptuIndianApi.fetch('/api/verify-token', {
+                method: 'POST',
+                credentials: 'include'  // Send cookies
+            });
+            
+            if (!response.ok) {
+                // Not authenticated - redirect to login
+                window.location.href = 'https://apparels.impromptuindian.com/login.html';
+                return;
+            }
+            
+            const data = await response.json();
+            if (!data.valid || data.role !== 'rider') {
+                // Invalid token or wrong role - redirect to login
+                window.location.href = 'https://apparels.impromptuindian.com/login.html';
+                return;
+            }
+            
+            // Store user info in localStorage for this subdomain
+            riderId = data.user_id;
+            localStorage.setItem('user_id', riderId);
+            localStorage.setItem('role', data.role);
+            
+            // Create user object for compatibility
+            const userObj = { user_id: riderId, role: data.role };
+            localStorage.setItem('user', JSON.stringify(userObj));
+            
+        } catch (error) {
+            console.error('Authentication check failed:', error);
+            window.location.href = 'https://apparels.impromptuindian.com/login.html';
             return;
         }
 
@@ -28,11 +57,10 @@
     async function fetchRiderStatus() {
         if (!riderId) return;
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`${getApiBase()}/api/rider/profile`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+            // Use cookie-based authentication (credentials: 'include' sends cookies automatically)
+            const response = await ImpromptuIndianApi.fetch('/api/rider/profile', {
+                method: 'GET',
+                credentials: 'include'  // Send cookies
             });
             if (response.ok) {
                 const data = await response.json();
@@ -100,13 +128,13 @@
                 }
             }
 
-            const token = localStorage.getItem('token');
-            const response = await fetch(`${getApiBase()}/api/rider/presence`, {
+            // Use cookie-based authentication
+            const response = await ImpromptuIndianApi.fetch('/api/rider/presence', {
                 method: 'PUT',
                 headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Content-Type': 'application/json'
                 },
+                credentials: 'include'  // Send cookies
                 body: JSON.stringify({
                     is_online: newState,
                     latitude: coords.lat,
@@ -157,13 +185,13 @@
         locationInterval = setInterval(async () => {
             try {
                 const coords = await getCurrentLocation();
-                const token = localStorage.getItem('token');
-                await fetch(`${getApiBase()}/api/rider/presence`, {
+                // Use cookie-based authentication
+                await ImpromptuIndianApi.fetch('/api/rider/presence', {
                     method: 'PUT',
                     headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
+                        'Content-Type': 'application/json'
                     },
+                    credentials: 'include'  // Send cookies
                     body: JSON.stringify({
                         latitude: coords.lat,
                         longitude: coords.lon
@@ -201,12 +229,10 @@
         if (!container || !riderId) return;
 
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`${getApiBase()}/api/rider/deliveries/assigned`, {
+            // Use cookie-based authentication
+            const response = await ImpromptuIndianApi.fetch('/api/rider/deliveries/assigned', {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                credentials: 'include'  // Send cookies
             });
 
             if (response.ok) {

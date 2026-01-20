@@ -14,6 +14,10 @@
 </head>
 
 <body class="bg-gray-900 text-white">
+    <!-- Set API base URL for subdomain (must be before sidebar.js) -->
+    <script>
+        window.IMPROMPTU_INDIAN_API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://apparels.impromptuindian.com';
+    </script>
     <div class="flex h-screen overflow-hidden">
         <div id="sidebar-container"></div>
         <script src="js/sidebar.js"></script>

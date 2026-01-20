@@ -51,7 +51,13 @@ const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
   return {
     baseUrl: base,
     buildUrl,
-    fetch: (path, options = {}) => fetch(buildUrl(path), options),
+    fetch: (path, options = {}) => {
+      // Include credentials to send cookies (REQUIRED for subdomain SSO)
+      return fetch(buildUrl(path), {
+        ...options,
+        credentials: 'include'
+      });
+    },
   };
 })();
 window.ImpromptuIndianApi = ImpromptuIndianApi;
