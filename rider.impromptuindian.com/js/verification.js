@@ -36,19 +36,61 @@ let verificationStatus = 'pending_verification'; // Default
 let documents = {};
 let currentDocumentId = null;
 let selectedFile = null;
-const user = JSON.parse(localStorage.getItem('user'));
+let riderId = null;
+let authComplete = false;
 
-if (!user || user.role !== 'rider') {
-    window.location.href = '../login.html';
-}
-
-const riderId = user.user_id;
+// Verify authentication via API (using cookies) - works across subdomains
+(async () => {
+    try {
+        const response = await ImpromptuIndianApi.fetch('/api/verify-token', {
+            method: 'POST',
+            credentials: 'include'  // Send cookies
+        });
+        
+        if (!response.ok) {
+            // Not authenticated - redirect to login
+            window.location.href = 'https://apparels.impromptuindian.com/login.html';
+            return;
+        }
+        
+        const data = await response.json();
+        if (!data.valid || data.role !== 'rider') {
+            // Invalid token or wrong role - redirect to login
+            window.location.href = 'https://apparels.impromptuindian.com/login.html';
+            return;
+        }
+        
+        // Store user info in localStorage for this subdomain
+        riderId = data.user_id;
+        localStorage.setItem('user_id', riderId);
+        localStorage.setItem('role', data.role);
+        
+        // Create user object for compatibility
+        const userObj = { user_id: riderId, role: data.role };
+        localStorage.setItem('user', JSON.stringify(userObj));
+        
+        authComplete = true;
+        
+    } catch (error) {
+        console.error('Authentication check failed:', error);
+        window.location.href = 'https://apparels.impromptuindian.com/login.html';
+        return;
+    }
+})();
 
 /* ---------------------------
    API FUNCTIONS
 ---------------------------*/
 async function fetchVerificationStatus() {
-    if (!riderId) return;
+    // Wait for authentication to complete
+    if (!authComplete || !riderId) {
+        // Retry after a short delay if auth is still in progress
+        if (!authComplete) {
+            setTimeout(fetchVerificationStatus, 100);
+            return;
+        }
+        return;
+    }
     try {
         const response = await ImpromptuIndianApi.fetch(`/api/rider/verification/status/${riderId}`);
         if (response.ok) {

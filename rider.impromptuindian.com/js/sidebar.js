@@ -236,32 +236,40 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Get user status
     let status = 'pending_verification'; // Default
     try {
-      const user = JSON.parse(localStorage.getItem('user'));
-      if (user) {
-        // Try to get fresh status from API
-        try {
-          const token = localStorage.getItem('token');
-          const response = await ImpromptuIndianApi.fetch(`/api/rider/profile`, {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          if (response.ok) {
-            const data = await response.json();
-            // Use verification_status from the API response
-            status = data.verification_status || 'pending_verification';
-            // Update local storage
-            user.verification_status = status;
-            localStorage.setItem('user', JSON.stringify(user));
-          } else {
-            status = user.verification_status || user.status || 'pending_verification';
-          }
-        } catch (e) {
+      // Use cookie-based authentication (credentials: 'include' is set by ImpromptuIndianApi.fetch)
+      const response = await ImpromptuIndianApi.fetch('/api/rider/profile', {
+        method: 'GET'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        // Use verification_status from the API response
+        status = data.verification_status || 'pending_verification';
+        
+        // Update local storage with user info
+        const user = JSON.parse(localStorage.getItem('user')) || {};
+        user.verification_status = status;
+        user.user_id = data.id || data.user_id;
+        user.role = 'rider';
+        localStorage.setItem('user', JSON.stringify(user));
+      } else {
+        // Fallback to localStorage if API fails
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user) {
           status = user.verification_status || user.status || 'pending_verification';
         }
       }
     } catch (e) {
       console.error("Error getting user status:", e);
+      // Fallback to localStorage if API fails
+      try {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user) {
+          status = user.verification_status || user.status || 'pending_verification';
+        }
+      } catch (e2) {
+        // Ignore
+      }
     }
 
     container.innerHTML = sidebarHTML(status);
@@ -317,11 +325,9 @@ async function fetchNotificationCount() {
       return;
     }
 
-    const token = localStorage.getItem('token');
+    // Use cookie-based authentication (credentials: 'include' is set by ImpromptuIndianApi.fetch)
     const response = await ImpromptuIndianApi.fetch(`/api/rider/notifications?unread_only=true`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      method: 'GET'
     });
     if (response.ok) {
       const data = await response.json();
