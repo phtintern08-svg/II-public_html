@@ -39,11 +39,15 @@ const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
     '';
 
   let base = rawBase.trim().replace(/\/$/, '');
+  
+  // FORCE backend to main API domain in production
+  // This ensures all API calls go to apparels.impromptuindian.com, not the current subdomain
   if (!base) {
-    // Force API to main domain (localhost:5000)
-    // This handles requests from subdomains (rider.localhost) correctly
-    // Use relative paths - no absolute URLs
-    base = '';
+    // Default to backend domain (apparels.impromptuindian.com) in production
+    // or localhost for local development
+    base = window.location.hostname === 'localhost' 
+      ? 'http://localhost:5000' 
+      : 'https://apparels.impromptuindian.com';
   }
 
   const buildUrl = (path = '') => `${base}${path.startsWith('/') ? path : `/${path}`}`;
