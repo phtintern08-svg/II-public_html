@@ -49,7 +49,13 @@
       return {
         baseUrl: base,
         buildUrl,
-        fetch: (path, options = {}) => fetch(buildUrl(path), options),
+        fetch: (path, options = {}) => {
+          // Include credentials to send cookies (REQUIRED for subdomain SSO)
+          return fetch(buildUrl(path), {
+            ...options,
+            credentials: 'include'
+          });
+        },
       };
     })();
   }
@@ -73,7 +79,7 @@
       <div id="userAvatar" class="h-10 w-10 bg-black/30 rounded-full flex items-center justify-center font-bold">C</div>
       <div>
         <p id="userName" class="font-semibold text-sm">Creative Printz</p>
-        <a href="#" onclick="logout(event)" class="text-xs opacity-80 hover:underline">Logout</a>
+        <button id="logoutBtn" type="button" class="text-xs opacity-80 hover:underline bg-transparent border-0 text-white cursor-pointer p-0">Logout</button>
       </div>
     </div>
   </aside>
@@ -217,10 +223,32 @@
     if (avatarEl) avatarEl.textContent = username.charAt(0).toUpperCase();
   }
 
-  function logout(event) {
-    if (event) event.preventDefault();
+  async function logout(event) {
+    // Prevent ALL event propagation and default behavior
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+    }
+
+    console.log('LOGOUT CLICKED');
+
+    try {
+      // Call backend to delete HttpOnly cookie
+      await ImpromptuIndianApi.fetch('/api/logout', {
+        method: 'POST'
+      });
+    } catch (e) {
+      console.warn('Logout API call failed');
+    }
+
+    // Clear all auth storage
     localStorage.clear();
-    window.location.href = '/';
+
+    // HARD redirect (cannot be overridden, prevents back button)
+    window.location.replace('https://apparels.impromptuindian.com/login.html');
+
+    return false;  // Cancel any inline handler behavior
   }
 
   // Initialize
@@ -228,6 +256,13 @@
     const container = document.getElementById("sidebar-container");
     if (container) {
       container.innerHTML = sidebarHTML;
+      
+      // Attach logout handler (must be after sidebar HTML is injected)
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', logout);
+      }
+      
       renderSidebarNav();
       fetchAndUpdateStatus();
       populateUserData();
