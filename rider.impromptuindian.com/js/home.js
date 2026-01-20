@@ -134,7 +134,7 @@
                 headers: { 
                     'Content-Type': 'application/json'
                 },
-                credentials: 'include'  // Send cookies
+                credentials: 'include',  // Send cookies
                 body: JSON.stringify({
                     is_online: newState,
                     latitude: coords.lat,
@@ -191,7 +191,7 @@
                     headers: { 
                         'Content-Type': 'application/json'
                     },
-                    credentials: 'include'  // Send cookies
+                    credentials: 'include',  // Send cookies
                     body: JSON.stringify({
                         latitude: coords.lat,
                         longitude: coords.lon
