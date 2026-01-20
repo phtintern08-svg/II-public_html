@@ -19,14 +19,6 @@ const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
         baseUrl: base,
         buildUrl,
         fetch: (path, options = {}) => {
-            // Automatically add Authorization header if token exists
-            const token = localStorage.getItem('token');
-            if (token && !options.headers) {
-                options.headers = {};
-            }
-            if (token && options.headers) {
-                options.headers['Authorization'] = `Bearer ${token}`;
-            }
             // Ensure Content-Type is set if not already set and body is provided
             if (options.body && !options.headers?.['Content-Type'] && !options.headers?.['content-type']) {
                 if (!options.headers) {
@@ -34,7 +26,11 @@ const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
                 }
                 options.headers['Content-Type'] = 'application/json';
             }
-            return fetch(buildUrl(path), options);
+            // Include credentials to send cookies (REQUIRED for subdomain SSO)
+            return fetch(buildUrl(path), {
+                ...options,
+                credentials: 'include'
+            });
         }
     };
 })();
@@ -164,23 +160,30 @@ if (loginForm) {
             }
 
             if (response.ok) {
-                // Store JWT token for API authentication
-                if (result.token) {
-                    localStorage.setItem('token', result.token);
-                }
+                // Token is now stored in HttpOnly cookie automatically
+                // No need to store in localStorage - cookie works across subdomains
                 
-                // Store complete user info in localStorage
-                localStorage.setItem('user', JSON.stringify(result));
-                localStorage.setItem('user_id', result.user_id);
-                localStorage.setItem('role', result.role);
-                localStorage.setItem('username', result.username);
-                localStorage.setItem('email', result.email);
-                localStorage.setItem('phone', result.phone);
+                // Store user info in localStorage for UI display (optional)
+                if (result.user_id) {
+                    localStorage.setItem('user_id', result.user_id);
+                }
+                if (result.role) {
+                    localStorage.setItem('role', result.role);
+                }
+                if (result.username) {
+                    localStorage.setItem('username', result.username);
+                }
+                if (result.email) {
+                    localStorage.setItem('email', result.email);
+                }
+                if (result.phone) {
+                    localStorage.setItem('phone', result.phone);
+                }
 
                 showAlert('Success', 'Login successful!', 'success');
                 setTimeout(() => {
                     window.location.href = result.redirect_url;
-                }, 1500);
+                }, 1000);
             } else {
                 showAlert('Login Failed', result.error || 'Invalid credentials', 'error');
             }
