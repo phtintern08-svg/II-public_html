@@ -182,7 +182,24 @@ if (loginForm) {
 
                 showAlert('Success', 'Login successful!', 'success');
                 setTimeout(() => {
-                    window.location.href = result.redirect_url;
+                    // Use redirect_url directly from backend - never construct URLs in frontend
+                    const redirectUrl = result.redirect_url;
+                    
+                    // Validate that redirect_url is a proper URL (safety check)
+                    if (!redirectUrl || typeof redirectUrl !== 'string') {
+                        console.error('Invalid redirect_url from server:', redirectUrl);
+                        showAlert('Error', 'Invalid redirect URL received from server', 'error');
+                        return;
+                    }
+                    
+                    // Ensure it's a valid URL format
+                    if (!redirectUrl.startsWith('http://') && !redirectUrl.startsWith('https://') && !redirectUrl.startsWith('/')) {
+                        console.error('Invalid redirect_url format:', redirectUrl);
+                        showAlert('Error', 'Invalid redirect URL format', 'error');
+                        return;
+                    }
+                    
+                    window.location.href = redirectUrl;
                 }, 1000);
             } else {
                 showAlert('Login Failed', result.error || 'Invalid credentials', 'error');
