@@ -351,8 +351,14 @@ async function fetchNotificationCount() {
 }
 
 async function logout(event) {
-  console.log('LOGOUT CLICKED');  // Debug: verify function is called
-  event.preventDefault();
+  // Prevent ALL event propagation and default behavior
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+  }
+
+  console.log('LOGOUT CLICKED');
 
   try {
     // Call backend to delete HttpOnly cookie
@@ -360,22 +366,14 @@ async function logout(event) {
       method: 'POST'
     });
   } catch (e) {
-    console.warn('Logout API call failed, proceeding with client-side logout');
+    console.warn('Logout API call failed');
   }
 
-  // Clear all local storage related to auth
-  localStorage.removeItem('user');
-  localStorage.removeItem('user_id');
-  localStorage.removeItem('role');
-  localStorage.removeItem('username');
-  localStorage.removeItem('email');
-  localStorage.removeItem('phone');
-  localStorage.removeItem('rider_id');
-  localStorage.removeItem('rider_name');
-  localStorage.removeItem('rider_email');
-  localStorage.removeItem('rider_phone');
-  localStorage.removeItem('rider_is_online');
+  // Clear all auth storage
+  localStorage.clear();
 
-  // Redirect to CENTRAL login page
-  window.location.href = 'https://apparels.impromptuindian.com/login.html';
+  // HARD redirect (cannot be overridden, prevents back button)
+  window.location.replace('https://apparels.impromptuindian.com/login.html');
+
+  return false;  // Cancel any inline handler behavior
 }
