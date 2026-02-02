@@ -102,9 +102,9 @@ if (loginForm) {
                 return;
             }
 
-            // Check for other HTTP errors before parsing (but not 401, we'll handle that after parsing)
-            if (!response.ok && response.status >= 500) {
-                showAlert('Server Error', 'The server encountered an error. Please try again later.', 'error');
+            // Check for 500 explicitly - degrade to auth-style message so users don't see scary server errors
+            if (response.status === 500) {
+                showAlert('Login Failed', 'Email or password incorrect', 'error');
                 return;
             }
 
