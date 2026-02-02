@@ -144,7 +144,7 @@ const sidebarHTML = (status) => {
   <div class="p-5 flex items-center gap-3 text-xl font-bold">
     <i data-lucide="shirt" class="w-6 h-6 text-[#FFCC00]"></i>
     <a href="home.html">
-      <span class="text-[#FFCC00]">Thread</span><span class="text-white">ly</span>
+      <span class="text-[#FFCC00]">Impromptu</span><span class="text-white">Indian</span>
     </a>
   </div>
 
