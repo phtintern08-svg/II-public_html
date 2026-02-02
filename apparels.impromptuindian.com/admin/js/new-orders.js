@@ -1,12 +1,20 @@
 // new-orders.js – admin escrow order management (mock)
 // ImpromptuIndianApi is provided by sidebar.js
 
-function showToast(msg) {
-  const toast = document.getElementById('toast');
-  const txt = document.getElementById('toast-msg');
-  txt.textContent = msg;
-  toast.classList.remove('hidden');
-  setTimeout(() => toast.classList.add('hidden'), 3000);
+function showToast(msg, type = 'info') {
+  // Use the new alert system (matching login page)
+  if (typeof showAlert === 'function') {
+    const titles = {
+      success: 'Success',
+      error: 'Error',
+      warning: 'Warning',
+      info: 'Info'
+    };
+    showAlert(titles[type] || 'Info', msg, type);
+  } else {
+    // Fallback
+    alert(msg);
+  }
 }
 
 // Mock escrow orders
@@ -27,7 +35,7 @@ async function fetchApprovedVendors() {
     console.log('Approved vendors fetched:', approvedVendors);
   } catch (e) {
     console.error('Failed to fetch approved vendors', e);
-    showToast('Failed to load vendors');
+    showToast('Failed to load vendors', 'error');
   }
 }
 
@@ -66,7 +74,7 @@ async function fetchOrders() {
     calculateSummary();
   } catch (e) {
     console.error('Failed to fetch orders', e);
-    showToast('Failed to load orders');
+    showToast('Failed to load orders', 'error');
   }
 }
 
@@ -239,7 +247,7 @@ function closeOrderModal() {
 async function assignVendor() {
   const vendorId = document.getElementById('vendor-select')?.value;
   if (!vendorId) {
-    showToast('Please select a vendor');
+    showToast('Please select a vendor', 'warning');
     return;
   }
 
@@ -259,7 +267,7 @@ async function assignVendor() {
     }
 
     const data = await response.json();
-    showToast(data.message);
+    showToast(data.message || 'Vendor assigned successfully', 'success');
 
     // Remove from local state because it moved to production
     const orderIdx = orders.findIndex(o => o.id === currentOrderId);
@@ -272,7 +280,7 @@ async function assignVendor() {
     calculateSummary();
   } catch (e) {
     console.error('Assignment failed', e);
-    showToast(e.message);
+    showToast(e.message || 'Failed to assign vendor', 'error');
   }
 }
 
@@ -280,7 +288,7 @@ function rejectOrder() {
   if (!currentOrderId) return;
   const idx = orders.findIndex(o => o.id === currentOrderId);
   orders.splice(idx, 1);
-  showToast('Order rejected');
+  showToast('Order rejected successfully', 'success');
   closeOrderModal();
   renderOrders();
   calculateSummary();
@@ -289,21 +297,41 @@ function rejectOrder() {
 async function refreshOrders() {
   await fetchApprovedVendors();
   await fetchOrders();
-  showToast('Data refreshed');
+  showToast('Data refreshed successfully', 'success');
 }
 
 // Reveal on scroll
 function onScroll() {
   document.querySelectorAll('.reveal').forEach(el => {
     const top = el.getBoundingClientRect().top;
-    if (top < window.innerHeight - 100) el.classList.add('show');
+    if (top < window.innerHeight - 100) {
+      el.classList.add('show');
+    }
   });
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
-  await fetchApprovedVendors();
-  fetchOrders();
-  calculateSummary();
+  // Show all reveal elements immediately (they're already in view on page load)
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.reveal').forEach(el => {
+      el.classList.add('show');
+    });
+  });
+  
+  try {
+    await fetchApprovedVendors();
+    await fetchOrders();
+    calculateSummary();
+  } catch (error) {
+    console.error('Error initializing page:', error);
+  }
+  
+  // Also set up scroll listener for any elements that come into view later
   onScroll();
   window.addEventListener('scroll', onScroll);
+  
+  // Initialize Lucide icons
+  if (window.lucide) {
+    lucide.createIcons();
+  }
 });

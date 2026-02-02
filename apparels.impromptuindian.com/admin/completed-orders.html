@@ -9,6 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/admin-global.css" />
     <link rel="stylesheet" href="css/completed-orders.css" />
     <link rel="shortcut icon" href="../images/favicon.ico" type="image/x-icon">
     <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
@@ -25,22 +26,38 @@
                     <h1 class="text-3xl font-bold">Completed Orders</h1>
                     <p class="text-gray-400 mt-1">Delivered orders with payout calculations</p>
                 </div>
-                <div class="flex gap-3">
-                    <a href="orders.html"
-                        class="flex items-center gap-2 px-4 py-2 bg-[#1273EB] text-white rounded-lg transition-colors border border-gray-700">
-                        <i data-lucide="arrow-left" class="w-4 h-4"></i> Back
+                <div class="flex gap-4">
+                    <a href="orders.html" class="flex items-center gap-2">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        <span class="text-sm font-semibold tracking-wide uppercase">Back to Orders</span>
                     </a>
-                    <button class="btn-export" onclick="exportCSV()"><i data-lucide="download" class="w-4 h-4"></i>
-                        Export
-                        CSV</button>
+                    <button class="btn-export" id="exportBtn" onclick="exportCSV()">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        <span>Export CSV</span>
+                    </button>
                 </div>
             </div>
 
             <div class="reveal filters-bar mb-6" style="transition-delay: 100ms;">
-                <input type="date" id="date-from" class="filter-select" onchange="filterCompleted()" />
-                <input type="date" id="date-to" class="filter-select" onchange="filterCompleted()" />
-                <input type="text" id="search-completed" class="search-input" placeholder="Search order ID..."
-                    oninput="filterCompleted()" />
+                <div class="date-filter-group">
+                    <label for="date-from" class="date-filter-label">From Date</label>
+                    <div class="date-filter-wrapper">
+                        <i data-lucide="calendar" class="date-filter-icon"></i>
+                        <input type="date" id="date-from" class="filter-select" onchange="filterCompleted()" />
+                    </div>
+                </div>
+                <div class="date-filter-group">
+                    <label for="date-to" class="date-filter-label">To Date</label>
+                    <div class="date-filter-wrapper">
+                        <i data-lucide="calendar" class="date-filter-icon"></i>
+                        <input type="date" id="date-to" class="filter-select" onchange="filterCompleted()" />
+                    </div>
+                </div>
+                <div class="search-input-wrapper">
+                    <i data-lucide="search" class="w-4 h-4"></i>
+                    <input type="text" id="search-completed" class="search-input" placeholder="Search order ID..."
+                        oninput="filterCompleted()" autocomplete="off" />
+                </div>
             </div>
 
             <div class="reveal card" style="transition-delay: 200ms;">
@@ -79,9 +96,24 @@
         </main>
     </div>
 
-    <div id="toast" class="toast hidden"><i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i><span
-            id="toast-msg">Action completed!</span></div>
+    <!-- Custom Alert Modal (Matching Login Page Style) -->
+    <div id="customAlert" class="hidden">
+        <div>
+            <div class="flex flex-col items-center text-center">
+                <div id="alertIcon" class="mb-4">
+                    <!-- Icon injected via JS -->
+                </div>
+                <h3 id="alertTitle" class="text-lg font-bold mb-2">Alert</h3>
+                <p id="alertMessage" class="text-gray-400 text-sm mb-6">Message goes here</p>
+                <button onclick="closeAlert()"
+                    class="w-full bg-[#3fa9ff] hover:bg-[#2d93e0] text-white py-2 rounded-md font-medium transition">
+                    Okay
+                </button>
+            </div>
+        </div>
+    </div>
 
+    <script src="js/custom-alert.js"></script>
     <script src="js/completed-orders.js"></script>
 </body>
 

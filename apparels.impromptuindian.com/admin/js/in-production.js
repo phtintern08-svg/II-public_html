@@ -1,12 +1,19 @@
 // in-production.js – admin production monitoring 
 
-function showToast(msg) {
-  const toast = document.getElementById('toast');
-  const txt = document.getElementById('toast-msg');
-  if (!toast || !txt) return;
-  txt.textContent = msg;
-  toast.classList.remove('hidden');
-  setTimeout(() => toast.classList.add('hidden'), 3000);
+function showToast(msg, type = 'info') {
+  // Use the new alert system (matching login page)
+  if (typeof showAlert === 'function') {
+    const titles = {
+      success: 'Success',
+      error: 'Error',
+      warning: 'Warning',
+      info: 'Info'
+    };
+    showAlert(titles[type] || 'Info', msg, type);
+  } else {
+    // Fallback
+    alert(msg);
+  }
 }
 
 // Global production data
@@ -20,7 +27,7 @@ async function fetchProduction() {
     renderProduction();
   } catch (e) {
     console.error('Error fetching production:', e);
-    showToast('Failed to load production data');
+    showToast('Failed to load production data', 'error');
   }
 }
 
@@ -195,7 +202,25 @@ function onScroll() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  fetchProduction();
+  // Show all reveal elements immediately (they're already in view on page load)
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.reveal').forEach(el => {
+      el.classList.add('show');
+    });
+  });
+  
+  // Initialize Lucide icons
+  if (window.lucide) {
+    lucide.createIcons();
+  }
+  
+  try {
+    fetchProduction();
+  } catch (error) {
+    console.error('Error initializing page:', error);
+  }
+  
+  // Also set up scroll listener for any elements that come into view later
   onScroll();
   window.addEventListener('scroll', onScroll);
 });

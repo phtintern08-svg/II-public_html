@@ -1,11 +1,19 @@
 // completed-orders.js – admin view of delivered orders (mock)
 
-function showToast(msg) {
-    const toast = document.getElementById('toast');
-    const txt = document.getElementById('toast-msg');
-    txt.textContent = msg;
-    toast.classList.remove('hidden');
-    setTimeout(() => toast.classList.add('hidden'), 3000);
+function showToast(msg, type = 'info') {
+    // Use the new alert system (matching login page)
+    if (typeof showAlert === 'function') {
+        const titles = {
+            success: 'Success',
+            error: 'Error',
+            warning: 'Warning',
+            info: 'Info'
+        };
+        showAlert(titles[type] || 'Info', msg, type);
+    } else {
+        // Fallback
+        alert(msg);
+    }
 }
 
 // Mock completed orders
@@ -38,7 +46,25 @@ function renderCompleted() {
 
 function filterCompleted() {
     const term = document.getElementById('search-completed').value.toLowerCase();
-    const filtered = completed.filter(o => o.id.toString().includes(term) || o.customer.toLowerCase().includes(term));
+    const dateFrom = document.getElementById('date-from').value;
+    const dateTo = document.getElementById('date-to').value;
+    
+    let filtered = completed.filter(o => {
+        const matchesSearch = o.id.toString().includes(term) || o.customer.toLowerCase().includes(term);
+        
+        // If date filters are set, filter by date range (mock: using order ID as date proxy for demo)
+        // In real implementation, you would compare with actual order date
+        if (dateFrom || dateTo) {
+            // For demo purposes, we'll just show all if date is selected
+            // In production, you'd compare: 
+            // if (dateFrom && order.date < dateFrom) return false;
+            // if (dateTo && order.date > dateTo) return false;
+            return matchesSearch;
+        }
+        
+        return matchesSearch;
+    });
+    
     const tbody = document.getElementById('completed-table');
     tbody.innerHTML = '';
     filtered.forEach(o => {
@@ -69,7 +95,7 @@ function exportCSV() {
     const a = document.createElement('a');
     a.href = url; a.download = 'completed_orders.csv'; a.click();
     URL.revokeObjectURL(url);
-    showToast('CSV exported successfully');
+    showToast('CSV exported successfully', 'success');
 }
 
 function renderRevenueChart() {
@@ -78,8 +104,54 @@ function renderRevenueChart() {
     const data = [1200, 1500, 1800, 2100, 2500, 3000, 3500];
     new Chart(ctx, {
         type: 'line',
-        data: { labels, datasets: [{ label: 'Revenue', data, borderColor: '#1273EB', backgroundColor: 'rgba(18,115,235,0.2)', tension: 0.4 }] },
-        options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#fff' } }, y: { ticks: { color: '#fff' } } } }
+        data: { 
+            labels, 
+            datasets: [{ 
+                label: 'Revenue', 
+                data, 
+                borderColor: '#2563eb', 
+                backgroundColor: 'rgba(37, 99, 235, 0.1)', 
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#2563eb',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 4
+            }] 
+        },
+        options: { 
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: { 
+                legend: { 
+                    labels: { 
+                        color: '#ffffff',
+                        font: {
+                            size: 12,
+                            weight: 500
+                        }
+                    } 
+                } 
+            }, 
+            scales: { 
+                x: { 
+                    ticks: { 
+                        color: '#94a3b8'
+                    },
+                    grid: {
+                        color: 'rgba(148, 163, 184, 0.1)'
+                    }
+                }, 
+                y: { 
+                    ticks: { 
+                        color: '#94a3b8'
+                    },
+                    grid: {
+                        color: 'rgba(148, 163, 184, 0.1)'
+                    }
+                } 
+            } 
+        }
     });
 }
 
@@ -92,8 +164,83 @@ function onScroll() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-    renderCompleted();
-    renderRevenueChart();
+    // Show all reveal elements immediately (they're already in view on page load)
+    requestAnimationFrame(() => {
+        document.querySelectorAll('.reveal').forEach(el => {
+            el.classList.add('show');
+        });
+    });
+    
+    // Set max date to today (blocks future dates) for both date inputs
+    const dateFrom = document.getElementById('date-from');
+    const dateTo = document.getElementById('date-to');
+    const today = new Date();
+    const todayString = today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    
+    // Function to open date picker
+    function openDatePicker(input) {
+        if (input && typeof input.showPicker === 'function') {
+            try {
+                input.showPicker();
+            } catch (e) {
+                // Fallback: focus and click if showPicker is not supported
+                input.focus();
+                input.click();
+            }
+        } else {
+            // Fallback for older browsers
+            input.focus();
+            input.click();
+        }
+    }
+    
+    if (dateFrom) {
+        dateFrom.setAttribute('max', todayString);
+        // Make calendar icon clickable
+        const dateFromIcon = dateFrom.parentElement.querySelector('.date-filter-icon');
+        if (dateFromIcon) {
+            dateFromIcon.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                openDatePicker(dateFrom);
+            });
+        }
+        // Also open on input focus
+        dateFrom.addEventListener('focus', function() {
+            openDatePicker(this);
+        });
+    }
+    
+    if (dateTo) {
+        dateTo.setAttribute('max', todayString);
+        // Make calendar icon clickable
+        const dateToIcon = dateTo.parentElement.querySelector('.date-filter-icon');
+        if (dateToIcon) {
+            dateToIcon.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                openDatePicker(dateTo);
+            });
+        }
+        // Also open on input focus
+        dateTo.addEventListener('focus', function() {
+            openDatePicker(this);
+        });
+    }
+    
+    // Initialize Lucide icons
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+    
+    try {
+        renderCompleted();
+        renderRevenueChart();
+    } catch (error) {
+        console.error('Error initializing page:', error);
+    }
+    
+    // Also set up scroll listener for any elements that come into view later
     onScroll();
     window.addEventListener('scroll', onScroll);
 });

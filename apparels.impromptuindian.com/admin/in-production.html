@@ -25,28 +25,36 @@
                     <h1 class="text-3xl font-bold">In Production</h1>
                     <p class="text-gray-400 mt-1">Monitor vendor progress and intervene if needed</p>
                 </div>
-                <div class="flex gap-3">
-                    <a href="orders.html"
-                        class="flex items-center gap-2 px-4 py-2 bg-[#1273EB] text-white rounded-lg transition-colors border border-gray-700">
-                        <i data-lucide="arrow-left" class="w-4 h-4"></i> Back
+                <div class="flex gap-4">
+                    <a href="orders.html" class="flex items-center gap-2">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        <span class="text-sm font-semibold tracking-wide uppercase">Back to Orders</span>
                     </a>
-                    <button class="btn-refresh" onclick="refreshProduction()"><i data-lucide="refresh-ccw"
-                            class="w-4 h-4"></i> Refresh</button>
+                    <button class="btn-refresh" id="refreshBtn" onclick="refreshProduction()">
+                        <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
+                        <span>Refresh</span>
+                    </button>
                 </div>
             </div>
 
             <div class="reveal filters-bar mb-6" style="transition-delay: 100ms;">
-                <select id="stage-filter" class="filter-select" onchange="filterProduction()">
-                    <option value="all">All Stages</option>
-                    <option value="assigned">Assigned</option>
-                    <option value="accepted">Accepted</option>
-                    <option value="material">Material Prep</option>
-                    <option value="print">Printing</option>
-                    <option value="quality">Quality Check</option>
-                    <option value="packed">Packed & Ready</option>
-                </select>
-                <input type="text" id="search-prod" class="search-input" placeholder="Search order ID..."
-                    oninput="filterProduction()" />
+                <div class="filter-select-wrapper">
+                    <i data-lucide="filter" class="filter-select-icon"></i>
+                    <select id="stage-filter" class="filter-select" onchange="filterProduction()">
+                        <option value="all">All Stages</option>
+                        <option value="assigned">Assigned</option>
+                        <option value="accepted">Accepted</option>
+                        <option value="material">Material Prep</option>
+                        <option value="print">Printing</option>
+                        <option value="quality">Quality Check</option>
+                        <option value="packed">Packed & Ready</option>
+                    </select>
+                </div>
+                <div class="search-input-wrapper">
+                    <i data-lucide="search" class="w-4 h-4"></i>
+                    <input type="text" id="search-prod" class="search-input" placeholder="Search order ID..."
+                        oninput="filterProduction()" autocomplete="off" />
+                </div>
             </div>
 
             <div class="reveal card" style="transition-delay: 200ms;">
@@ -93,9 +101,24 @@
         </div>
     </div>
 
-    <div id="toast" class="toast hidden"><i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i><span
-            id="toast-msg">Action completed!</span></div>
+    <!-- Custom Alert Modal (Matching Login Page Style) -->
+    <div id="customAlert" class="hidden">
+        <div>
+            <div class="flex flex-col items-center text-center">
+                <div id="alertIcon" class="mb-4">
+                    <!-- Icon injected via JS -->
+                </div>
+                <h3 id="alertTitle" class="text-lg font-bold mb-2">Alert</h3>
+                <p id="alertMessage" class="text-gray-400 text-sm mb-6">Message goes here</p>
+                <button onclick="closeAlert()"
+                    class="w-full bg-[#3fa9ff] hover:bg-[#2d93e0] text-white py-2 rounded-md font-medium transition">
+                    Okay
+                </button>
+            </div>
+        </div>
+    </div>
 
+    <script src="js/custom-alert.js"></script>
     <script src="js/in-production.js"></script>
 </body>
 

@@ -1,11 +1,19 @@
 // ready-dispatch.js – admin dispatch queue (mock)
 
-function showToast(msg) {
-  const toast = document.getElementById('toast');
-  const txt = document.getElementById('toast-msg');
-  txt.textContent = msg;
-  toast.classList.remove('hidden');
-  setTimeout(() => toast.classList.add('hidden'), 3000);
+function showToast(msg, type = 'info') {
+  // Use the new alert system (matching login page)
+  if (typeof showAlert === 'function') {
+    const titles = {
+      success: 'Success',
+      error: 'Error',
+      warning: 'Warning',
+      info: 'Info'
+    };
+    showAlert(titles[type] || 'Info', msg, type);
+  } else {
+    // Fallback
+    alert(msg);
+  }
 }
 
 // Mock dispatch data
@@ -21,10 +29,11 @@ function renderDispatch() {
   tbody.innerHTML = '';
   dispatchQueue.forEach(d => {
     const tr = document.createElement('tr');
+    const qcLabel = d.qc === 'pending' ? 'QC Pending' : d.qc === 'approved' ? 'QC Approved' : 'QC Failed';
     tr.innerHTML = `
       <td>${d.id}</td>
       <td>${d.vendor}</td>
-      <td><span class="status-${d.qc}">${d.qc}</span></td>
+      <td><span class="status-badge status-${d.qc}">${qcLabel}</span></td>
       <td>${d.readySince}</td>
       <td class="text-right">
         <button class="btn-primary" onclick="openDispatchModal(${d.id})"><i data-lucide="eye" class="w-4 h-4"></i></button>
@@ -97,21 +106,21 @@ function closeDispatchModal() {
 function assignRider() {
   const rider = document.getElementById('rider-select')?.value;
   if (!rider) {
-    showToast('Please select a rider');
+    showToast('Please select a rider', 'warning');
     return;
   }
-  showToast(`Rider ${rider} assigned`);
+  showToast(`Rider ${rider} assigned successfully`, 'success');
   closeDispatchModal();
 }
 
 function failQC() {
-  showToast('QC failed - vendor notified');
+  showToast('QC failed - vendor notified', 'error');
   closeDispatchModal();
 }
 
 function refreshDispatch() {
   renderDispatch();
-  showToast('Dispatch queue refreshed');
+  showToast('Dispatch queue refreshed successfully', 'success');
 }
 
 // Reveal on scroll
@@ -123,7 +132,25 @@ function onScroll() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  renderDispatch();
+  // Show all reveal elements immediately (they're already in view on page load)
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.reveal').forEach(el => {
+      el.classList.add('show');
+    });
+  });
+  
+  // Initialize Lucide icons
+  if (window.lucide) {
+    lucide.createIcons();
+  }
+  
+  try {
+    renderDispatch();
+  } catch (error) {
+    console.error('Error initializing page:', error);
+  }
+  
+  // Also set up scroll listener for any elements that come into view later
   onScroll();
   window.addEventListener('scroll', onScroll);
 });

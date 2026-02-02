@@ -1,12 +1,17 @@
-/* completed-orders.css */
+/* completed-orders.css - Professional Design Matching Admin Dashboard */
+
+/* Note: Fonts (Inter & JetBrains Mono) are loaded via admin-global.css or HTML link tag */
 body {
-    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-dark);
 }
 
+/* ========================================
+   REVEAL ANIMATIONS
+   ======================================== */
 .reveal {
     opacity: 0;
     transform: translateY(20px);
-    transition: opacity .6s, transform .6s;
+    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .reveal.show {
@@ -14,32 +19,358 @@ body {
     transform: translateY(0);
 }
 
+/* Fallback: if JS doesn't run, show after a delay to prevent permanent hiding */
+@media (prefers-reduced-motion: no-preference) {
+    .reveal:not(.show) {
+        animation: revealFallback 0.1s 0.5s forwards;
+    }
+}
+
+@keyframes revealFallback {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========================================
+   PAGE HEADER
+   ======================================== */
+.reveal.mb-8 h1 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 0.25rem;
+}
+
+.reveal.mb-8 p {
+    color: #94a3b8;
+    font-size: 0.875rem;
+}
+
+/* ========================================
+   BUTTONS
+   ======================================== */
+.btn-export {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: #16a34a;
+    color: white;
+    border: none;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.2);
+}
+
+.btn-export:hover {
+    background: #15803d;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+}
+
+.reveal.mb-8 a {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(10px);
+    color: #cbd5e1;
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 0.75rem;
+    text-decoration: none;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.3s ease;
+}
+
+.reveal.mb-8 a:hover {
+    background: rgba(30, 41, 59, 0.8);
+    border-color: rgba(37, 99, 235, 0.3);
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+.reveal.mb-8 a i {
+    color: #1273EB;
+}
+
+/* ========================================
+   FILTERS BAR
+   ======================================== */
+.filters-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(10px);
+    padding: 1rem;
+    border-radius: 0.875rem;
+    border: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.date-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 160px;
+}
+
+.date-filter-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.date-filter-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.date-filter-icon {
+    position: absolute;
+    left: 0.75rem;
+    width: 1rem;
+    height: 1rem;
+    color: #94a3b8;
+    pointer-events: auto;
+    cursor: pointer;
+    z-index: 2;
+    transition: color 0.3s ease;
+}
+
+.date-filter-icon:hover {
+    color: #FFCC00;
+}
+
+.filter-select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    padding-left: 2.5rem;
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 0.75rem;
+    color: #ffffff;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.filter-select:hover {
+    background-color: rgba(15, 23, 42, 0.6);
+    border-color: rgba(148, 163, 184, 0.25);
+}
+
+.filter-select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    background-color: rgba(15, 23, 42, 0.6);
+}
+
+.filter-select:focus + .date-filter-icon,
+.date-filter-wrapper:focus-within .date-filter-icon {
+    color: #FFCC00;
+}
+
+.filter-select[type="date"] {
+    min-width: 160px;
+    /* Force dark theme calendar popup */
+    color-scheme: dark;
+}
+
+/* Hide browser's default calendar picker icon since we have a custom icon */
+.filter-select[type="date"]::-webkit-calendar-picker-indicator {
+    display: none;
+}
+
+/* For Firefox */
+.filter-select[type="date"]::-moz-calendar-picker-indicator {
+    display: none;
+}
+
+/* Style the calendar popup to match black and yellow theme */
+/* Note: Native calendar popup styling is limited by browser, but we try to style what we can */
+.filter-select[type="date"] {
+    /* Force dark color scheme for calendar popup */
+    color-scheme: dark;
+}
+
+/* Style date input text fields */
+.filter-select[type="date"]::-webkit-datetime-edit {
+    color: #CBD5E1;
+}
+
+.filter-select[type="date"]::-webkit-datetime-edit-fields-wrapper {
+    color: #CBD5E1;
+}
+
+.filter-select[type="date"]::-webkit-datetime-edit-text {
+    color: #64748B;
+}
+
+.filter-select[type="date"]::-webkit-datetime-edit-month-field,
+.filter-select[type="date"]::-webkit-datetime-edit-day-field,
+.filter-select[type="date"]::-webkit-datetime-edit-year-field {
+    color: #CBD5E1;
+}
+
+.filter-select[type="date"]::-webkit-datetime-edit-month-field:focus,
+.filter-select[type="date"]::-webkit-datetime-edit-day-field:focus,
+.filter-select[type="date"]::-webkit-datetime-edit-year-field:focus {
+    background-color: rgba(255, 204, 0, 0.2);
+    color: #000;
+    border-radius: 4px;
+    font-weight: 700;
+}
+
+/* ========================================
+   CALENDAR POPUP STYLING (Black & Yellow Theme)
+   ======================================== */
+/* Note: Native calendar popup styling is limited by browser support.
+   We use color-scheme: dark to hint at dark theme, and style what we can. */
+
+/* Force dark color scheme for calendar popup */
+.filter-select[type="date"] {
+    color-scheme: dark;
+}
+
+/* Additional styling for calendar popup appearance */
+/* These styles attempt to influence the native calendar popup where supported */
+.filter-select[type="date"]:focus {
+    /* Ensure calendar opens with dark theme */
+    color-scheme: dark;
+}
+
+/* Style for when calendar is open (limited browser support) */
+@supports (color-scheme: dark) {
+    .filter-select[type="date"] {
+        color-scheme: dark;
+    }
+}
+
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+    flex: 1;
+}
+
+.search-input-wrapper:focus-within {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    background: rgba(15, 23, 42, 0.6);
+}
+
+.search-input-wrapper i {
+    color: #94a3b8;
+    flex-shrink: 0;
+}
+
+.search-input-wrapper:focus-within i {
+    color: #2563eb;
+}
+
+.search-input {
+    flex: 1;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+    outline: none;
+    width: 100%;
+    box-shadow: none;
+}
+
+.search-input:focus {
+    outline: none;
+    box-shadow: none;
+    border: none;
+}
+
+.search-input::placeholder {
+    color: #64748b;
+}
+
+/* Disable browser autocomplete styling */
+.search-input:-webkit-autofill,
+.search-input:-webkit-autofill:hover,
+.search-input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0px 1000px rgba(15, 23, 42, 0.4) inset;
+    -webkit-text-fill-color: #ffffff;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* ========================================
+   CARD & TABLE
+   ======================================== */
 .card {
-    background: rgba(255, 255, 255, .04);
-    border-radius: .75rem;
+    border-radius: 0.875rem;
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(148, 163, 184, 0.15);
     overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    border-color: rgba(148, 163, 184, 0.25);
 }
 
 .card-header {
-    padding: 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, .1);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    padding: 1.25rem 1.5rem;
+    background: rgba(30, 41, 59, 0.4);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
 }
 
 .card-title {
     font-size: 1.125rem;
     font-weight: 600;
-    color: #fff;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    letter-spacing: 0.025em;
 }
 
 .card-body {
-    padding: 1rem;
+    padding: 0;
+}
+
+.card-body canvas {
+    padding: 1.5rem;
+    max-height: 400px;
+}
+
+/* Chart.js canvas styling */
+#revenueChart {
+    background: rgba(15, 23, 42, 0.2);
+    border-radius: 0.5rem;
 }
 
 .table-container {
     overflow-x: auto;
+    border-radius: 0 0 0.875rem 0.875rem;
 }
 
 table {
@@ -47,73 +378,195 @@ table {
     border-collapse: collapse;
 }
 
-th,
-td {
-    padding: .75rem;
+table thead th {
+    padding: 1rem 1.5rem;
+    background: rgba(15, 23, 42, 0.4);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
     text-align: left;
-    color: #e2e8f0;
-    border-bottom: 1px solid rgba(255, 255, 255, .1);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
 }
 
-th {
-    background: rgba(255, 255, 255, .06);
+table thead th.text-right {
+    text-align: right;
+}
+
+table tbody tr {
+    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+    transition: all 0.2s ease;
+}
+
+table tbody tr:hover {
+    background: rgba(15, 23, 42, 0.3);
+}
+
+table tbody tr:last-child {
+    border-bottom: none;
+}
+
+table tbody td {
+    padding: 1rem 1.5rem;
+    font-size: 0.875rem;
+    color: #cbd5e1;
+    vertical-align: middle;
+}
+
+table tbody td:first-child {
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+table tbody td.text-right {
+    text-align: right;
+}
+
+/* Currency formatting */
+table tbody td:contains('₹') {
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
     font-weight: 600;
 }
 
-tr:hover {
-    background: rgba(255, 255, 255, .02);
-}
-
-.filters-bar {
-    display: flex;
-    gap: .5rem;
+/* ========================================
+   ACTION BUTTONS
+   ======================================== */
+.btn-primary,
+.btn-secondary,
+.btn-danger {
+    display: inline-flex;
     align-items: center;
-    flex-wrap: wrap;
-}
-
-.filter-select,
-.search-input {
-    background: #2d3748;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
     border: none;
-    padding: .5rem;
-    border-radius: .5rem;
-    color: #fff;
-}
-
-.filter-select:focus,
-.search-input:focus {
     outline: none;
 }
 
-.btn-export {
-    background: #1273EB;
-    color: #fff;
-    padding: .5rem 1rem;
-    border-radius: .5rem;
-    display: flex;
-    align-items: center;
-    gap: .5rem;
+.btn-primary {
+    background: #2563eb;
+    color: white;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
 }
 
-.btn-export:hover {
-    background: #0f5bbf;
+.btn-primary:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
-.toast {
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    background: #1a202c;
-    color: #fff;
-    padding: .75rem 1.25rem;
-    border-radius: .5rem;
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, .3);
-    z-index: 100;
+.btn-secondary {
+    background: rgba(30, 41, 59, 0.6);
+    color: #cbd5e1;
+    border: 1px solid rgba(148, 163, 184, 0.15);
 }
 
-.toast.hidden {
-    display: none;
+.btn-secondary:hover {
+    background: rgba(30, 41, 59, 0.8);
+    color: #ffffff;
+    border-color: rgba(148, 163, 184, 0.25);
+}
+
+.btn-danger {
+    background: #dc2626;
+    color: white;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
+}
+
+.btn-danger:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+/* ========================================
+   CHART STYLING
+   ======================================== */
+.card-body canvas {
+    max-height: 400px;
+    padding: 1.5rem;
+}
+
+/* Chart.js canvas styling */
+#revenueChart {
+    background: rgba(15, 23, 42, 0.2);
+    border-radius: 0.5rem;
+}
+
+/* ========================================
+   CUSTOM SCROLLBARS
+   ======================================== */
+.table-container::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.3);
+    border-radius: 10px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.3);
+    border-radius: 10px;
+    transition: background 0.3s ease;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.5);
+}
+
+/* ========================================
+   TOAST NOTIFICATIONS
+   ======================================== */
+/* Toast styles are now handled by admin-global.css */
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 1024px) {
+    .filters-bar {
+        flex-direction: column;
+    }
+
+    .filter-select {
+        width: 100%;
+        min-width: unset;
+    }
+
+    .search-input-wrapper {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .reveal.mb-8 {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .reveal.mb-8 > div:first-child {
+        width: 100%;
+    }
+
+    .reveal.mb-8 > div:last-child {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    table {
+        font-size: 0.75rem;
+    }
+
+    table thead th,
+    table tbody td {
+        padding: 0.75rem 1rem;
+    }
 }
