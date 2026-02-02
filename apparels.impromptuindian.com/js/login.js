@@ -102,7 +102,7 @@ if (loginForm) {
                 return;
             }
 
-            // Check for other HTTP errors before parsing
+            // Check for other HTTP errors before parsing (but not 401, we'll handle that after parsing)
             if (!response.ok && response.status >= 500) {
                 showAlert('Server Error', 'The server encountered an error. Please try again later.', 'error');
                 return;
@@ -125,6 +125,11 @@ if (loginForm) {
                 
                 // Check if response is empty
                 if (!text || text.trim().length === 0) {
+                    // Handle empty 401 response
+                    if (response.status === 401) {
+                        showAlert('Login Failed', 'Email or password incorrect', 'error');
+                        return;
+                    }
                     showAlert('Server Error', 'Server returned an empty response. Please try again.', 'error');
                     return;
                 }
@@ -149,13 +154,30 @@ if (loginForm) {
                     }
                     // Only log non-HTML parsing errors
                     console.error('Failed to parse response as JSON. Status:', response.status, 'Response:', text.substring(0, 200));
+                    // For 401, show appropriate message even if JSON parsing fails
+                    if (response.status === 401) {
+                        showAlert('Login Failed', 'Email or password incorrect', 'error');
+                        return;
+                    }
                     showAlert('Server Error', 'Server returned an invalid response. Please try again later.', 'error');
                     return;
                 }
             } catch (parseError) {
                 // If reading response fails, show a helpful error
                 console.error('Failed to read response:', parseError, 'Status:', response.status);
+                // For 401, show appropriate message
+                if (response.status === 401) {
+                    showAlert('Login Failed', 'Email or password incorrect', 'error');
+                    return;
+                }
                 showAlert('Server Error', 'Unable to read server response. Please check your connection and try again.', 'error');
+                return;
+            }
+
+            // Handle 401 (Unauthorized) - authentication errors
+            if (response.status === 401) {
+                const errorMessage = result.message || result.error || 'Email or password incorrect';
+                showAlert('Login Failed', errorMessage, 'error');
                 return;
             }
 
@@ -202,7 +224,9 @@ if (loginForm) {
                     window.location.href = redirectUrl;
                 }, 1000);
             } else {
-                showAlert('Login Failed', result.error || 'Invalid credentials', 'error');
+                // Handle non-401 errors (shouldn't reach here for 401, but just in case)
+                const errorMessage = result.message || result.error || 'Email or password incorrect';
+                showAlert('Login Failed', errorMessage, 'error');
             }
         } catch (error) {
             console.error('Network Error:', error);
