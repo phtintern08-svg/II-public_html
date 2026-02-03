@@ -1,53 +1,94 @@
 // Profile Page JavaScript
 lucide.createIcons();
 
-const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
-    const rawBase =
-        window.IMPROMPTU_INDIAN_API_BASE ||
-        window.APP_API_BASE ||
-        localStorage.getItem('IMPROMPTU_INDIAN_API_BASE') ||
-        '';
+// DO NOT redeclare ImpromptuIndianApi - sidebar.js already creates it
+// Use window.ImpromptuIndianApi directly throughout this file
 
-    let base = rawBase.trim().replace(/\/$/, '');
-    if (!base) {
-        const origin = window.location.origin;
-        if (origin && origin.startsWith('http')) {
-            base = origin.replace(/\/$/, '');
-        } else {
-            // Use relative paths - no absolute URLs
-            base = '';
-        }
+// Load user data from API (database)
+async function loadUserProfile() {
+    const userId = localStorage.getItem('user_id');
+    if (!userId) {
+        console.warn('No user ID found');
+        return;
     }
 
-    const buildUrl = (path = '') => `${base}${path.startsWith('/') ? path : `/${path}`}`;
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            console.warn('No authentication token found');
+            return;
+        }
 
-    return {
-        baseUrl: base,
-        buildUrl,
-        fetch: (path, options = {}) => fetch(buildUrl(path), options)
-    };
-})();
-window.ImpromptuIndianApi = ImpromptuIndianApi;
+        // Fetch profile data from API
+        const response = await window.ImpromptuIndianApi.fetch('/api/customer/profile', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
 
-// Load user data from localStorage
-function loadUserProfile() {
-    const username = localStorage.getItem('username') || '';
-    const email = localStorage.getItem('email') || '';
-    const phone = localStorage.getItem('phone') || '';
+        if (response.ok) {
+            const data = await response.json();
+            
+            // Populate form fields with data from database
+            const nameInput = document.getElementById('profileName');
+            const emailInput = document.getElementById('profileEmail');
+            const phoneInput = document.getElementById('profilePhone');
 
-    // Populate form fields
-    const nameInput = document.getElementById('profileName');
-    const emailInput = document.getElementById('profileEmail');
-    const phoneInput = document.getElementById('profilePhone');
+            if (nameInput) nameInput.value = data.username || '';
+            if (emailInput) emailInput.value = data.email || '';
+            if (phoneInput) phoneInput.value = data.phone || '';
 
-    if (nameInput) nameInput.value = username;
-    if (emailInput) emailInput.value = email;
-    if (phoneInput) phoneInput.value = phone;
+            // Update localStorage with fresh data
+            if (data.username) localStorage.setItem('username', data.username);
+            if (data.email) localStorage.setItem('email', data.email);
+            if (data.phone) localStorage.setItem('phone', data.phone);
 
-    // Update avatar initial
-    const avatarInitial = document.getElementById('avatarInitial');
-    if (avatarInitial && username) {
-        avatarInitial.textContent = username.charAt(0).toUpperCase();
+            // Update avatar initial
+            const avatarInitial = document.getElementById('avatarInitial');
+            if (avatarInitial && data.username) {
+                avatarInitial.textContent = data.username.charAt(0).toUpperCase();
+            }
+        } else {
+            // Fallback to localStorage if API fails
+            const username = localStorage.getItem('username') || '';
+            const email = localStorage.getItem('email') || '';
+            const phone = localStorage.getItem('phone') || '';
+
+            const nameInput = document.getElementById('profileName');
+            const emailInput = document.getElementById('profileEmail');
+            const phoneInput = document.getElementById('profilePhone');
+
+            if (nameInput) nameInput.value = username;
+            if (emailInput) emailInput.value = email;
+            if (phoneInput) phoneInput.value = phone;
+
+            const avatarInitial = document.getElementById('avatarInitial');
+            if (avatarInitial && username) {
+                avatarInitial.textContent = username.charAt(0).toUpperCase();
+            }
+
+            console.warn('Failed to load profile from API, using localStorage fallback');
+        }
+    } catch (error) {
+        console.error('Error loading profile:', error);
+        
+        // Fallback to localStorage on error
+        const username = localStorage.getItem('username') || '';
+        const email = localStorage.getItem('email') || '';
+        const phone = localStorage.getItem('phone') || '';
+
+        const nameInput = document.getElementById('profileName');
+        const emailInput = document.getElementById('profileEmail');
+        const phoneInput = document.getElementById('profilePhone');
+
+        if (nameInput) nameInput.value = username;
+        if (emailInput) emailInput.value = email;
+        if (phoneInput) phoneInput.value = phone;
+
+        const avatarInitial = document.getElementById('avatarInitial');
+        if (avatarInitial && username) {
+            avatarInitial.textContent = username.charAt(0).toUpperCase();
+        }
     }
 }
 
@@ -66,7 +107,7 @@ async function saveProfileChanges() {
 
     try {
         const token = localStorage.getItem('token');
-        const response = await ImpromptuIndianApi.fetch(`/api/customer/profile`, {
+        const response = await window.ImpromptuIndianApi.fetch(`/api/customer/profile`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -125,7 +166,7 @@ async function changePassword() {
     }
 
     try {
-        const response = await ImpromptuIndianApi.fetch(`/change-password`, {
+        const response = await window.ImpromptuIndianApi.fetch(`/change-password`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -354,7 +395,7 @@ function initAddressEvents() {
             try {
                 // Using backend proxy if possible, or try client side reverse if key allows.
                 // We established backend proxy '/api/reverse-geocode' is safer/better
-                const response = await ImpromptuIndianApi.fetch(`/api/reverse-geocode?lat=${lat}&lng=${lng}`);
+                const response = await window.ImpromptuIndianApi.fetch(`/api/reverse-geocode?lat=${lat}&lng=${lng}`);
                 const data = await response.json();
 
                 if (data && !data.error) {
@@ -567,7 +608,7 @@ async function loadAddressForType(type) {
     try {
         // Fetch all addresses for the user
         const token = localStorage.getItem('token');
-        const response = await ImpromptuIndianApi.fetch(`/api/customer/addresses`, {
+        const response = await window.ImpromptuIndianApi.fetch(`/api/customer/addresses`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -688,7 +729,7 @@ async function saveAddress() {
         let response;
         if (existingAddress && existingAddress.id) {
             // Update existing address
-            response = await ImpromptuIndianApi.fetch(`/api/customer/addresses/${existingAddress.id}`, {
+            response = await window.ImpromptuIndianApi.fetch(`/api/customer/addresses/${existingAddress.id}`, {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -698,7 +739,7 @@ async function saveAddress() {
             });
         } else {
             // Create new address
-            response = await ImpromptuIndianApi.fetch('/api/customer/addresses', {
+            response = await window.ImpromptuIndianApi.fetch('/api/customer/addresses', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -730,7 +771,7 @@ async function loadAllAddresses() {
 
     try {
         const token = localStorage.getItem('token');
-        const response = await ImpromptuIndianApi.fetch(`/api/customer/addresses`, {
+        const response = await window.ImpromptuIndianApi.fetch(`/api/customer/addresses`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -757,16 +798,35 @@ async function loadAllAddresses() {
     }
 }
 
-// Reveal animation
+// Reveal animation - ensure content is visible
 const revealEls = document.querySelectorAll('.reveal');
 function revealOnScroll() {
     const trigger = window.innerHeight * 0.9;
     revealEls.forEach(el => {
-        if (el.getBoundingClientRect().top < trigger) el.classList.add('show');
+        if (el.getBoundingClientRect().top < trigger) {
+            el.classList.add('show');
+        }
     });
 }
-window.addEventListener('scroll', revealOnScroll);
-window.addEventListener('load', revealOnScroll);
+
+// Show all reveal elements immediately on page load (don't wait for scroll)
+function showAllReveals() {
+    revealEls.forEach(el => {
+        el.classList.add('show');
+    });
+}
+
+// Show content immediately when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        showAllReveals();
+        window.addEventListener('scroll', revealOnScroll);
+    });
+} else {
+    // DOM already loaded
+    showAllReveals();
+    window.addEventListener('scroll', revealOnScroll);
+}
 
 // Load Mappls API key from backend and inject into SDK URLs
 async function loadMapplsConfig() {
