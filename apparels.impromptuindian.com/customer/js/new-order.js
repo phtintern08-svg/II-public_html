@@ -1,6 +1,7 @@
 lucide.createIcons();
 
-const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
+// Use var instead of const to allow re-declaration, with window guard
+var ImpromptuIndianApi = window.ImpromptuIndianApi || (function () {
   const rawBase =
     window.IMPROMPTU_INDIAN_API_BASE ||
     window.APP_API_BASE ||
@@ -26,7 +27,11 @@ const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
     fetch: (path, options = {}) => fetch(buildUrl(path), options),
   };
 })();
-window.ImpromptuIndianApi = ImpromptuIndianApi;
+
+// Ensure it's set on window for other scripts
+if (!window.ImpromptuIndianApi) {
+  window.ImpromptuIndianApi = ImpromptuIndianApi;
+}
 
 /* -------------------------------
    Utility: close dropdowns + calendar
@@ -39,14 +44,16 @@ function closeAllPanels(except) {
   if (except !== cal) cal.classList.add("hidden");
 }
 
-document.addEventListener("click", (e) => {
-  if (!e.target.closest(".custom-select")) closeAllPanels();
-});
-
 /* ---------------------------
    Custom dropdowns
 ---------------------------*/
-document.querySelectorAll(".custom-select").forEach((wrapper) => {
+function initDropdowns() {
+  // Global click handler to close dropdowns when clicking outside
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".custom-select")) closeAllPanels();
+  });
+
+  document.querySelectorAll(".custom-select").forEach((wrapper) => {
   const native = wrapper.querySelector("select");
   const trigger = wrapper.querySelector(".trigger");
   const panel = wrapper.querySelector(".panel");
@@ -78,16 +85,27 @@ document.querySelectorAll(".custom-select").forEach((wrapper) => {
 
       optEl.addEventListener("click", (e) => {
         e.stopPropagation();
-        if (native) native.value = opt.value || opt.text;
-        if (display) display.textContent = opt.text || opt.value;
+        const selectedValue = opt.value || opt.text;
+        const selectedText = opt.text || opt.value;
+        
+        if (native) native.value = selectedValue;
+        if (display) display.textContent = selectedText;
 
         panel.querySelectorAll(".option").forEach((o) => o.classList.remove("selected"));
         optEl.classList.add("selected");
         panel.classList.add("hidden");
 
         if (wrapper.dataset.name === "product-type") {
-          renderCategories(opt.text);
-          renderFabrics(opt.text);
+          const key = selectedText.trim();
+          
+          // Update dependent UI
+          renderCategories(key);
+          renderFabrics(key);
+          
+          // 🔥 FORCE SYNC after rebuild - ensures native select stays in sync
+          if (native) {
+            native.dispatchEvent(new Event("change"));
+          }
         }
 
         // Trigger estimate check when any relevant dropdown changes
@@ -111,7 +129,8 @@ document.querySelectorAll(".custom-select").forEach((wrapper) => {
   rebuildOptions();
 
   trigger.addEventListener("click", (e) => {
-    e.stopPropagation();
+    e.preventDefault(); // Prevent default browser behavior
+    e.stopPropagation(); // Stop event bubbling
     const isHidden = panel.classList.contains("hidden");
     closeAllPanels(panel); // Pass current panel as exception
     if (isHidden) {
@@ -122,7 +141,8 @@ document.querySelectorAll(".custom-select").forEach((wrapper) => {
   });
 
   native.addEventListener("change", rebuildOptions);
-});
+  });
+}
 
 /* ---------------------------
    FABRIC MAP
@@ -462,33 +482,38 @@ function selectNeckType(cardEl, label) {
 /* ---------------------------
    DELIVERY DEADLINE CALENDAR
 ---------------------------*/
-const calendar = document.getElementById("calendar");
-const dateBtn = document.getElementById("dateBtn");
-const dateText = document.getElementById("dateText");
-const daysGrid = document.getElementById("daysGrid");
-const monthLabel = document.getElementById("monthLabel");
-const prevMonth = document.getElementById("prevMonth");
-const nextMonth = document.getElementById("nextMonth");
+function initCalendar() {
+  const calendar = document.getElementById("calendar");
+  if (!calendar) return;
+  
+  const dateBtn = document.getElementById("dateBtn");
+  const dateText = document.getElementById("dateText");
+  const daysGrid = document.getElementById("daysGrid");
+  const monthLabel = document.getElementById("monthLabel");
+  const prevMonth = document.getElementById("prevMonth");
+  const nextMonth = document.getElementById("nextMonth");
 
-// Move calendar to body to ensure positioning works correctly
-document.body.appendChild(calendar);
+  if (!dateBtn || !dateText || !daysGrid || !monthLabel || !prevMonth || !nextMonth) return;
 
-const now = new Date();
-const minDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2);
+  // Move calendar to body to ensure positioning works correctly
+  document.body.appendChild(calendar);
 
-let viewYear = minDate.getFullYear();
-let viewMonth = minDate.getMonth();
-let selectedDate = new Date(minDate);
+  const now = new Date();
+  const minDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2);
 
-function formatLabel(d) {
-  return d.toLocaleDateString("en-IN", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
+  let viewYear = minDate.getFullYear();
+  let viewMonth = minDate.getMonth();
+  let selectedDate = new Date(minDate);
 
-function renderCalendar() {
+  function formatLabel(d) {
+    return d.toLocaleDateString("en-IN", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
+  function renderCalendar() {
   daysGrid.innerHTML = "";
 
   const firstDay = new Date(viewYear, viewMonth, 1);
@@ -531,12 +556,12 @@ function renderCalendar() {
 
     daysGrid.appendChild(el);
   }
-}
+  }
 
-renderCalendar();
-dateText.textContent = formatLabel(selectedDate);
+  renderCalendar();
+  dateText.textContent = formatLabel(selectedDate);
 
-function toggleCalendar() {
+  function toggleCalendar() {
   const isHidden = calendar.classList.contains("hidden");
 
   if (!isHidden) {
@@ -579,15 +604,15 @@ function toggleCalendar() {
   }, 0);
 
   calendar.classList.remove("hidden");
-}
+  }
 
-dateBtn.addEventListener("click", (e) => {
+  dateBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   renderCalendar();
   toggleCalendar();
-});
+  });
 
-prevMonth.addEventListener("click", (e) => {
+  prevMonth.addEventListener("click", (e) => {
   e.stopPropagation();
   viewMonth--;
   if (viewMonth < 0) {
@@ -602,9 +627,9 @@ prevMonth.addEventListener("click", (e) => {
     viewMonth = minDate.getMonth();
   }
   renderCalendar();
-});
+  });
 
-nextMonth.addEventListener("click", (e) => {
+  nextMonth.addEventListener("click", (e) => {
   e.stopPropagation();
   viewMonth++;
   if (viewMonth > 11) {
@@ -612,46 +637,52 @@ nextMonth.addEventListener("click", (e) => {
     viewYear++;
   }
   renderCalendar();
-});
+  });
 
-// Prevent calendar from closing when clicking inside it
-calendar.addEventListener("click", (e) => {
+  // Prevent calendar from closing when clicking inside it
+  calendar.addEventListener("click", (e) => {
   e.stopPropagation();
-});
+  });
 
-document.addEventListener("click", (e) => {
-  if (!calendar.contains(e.target) && !dateBtn.contains(e.target)) {
-    calendar.classList.add("hidden");
-  }
-});
+  document.addEventListener("click", (e) => {
+    if (!calendar.contains(e.target) && !dateBtn.contains(e.target)) {
+      calendar.classList.add("hidden");
+    }
+  });
 
-window.addEventListener("resize", () => {
-  if (!calendar.classList.contains("hidden")) {
-    toggleCalendar();
-    toggleCalendar();
-  }
-});
+  window.addEventListener("resize", () => {
+    if (!calendar.classList.contains("hidden")) {
+      toggleCalendar();
+      toggleCalendar();
+    }
+  });
 
-window.addEventListener("scroll", () => {
-  if (!calendar.classList.contains("hidden")) {
-    toggleCalendar();
-    toggleCalendar();
-  }
-}, { passive: true });
+  window.addEventListener("scroll", () => {
+    if (!calendar.classList.contains("hidden")) {
+      toggleCalendar();
+      toggleCalendar();
+    }
+  }, { passive: true });
+}
 
 /* ---------------------------
    Quantity Inputs
 ---------------------------*/
-const qtyInputs = Array.from(document.querySelectorAll(".qty-input"));
-const totalQuantityEl = document.getElementById("totalQuantity");
-const sizeSumEl = document.getElementById("sizeSum");
+function initQuantities() {
+  const qtyInputs = Array.from(document.querySelectorAll(".qty-input"));
+  const totalQuantityEl = document.getElementById("totalQuantity");
+  const sizeSumEl = document.getElementById("sizeSum");
+  
+  if (!qtyInputs.length || !totalQuantityEl || !sizeSumEl) return;
 
-function computeSizeSum() {
-  return qtyInputs.reduce((sum, inp) => sum + (parseInt(inp.value) || 0), 0);
-}
+  // Make computeSizeSum globally accessible for place order validation
+  window.computeSizeSum = function() {
+    const inputs = Array.from(document.querySelectorAll(".qty-input"));
+    return inputs.reduce((sum, inp) => sum + (parseInt(inp.value) || 0), 0);
+  };
 
-function updateTotals() {
-  const sum = computeSizeSum();
+  function updateTotals() {
+    const sum = window.computeSizeSum();
   sizeSumEl.textContent = sum;
 
   const total = Number(totalQuantityEl.value);
@@ -692,21 +723,26 @@ qtyInputs.forEach((i) => {
   });
 });
 
-totalQuantityEl.addEventListener("input", updateTotals);
+  totalQuantityEl.addEventListener("input", updateTotals);
+}
+
 /* ------------------------------------------------
    ADDRESS MANAGEMENT (Home / Work / Other)
 --------------------------------------------------*/
 let currentAddressType = "home";
 let addressesData = {};
 
-const btnHome = document.getElementById("btnHome");
-const btnWork = document.getElementById("btnWork");
-const btnOther = document.getElementById("btnOther");
-const saveAddressBtn = document.getElementById("saveAddressBtn");
+function initAddress() {
+  const btnHome = document.getElementById("btnHome");
+  const btnWork = document.getElementById("btnWork");
+  const btnOther = document.getElementById("btnOther");
+  const saveAddressBtn = document.getElementById("saveAddressBtn");
 
-btnHome.addEventListener("click", () => switchAddressType("home"));
-btnWork.addEventListener("click", () => switchAddressType("work"));
-btnOther.addEventListener("click", () => switchAddressType("other"));
+  if (!btnHome || !btnWork || !btnOther || !saveAddressBtn) return;
+
+  btnHome.addEventListener("click", () => switchAddressType("home"));
+  btnWork.addEventListener("click", () => switchAddressType("work"));
+  btnOther.addEventListener("click", () => switchAddressType("other"));
 
 /* ---------------------------
    Switch between address types
@@ -920,11 +956,15 @@ async function saveAddress() {
   }
 }
 
-saveAddressBtn.addEventListener("click", saveAddress);
+  saveAddressBtn.addEventListener("click", saveAddress);
 
-/* ---------------------------
-   Load ALL addresses at start
----------------------------*/
+  /* ---------------------------
+     Load ALL addresses at start
+  ---------------------------*/
+  loadAllAddresses();
+  switchAddressType("home");
+}
+
 async function loadAllAddresses() {
   const userId = localStorage.getItem("user_id");
   if (!userId) return;
@@ -1245,32 +1285,36 @@ if (useCurrentLocationBtn) {
 /* ------------------------------------------------
    FILE UPLOAD + 3D VIEWER
 --------------------------------------------------*/
-const fileInput = document.getElementById("file");
-const fileLabel = document.getElementById("fileLabel");
-const viewModelBtn = document.getElementById("viewModelBtn");
+function initFileUpload() {
+  const fileInput = document.getElementById("file");
+  const fileLabel = document.getElementById("fileLabel");
+  const viewModelBtn = document.getElementById("viewModelBtn");
 
-fileInput.addEventListener("change", () => {
-  const hasFile = fileInput.files && fileInput.files.length > 0;
-  const filename = hasFile ? fileInput.files[0].name : "Choose File";
+  if (!fileInput || !fileLabel || !viewModelBtn) return;
 
-  fileLabel.querySelector(".filename").textContent = filename;
+  fileInput.addEventListener("change", () => {
+    const hasFile = fileInput.files && fileInput.files.length > 0;
+    const filename = hasFile ? fileInput.files[0].name : "Choose File";
 
-  if (hasFile) {
-    document.getElementById("placementOptions").classList.remove("hidden");
-    viewModelBtn.classList.remove("hidden");
+    fileLabel.querySelector(".filename").textContent = filename;
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      if (typeof update3DTexture === "function") {
-        update3DTexture(e.target.result);
-      }
-    };
-    reader.readAsDataURL(fileInput.files[0]);
-  } else {
-    document.getElementById("placementOptions").classList.add("hidden");
-    viewModelBtn.classList.add("hidden");
-  }
-});
+    if (hasFile) {
+      document.getElementById("placementOptions").classList.remove("hidden");
+      viewModelBtn.classList.remove("hidden");
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (typeof update3DTexture === "function") {
+          update3DTexture(e.target.result);
+        }
+      };
+      reader.readAsDataURL(fileInput.files[0]);
+    } else {
+      document.getElementById("placementOptions").classList.add("hidden");
+      viewModelBtn.classList.add("hidden");
+    }
+  });
+}
 
 /* ------------------------------------------------
    CART BADGE
@@ -1535,10 +1579,14 @@ document.addEventListener('click', (e) => {
 /* ------------------------------------------------
    PLACE ORDER BUTTON
 --------------------------------------------------*/
-document.getElementById("placeOrderBtn").addEventListener("click", async () => {
+function initPlaceOrder() {
+  const placeOrderBtn = document.getElementById("placeOrderBtn");
+  if (!placeOrderBtn) return;
+
+  placeOrderBtn.addEventListener("click", async () => {
 
   /* 1. QUANTITY VALIDATION */
-  const sum = computeSizeSum();
+  const sum = window.computeSizeSum();
   const totalQuantityEl = document.getElementById("totalQuantity");
   const rawTotal = totalQuantityEl.value;
   const total = Math.floor(Number(rawTotal));
@@ -1676,7 +1724,8 @@ document.getElementById("placeOrderBtn").addEventListener("click", async () => {
 
   /* 8. SUBMIT ORDER */
   submitOrder(payload);
-});
+  });
+}
 
 async function submitOrder(payload) {
   const btn = document.getElementById("placeOrderBtn");
@@ -1763,7 +1812,36 @@ async function loadMapplsConfig() {
   }
 }
 
-// Initialize Mappls config on page load
-document.addEventListener('DOMContentLoaded', () => {
+/* ---------------------------
+   MAIN INITIALIZATION
+---------------------------*/
+function initNewOrderPage() {
+  lucide.createIcons();
+
+  // Initialize all page components
+  initDropdowns();
+  initCalendar();
+  initQuantities();
+  initAddress();
+  initLocation();
+  initFileUpload();
+  initPlaceOrder();
+  
+  // Initialize cart badge
+  try { 
+    updateCartBadge(); 
+  } catch (e) { 
+    console.warn("Cart badge update failed:", e);
+  }
+  
+  // Load Mappls config
   loadMapplsConfig();
-});
+}
+
+// Initialize when DOM is ready (defer ensures DOM is ready, but this is extra safety)
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initNewOrderPage);
+} else {
+  // DOM already ready
+  initNewOrderPage();
+}

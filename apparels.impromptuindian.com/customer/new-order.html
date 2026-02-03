@@ -598,15 +598,7 @@
   <script src="js/custom-alert.js"></script>
   <script src="js/location-service.js"></script>
   <script src="../js/fake-payment-gateway.js"></script>
-
-  <script>
-    /* Ensure new-order.js runs only after DOM is ready */
-    document.addEventListener("DOMContentLoaded", () => {
-      const script = document.createElement("script");
-      script.src = "js/new-order.js";
-      document.body.appendChild(script);
-    });
-  </script>
+  <script src="js/new-order.js" defer></script>
 
 </body>
 
