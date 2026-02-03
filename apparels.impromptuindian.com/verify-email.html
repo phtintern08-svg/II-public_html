@@ -139,7 +139,42 @@
                 if (data.success) {
                     titleEl.textContent = 'Email Verified!';
                     titleEl.className = 'success';
-                    messageEl.textContent = 'Your email has been verified successfully. You can now log in to your account.';
+                    
+                    // Check if this is a pre-registration verification
+                    if (data.pre_registration) {
+                        messageEl.textContent = 'Your email has been verified successfully. You can now complete your registration.';
+                        
+                        // Store verification status in localStorage for registration page
+                        // Try to find which email field this corresponds to
+                        const emailFields = ['custEmail', 'vendEmail', 'riderEmail'];
+                        let foundField = false;
+                        
+                        emailFields.forEach(fieldId => {
+                            const pendingEmail = localStorage.getItem(`pending_email_verification_${fieldId}`);
+                            if (pendingEmail) {
+                                // Store verified email
+                                localStorage.setItem(`verified_email_${fieldId}`, pendingEmail);
+                                foundField = true;
+                                
+                                // Redirect to appropriate registration page after a short delay
+                                setTimeout(() => {
+                                    if (fieldId === 'riderEmail') {
+                                        window.location.href = 'rider-register.html';
+                                    } else {
+                                        window.location.href = 'register.html';
+                                    }
+                                }, 2000);
+                            }
+                        });
+                        
+                        // If no pending email found, still show success but don't redirect
+                        if (!foundField) {
+                            messageEl.textContent = 'Your email has been verified successfully. Please return to the registration page to complete your account.';
+                        }
+                    } else {
+                        messageEl.textContent = 'Your email has been verified successfully. You can now log in to your account.';
+                    }
+                    
                     messageEl.classList.add('success');
                     loginLinkEl.classList.remove('hidden');
                 } else {

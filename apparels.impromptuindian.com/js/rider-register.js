@@ -3,6 +3,51 @@ if (window.lucide) {
     lucide.createIcons();
 }
 
+// Check if email was verified when user returns from verification link
+function checkRiderEmailVerificationStatus() {
+    const pendingEmail = localStorage.getItem('pending_email_verification_riderEmail');
+    const verifiedEmail = localStorage.getItem('verified_email_riderEmail');
+    
+    if (pendingEmail && verifiedEmail && pendingEmail === verifiedEmail) {
+        // Email was verified - update UI
+        const inputElement = document.getElementById('riderEmail');
+        const otpBtn = document.getElementById('riderEmailOtpBtn');
+        const verifiedIcon = document.getElementById('verified-riderEmail-icon');
+        
+        if (inputElement && inputElement.value.trim().toLowerCase() === verifiedEmail) {
+            // Email matches - update UI to verified state
+            otpState.riderEmail.sent = true;
+            otpState.riderEmail.verified = true;
+            
+            inputElement.readOnly = true;
+            inputElement.classList.remove('border-yellow-400');
+            inputElement.classList.add('border-green-400');
+            inputElement.classList.remove('border-gray-700');
+            
+            if (otpBtn) {
+                otpBtn.disabled = true;
+                otpBtn.innerText = "Verified";
+                otpBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                otpBtn.classList.remove('bg-[#FFCC00]');
+                otpBtn.classList.add('bg-green-600', 'text-white');
+            }
+            
+            if (verifiedIcon) {
+                verifiedIcon.classList.remove('hidden');
+            }
+            
+            // Clean up localStorage
+            localStorage.removeItem('pending_email_verification_riderEmail');
+            localStorage.removeItem('verified_email_riderEmail');
+        }
+    }
+}
+
+// Check verification status on page load
+document.addEventListener('DOMContentLoaded', () => {
+    checkRiderEmailVerificationStatus();
+});
+
 // OTP State Management
 const otpState = {
     riderEmail: { sent: false, verified: false, timer: null, timeLeft: 0 },
@@ -70,6 +115,9 @@ async function handleGetOtp(field) {
                 // DO NOT mark as verified - only track that link was sent
                 otpState[field].sent = true;
                 otpState[field].verified = false; // Explicitly set to false
+                
+                // Store email in localStorage so verify-email page can update status
+                localStorage.setItem(`pending_email_verification_${field}`, email);
                 
                 // Update UI to show link was sent (but NOT verified)
                 inputElement.readOnly = false; // Keep editable until verified
