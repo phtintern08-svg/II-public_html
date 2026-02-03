@@ -22,7 +22,13 @@ const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
     return {
         baseUrl: base,
         buildUrl,
-        fetch: (path, options = {}) => fetch(buildUrl(path), options)
+        fetch: (path, options = {}) => {
+            // Include credentials to send cookies (REQUIRED for session-based verification)
+            return fetch(buildUrl(path), {
+                ...options,
+                credentials: 'include'
+            });
+        }
     };
 })();
 window.ImpromptuIndianApi = ImpromptuIndianApi;
@@ -313,9 +319,58 @@ function checkEmailVerificationStatus() {
     });
 }
 
-// Check verification status on page load
+// ✅ Sync email verification from backend session (refresh-proof)
+async function syncEmailVerificationFromSession() {
+    try {
+        const res = await ImpromptuIndianApi.fetch('/api/email-verification-status');
+        const data = await res.json();
+
+        if (!data.verified || !data.email || !data.role) return;
+
+        const fieldMap = {
+            'customer': 'custEmail',
+            'vendor': 'vendEmail',
+            'rider': 'riderEmail'
+        };
+
+        const fieldId = fieldMap[data.role];
+        if (!fieldId) return;
+
+        const emailInput = document.getElementById(fieldId);
+        if (!emailInput) return;
+
+        // Ensure same email
+        if (emailInput.value.toLowerCase() !== data.email.toLowerCase()) return;
+
+        // ✅ Mark verified (backend-driven, refresh-proof)
+        verificationStatus[fieldId] = true;
+        emailLinkSent[fieldId] = true;
+
+        emailInput.readOnly = true;
+        emailInput.classList.remove('border-yellow-400', 'border-gray-700');
+        emailInput.classList.add('border-green-400');
+
+        const verifiedIcon = document.getElementById(`verified-${fieldId}-icon`);
+        if (verifiedIcon) verifiedIcon.classList.remove('hidden');
+
+        const btn = document.getElementById(`${fieldId}OtpBtn`);
+        if (btn) {
+            btn.innerText = 'Verified';
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            btn.classList.remove('bg-[#FFCC00]');
+            btn.classList.add('bg-green-600', 'text-white');
+        }
+
+    } catch (err) {
+        console.error('Verification sync failed:', err);
+    }
+}
+
+// Check verification status on page load (both localStorage and session)
 document.addEventListener('DOMContentLoaded', () => {
-    checkEmailVerificationStatus();
+    checkEmailVerificationStatus(); // Check localStorage (from redirect)
+    syncEmailVerificationFromSession(); // Check backend session (refresh-proof)
 });
 
 // --- OTP/Verification Link Handling ---

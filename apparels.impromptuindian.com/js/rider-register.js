@@ -43,9 +43,54 @@ function checkRiderEmailVerificationStatus() {
     }
 }
 
-// Check verification status on page load
+// ✅ Sync email verification from backend session (refresh-proof)
+async function syncRiderEmailVerificationFromSession() {
+    try {
+        const res = await fetch(`${getApiBase()}/api/email-verification-status`, {
+            credentials: 'include' // Include cookies for session
+        });
+        const data = await res.json();
+
+        if (!data.verified || !data.email || !data.role) return;
+
+        // Only handle rider role
+        if (data.role !== 'rider') return;
+
+        const emailInput = document.getElementById('riderEmail');
+        if (!emailInput) return;
+
+        // Ensure same email
+        if (emailInput.value.toLowerCase() !== data.email.toLowerCase()) return;
+
+        // ✅ Mark verified (backend-driven, refresh-proof)
+        otpState.riderEmail.sent = true;
+        otpState.riderEmail.verified = true;
+
+        emailInput.readOnly = true;
+        emailInput.classList.remove('border-yellow-400', 'border-gray-700');
+        emailInput.classList.add('border-green-400');
+
+        const verifiedIcon = document.getElementById('verified-riderEmail-icon');
+        if (verifiedIcon) verifiedIcon.classList.remove('hidden');
+
+        const btn = document.getElementById('riderEmailOtpBtn');
+        if (btn) {
+            btn.innerText = 'Verified';
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            btn.classList.remove('bg-[#FFCC00]');
+            btn.classList.add('bg-green-600', 'text-white');
+        }
+
+    } catch (err) {
+        console.error('Verification sync failed:', err);
+    }
+}
+
+// Check verification status on page load (both localStorage and session)
 document.addEventListener('DOMContentLoaded', () => {
-    checkRiderEmailVerificationStatus();
+    checkRiderEmailVerificationStatus(); // Check localStorage (from redirect)
+    syncRiderEmailVerificationFromSession(); // Check backend session (refresh-proof)
 });
 
 // OTP State Management

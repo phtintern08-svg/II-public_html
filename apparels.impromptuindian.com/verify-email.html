@@ -133,8 +133,10 @@
                 return res.json();
             })
             .then(data => {
-                spinnerEl.classList.add('hidden');
-                messageEl.classList.remove('hidden');
+                // ✅ Add buffer delay for better UX (fake processing feel)
+                setTimeout(() => {
+                    spinnerEl.classList.add('hidden');
+                    messageEl.classList.remove('hidden');
                 
                 if (data.success) {
                     titleEl.textContent = 'Email Verified!';
@@ -186,6 +188,7 @@
                     messageEl.textContent = data.error || 'Verification failed. The link may have expired. Please request a new verification email.';
                     messageEl.classList.add('error');
                 }
+                }, 1200); // Buffer delay for better UX
             })
             .catch(error => {
                 spinnerEl.classList.add('hidden');
