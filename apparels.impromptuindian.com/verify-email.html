@@ -100,6 +100,9 @@
     </div>
 
     <script>
+        // Set API base URL (same as other pages)
+        window.IMPROMPTU_INDIAN_API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://apparels.impromptuindian.com';
+        
         const token = new URLSearchParams(window.location.search).get("token");
         const titleEl = document.getElementById('title');
         const messageEl = document.getElementById('message');
@@ -116,8 +119,19 @@
             return;
         }
 
-        fetch(`/api/verify-email?token=${token}`)
-            .then(res => res.json())
+        // Build API URL
+        const apiBase = window.IMPROMPTU_INDIAN_API_BASE || '';
+        const apiUrl = `${apiBase}/api/verify-email?token=${encodeURIComponent(token)}`;
+
+        fetch(apiUrl)
+            .then(res => {
+                // Handle HTML error pages
+                const contentType = res.headers.get('content-type');
+                if (contentType && contentType.includes('text/html')) {
+                    throw new Error('Server returned HTML instead of JSON');
+                }
+                return res.json();
+            })
             .then(data => {
                 spinnerEl.classList.add('hidden');
                 messageEl.classList.remove('hidden');

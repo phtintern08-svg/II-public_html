@@ -220,10 +220,8 @@ function getOtpValue(containerId) {
     return otp;
 }
 
-// Initialize OTP inputs for all fields
-generateOtpInputs('otp-inputs-custEmail');
+// Initialize OTP inputs for phone fields only (email uses verification link)
 generateOtpInputs('otp-inputs-custPhone');
-generateOtpInputs('otp-inputs-vendEmail');
 generateOtpInputs('otp-inputs-vendPhone');
 
 
@@ -263,7 +261,7 @@ if (tabCustomer && tabVendor) {
 // Initialize Lucide Icons
 lucide.createIcons();
 
-// --- OTP Handling ---
+// --- OTP/Verification Link Handling ---
 async function handleGetOtp(fieldId) {
     const inputField = document.getElementById(fieldId);
     const otpContainer = document.getElementById(`otp-${fieldId}`);
@@ -278,88 +276,152 @@ async function handleGetOtp(fieldId) {
     // Determine type
     const type = fieldId.toLowerCase().includes('email') ? 'email' : 'phone';
 
-    // Phone OTP is disabled - DISABLED
-    if (type === 'phone') {
-        showAlert('Phone OTP Disabled', 'Phone OTP authentication is currently disabled. Please use email for OTP verification.', 'error');
-        getOtpBtn.disabled = false;
-        getOtpBtn.innerText = "Get OTP";
-        return;
-    }
-
-    // Validate email format before sending OTP
+    // For email: Send verification link immediately (before registration)
     if (type === 'email') {
         const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!emailPattern.test(inputField.value)) {
             showAlert('Invalid Email', 'Please enter a valid email address.', 'error');
             getOtpBtn.disabled = false;
-            getOtpBtn.innerText = "Get OTP";
+            getOtpBtn.innerText = "Send Verification Link";
             return;
         }
+
+        const email = inputField.value.trim().toLowerCase();
+        // Determine role from field ID
+        const role = fieldId.startsWith('cust') ? 'customer' :
+                     fieldId.startsWith('vend') ? 'vendor' : 'rider';
+
+        // Disable button temporarily
+        getOtpBtn.disabled = true;
+        getOtpBtn.innerText = "Sending...";
+
+        try {
+            const response = await ImpromptuIndianApi.fetch('/api/send-email-verification-link', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, role })
+            });
+
+            // Handle response - check for HTML error pages
+            let result;
+            try {
+                const text = await response.text();
+
+                // Check if response is HTML (error page)
+                if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+                    console.error('Server returned HTML instead of JSON.');
+                    showAlert('Server Error', 'Unable to reach the verification service. Please check if the server is running.', 'error');
+                    getOtpBtn.disabled = false;
+                    getOtpBtn.innerText = "Send Verification Link";
+                    return;
+                }
+
+                // Try to parse as JSON
+                result = JSON.parse(text);
+            } catch (parseError) {
+                console.error('Failed to parse response as JSON:', parseError);
+                showAlert('Server Error', 'Server returned an invalid response. Please try again later.', 'error');
+                getOtpBtn.disabled = false;
+                getOtpBtn.innerText = "Send Verification Link";
+                return;
+            }
+
+            if (response.ok && result.success) {
+                // Email verification link sent successfully
+                verificationStatus[fieldId] = true;
+                inputField.readOnly = true;
+                inputField.classList.add('border-green-400');
+                getOtpBtn.disabled = true;
+                getOtpBtn.innerText = "Link Sent";
+                getOtpBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                
+                // Show verified icon
+                const verifiedIcon = document.getElementById(`verified-${fieldId}-icon`);
+                if (verifiedIcon) {
+                    verifiedIcon.classList.remove('hidden');
+                }
+
+                showAlert('Verification Email Sent', 'Please check your inbox and click the verification link to verify your email.', 'success');
+            } else {
+                showAlert('Error', result.error || 'Failed to send verification email', 'error');
+                getOtpBtn.disabled = false;
+                getOtpBtn.innerText = "Send Verification Link";
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showAlert('Connection Error', 'Failed to connect to server.', 'error');
+            getOtpBtn.disabled = false;
+            getOtpBtn.innerText = "Send Verification Link";
+        }
+        return;
     }
 
-    // Validate Indian phone number before sending OTP - DISABLED
-    // if (type === 'phone') {
-    //     if (!validateIndianPhone(inputField.value)) {
-    //         showAlert('Invalid Mobile Number', 'The mobile number you entered is not valid. Please provide a 10-digit mobile number.', 'error');
-    //         return;
-    //     }
-    // }
+    // For phone: Use OTP (existing flow)
+    if (type === 'phone') {
+        // Validate Indian phone number before sending OTP
+        if (!validateIndianPhone(inputField.value)) {
+            showAlert('Invalid Mobile Number', 'The mobile number you entered is not valid. Please provide a 10-digit Indian mobile number.', 'error');
+            return;
+        }
 
-    // Disable button temporarily
-    getOtpBtn.disabled = true;
-    getOtpBtn.innerText = "Sending...";
+        // Disable button temporarily
+        getOtpBtn.disabled = true;
+        getOtpBtn.innerText = "Sending...";
 
-    try {
-        const response = await ImpromptuIndianApi.fetch('/api/send-otp', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ recipient: inputField.value, type: type })
-        });
-
-        // Handle response - check for HTML error pages
-        let result;
         try {
-            const text = await response.text();
+            const response = await ImpromptuIndianApi.fetch('/api/send-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ recipient: inputField.value, type: type })
+            });
 
-            // Check if response is HTML (error page)
-            if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
-                console.error('Server returned HTML instead of JSON. This usually means the API endpoint is not found or the server is returning an error page.');
-                showAlert('Server Error', 'Unable to reach the OTP service. Please check if the server is running.', 'error');
+            // Handle response - check for HTML error pages
+            let result;
+            try {
+                const text = await response.text();
+
+                // Check if response is HTML (error page)
+                if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+                    console.error('Server returned HTML instead of JSON. This usually means the API endpoint is not found or the server is returning an error page.');
+                    showAlert('Server Error', 'Unable to reach the OTP service. Please check if the server is running.', 'error');
+                    getOtpBtn.disabled = false;
+                    getOtpBtn.innerText = "Get OTP";
+                    return;
+                }
+
+                // Try to parse as JSON
+                result = JSON.parse(text);
+            } catch (parseError) {
+                // If JSON parsing fails, show a more helpful error
+                console.error('Failed to parse response as JSON:', parseError);
+                showAlert('Server Error', 'Server returned an invalid response. Please try again later.', 'error');
                 getOtpBtn.disabled = false;
                 getOtpBtn.innerText = "Get OTP";
                 return;
             }
 
-            // Try to parse as JSON
-            result = JSON.parse(text);
-        } catch (parseError) {
-            // If JSON parsing fails, show a more helpful error
-            console.error('Failed to parse response as JSON:', parseError);
-            showAlert('Server Error', 'Server returned an invalid response. Please try again later.', 'error');
-            getOtpBtn.disabled = false;
-            getOtpBtn.innerText = "Get OTP";
-            return;
-        }
+            if (response.ok) {
+                showAlert('OTP Sent', `OTP sent to ${inputField.value}. Check your phone.`, 'success');
 
-        if (response.ok) {
-            showAlert('OTP Sent', `OTP sent to ${inputField.value}. ${type === 'phone' ? 'Check your phone.' : 'Check your email.'}`, 'success');
+                // Show OTP input
+                if (otpContainer) {
+                    otpContainer.classList.remove('hidden');
+                }
 
-            // Show OTP input
-            otpContainer.classList.remove('hidden');
+                // Start 60 second timer
+                startTimer(fieldId, getOtpBtn, timerDiv);
 
-            // Start 60 second timer
-            startTimer(fieldId, getOtpBtn, timerDiv);
-
-        } else {
-            showAlert('Error', 'Error sending OTP: ' + result.error, 'error');
+            } else {
+                showAlert('Error', 'Error sending OTP: ' + result.error, 'error');
+                getOtpBtn.innerText = "Get OTP";
+                getOtpBtn.disabled = false;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showAlert('Connection Error', 'Failed to connect to server.', 'error');
             getOtpBtn.innerText = "Get OTP";
             getOtpBtn.disabled = false;
         }
-    } catch (error) {
-        console.error('Error:', error);
-        showAlert('Connection Error', 'Failed to connect to server.', 'error');
-        getOtpBtn.innerText = "Get OTP";
-        getOtpBtn.disabled = false;
     }
 }
 
@@ -393,13 +455,16 @@ function startTimer(fieldId, button, timerDiv) {
 async function verifyOtp(fieldId) {
     const inputField = document.getElementById(fieldId);
     
-    // Phone OTP is disabled - DISABLED
+    // Determine type
     const type = fieldId.toLowerCase().includes('email') ? 'email' : 'phone';
-    if (type === 'phone') {
-        showAlert('Phone OTP Disabled', 'Phone OTP authentication is currently disabled. Please use email for OTP verification.', 'error');
+    
+    // Email verification is done via link, not OTP
+    if (type === 'email') {
+        showAlert('Email Verification', 'Email verification is done via verification link sent after registration.', 'info');
         return;
     }
     
+    // Phone OTP verification
     const otpContainer = document.getElementById(`otp-${fieldId}`);
     const getOtpBtn = document.getElementById(`${fieldId}OtpBtn`);
     const timerDiv = document.getElementById(`timer-${fieldId}`);
@@ -448,9 +513,9 @@ async function verifyOtp(fieldId) {
             verificationStatus[fieldId] = true;
 
             // Hide OTP input container, button, and timer
-            otpContainer.classList.add('hidden');
-            getOtpBtn.classList.add('hidden');
-            timerDiv.classList.add('hidden');
+            if (otpContainer) otpContainer.classList.add('hidden');
+            if (getOtpBtn) getOtpBtn.classList.add('hidden');
+            if (timerDiv) timerDiv.classList.add('hidden');
 
             // Clear any running timer
             if (timers[fieldId]) {
@@ -458,7 +523,7 @@ async function verifyOtp(fieldId) {
             }
 
             // Show green checkmark icon
-            verifiedIcon.classList.remove('hidden');
+            if (verifiedIcon) verifiedIcon.classList.remove('hidden');
 
             // Make input field read-only and add green border
             inputField.readOnly = true;
@@ -613,6 +678,12 @@ if (vendorForm) {
                 showAlert('Invalid Email', 'Please enter a valid email address.', 'error');
                 return;
             }
+        }
+
+        // Check if email was verified
+        if (!verificationStatus.vendEmail) {
+            showAlert('Email Not Verified', 'Please verify your email first by clicking "Send Verification Link" and clicking the link in your email.', 'error');
+            return;
         }
 
         // Validate Indian phone number format (if provided)

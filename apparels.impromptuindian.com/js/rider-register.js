@@ -9,69 +9,142 @@ const otpState = {
     riderPhone: { sent: false, verified: false, timer: null, timeLeft: 0 }
 };
 
-// Handle Get OTP
+// Handle Get OTP / Verification Link
 async function handleGetOtp(field) {
     const inputElement = document.getElementById(field);
     const value = inputElement.value.trim();
+    const otpBtn = document.getElementById(`${field}OtpBtn`);
 
     if (!value) {
         showAlert('Error', `Please enter your ${field.includes('Email') ? 'email' : 'phone number'}`, 'error');
         return;
     }
 
-    // Validate format
-    if (field.includes('Email') && !isValidEmail(value)) {
-        showAlert('Error', 'Please enter a valid email address', 'error');
-        return;
-    }
-
-    if (field.includes('Phone') && !isValidPhone(value)) {
-        showAlert('Error', 'Please enter a valid phone number', 'error');
-        return;
-    }
-
-    try {
-        const response = await fetch(`${getApiBase()}/api/send-otp`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                recipient: value,
-                type: field.includes('Email') ? 'email' : 'phone'
-            })
-        });
-
-        // Handle response - check for HTML error pages
-        let data;
-        try {
-            const text = await response.text();
-            
-            // Check if response is HTML (error page)
-            if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html') || text.trim().startsWith('<?xml')) {
-                console.error('Server returned HTML instead of JSON. This usually means the API endpoint is not found or the server is returning an error page.');
-                showAlert('Server Error', 'Unable to reach the OTP service. Please check if the server is running.', 'error');
-                return;
-            }
-            
-            // Try to parse as JSON
-            data = JSON.parse(text);
-        } catch (parseError) {
-            // If JSON parsing fails, show a more helpful error
-            console.error('Failed to parse response as JSON:', parseError);
-            showAlert('Server Error', 'Server returned an invalid response. Please try again later.', 'error');
+    // For email: Send verification link immediately (before registration)
+    if (field.includes('Email')) {
+        if (!isValidEmail(value)) {
+            showAlert('Error', 'Please enter a valid email address', 'error');
             return;
         }
 
-        if (response.ok) {
-            otpState[field].sent = true;
-            showOtpInput(field);
-            startTimer(field, 120); // 2 minutes
-            showAlert('Success', `OTP sent to your ${field.includes('Email') ? 'email' : 'phone'}`, 'success');
-        } else {
-            showAlert('Error', data.error || data.message || 'Failed to send OTP', 'error');
+        const email = value.trim().toLowerCase();
+        const role = 'rider'; // Rider registration page
+
+        // Disable button temporarily
+        otpBtn.disabled = true;
+        otpBtn.innerText = "Sending...";
+
+        try {
+            const response = await fetch(`${getApiBase()}/api/send-email-verification-link`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, role })
+            });
+
+            // Handle response - check for HTML error pages
+            let data;
+            try {
+                const text = await response.text();
+                
+                // Check if response is HTML (error page)
+                if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html') || text.trim().startsWith('<?xml')) {
+                    console.error('Server returned HTML instead of JSON.');
+                    showAlert('Server Error', 'Unable to reach the verification service. Please check if the server is running.', 'error');
+                    otpBtn.disabled = false;
+                    otpBtn.innerText = "Send Verification Link";
+                    return;
+                }
+                
+                // Try to parse as JSON
+                data = JSON.parse(text);
+            } catch (parseError) {
+                console.error('Failed to parse response as JSON:', parseError);
+                showAlert('Server Error', 'Server returned an invalid response. Please try again later.', 'error');
+                otpBtn.disabled = false;
+                otpBtn.innerText = "Send Verification Link";
+                return;
+            }
+
+            if (response.ok && data.success) {
+                // Email verification link sent successfully
+                otpState[field].verified = true;
+                inputElement.readOnly = true;
+                inputElement.classList.add('border-green-400');
+                otpBtn.disabled = true;
+                otpBtn.innerText = "Link Sent";
+                otpBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                
+                // Show verified icon
+                const verifiedIcon = document.getElementById(`verified-${field}-icon`);
+                if (verifiedIcon) {
+                    verifiedIcon.classList.remove('hidden');
+                }
+
+                showAlert('Verification Email Sent', 'Please check your inbox and click the verification link to verify your email.', 'success');
+            } else {
+                showAlert('Error', data.error || 'Failed to send verification email', 'error');
+                otpBtn.disabled = false;
+                otpBtn.innerText = "Send Verification Link";
+            }
+        } catch (error) {
+            console.error('Error sending verification link:', error);
+            showAlert('Connection Error', 'Failed to connect to server. Please check your internet connection.', 'error');
+            otpBtn.disabled = false;
+            otpBtn.innerText = "Send Verification Link";
         }
-    } catch (error) {
-        console.error('Error sending OTP:', error);
-        showAlert('Connection Error', 'Failed to connect to server. Please check your internet connection.', 'error');
+        return;
+    }
+
+    // For phone: Use OTP (existing flow)
+    if (field.includes('Phone')) {
+        if (!isValidPhone(value)) {
+            showAlert('Error', 'Please enter a valid phone number', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${getApiBase()}/api/send-otp`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    recipient: value,
+                    type: 'phone'
+                })
+            });
+
+            // Handle response - check for HTML error pages
+            let data;
+            try {
+                const text = await response.text();
+                
+                // Check if response is HTML (error page)
+                if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html') || text.trim().startsWith('<?xml')) {
+                    console.error('Server returned HTML instead of JSON. This usually means the API endpoint is not found or the server is returning an error page.');
+                    showAlert('Server Error', 'Unable to reach the OTP service. Please check if the server is running.', 'error');
+                    return;
+                }
+                
+                // Try to parse as JSON
+                data = JSON.parse(text);
+            } catch (parseError) {
+                // If JSON parsing fails, show a more helpful error
+                console.error('Failed to parse response as JSON:', parseError);
+                showAlert('Server Error', 'Server returned an invalid response. Please try again later.', 'error');
+                return;
+            }
+
+            if (response.ok) {
+                otpState[field].sent = true;
+                showOtpInput(field);
+                startTimer(field, 120); // 2 minutes
+                showAlert('Success', `OTP sent to your phone`, 'success');
+            } else {
+                showAlert('Error', data.error || data.message || 'Failed to send OTP', 'error');
+            }
+        } catch (error) {
+            console.error('Error sending OTP:', error);
+            showAlert('Connection Error', 'Failed to connect to server. Please check your internet connection.', 'error');
+        }
     }
 }
 
@@ -115,12 +188,13 @@ function showOtpInput(field) {
 
 // Verify OTP
 async function verifyOtp(field) {
-    // Phone OTP is disabled - DISABLED
-    if (field.includes('Phone')) {
-        showAlert('Phone OTP Disabled', 'Phone OTP authentication is currently disabled. Please use email for OTP verification.', 'error');
+    // Email verification is done via link, not OTP
+    if (field.includes('Email')) {
+        showAlert('Email Verification', 'Email verification is done via verification link sent after registration.', 'info');
         return;
     }
     
+    // Phone OTP verification
     const otpInputs = document.querySelectorAll(`#otp-inputs-${field} input`);
     const otp = Array.from(otpInputs).map(input => input.value).join('');
 
@@ -165,12 +239,22 @@ async function verifyOtp(field) {
 
         if (response.ok && data.verified) {
             otpState[field].verified = true;
-            clearInterval(otpState[field].timer);
+            if (otpState[field].timer) {
+                clearInterval(otpState[field].timer);
+            }
 
             // Show verified icon
-            document.getElementById(`verified-${field}-icon`).classList.remove('hidden');
-            document.getElementById(`otp-${field}`).classList.add('hidden');
-            document.getElementById(`timer-${field}`).classList.add('hidden');
+            const verifiedIcon = document.getElementById(`verified-${field}-icon`);
+            const otpContainer = document.getElementById(`otp-${field}`);
+            const timerElement = document.getElementById(`timer-${field}`);
+            
+            if (verifiedIcon) verifiedIcon.classList.remove('hidden');
+            if (otpContainer) otpContainer.classList.add('hidden');
+            if (timerElement) timerElement.classList.add('hidden');
+
+            // Make input field read-only and add green border
+            inputElement.readOnly = true;
+            inputElement.classList.add('border-green-400');
 
             showAlert('Success', 'Verification successful!', 'success');
         } else {
@@ -221,6 +305,12 @@ document.getElementById('riderForm').addEventListener('submit', async (e) => {
     // Validations
     if (!isValidEmail(email)) {
         showAlert('Error', 'Please enter a valid email address', 'error');
+        return;
+    }
+
+    // Check if email was verified
+    if (!otpState.riderEmail.verified) {
+        showAlert('Email Not Verified', 'Please verify your email first by clicking "Send Verification Link" and clicking the link in your email.', 'error');
         return;
     }
 

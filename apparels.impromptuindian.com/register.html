@@ -76,7 +76,7 @@
               placeholder="name@example.com" required />
             <button type="button" id="custEmailOtpBtn" onclick="handleGetOtp('custEmail')"
               class="bg-[#FFCC00] text-black px-3 py-2 rounded font-medium text-sm whitespace-nowrap ">
-              Get OTP
+              Send Verification Link
             </button>
             <div id="verified-custEmail-icon" class="hidden text-green-400 flex items-center gap-1">
               <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -87,19 +87,6 @@
             </div>
           </div>
           <div id="timer-custEmail" class="hidden mt-1 text-xs text-gray-400"></div>
-
-          <!-- OTP Container -->
-          <div id="otp-custEmail" class="hidden mt-2">
-            <div class="flex flex-col gap-2">
-              <div class="flex gap-2 justify-between" id="otp-inputs-custEmail">
-                <!-- 6 OTP Boxes will be injected here -->
-              </div>
-              <button type="button" onclick="verifyOtp('custEmail')"
-                class="w-full bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm font-medium mt-2">
-                Verify OTP
-              </button>
-            </div>
-          </div>
         </div>
 
         <div>
@@ -202,7 +189,7 @@
               placeholder="name@example.com" required />
             <button type="button" id="vendEmailOtpBtn" onclick="handleGetOtp('vendEmail')"
               class="bg-[#FFCC00] text-black px-3 py-2 rounded font-medium text-sm whitespace-nowrap ">
-              Get OTP
+              Send Verification Link
             </button>
             <div id="verified-vendEmail-icon" class="hidden text-green-400 flex items-center gap-1">
               <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -213,19 +200,6 @@
             </div>
           </div>
           <div id="timer-vendEmail" class="hidden mt-1 text-xs text-gray-400"></div>
-
-          <!-- OTP Container -->
-          <div id="otp-vendEmail" class="hidden mt-2">
-            <div class="flex flex-col gap-2">
-              <div class="flex gap-2 justify-between" id="otp-inputs-vendEmail">
-                <!-- 6 OTP Boxes will be injected here -->
-              </div>
-              <button type="button" onclick="verifyOtp('vendEmail')"
-                class="w-full bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm font-medium mt-2">
-                Verify OTP
-              </button>
-            </div>
-          </div>
         </div>
 
         <div>
