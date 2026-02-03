@@ -685,9 +685,22 @@ async function loadAddressForType(type) {
         if (response.ok) {
             const data = await response.json();
             const list = data.addresses || data; // Handle both formats
-            const address = list.find(a => a.address_type === type);
+            
+            // Handle empty array gracefully
+            if (!Array.isArray(list) || list.length === 0) {
+                // No addresses saved yet - show empty form for user to add (no error)
+                clearAddressForm();
+                toggleEditMode(true); // Edit mode
+                const saveBtn = document.getElementById('saveAddressBtn');
+                const editBtn = document.getElementById('editAddressBtn');
+                if (saveBtn) saveBtn.classList.remove('hidden');
+                if (editBtn) editBtn.classList.add('hidden');
+                return;
+            }
 
-            if (address) {
+            const address = list.find(a => a && a.address_type === type);
+
+            if (address && Object.keys(address).length > 0) {
                 addressesData[type] = address;
                 fillAddressForm(address);
                 toggleEditMode(false); // View mode
@@ -710,19 +723,43 @@ async function loadAddressForType(type) {
                     if (editBtn) editBtn.classList.add('hidden');
                 }
             } else {
-                // Address doesn't exist, clear form and enable edit
+                // No address found for this type - show empty form (no error)
                 clearAddressForm();
-                toggleEditMode(true); // Edit/Create mode
+                toggleEditMode(true); // Edit mode
+                const saveBtn = document.getElementById('saveAddressBtn');
+                const editBtn = document.getElementById('editAddressBtn');
+                if (saveBtn) saveBtn.classList.remove('hidden');
+                if (editBtn) editBtn.classList.add('hidden');
             }
-        } else {
-            // Error fetching addresses
+        } else if (response.status === 404) {
+            // 404 is fine - user just hasn't saved any addresses yet
+            // Show empty form for user to add address (no error)
             clearAddressForm();
             toggleEditMode(true);
+            const saveBtn = document.getElementById('saveAddressBtn');
+            const editBtn = document.getElementById('editAddressBtn');
+            if (saveBtn) saveBtn.classList.remove('hidden');
+            if (editBtn) editBtn.classList.add('hidden');
+        } else {
+            // Other API errors - still allow user to add address
+            clearAddressForm();
+            toggleEditMode(true);
+            const saveBtn = document.getElementById('saveAddressBtn');
+            const editBtn = document.getElementById('editAddressBtn');
+            if (saveBtn) saveBtn.classList.remove('hidden');
+            if (editBtn) editBtn.classList.add('hidden');
         }
     } catch (error) {
-        console.error('Error loading address:', error);
+        // Silently handle errors - don't show alerts for missing addresses
+        // User can still add addresses on this page
+        console.log('Address not loaded - user can add new one:', error.message);
+        // Show empty form for user to add address (no error)
         clearAddressForm();
         toggleEditMode(true);
+        const saveBtn = document.getElementById('saveAddressBtn');
+        const editBtn = document.getElementById('editAddressBtn');
+        if (saveBtn) saveBtn.classList.remove('hidden');
+        if (editBtn) editBtn.classList.add('hidden');
     }
 }
 
