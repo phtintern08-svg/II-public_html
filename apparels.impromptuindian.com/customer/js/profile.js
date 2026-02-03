@@ -44,9 +44,21 @@ async function loadUserProfile() {
             const emailInput = document.getElementById('profileEmail');
             const phoneInput = document.getElementById('profilePhone');
 
-            if (nameInput) nameInput.value = data.username || '';
-            if (emailInput) emailInput.value = data.email || '';
-            if (phoneInput) phoneInput.value = data.phone || '';
+            if (nameInput) {
+                nameInput.value = data.username || '';
+                nameInput.setAttribute('readonly', 'readonly');
+                nameInput.setAttribute('disabled', 'disabled');
+            }
+            if (emailInput) {
+                emailInput.value = data.email || '';
+                emailInput.setAttribute('readonly', 'readonly');
+                emailInput.setAttribute('disabled', 'disabled');
+            }
+            if (phoneInput) {
+                phoneInput.value = data.phone || '';
+                phoneInput.setAttribute('readonly', 'readonly');
+                phoneInput.setAttribute('disabled', 'disabled');
+            }
 
             // Update localStorage with fresh data
             if (data.username) localStorage.setItem('username', data.username);
@@ -58,6 +70,24 @@ async function loadUserProfile() {
             if (avatarInitial && data.username) {
                 avatarInitial.textContent = data.username.charAt(0).toUpperCase();
             }
+
+            // Update display name and email in header
+            const displayName = document.getElementById('displayName');
+            const displayEmail = document.getElementById('displayEmail');
+            if (displayName) displayName.textContent = data.username || 'User';
+            if (displayEmail) displayEmail.textContent = data.email || '';
+
+            // Update account creation date
+            const accountDate = document.getElementById('accountDate');
+            if (accountDate && data.created_at) {
+                const date = new Date(data.created_at);
+                accountDate.textContent = date.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long' 
+                });
+            } else if (accountDate) {
+                accountDate.textContent = 'Recently';
+            }
         } else {
             // Fallback to localStorage if API fails
             const username = localStorage.getItem('username') || '';
@@ -68,14 +98,32 @@ async function loadUserProfile() {
             const emailInput = document.getElementById('profileEmail');
             const phoneInput = document.getElementById('profilePhone');
 
-            if (nameInput) nameInput.value = username;
-            if (emailInput) emailInput.value = email;
-            if (phoneInput) phoneInput.value = phone;
+            if (nameInput) {
+                nameInput.value = username;
+                nameInput.setAttribute('readonly', 'readonly');
+                nameInput.setAttribute('disabled', 'disabled');
+            }
+            if (emailInput) {
+                emailInput.value = email;
+                emailInput.setAttribute('readonly', 'readonly');
+                emailInput.setAttribute('disabled', 'disabled');
+            }
+            if (phoneInput) {
+                phoneInput.value = phone;
+                phoneInput.setAttribute('readonly', 'readonly');
+                phoneInput.setAttribute('disabled', 'disabled');
+            }
 
             const avatarInitial = document.getElementById('avatarInitial');
             if (avatarInitial && username) {
                 avatarInitial.textContent = username.charAt(0).toUpperCase();
             }
+
+            // Update display name and email in header (fallback)
+            const displayName = document.getElementById('displayName');
+            const displayEmail = document.getElementById('displayEmail');
+            if (displayName) displayName.textContent = username || 'User';
+            if (displayEmail) displayEmail.textContent = email || '';
 
             console.warn('Failed to load profile from API, using localStorage fallback');
         }
@@ -91,27 +139,46 @@ async function loadUserProfile() {
         const emailInput = document.getElementById('profileEmail');
         const phoneInput = document.getElementById('profilePhone');
 
-        if (nameInput) nameInput.value = username;
-        if (emailInput) emailInput.value = email;
-        if (phoneInput) phoneInput.value = phone;
+        if (nameInput) {
+            nameInput.value = username;
+            nameInput.setAttribute('readonly', 'readonly');
+            nameInput.setAttribute('disabled', 'disabled');
+        }
+        if (emailInput) {
+            emailInput.value = email;
+            emailInput.setAttribute('readonly', 'readonly');
+            emailInput.setAttribute('disabled', 'disabled');
+        }
+        if (phoneInput) {
+            phoneInput.value = phone;
+            phoneInput.setAttribute('readonly', 'readonly');
+            phoneInput.setAttribute('disabled', 'disabled');
+        }
 
         const avatarInitial = document.getElementById('avatarInitial');
         if (avatarInitial && username) {
             avatarInitial.textContent = username.charAt(0).toUpperCase();
         }
+
+        // Update display name and email in header (error fallback)
+        const displayName = document.getElementById('displayName');
+        const displayEmail = document.getElementById('displayEmail');
+        if (displayName) displayName.textContent = username || 'User';
+        if (displayEmail) displayEmail.textContent = email || '';
     }
 }
 
-// Save profile changes
+// Save profile changes - DISABLED: Name, email, and phone are read-only from database
+// These fields are fetched from impromptuindian_customer/customers table and cannot be edited
 async function saveProfileChanges() {
+    showAlert('Info', 'Name, email, and phone number cannot be edited. These are managed by your account settings.', 'info');
+    return;
+    
+    // Note: If you need to allow editing other profile fields (like bio), uncomment and modify below
+    /*
     const userId = localStorage.getItem('user_id');
-    const role = localStorage.getItem('role');
-    const username = document.getElementById('profileName').value;
-    const email = document.getElementById('profileEmail').value;
-    const phone = document.getElementById('profilePhone').value;
-
-    if (!username || !email || !phone) {
-        showAlert('Error', 'Please fill in all fields', 'error');
+    if (!userId) {
+        showAlert('Error', 'User not authenticated', 'error');
         return;
     }
 
@@ -124,25 +191,15 @@ async function saveProfileChanges() {
                 'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
-                username: username,
-                phone: phone
+                // Only include editable fields here (e.g., bio)
+                // username, email, phone are read-only
             })
         });
 
         const result = await response.json();
 
         if (response.ok) {
-            // Update localStorage with new values
-            localStorage.setItem('username', username);
-            localStorage.setItem('email', email);
-            localStorage.setItem('phone', phone);
-
             showAlert('Success', 'Profile updated successfully!', 'success');
-
-            // Refresh sidebar to show updated name
-            if (typeof populateUserData === 'function') {
-                populateUserData();
-            }
         } else {
             showAlert('Error', result.error || 'Failed to update profile', 'error');
         }
@@ -150,6 +207,7 @@ async function saveProfileChanges() {
         console.error('Error:', error);
         showAlert('Connection Error', 'Failed to connect to server', 'error');
     }
+    */
 }
 
 // Change password
@@ -791,19 +849,33 @@ async function loadAllAddresses() {
             const data = await response.json();
             const addresses = data.addresses || data; // Handle both formats
 
-            // Store addresses by type
-            addresses.forEach(address => {
-                addressesData[address.address_type] = address;
-            });
+            // Handle empty array or null response gracefully
+            if (Array.isArray(addresses) && addresses.length > 0) {
+                // Store addresses by type
+                addresses.forEach(address => {
+                    if (address && address.address_type) {
+                        addressesData[address.address_type] = address;
+                    }
+                });
+            }
+            // If addresses array is empty, addressesData remains empty - this is fine
+            // User can add addresses on this page
 
-            // Load the current address type (default home)
+            // Load the current address type (default home) - this will show empty form if no address
+            switchAddressType('home');
+        } else if (response.status === 404) {
+            // 404 is fine - user just hasn't saved any addresses yet
+            // Show empty form for user to add address
             switchAddressType('home');
         } else {
-            // Even if load all fails, try to load default type
+            // Other errors - still allow user to add address
             switchAddressType('home');
         }
     } catch (error) {
-        console.error('Error loading addresses:', error);
+        // Silently handle errors - don't show alerts for missing addresses
+        // User can still add addresses on this page
+        console.log('Addresses not loaded - user can add new ones:', error.message);
+        // Show empty form for user to add address
         switchAddressType('home');
     }
 }

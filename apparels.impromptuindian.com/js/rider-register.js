@@ -219,13 +219,13 @@ document.getElementById('riderForm').addEventListener('submit', async (e) => {
     const termsAccepted = document.getElementById('riderTerms').checked;
 
     // Validations
-    if (!otpState.riderEmail.verified) {
-        showAlert('Error', 'Please verify your email first', 'error');
+    if (!isValidEmail(email)) {
+        showAlert('Error', 'Please enter a valid email address', 'error');
         return;
     }
 
-    if (!otpState.riderPhone.verified) {
-        showAlert('Error', 'Please verify your phone number first', 'error');
+    if (!isValidPhone(phone)) {
+        showAlert('Error', 'Please enter a valid phone number', 'error');
         return;
     }
 
@@ -258,10 +258,21 @@ document.getElementById('riderForm').addEventListener('submit', async (e) => {
             })
         });
 
-        const data = await response.json();
+        let data;
+        try {
+            const text = await response.text();
+            if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+                showAlert('Server Error', 'Unable to reach the registration service. Please check if the server is running.', 'error');
+                return;
+            }
+            data = JSON.parse(text);
+        } catch (parseError) {
+            showAlert('Server Error', 'Server returned an invalid response. Please try again later.', 'error');
+            return;
+        }
 
-        if (response.ok) {
-            showAlert('Success', 'Registration successful! Please login to complete your profile verification.', 'success');
+        if (response.ok && data.success) {
+            showAlert('Check Your Email', 'Verification email sent. Please verify your email before logging in.', 'success');
             setTimeout(() => {
                 window.location.href = 'login.html';
             }, 3000);

@@ -29,3 +29,43 @@
         transform: translateY(0);
     }
 }
+
+/* Professional Profile Page Enhancements */
+.addr-pill {
+    @apply px-4 py-2 rounded-lg bg-[#0d1117] border border-gray-700 text-gray-300 hover:bg-[#1a1f2e] hover:border-[#1273EB] transition-colors font-medium;
+}
+
+.addr-pill.active {
+    @apply bg-[#1273EB] border-[#1273EB] text-white;
+}
+
+/* Input field enhancements */
+.blk-input {
+    @apply w-full px-4 py-3 rounded-lg bg-[#0d1117] border border-gray-700 text-white placeholder-gray-500 focus:border-[#FFCC00] focus:outline-none transition-colors;
+}
+
+/* Card hover effects */
+.bg-\[#111827\] {
+    transition: all 0.3s ease;
+}
+
+.bg-\[#111827\]:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Button enhancements */
+button[class*="bg-\[#1273EB\]"] {
+    transition: all 0.2s ease;
+}
+
+button[class*="bg-\[#1273EB\]"]:hover {
+    transform: translateY(-1px);
+}
+
+button[class*="bg-\[#FFCC00\]"] {
+    transition: all 0.2s ease;
+}
+
+button[class*="bg-\[#FFCC00\]"]:hover {
+    transform: translateY(-1px);
+}

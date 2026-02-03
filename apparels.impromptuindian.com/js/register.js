@@ -507,11 +507,11 @@ async function registerUser(data) {
             return;
         }
 
-        if (response.ok) {
-            showAlert('Success', 'Registration successful! Redirecting to login...', 'success');
+        if (response.ok && result.success) {
+            showAlert('Check Your Email', 'Verification link sent to your email. Please verify your email before logging in.', 'success');
             setTimeout(() => {
                 window.location.href = 'login.html';
-            }, 2000);
+            }, 3000);
         } else {
             showAlert('Registration Failed', result.error || 'Registration failed', 'error');
         }
@@ -555,21 +555,19 @@ if (customerForm) {
     customerForm.addEventListener('submit', (e) => {
         e.preventDefault();
 
-        // Check if email is verified (if provided)
         const email = document.getElementById('custEmail').value;
-        if (email && !verificationStatus.custEmail) {
-            showAlert('Verification Required', 'Please verify your email before registering.', 'error');
-            return;
-        }
-
-        // Check if phone is verified (if provided)
         const phone = document.getElementById('custPhone').value;
-        if (phone && !verificationStatus.custPhone) {
-            showAlert('Verification Required', 'Please verify your phone number before registering.', 'error');
-            return;
+
+        // Validate email format
+        if (email) {
+            const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (!emailPattern.test(email)) {
+                showAlert('Invalid Email', 'Please enter a valid email address.', 'error');
+                return;
+            }
         }
 
-        // Validate Indian phone number format
+        // Validate Indian phone number format (if provided)
         if (phone && !validateIndianPhone(phone)) {
             showAlert('Invalid Mobile Number', 'The mobile number you entered is not valid. Please provide a 10-digit Indian mobile number.', 'error');
             return;
@@ -605,21 +603,19 @@ if (vendorForm) {
     vendorForm.addEventListener('submit', (e) => {
         e.preventDefault();
 
-        // Check if email is verified (if provided)
         const email = document.getElementById('vendEmail').value;
-        if (email && !verificationStatus.vendEmail) {
-            showAlert('Verification Required', 'Please verify your email before registering.', 'error');
-            return;
-        }
-
-        // Check if phone is verified (if provided)
         const phone = document.getElementById('vendPhone').value;
-        if (phone && !verificationStatus.vendPhone) {
-            showAlert('Verification Required', 'Please verify your phone number before registering.', 'error');
-            return;
+
+        // Validate email format
+        if (email) {
+            const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (!emailPattern.test(email)) {
+                showAlert('Invalid Email', 'Please enter a valid email address.', 'error');
+                return;
+            }
         }
 
-        // Validate Indian phone number format
+        // Validate Indian phone number format (if provided)
         if (phone && !validateIndianPhone(phone)) {
             showAlert('Invalid Mobile Number', 'The mobile number you entered is not valid. Please provide a 10-digit Indian mobile number.', 'error');
             return;

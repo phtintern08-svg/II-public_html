@@ -750,9 +750,19 @@ async function loadAddressForType(type) {
     if (resp.ok) {
       const data = await resp.json();
       const addresses = data.addresses || data;
-      const address = addresses.find(a => a.address_type === type);
+      
+      // Handle empty array gracefully
+      if (!Array.isArray(addresses) || addresses.length === 0) {
+        // No addresses saved yet - show empty form for user to add
+        clearAddressForm();
+        toggleAddressFields(true);
+        toggleSaveButton(true);
+        return;
+      }
 
-      // If backend returns null (200 OK), treat as "Not Found" essentially
+      const address = addresses.find(a => a && a.address_type === type);
+
+      // If address exists and has data
       if (address && Object.keys(address).length > 0) {
         addressesData[type] = address;
         fillAddressForm(address);
@@ -774,20 +784,30 @@ async function loadAddressForType(type) {
           toggleSaveButton(true);
         }
       } else {
+        // No address found for this type - show empty form (no error)
         clearAddressForm();
         toggleAddressFields(true);
         toggleSaveButton(true);
       }
+    } else if (resp.status === 404) {
+      // 404 is fine - user just hasn't saved any addresses yet
+      // Show empty form for user to add address (no error)
+      clearAddressForm();
+      toggleAddressFields(true);
+      toggleSaveButton(true);
     } else {
+      // Other API errors - still allow user to add address
       clearAddressForm();
       toggleAddressFields(true);
       toggleSaveButton(true);
     }
   } catch (err) {
     console.error("Error loading address:", err);
+    // Gracefully handle missing addresses - no errors, just enable form for input
     clearAddressForm();
     toggleAddressFields(true);
     toggleSaveButton(true);
+    // Don't show error alert - this is normal when user hasn't saved addresses yet
   }
 }
 
@@ -968,24 +988,45 @@ async function saveAddress() {
 
 async function loadAllAddresses() {
   const userId = localStorage.getItem("user_id");
-  if (!userId) return;
+  if (!userId) {
+    // No user ID - silently return, user can still add addresses
+    return;
+  }
 
   try {
     const token = localStorage.getItem('token');
+    if (!token) {
+      // No token - silently return, user can still add addresses
+      return;
+    }
+
     const resp = await window.ImpromptuIndianApi.fetch(`/api/customer/addresses`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
+    
     if (resp.ok) {
       const data = await resp.json();
       const list = data.addresses || data;
-      list.forEach((addr) => {
-        addressesData[addr.address_type] = addr;
-      });
+      
+      // Handle empty array or null response gracefully
+      if (Array.isArray(list) && list.length > 0) {
+        list.forEach((addr) => {
+          if (addr && addr.address_type) {
+            addressesData[addr.address_type] = addr;
+          }
+        });
+      }
+      // If list is empty, addressesData remains empty - this is fine, user can add addresses
+    } else if (resp.status === 404) {
+      // 404 is fine - user just hasn't saved any addresses yet
+      console.log("No addresses found - user can add new ones");
     }
   } catch (e) {
-    console.error("Failed to load addresses", e);
+    // Silently handle errors - don't show alerts for missing addresses
+    // User can still add addresses on this page
+    console.log("Addresses not loaded - user can add new ones:", e.message);
   }
 }
 
