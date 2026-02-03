@@ -67,20 +67,25 @@ async function handleGetOtp(field) {
 
             if (response.ok && data.success) {
                 // Email verification link sent successfully
-                otpState[field].verified = true;
-                inputElement.readOnly = true;
-                inputElement.classList.add('border-green-400');
+                // DO NOT mark as verified - only track that link was sent
+                otpState[field].sent = true;
+                otpState[field].verified = false; // Explicitly set to false
+                
+                // Update UI to show link was sent (but NOT verified)
+                inputElement.readOnly = false; // Keep editable until verified
+                inputElement.classList.remove('border-green-400');
+                inputElement.classList.add('border-yellow-400'); // Yellow = pending verification
                 otpBtn.disabled = true;
                 otpBtn.innerText = "Link Sent";
                 otpBtn.classList.add('opacity-50', 'cursor-not-allowed');
                 
-                // Show verified icon
+                // DO NOT show verified icon - email is not verified yet
                 const verifiedIcon = document.getElementById(`verified-${field}-icon`);
                 if (verifiedIcon) {
-                    verifiedIcon.classList.remove('hidden');
+                    verifiedIcon.classList.add('hidden');
                 }
 
-                showAlert('Verification Email Sent', 'Please check your inbox and click the verification link to verify your email.', 'success');
+                showAlert('Verification Email Sent', 'Please check your inbox and click the verification link to verify your email. You must verify your email before you can create an account.', 'success');
             } else {
                 showAlert('Error', data.error || 'Failed to send verification email', 'error');
                 otpBtn.disabled = false;
@@ -308,11 +313,14 @@ document.getElementById('riderForm').addEventListener('submit', async (e) => {
         return;
     }
 
-    // Check if email was verified
-    if (!otpState.riderEmail.verified) {
-        showAlert('Email Not Verified', 'Please verify your email first by clicking "Send Verification Link" and clicking the link in your email.', 'error');
+    // Check if email verification link was sent
+    if (!otpState.riderEmail.sent) {
+        showAlert('Email Verification Required', 'Please click "Send Verification Link" first, then click the link in your email to verify your email address.', 'error');
         return;
     }
+    
+    // Note: Backend will verify that email was actually verified via link click
+    // Frontend cannot determine this - only backend can check token.used == true
 
     if (!isValidPhone(phone)) {
         showAlert('Error', 'Please enter a valid phone number', 'error');

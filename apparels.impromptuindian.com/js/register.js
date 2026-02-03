@@ -33,12 +33,19 @@ const tabVendor = document.getElementById("tabVendor");
 const customerForm = document.getElementById("customerForm");
 const vendorForm = document.getElementById("vendorForm");
 
-// Track verification status
+// Track verification status (only set to true when email is actually verified via link)
 const verificationStatus = {
     custEmail: false,
     custPhone: false,
     vendEmail: false,
     vendPhone: false
+};
+
+// Track if verification link was sent (separate from verification status)
+const emailLinkSent = {
+    custEmail: false,
+    vendEmail: false,
+    riderEmail: false
 };
 
 // Track timers
@@ -328,20 +335,25 @@ async function handleGetOtp(fieldId) {
 
             if (response.ok && result.success) {
                 // Email verification link sent successfully
-                verificationStatus[fieldId] = true;
-                inputField.readOnly = true;
-                inputField.classList.add('border-green-400');
+                // DO NOT mark as verified - only track that link was sent
+                emailLinkSent[fieldId] = true;
+                verificationStatus[fieldId] = false; // Explicitly set to false
+                
+                // Update UI to show link was sent (but NOT verified)
+                inputField.readOnly = false; // Keep editable until verified
+                inputField.classList.remove('border-green-400');
+                inputField.classList.add('border-yellow-400'); // Yellow = pending verification
                 getOtpBtn.disabled = true;
                 getOtpBtn.innerText = "Link Sent";
                 getOtpBtn.classList.add('opacity-50', 'cursor-not-allowed');
                 
-                // Show verified icon
+                // DO NOT show verified icon - email is not verified yet
                 const verifiedIcon = document.getElementById(`verified-${fieldId}-icon`);
                 if (verifiedIcon) {
-                    verifiedIcon.classList.remove('hidden');
+                    verifiedIcon.classList.add('hidden');
                 }
 
-                showAlert('Verification Email Sent', 'Please check your inbox and click the verification link to verify your email.', 'success');
+                showAlert('Verification Email Sent', 'Please check your inbox and click the verification link to verify your email. You must verify your email before you can create an account.', 'success');
             } else {
                 showAlert('Error', result.error || 'Failed to send verification email', 'error');
                 getOtpBtn.disabled = false;
@@ -632,6 +644,15 @@ if (customerForm) {
             }
         }
 
+        // Check if email verification link was sent
+        if (!emailLinkSent.custEmail) {
+            showAlert('Email Verification Required', 'Please click "Send Verification Link" first, then click the link in your email to verify your email address.', 'error');
+            return;
+        }
+        
+        // Note: Backend will verify that email was actually verified via link click
+        // Frontend cannot determine this - only backend can check token.used == true
+
         // Validate Indian phone number format (if provided)
         if (phone && !validateIndianPhone(phone)) {
             showAlert('Invalid Mobile Number', 'The mobile number you entered is not valid. Please provide a 10-digit Indian mobile number.', 'error');
@@ -680,11 +701,14 @@ if (vendorForm) {
             }
         }
 
-        // Check if email was verified
-        if (!verificationStatus.vendEmail) {
-            showAlert('Email Not Verified', 'Please verify your email first by clicking "Send Verification Link" and clicking the link in your email.', 'error');
+        // Check if email verification link was sent
+        if (!emailLinkSent.vendEmail) {
+            showAlert('Email Verification Required', 'Please click "Send Verification Link" first, then click the link in your email to verify your email address.', 'error');
             return;
         }
+        
+        // Note: Backend will verify that email was actually verified via link click
+        // Frontend cannot determine this - only backend can check token.used == true
 
         // Validate Indian phone number format (if provided)
         if (phone && !validateIndianPhone(phone)) {
