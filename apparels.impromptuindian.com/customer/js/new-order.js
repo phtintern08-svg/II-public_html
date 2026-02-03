@@ -1,37 +1,7 @@
 lucide.createIcons();
 
-// Use var instead of const to allow re-declaration, with window guard
-var ImpromptuIndianApi = window.ImpromptuIndianApi || (function () {
-  const rawBase =
-    window.IMPROMPTU_INDIAN_API_BASE ||
-    window.APP_API_BASE ||
-    localStorage.getItem('IMPROMPTU_INDIAN_API_BASE') ||
-    '';
-
-  let base = rawBase.trim().replace(/\/$/, '');
-  if (!base) {
-    const origin = window.location.origin;
-    if (origin && origin.startsWith('http')) {
-      base = origin.replace(/\/$/, '');
-    } else {
-      // Use relative paths - no absolute URLs
-      base = '';
-    }
-  }
-
-  const buildUrl = (path = '') => `${base}${path.startsWith('/') ? path : `/${path}`}`;
-
-  return {
-    baseUrl: base,
-    buildUrl,
-    fetch: (path, options = {}) => fetch(buildUrl(path), options),
-  };
-})();
-
-// Ensure it's set on window for other scripts
-if (!window.ImpromptuIndianApi) {
-  window.ImpromptuIndianApi = ImpromptuIndianApi;
-}
+// DO NOT redeclare ImpromptuIndianApi - sidebar.js already creates it
+// Use window.ImpromptuIndianApi directly throughout this file
 
 /* -------------------------------
    Utility: close dropdowns + calendar
@@ -49,8 +19,12 @@ function closeAllPanels(except) {
 ---------------------------*/
 function initDropdowns() {
   // Global click handler to close dropdowns when clicking outside
+  // Include .trigger to handle SVG path clicks properly
+  // Exclude calendar to prevent conflicts
   document.addEventListener("click", (e) => {
-    if (!e.target.closest(".custom-select")) closeAllPanels();
+    if (!e.target.closest(".custom-select, .trigger, #calendar")) {
+      closeAllPanels();
+    }
   });
 
   document.querySelectorAll(".custom-select").forEach((wrapper) => {
@@ -112,6 +86,12 @@ function initDropdowns() {
           if (display) {
             display.textContent = selectedText;
           }
+          
+          // 🔥 Re-initialize dropdowns after dynamic rebuild to ensure event listeners are bound
+          // This is safe because initDropdowns checks for existing elements
+          setTimeout(() => {
+            initDropdowns();
+          }, 0);
         }
 
         // Trigger estimate check when any relevant dropdown changes
@@ -119,7 +99,7 @@ function initDropdowns() {
           checkEstimate();
         }
 
-        // Trigger MODAL estimate check
+        // Trigger MODAL estimate check (for old modal)
         if (wrapper.dataset.name === 'modal-sample-size') {
           checkModalEstimate();
         }
@@ -189,6 +169,12 @@ function renderFabrics(productType) {
   if (wrapper.rebuild) {
     wrapper.rebuild();
   }
+  
+  // 🔥 Re-initialize dropdowns after dynamic rebuild to ensure event listeners are bound
+  // This ensures clicks work on newly created options
+  setTimeout(() => {
+    initDropdowns();
+  }, 0);
 }
 
 /* ---------------------------
@@ -391,7 +377,7 @@ async function fetchEstimate(product, category, neck, fabric, size) {
     size: size
   };
 
-  const resp = await ImpromptuIndianApi.fetch("/api/estimate-price", {
+  const resp = await window.ImpromptuIndianApi.fetch("/api/estimate-price", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
@@ -738,32 +724,6 @@ qtyInputs.forEach((i) => {
 let currentAddressType = "home";
 let addressesData = {};
 
-function initAddress() {
-  const btnHome = document.getElementById("btnHome");
-  const btnWork = document.getElementById("btnWork");
-  const btnOther = document.getElementById("btnOther");
-  const saveAddressBtn = document.getElementById("saveAddressBtn");
-
-  if (!btnHome || !btnWork || !btnOther || !saveAddressBtn) return;
-
-  btnHome.addEventListener("click", () => switchAddressType("home"));
-  btnWork.addEventListener("click", () => switchAddressType("work"));
-  btnOther.addEventListener("click", () => switchAddressType("other"));
-
-/* ---------------------------
-   Switch between address types
----------------------------*/
-function switchAddressType(type) {
-  currentAddressType = type;
-
-  [btnHome, btnWork, btnOther].forEach((b) => b.classList.remove("active"));
-  if (type === "home") btnHome.classList.add("active");
-  if (type === "work") btnWork.classList.add("active");
-  if (type === "other") btnOther.classList.add("active");
-
-  loadAddressForType(type);
-}
-
 /* ---------------------------
    Load address from backend
 ---------------------------*/
@@ -781,7 +741,7 @@ async function loadAddressForType(type) {
 
   try {
     const token = localStorage.getItem('token');
-    const resp = await ImpromptuIndianApi.fetch(`/api/customer/addresses`, {
+    const resp = await window.ImpromptuIndianApi.fetch(`/api/customer/addresses`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -832,6 +792,38 @@ async function loadAddressForType(type) {
 }
 
 /* ---------------------------
+   Switch between address types
+---------------------------*/
+function switchAddressType(type) {
+  currentAddressType = type;
+
+  const btnHome = document.getElementById("btnHome");
+  const btnWork = document.getElementById("btnWork");
+  const btnOther = document.getElementById("btnOther");
+
+  if (btnHome && btnWork && btnOther) {
+    [btnHome, btnWork, btnOther].forEach((b) => b.classList.remove("active"));
+    if (type === "home") btnHome.classList.add("active");
+    if (type === "work") btnWork.classList.add("active");
+    if (type === "other") btnOther.classList.add("active");
+  }
+
+  loadAddressForType(type);
+}
+
+function initAddress() {
+  const btnHome = document.getElementById("btnHome");
+  const btnWork = document.getElementById("btnWork");
+  const btnOther = document.getElementById("btnOther");
+  const saveAddressBtn = document.getElementById("saveAddressBtn");
+
+  if (!btnHome || !btnWork || !btnOther || !saveAddressBtn) return;
+
+  btnHome.addEventListener("click", () => switchAddressType("home"));
+  btnWork.addEventListener("click", () => switchAddressType("work"));
+  btnOther.addEventListener("click", () => switchAddressType("other"));
+
+/* ---------------------------
    Enable / Disable form fields
 ---------------------------*/
 function toggleAddressFields(enable) {
@@ -856,6 +848,9 @@ function toggleAddressFields(enable) {
    Show/Hide Save Button
 ---------------------------*/
 function toggleSaveButton(show) {
+  const saveAddressBtn = document.getElementById("saveAddressBtn");
+  if (!saveAddressBtn) return;
+  
   if (show) {
     saveAddressBtn.classList.remove("hidden");
     saveAddressBtn.textContent =
@@ -927,7 +922,7 @@ async function saveAddress() {
     let existing = addressesData[currentAddressType];
 
     if (existing && existing.id) {
-      response = await ImpromptuIndianApi.fetch(`/api/customer/addresses/${existing.id}`, {
+      response = await window.ImpromptuIndianApi.fetch(`/api/customer/addresses/${existing.id}`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json",
@@ -936,7 +931,7 @@ async function saveAddress() {
         body: JSON.stringify(payload),
       });
     } else {
-      response = await ImpromptuIndianApi.fetch("/api/customer/addresses", {
+      response = await window.ImpromptuIndianApi.fetch("/api/customer/addresses", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -977,7 +972,7 @@ async function loadAllAddresses() {
 
   try {
     const token = localStorage.getItem('token');
-    const resp = await ImpromptuIndianApi.fetch(`/api/customer/addresses`, {
+    const resp = await window.ImpromptuIndianApi.fetch(`/api/customer/addresses`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -994,8 +989,6 @@ async function loadAllAddresses() {
   }
 }
 
-loadAllAddresses();
-switchAddressType("home");
 /* ------------------------------------------------
    USE CURRENT LOCATION  MAPMYINDIA (MAPPLS)
 --------------------------------------------------*/
@@ -1342,21 +1335,27 @@ try { updateCartBadge(); } catch { }
 let isSamplePaid = false;
 let currentTransactionId = null;
 
-// Card Number Formatting
-document.getElementById("cardNumber").addEventListener("input", (e) => {
-  let val = e.target.value.replace(/\D/g, '');
-  val = val.replace(/(.{4})/g, '$1 ').trim();
-  e.target.value = val;
-});
+// Card Number Formatting - safely check for element existence
+const cardNumber = document.getElementById("cardNumber");
+if (cardNumber) {
+  cardNumber.addEventListener("input", (e) => {
+    let val = e.target.value.replace(/\D/g, '');
+    val = val.replace(/(.{4})/g, '$1 ').trim();
+    e.target.value = val;
+  });
+}
 
-// Expiry Date Formatting
-document.getElementById("cardExpiry").addEventListener("input", (e) => {
-  let val = e.target.value.replace(/\D/g, '');
-  if (val.length >= 2) {
-    val = val.substring(0, 2) + '/' + val.substring(2, 4);
-  }
-  e.target.value = val;
-});
+// Expiry Date Formatting - safely check for element existence
+const cardExpiry = document.getElementById("cardExpiry");
+if (cardExpiry) {
+  cardExpiry.addEventListener("input", (e) => {
+    let val = e.target.value.replace(/\D/g, '');
+    if (val.length >= 2) {
+      val = val.substring(0, 2) + '/' + val.substring(2, 4);
+    }
+    e.target.value = val;
+  });
+}
 
 // Modal Pay Button
 // Card Listeners
@@ -1385,7 +1384,11 @@ function cardExpInputHandler(e) {
   e.target.value = val;
 }
 
-attachCardListeners();
+// Safely attach card listeners if elements exist
+// This is called at top level but has safety checks inside
+if (document.getElementById("cardNumber") || document.getElementById("cardExpiry")) {
+  attachCardListeners();
+}
 
 
 /* ------------------------------------------------
@@ -1414,7 +1417,7 @@ window.switchPaymentTab = function (method) {
   if (v) v.classList.remove('hidden');
 };
 
-async function checkModalEstimate() {
+async function checkGatewayEstimate() {
   const productType = document.querySelector('.custom-select[data-name="product-type"] select').value;
   const fabric = document.querySelector('.custom-select[data-name="fabric-type"] select').value;
   const modalSampleSize = document.querySelector('.custom-select[data-name="modal-sample-size"] select')?.value;
@@ -1672,7 +1675,8 @@ function initPlaceOrder() {
           if (sel) sel.value = mainSampleSize;
           const disp = modalSelectWrapper.querySelector('.trigger .value');
           if (disp) disp.textContent = mainSampleSize;
-          if (typeof checkModalEstimate === 'function') checkModalEstimate();
+          // Use checkGatewayEstimate for payment gateway modal
+          if (typeof checkGatewayEstimate === 'function') checkGatewayEstimate();
         }
       }
     }
@@ -1741,7 +1745,7 @@ async function submitOrder(payload) {
 
   try {
     const token = localStorage.getItem('token');
-    const res = await ImpromptuIndianApi.fetch("/api/orders/", {
+    const res = await window.ImpromptuIndianApi.fetch("/api/orders/", {
       method: "POST",
       headers: { 
         "Content-Type": "application/json",
@@ -1829,7 +1833,7 @@ function initNewOrderPage() {
   initCalendar();
   initQuantities();
   initAddress();
-  initLocation();
+  // Note: Location functionality is handled inline in initAddress() via useCurrentLocationBtn
   initFileUpload();
   initPlaceOrder();
   

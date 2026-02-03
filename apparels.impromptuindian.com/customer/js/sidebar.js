@@ -34,7 +34,8 @@ if (typeof window.ImpromptuIndianApi === 'undefined') {
   })();
 }
 
-const ImpromptuIndianApi = window.ImpromptuIndianApi;
+// DO NOT create a global const ImpromptuIndianApi - it breaks other scripts
+// Use window.ImpromptuIndianApi directly instead
 
 const sidebarHTML = `
 <aside class="sidebar bg-[#1273EB] flex flex-col justify-between h-screen fixed md:relative z-50 transition-all duration-300 -translate-x-full md:translate-x-0 w-[265px] shrink-0">
@@ -131,11 +132,15 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       // Close sidebar when clicking outside on mobile
+      // Exclude dropdowns to prevent conflicts
       document.addEventListener("click", (e) => {
-        if (window.innerWidth < 768 &&
+        if (
+          window.innerWidth < 768 &&
           !sidebar.contains(e.target) &&
           !toggleBtn.contains(e.target) &&
-          !sidebar.classList.contains("-translate-x-full")) {
+          !e.target.closest(".custom-select") &&  // 🔥 Prevent closing dropdowns
+          !sidebar.classList.contains("-translate-x-full")
+        ) {
           sidebar.classList.add("-translate-x-full");
         }
       });
@@ -184,7 +189,8 @@ async function logout(event) {
 
   try {
     // Call backend to delete HttpOnly cookie
-    await ImpromptuIndianApi.fetch('/api/logout', {
+    // Use window.ImpromptuIndianApi directly to avoid global const conflicts
+    await window.ImpromptuIndianApi.fetch('/api/logout', {
       method: 'POST'
     });
   } catch (e) {
