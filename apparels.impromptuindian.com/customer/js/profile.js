@@ -1,8 +1,18 @@
 // Profile Page JavaScript
-lucide.createIcons();
-
 // DO NOT redeclare ImpromptuIndianApi - sidebar.js already creates it
 // Use window.ImpromptuIndianApi directly throughout this file
+
+// Safety check: Ensure ImpromptuIndianApi exists (should be created by sidebar.js)
+if (typeof window.ImpromptuIndianApi === 'undefined') {
+    console.error('ImpromptuIndianApi is not defined. Make sure sidebar.js is loaded before profile.js');
+}
+
+// Initialize icons when DOM is ready
+function initProfilePage() {
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+}
 
 // Load user data from API (database)
 async function loadUserProfile() {
@@ -873,9 +883,20 @@ async function loadMapplsConfig() {
 
 // Load profile data when page loads
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize icons first
+    initProfilePage();
+    
+    // Load profile data from database
     loadUserProfile();
+    
+    // Initialize address management
     initAddressEvents();
     loadAllAddresses();
+    
+    // Show content immediately
+    showAllReveals();
     revealOnScroll();
-    loadMapplsConfig(); // Load Mappls configuration
+    
+    // Load Mappls configuration
+    loadMapplsConfig();
 });
