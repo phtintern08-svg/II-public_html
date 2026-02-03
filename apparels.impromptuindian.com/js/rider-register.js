@@ -361,14 +361,16 @@ document.getElementById('riderForm').addEventListener('submit', async (e) => {
         return;
     }
 
-    // Check if email verification link was sent
-    if (!otpState.riderEmail.sent) {
-        showAlert('Email Verification Required', 'Please click "Send Verification Link" first, then click the link in your email to verify your email address.', 'error');
+    // ✅ SECURITY: Check if email was actually verified (backend-driven)
+    // Frontend only checks UI state - backend enforces actual verification
+    if (!otpState.riderEmail.verified) {
+        showAlert(
+            'Email Verification Required',
+            'Please verify your email by clicking the link sent to your inbox. The link must be clicked before you can create an account.',
+            'error'
+        );
         return;
     }
-    
-    // Note: Backend will verify that email was actually verified via link click
-    // Frontend cannot determine this - only backend can check token.used == true
 
     if (!isValidPhone(phone)) {
         showAlert('Error', 'Please enter a valid phone number', 'error');

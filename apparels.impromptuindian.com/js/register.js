@@ -698,14 +698,16 @@ if (customerForm) {
             }
         }
 
-        // Check if email verification link was sent
-        if (!emailLinkSent.custEmail) {
-            showAlert('Email Verification Required', 'Please click "Send Verification Link" first, then click the link in your email to verify your email address.', 'error');
+        // ✅ SECURITY: Check if email was actually verified (backend-driven)
+        // Frontend only checks UI state - backend enforces actual verification
+        if (!verificationStatus.custEmail) {
+            showAlert(
+                'Email Verification Required',
+                'Please verify your email by clicking the link sent to your inbox. The link must be clicked before you can create an account.',
+                'error'
+            );
             return;
         }
-        
-        // Note: Backend will verify that email was actually verified via link click
-        // Frontend cannot determine this - only backend can check token.used == true
 
         // Validate Indian phone number format (if provided)
         if (phone && !validateIndianPhone(phone)) {
@@ -755,14 +757,16 @@ if (vendorForm) {
             }
         }
 
-        // Check if email verification link was sent
-        if (!emailLinkSent.vendEmail) {
-            showAlert('Email Verification Required', 'Please click "Send Verification Link" first, then click the link in your email to verify your email address.', 'error');
+        // ✅ SECURITY: Check if email was actually verified (backend-driven)
+        // Frontend only checks UI state - backend enforces actual verification
+        if (!verificationStatus.vendEmail) {
+            showAlert(
+                'Email Verification Required',
+                'Please verify your email by clicking the link sent to your inbox. The link must be clicked before you can create an account.',
+                'error'
+            );
             return;
         }
-        
-        // Note: Backend will verify that email was actually verified via link click
-        // Frontend cannot determine this - only backend can check token.used == true
 
         // Validate Indian phone number format (if provided)
         if (phone && !validateIndianPhone(phone)) {

@@ -141,34 +141,37 @@
                     titleEl.className = 'success';
                     
                     // Check if this is a pre-registration verification
-                    if (data.pre_registration) {
+                    if (data.pre_registration && data.email && data.role) {
                         messageEl.textContent = 'Your email has been verified successfully. You can now complete your registration.';
                         
-                        // Store verification status in localStorage for registration page
-                        // Try to find which email field this corresponds to
-                        const emailFields = ['custEmail', 'vendEmail', 'riderEmail'];
-                        let foundField = false;
+                        // ✅ Use backend response (single source of truth)
+                        const email = data.email;
+                        const role = data.role;
                         
-                        emailFields.forEach(fieldId => {
-                            const pendingEmail = localStorage.getItem(`pending_email_verification_${fieldId}`);
-                            if (pendingEmail) {
-                                // Store verified email
-                                localStorage.setItem(`verified_email_${fieldId}`, pendingEmail);
-                                foundField = true;
-                                
-                                // Redirect to appropriate registration page after a short delay
-                                setTimeout(() => {
-                                    if (fieldId === 'riderEmail') {
-                                        window.location.href = 'rider-register.html';
-                                    } else {
-                                        window.location.href = 'register.html';
-                                    }
-                                }, 2000);
-                            }
-                        });
+                        // Map role → fieldId (backend-driven, not guessed)
+                        const fieldMap = {
+                            'customer': 'custEmail',
+                            'vendor': 'vendEmail',
+                            'rider': 'riderEmail'
+                        };
                         
-                        // If no pending email found, still show success but don't redirect
-                        if (!foundField) {
+                        const fieldId = fieldMap[role];
+                        
+                        if (fieldId) {
+                            // Store verified email with fieldId from backend
+                            localStorage.setItem(`verified_email_${fieldId}`, email);
+                            
+                            // Redirect to appropriate registration page after a short delay
+                            setTimeout(() => {
+                                if (role === 'rider') {
+                                    window.location.href = 'rider-register.html';
+                                } else if (role === 'vendor') {
+                                    window.location.href = 'register.html?role=vendor';
+                                } else {
+                                    window.location.href = 'register.html';
+                                }
+                            }, 2000);
+                        } else {
                             messageEl.textContent = 'Your email has been verified successfully. Please return to the registration page to complete your account.';
                         }
                     } else {
