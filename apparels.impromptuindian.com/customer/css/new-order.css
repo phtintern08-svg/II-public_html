@@ -289,6 +289,7 @@ input[type="number"] {
   z-index: 1300;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 204, 0, 0.35) transparent;
+  display: block;
 }
 
 .custom-select .panel::-webkit-scrollbar {

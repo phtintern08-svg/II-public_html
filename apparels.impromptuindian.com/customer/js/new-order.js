@@ -50,20 +50,36 @@ document.querySelectorAll(".custom-select").forEach((wrapper) => {
   const native = wrapper.querySelector("select");
   const trigger = wrapper.querySelector(".trigger");
   const panel = wrapper.querySelector(".panel");
-  const display = trigger.querySelector(".value");
+  const display = trigger ? trigger.querySelector(".value") : null;
+
+  // Safety check - ensure all required elements exist
+  if (!native || !trigger || !panel || !display) {
+    console.warn("Custom select missing required elements:", wrapper);
+    return;
+  }
 
   function rebuildOptions() {
+    if (!panel || !native) return;
+    
     panel.innerHTML = "";
+    
+    // Ensure we have options to build
+    if (!native.options || native.options.length === 0) {
+      console.warn("No options found in select:", native);
+      return;
+    }
+    
     Array.from(native.options).forEach((opt) => {
       const optEl = document.createElement("div");
       optEl.className = "option";
-      optEl.dataset.value = opt.value;
-      optEl.textContent = opt.text;
+      optEl.dataset.value = opt.value || opt.text;
+      optEl.textContent = opt.text || opt.value;
       if (opt.selected) optEl.classList.add("selected");
 
-      optEl.addEventListener("click", () => {
-        native.value = opt.value;
-        display.textContent = opt.text;
+      optEl.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (native) native.value = opt.value || opt.text;
+        if (display) display.textContent = opt.text || opt.value;
 
         panel.querySelectorAll(".option").forEach((o) => o.classList.remove("selected"));
         optEl.classList.add("selected");
@@ -97,8 +113,12 @@ document.querySelectorAll(".custom-select").forEach((wrapper) => {
   trigger.addEventListener("click", (e) => {
     e.stopPropagation();
     const isHidden = panel.classList.contains("hidden");
-    closeAllPanels();
-    if (isHidden) panel.classList.remove("hidden");
+    closeAllPanels(panel); // Pass current panel as exception
+    if (isHidden) {
+      panel.classList.remove("hidden");
+      // Ensure panel is visible and properly positioned
+      panel.style.display = "block";
+    }
   });
 
   native.addEventListener("change", rebuildOptions);
