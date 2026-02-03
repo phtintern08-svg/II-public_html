@@ -84,7 +84,8 @@ function initDropdowns() {
       if (opt.selected) optEl.classList.add("selected");
 
       optEl.addEventListener("click", (e) => {
-        e.stopPropagation();
+        e.preventDefault(); // Prevent default browser behavior
+        e.stopPropagation(); // Stop event bubbling to document
         const selectedValue = opt.value || opt.text;
         const selectedText = opt.text || opt.value;
         
@@ -105,6 +106,11 @@ function initDropdowns() {
           // 🔥 FORCE SYNC after rebuild - ensures native select stays in sync
           if (native) {
             native.dispatchEvent(new Event("change"));
+          }
+          
+          // 🔥 Keep UI in sync after rebuild - prevents display from resetting
+          if (display) {
+            display.textContent = selectedText;
           }
         }
 
