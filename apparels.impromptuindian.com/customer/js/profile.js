@@ -452,7 +452,7 @@ function initAddressEvents() {
                 console.error(e);
                 showAlert("Error", "Failed to reverse geocode.", "error");
             } finally {
-                btn.innerHTML = originalConfirmHTML || 'Confirm Location';
+                btn.innerHTML = oldHTML;
                 btn.disabled = false;
                 lucide.createIcons();
             }

@@ -1,33 +1,8 @@
 // Details Page JavaScript
 lucide.createIcons();
 
-const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
-    const rawBase =
-        window.IMPROMPTU_INDIAN_API_BASE ||
-        window.APP_API_BASE ||
-        localStorage.getItem('IMPROMPTU_INDIAN_API_BASE') ||
-        '';
-
-    let base = rawBase.trim().replace(/\/$/, '');
-    if (!base) {
-        const origin = window.location.origin;
-        if (origin && origin.startsWith('http')) {
-            base = origin.replace(/\/$/, '');
-        } else {
-            // Use relative paths - no absolute URLs
-            base = '';
-        }
-    }
-
-    const buildUrl = (path = '') => `${base}${path.startsWith('/') ? path : `/${path}`}`;
-
-    return {
-        baseUrl: base,
-        buildUrl,
-        fetch: (path, options = {}) => fetch(buildUrl(path), options)
-    };
-})();
-window.ImpromptuIndianApi = ImpromptuIndianApi;
+// DO NOT redeclare ImpromptuIndianApi - sidebar.js already creates it
+// Use window.ImpromptuIndianApi directly throughout this file
 
 // Get order ID from URL
 const urlParams = new URLSearchParams(window.location.search);
@@ -44,7 +19,7 @@ let currentOrder = null;
 async function fetchOrderDetails() {
     try {
         const token = localStorage.getItem('token');
-        const response = await ImpromptuIndianApi.fetch(`/api/orders/${orderId}`, {
+        const response = await window.ImpromptuIndianApi.fetch(`/api/orders/${orderId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -193,7 +168,7 @@ async function requestBulkOrder() {
 
     try {
         const token = localStorage.getItem('token');
-        const response = await ImpromptuIndianApi.fetch(`/api/orders/${orderId}/request-bulk`, {
+        const response = await window.ImpromptuIndianApi.fetch(`/api/orders/${orderId}/request-bulk`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -234,7 +209,7 @@ async function openTrackingModal() {
 
     try {
         const token = localStorage.getItem('token');
-        const response = await ImpromptuIndianApi.fetch(`/api/orders/${orderId}/tracking`, {
+        const response = await window.ImpromptuIndianApi.fetch(`/api/orders/${orderId}/tracking`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }

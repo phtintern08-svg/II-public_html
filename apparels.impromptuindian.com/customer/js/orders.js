@@ -1,33 +1,8 @@
 // Orders Page JavaScript
 lucide.createIcons();
 
-const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
-    const rawBase =
-        window.IMPROMPTU_INDIAN_API_BASE ||
-        window.APP_API_BASE ||
-        localStorage.getItem('IMPROMPTU_INDIAN_API_BASE') ||
-        '';
-
-    let base = rawBase.trim().replace(/\/$/, '');
-    if (!base) {
-        const origin = window.location.origin;
-        if (origin && origin.startsWith('http')) {
-            base = origin.replace(/\/$/, '');
-        } else {
-            // Use relative paths - no absolute URLs
-            base = '';
-        }
-    }
-
-    const buildUrl = (path = '') => `${base}${path.startsWith('/') ? path : `/${path}`}`;
-
-    return {
-        baseUrl: base,
-        buildUrl,
-        fetch: (path, options = {}) => fetch(buildUrl(path), options)
-    };
-})();
-window.ImpromptuIndianApi = ImpromptuIndianApi;
+// DO NOT redeclare ImpromptuIndianApi - sidebar.js already creates it
+// Use window.ImpromptuIndianApi directly throughout this file
 
 /* Auto-highlight sidebar */
 const currentPage = window.location.pathname.split("/").pop();
@@ -85,7 +60,7 @@ async function fetchOrders() {
 
     try {
         const token = localStorage.getItem('token');
-        const response = await ImpromptuIndianApi.fetch(`/api/customer/orders`, {
+        const response = await window.ImpromptuIndianApi.fetch(`/api/customer/orders`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
