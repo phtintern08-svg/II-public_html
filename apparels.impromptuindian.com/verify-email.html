@@ -137,57 +137,37 @@
                 setTimeout(() => {
                     spinnerEl.classList.add('hidden');
                     messageEl.classList.remove('hidden');
-                
-                if (data.success) {
-                    titleEl.textContent = 'Email Verified!';
-                    titleEl.className = 'success';
                     
-                    // Check if this is a pre-registration verification
-                    if (data.pre_registration && data.email && data.role) {
-                        messageEl.textContent = 'Your email has been verified successfully. You can now complete your registration.';
+                    if (data.success) {
+                        titleEl.textContent = 'Email Verified!';
+                        titleEl.className = 'success';
                         
-                        // ✅ Use backend response (single source of truth)
-                        const email = data.email;
-                        const role = data.role;
-                        
-                        // Map role → fieldId (backend-driven, not guessed)
-                        const fieldMap = {
-                            'customer': 'custEmail',
-                            'vendor': 'vendEmail',
-                            'rider': 'riderEmail'
-                        };
-                        
-                        const fieldId = fieldMap[role];
-                        
-                        if (fieldId) {
-                            // Store verified email with fieldId from backend
-                            localStorage.setItem(`verified_email_${fieldId}`, email);
+                        // Check if this is a pre-registration verification
+                        if (data.pre_registration && data.email && data.role) {
+                            messageEl.textContent = 'Your email has been verified successfully. Redirecting you back…';
+                            messageEl.classList.add('success');
                             
                             // Redirect to appropriate registration page after a short delay
                             setTimeout(() => {
-                                if (role === 'rider') {
+                                if (data.role === 'rider') {
                                     window.location.href = 'rider-register.html';
-                                } else if (role === 'vendor') {
+                                } else if (data.role === 'vendor') {
                                     window.location.href = 'register.html?role=vendor';
                                 } else {
                                     window.location.href = 'register.html';
                                 }
                             }, 2000);
                         } else {
-                            messageEl.textContent = 'Your email has been verified successfully. Please return to the registration page to complete your account.';
+                            messageEl.textContent = 'Your email has been verified successfully. You can now log in to your account.';
+                            messageEl.classList.add('success');
+                            loginLinkEl.classList.remove('hidden');
                         }
                     } else {
-                        messageEl.textContent = 'Your email has been verified successfully. You can now log in to your account.';
+                        titleEl.textContent = 'Verification Failed';
+                        titleEl.className = 'error';
+                        messageEl.textContent = data.error || 'Verification failed. The link may have expired. Please request a new verification email.';
+                        messageEl.classList.add('error');
                     }
-                    
-                    messageEl.classList.add('success');
-                    loginLinkEl.classList.remove('hidden');
-                } else {
-                    titleEl.textContent = 'Verification Failed';
-                    titleEl.className = 'error';
-                    messageEl.textContent = data.error || 'Verification failed. The link may have expired. Please request a new verification email.';
-                    messageEl.classList.add('error');
-                }
                 }, 1200); // Buffer delay for better UX
             })
             .catch(error => {

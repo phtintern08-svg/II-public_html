@@ -274,103 +274,59 @@ if (tabCustomer && tabVendor) {
 // Initialize Lucide Icons
 lucide.createIcons();
 
-// Check if email was verified when user returns from verification link
-function checkEmailVerificationStatus() {
-    // Check for each email field
-    const emailFields = ['custEmail', 'vendEmail'];
+// ✅ Check email verification status from database (DB is single source of truth)
+async function checkEmailVerifiedFromDB(fieldId, role) {
+    const emailInput = document.getElementById(fieldId);
+    if (!emailInput) return;
     
-    emailFields.forEach(fieldId => {
-        const pendingEmail = localStorage.getItem(`pending_email_verification_${fieldId}`);
-        const verifiedEmail = localStorage.getItem(`verified_email_${fieldId}`);
-        
-        if (pendingEmail && verifiedEmail && pendingEmail === verifiedEmail) {
-            // Email was verified - update UI
-            const inputField = document.getElementById(fieldId);
-            const getOtpBtn = document.getElementById(`${fieldId}OtpBtn`);
-            const verifiedIcon = document.getElementById(`verified-${fieldId}-icon`);
-            
-            if (inputField && inputField.value.trim().toLowerCase() === verifiedEmail) {
-                // Email matches - update UI to verified state
-                emailLinkSent[fieldId] = true;
-                verificationStatus[fieldId] = true;
-                
-                inputField.readOnly = true;
-                inputField.classList.remove('border-yellow-400');
-                inputField.classList.add('border-green-400');
-                inputField.classList.remove('border-gray-700');
-                
-                if (getOtpBtn) {
-                    getOtpBtn.disabled = true;
-                    getOtpBtn.innerText = "Verified";
-                    getOtpBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                    getOtpBtn.classList.remove('bg-[#FFCC00]');
-                    getOtpBtn.classList.add('bg-green-600', 'text-white');
-                }
-                
-                if (verifiedIcon) {
-                    verifiedIcon.classList.remove('hidden');
-                }
-                
-                // Clean up localStorage
-                localStorage.removeItem(`pending_email_verification_${fieldId}`);
-                localStorage.removeItem(`verified_email_${fieldId}`);
-            }
-        }
-    });
-}
-
-// ✅ Sync email verification from backend session (refresh-proof)
-async function syncEmailVerificationFromSession() {
+    const email = emailInput.value.trim().toLowerCase();
+    if (!email) return;
+    
     try {
-        const res = await ImpromptuIndianApi.fetch('/api/email-verification-status');
+        const res = await ImpromptuIndianApi.fetch(
+            `/api/email-verification-status-by-email?email=${encodeURIComponent(email)}&role=${role}`
+        );
         const data = await res.json();
-
-        if (!data.verified || !data.email || !data.role) return;
-
-        const fieldMap = {
-            'customer': 'custEmail',
-            'vendor': 'vendEmail',
-            'rider': 'riderEmail'
-        };
-
-        const fieldId = fieldMap[data.role];
-        if (!fieldId) return;
-
-        const emailInput = document.getElementById(fieldId);
-        if (!emailInput) return;
-
-        // Ensure same email
-        if (emailInput.value.toLowerCase() !== data.email.toLowerCase()) return;
-
-        // ✅ Mark verified (backend-driven, refresh-proof)
-        verificationStatus[fieldId] = true;
-        emailLinkSent[fieldId] = true;
-
-        emailInput.readOnly = true;
-        emailInput.classList.remove('border-yellow-400', 'border-gray-700');
-        emailInput.classList.add('border-green-400');
-
-        const verifiedIcon = document.getElementById(`verified-${fieldId}-icon`);
-        if (verifiedIcon) verifiedIcon.classList.remove('hidden');
-
-        const btn = document.getElementById(`${fieldId}OtpBtn`);
-        if (btn) {
-            btn.innerText = 'Verified';
-            btn.disabled = true;
-            btn.classList.add('opacity-50', 'cursor-not-allowed');
-            btn.classList.remove('bg-[#FFCC00]');
-            btn.classList.add('bg-green-600', 'text-white');
+        
+        if (data.verified) {
+            // ✅ Email is verified in database - update UI
+            verificationStatus[fieldId] = true;
+            emailLinkSent[fieldId] = true;
+            
+            emailInput.readOnly = true;
+            emailInput.classList.remove('border-yellow-400', 'border-gray-700');
+            emailInput.classList.add('border-green-400');
+            
+            const btn = document.getElementById(`${fieldId}OtpBtn`);
+            if (btn) {
+                btn.innerText = 'Verified';
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+                btn.classList.remove('bg-[#FFCC00]');
+                btn.classList.add('bg-green-600', 'text-white');
+            }
+            
+            const verifiedIcon = document.getElementById(`verified-${fieldId}-icon`);
+            if (verifiedIcon) verifiedIcon.classList.remove('hidden');
         }
-
     } catch (err) {
-        console.error('Verification sync failed:', err);
+        console.error(`Error checking verification status for ${fieldId}:`, err);
     }
 }
 
-// Check verification status on page load (both localStorage and session)
+// Check verification status on page load (DB-backed, refresh-proof)
 document.addEventListener('DOMContentLoaded', () => {
-    checkEmailVerificationStatus(); // Check localStorage (from redirect)
-    syncEmailVerificationFromSession(); // Check backend session (refresh-proof)
+    // Check customer email
+    const custEmail = document.getElementById('custEmail');
+    if (custEmail && custEmail.value) {
+        checkEmailVerifiedFromDB('custEmail', 'customer');
+    }
+    
+    // Check vendor email
+    const vendEmail = document.getElementById('vendEmail');
+    if (vendEmail && vendEmail.value) {
+        checkEmailVerifiedFromDB('vendEmail', 'vendor');
+    }
 });
 
 // --- OTP/Verification Link Handling ---
@@ -444,9 +400,8 @@ async function handleGetOtp(fieldId) {
                 emailLinkSent[fieldId] = true;
                 verificationStatus[fieldId] = false; // Explicitly set to false
                 
-                // Store email in localStorage so verify-email page can update status
-                const email = inputField.value.trim().toLowerCase();
-                localStorage.setItem(`pending_email_verification_${fieldId}`, email);
+                // Note: We no longer store in localStorage - DB is the single source of truth
+                // Frontend will check DB status on page load via checkEmailVerifiedFromDB()
                 
                 // Update UI to show link was sent (but NOT verified)
                 inputField.readOnly = false; // Keep editable until verified

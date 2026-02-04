@@ -3,94 +3,55 @@ if (window.lucide) {
     lucide.createIcons();
 }
 
-// Check if email was verified when user returns from verification link
-function checkRiderEmailVerificationStatus() {
-    const pendingEmail = localStorage.getItem('pending_email_verification_riderEmail');
-    const verifiedEmail = localStorage.getItem('verified_email_riderEmail');
+// ✅ Check email verification status from database (DB is single source of truth)
+async function checkRiderEmailVerifiedFromDB() {
+    const emailInput = document.getElementById('riderEmail');
+    if (!emailInput) return;
     
-    if (pendingEmail && verifiedEmail && pendingEmail === verifiedEmail) {
-        // Email was verified - update UI
-        const inputElement = document.getElementById('riderEmail');
-        const otpBtn = document.getElementById('riderEmailOtpBtn');
-        const verifiedIcon = document.getElementById('verified-riderEmail-icon');
+    const email = emailInput.value.trim().toLowerCase();
+    if (!email) return;
+    
+    try {
+        const res = await fetch(
+            `${getApiBase()}/api/email-verification-status-by-email?email=${encodeURIComponent(email)}&role=rider`,
+            {
+                credentials: 'include'
+            }
+        );
+        const data = await res.json();
         
-        if (inputElement && inputElement.value.trim().toLowerCase() === verifiedEmail) {
-            // Email matches - update UI to verified state
+        if (data.verified) {
+            // ✅ Email is verified in database - update UI
             otpState.riderEmail.sent = true;
             otpState.riderEmail.verified = true;
             
-            inputElement.readOnly = true;
-            inputElement.classList.remove('border-yellow-400');
-            inputElement.classList.add('border-green-400');
-            inputElement.classList.remove('border-gray-700');
+            emailInput.readOnly = true;
+            emailInput.classList.remove('border-yellow-400', 'border-gray-700');
+            emailInput.classList.add('border-green-400');
             
-            if (otpBtn) {
-                otpBtn.disabled = true;
-                otpBtn.innerText = "Verified";
-                otpBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                otpBtn.classList.remove('bg-[#FFCC00]');
-                otpBtn.classList.add('bg-green-600', 'text-white');
+            const btn = document.getElementById('riderEmailOtpBtn');
+            if (btn) {
+                btn.innerText = 'Verified';
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+                btn.classList.remove('bg-[#FFCC00]');
+                btn.classList.add('bg-green-600', 'text-white');
             }
             
-            if (verifiedIcon) {
-                verifiedIcon.classList.remove('hidden');
-            }
-            
-            // Clean up localStorage
-            localStorage.removeItem('pending_email_verification_riderEmail');
-            localStorage.removeItem('verified_email_riderEmail');
+            const verifiedIcon = document.getElementById('verified-riderEmail-icon');
+            if (verifiedIcon) verifiedIcon.classList.remove('hidden');
         }
-    }
-}
-
-// ✅ Sync email verification from backend session (refresh-proof)
-async function syncRiderEmailVerificationFromSession() {
-    try {
-        const res = await fetch(`${getApiBase()}/api/email-verification-status`, {
-            credentials: 'include' // Include cookies for session
-        });
-        const data = await res.json();
-
-        if (!data.verified || !data.email || !data.role) return;
-
-        // Only handle rider role
-        if (data.role !== 'rider') return;
-
-        const emailInput = document.getElementById('riderEmail');
-        if (!emailInput) return;
-
-        // Ensure same email
-        if (emailInput.value.toLowerCase() !== data.email.toLowerCase()) return;
-
-        // ✅ Mark verified (backend-driven, refresh-proof)
-        otpState.riderEmail.sent = true;
-        otpState.riderEmail.verified = true;
-
-        emailInput.readOnly = true;
-        emailInput.classList.remove('border-yellow-400', 'border-gray-700');
-        emailInput.classList.add('border-green-400');
-
-        const verifiedIcon = document.getElementById('verified-riderEmail-icon');
-        if (verifiedIcon) verifiedIcon.classList.remove('hidden');
-
-        const btn = document.getElementById('riderEmailOtpBtn');
-        if (btn) {
-            btn.innerText = 'Verified';
-            btn.disabled = true;
-            btn.classList.add('opacity-50', 'cursor-not-allowed');
-            btn.classList.remove('bg-[#FFCC00]');
-            btn.classList.add('bg-green-600', 'text-white');
-        }
-
     } catch (err) {
-        console.error('Verification sync failed:', err);
+        console.error('Error checking rider email verification status:', err);
     }
 }
 
-// Check verification status on page load (both localStorage and session)
+// Check verification status on page load (DB-backed, refresh-proof)
 document.addEventListener('DOMContentLoaded', () => {
-    checkRiderEmailVerificationStatus(); // Check localStorage (from redirect)
-    syncRiderEmailVerificationFromSession(); // Check backend session (refresh-proof)
+    const riderEmail = document.getElementById('riderEmail');
+    if (riderEmail && riderEmail.value) {
+        checkRiderEmailVerifiedFromDB();
+    }
 });
 
 // OTP State Management
@@ -161,8 +122,8 @@ async function handleGetOtp(field) {
                 otpState[field].sent = true;
                 otpState[field].verified = false; // Explicitly set to false
                 
-                // Store email in localStorage so verify-email page can update status
-                localStorage.setItem(`pending_email_verification_${field}`, email);
+                // Note: We no longer store in localStorage - DB is the single source of truth
+                // Frontend will check DB status on page load via checkRiderEmailVerifiedFromDB()
                 
                 // Update UI to show link was sent (but NOT verified)
                 inputElement.readOnly = false; // Keep editable until verified
