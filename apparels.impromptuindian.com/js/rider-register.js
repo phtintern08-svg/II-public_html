@@ -48,8 +48,20 @@ async function checkRiderEmailVerifiedFromDB() {
 
 // Check verification status on page load (DB-backed, refresh-proof)
 document.addEventListener('DOMContentLoaded', () => {
+    // ✅ Auto-fill email from URL parameters (from magic link redirect)
+    const params = new URLSearchParams(window.location.search);
+    const email = params.get('email');
+    const role = params.get('role');
+    
     const riderEmail = document.getElementById('riderEmail');
-    if (riderEmail && riderEmail.value) {
+    
+    if (email && role === 'rider' && riderEmail) {
+        // Auto-fill email from URL
+        riderEmail.value = email;
+        // Check verification status immediately
+        checkRiderEmailVerifiedFromDB();
+    } else if (riderEmail && riderEmail.value) {
+        // No URL params - check existing email value
         checkRiderEmailVerifiedFromDB();
     }
 });

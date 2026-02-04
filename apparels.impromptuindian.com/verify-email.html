@@ -100,8 +100,8 @@
     </div>
 
     <script>
-        // Set API base URL (same as other pages)
-        window.IMPROMPTU_INDIAN_API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://apparels.impromptuindian.com';
+        // Set API base URL (use existing or empty - ImpromptuIndianApi will normalize)
+        window.IMPROMPTU_INDIAN_API_BASE = window.IMPROMPTU_INDIAN_API_BASE || '';
         
         const token = new URLSearchParams(window.location.search).get("token");
         const titleEl = document.getElementById('title');
@@ -147,14 +147,14 @@
                             messageEl.textContent = 'Your email has been verified successfully. Redirecting you back…';
                             messageEl.classList.add('success');
                             
-                            // Redirect to appropriate registration page after a short delay
+                            // ✅ Redirect with email and role in URL (so page can auto-fill and verify)
                             setTimeout(() => {
                                 if (data.role === 'rider') {
-                                    window.location.href = 'rider-register.html';
+                                    window.location.href = `rider-register.html?email=${encodeURIComponent(data.email)}&role=${data.role}`;
                                 } else if (data.role === 'vendor') {
-                                    window.location.href = 'register.html?role=vendor';
+                                    window.location.href = `register.html?email=${encodeURIComponent(data.email)}&role=${data.role}`;
                                 } else {
-                                    window.location.href = 'register.html';
+                                    window.location.href = `register.html?email=${encodeURIComponent(data.email)}&role=${data.role}`;
                                 }
                             }, 2000);
                         } else {
@@ -165,7 +165,14 @@
                     } else {
                         titleEl.textContent = 'Verification Failed';
                         titleEl.className = 'error';
-                        messageEl.textContent = data.error || 'Verification failed. The link may have expired. Please request a new verification email.';
+                        
+                        // ✅ Better error messages for expired tokens (UX polish)
+                        if (data.error && (data.error.includes('expired') || data.error.includes('Invalid or expired'))) {
+                            messageEl.textContent = 'This verification link has expired. Please request a new one from the registration page.';
+                        } else {
+                            messageEl.textContent = data.error || 'Verification failed. The link may have expired. Please request a new verification email.';
+                        }
+                        
                         messageEl.classList.add('error');
                     }
                 }, 1200); // Buffer delay for better UX
@@ -174,7 +181,8 @@
                 spinnerEl.classList.add('hidden');
                 titleEl.textContent = 'Verification Failed';
                 titleEl.className = 'error';
-                messageEl.textContent = 'An error occurred during verification. Please try again later.';
+                // ✅ Better error message for network/server errors
+                messageEl.textContent = 'An error occurred during verification. Please check your internet connection and try again. If the problem persists, please request a new verification link from the registration page.';
                 messageEl.classList.remove('hidden');
                 messageEl.classList.add('error');
                 console.error('Verification error:', error);

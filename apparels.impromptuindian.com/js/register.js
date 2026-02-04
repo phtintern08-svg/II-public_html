@@ -316,16 +316,43 @@ async function checkEmailVerifiedFromDB(fieldId, role) {
 
 // Check verification status on page load (DB-backed, refresh-proof)
 document.addEventListener('DOMContentLoaded', () => {
-    // Check customer email
-    const custEmail = document.getElementById('custEmail');
-    if (custEmail && custEmail.value) {
-        checkEmailVerifiedFromDB('custEmail', 'customer');
-    }
+    // ✅ Auto-fill email from URL parameters (from magic link redirect)
+    const params = new URLSearchParams(window.location.search);
+    const email = params.get('email');
+    const role = params.get('role');
     
-    // Check vendor email
-    const vendEmail = document.getElementById('vendEmail');
-    if (vendEmail && vendEmail.value) {
-        checkEmailVerifiedFromDB('vendEmail', 'vendor');
+    if (email && role) {
+        // Auto-fill email field based on role
+        if (role === 'vendor') {
+            const vendEmail = document.getElementById('vendEmail');
+            if (vendEmail) {
+                vendEmail.value = email;
+                // Activate vendor tab if needed
+                activateTab(false); // false = vendor tab
+                // Check verification status immediately
+                checkEmailVerifiedFromDB('vendEmail', 'vendor');
+            }
+        } else if (role === 'customer') {
+            const custEmail = document.getElementById('custEmail');
+            if (custEmail) {
+                custEmail.value = email;
+                // Activate customer tab if needed
+                activateTab(true); // true = customer tab
+                // Check verification status immediately
+                checkEmailVerifiedFromDB('custEmail', 'customer');
+            }
+        }
+    } else {
+        // No URL params - check existing email values
+        const custEmail = document.getElementById('custEmail');
+        if (custEmail && custEmail.value) {
+            checkEmailVerifiedFromDB('custEmail', 'customer');
+        }
+        
+        const vendEmail = document.getElementById('vendEmail');
+        if (vendEmail && vendEmail.value) {
+            checkEmailVerifiedFromDB('vendEmail', 'vendor');
+        }
     }
 });
 
@@ -440,63 +467,63 @@ async function handleGetOtp(fieldId) {
             return;
         }
 
-        // Disable button temporarily
-        getOtpBtn.disabled = true;
-        getOtpBtn.innerText = "Sending...";
+    // Disable button temporarily
+    getOtpBtn.disabled = true;
+    getOtpBtn.innerText = "Sending...";
 
+    try {
+        const response = await ImpromptuIndianApi.fetch('/api/send-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recipient: inputField.value, type: type })
+        });
+
+        // Handle response - check for HTML error pages
+        let result;
         try {
-            const response = await ImpromptuIndianApi.fetch('/api/send-otp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ recipient: inputField.value, type: type })
-            });
+            const text = await response.text();
 
-            // Handle response - check for HTML error pages
-            let result;
-            try {
-                const text = await response.text();
-
-                // Check if response is HTML (error page)
-                if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
-                    console.error('Server returned HTML instead of JSON. This usually means the API endpoint is not found or the server is returning an error page.');
-                    showAlert('Server Error', 'Unable to reach the OTP service. Please check if the server is running.', 'error');
-                    getOtpBtn.disabled = false;
-                    getOtpBtn.innerText = "Get OTP";
-                    return;
-                }
-
-                // Try to parse as JSON
-                result = JSON.parse(text);
-            } catch (parseError) {
-                // If JSON parsing fails, show a more helpful error
-                console.error('Failed to parse response as JSON:', parseError);
-                showAlert('Server Error', 'Server returned an invalid response. Please try again later.', 'error');
+            // Check if response is HTML (error page)
+            if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+                console.error('Server returned HTML instead of JSON. This usually means the API endpoint is not found or the server is returning an error page.');
+                showAlert('Server Error', 'Unable to reach the OTP service. Please check if the server is running.', 'error');
                 getOtpBtn.disabled = false;
                 getOtpBtn.innerText = "Get OTP";
                 return;
             }
 
-            if (response.ok) {
+            // Try to parse as JSON
+            result = JSON.parse(text);
+        } catch (parseError) {
+            // If JSON parsing fails, show a more helpful error
+            console.error('Failed to parse response as JSON:', parseError);
+            showAlert('Server Error', 'Server returned an invalid response. Please try again later.', 'error');
+            getOtpBtn.disabled = false;
+            getOtpBtn.innerText = "Get OTP";
+            return;
+        }
+
+        if (response.ok) {
                 showAlert('OTP Sent', `OTP sent to ${inputField.value}. Check your phone.`, 'success');
 
-                // Show OTP input
+            // Show OTP input
                 if (otpContainer) {
-                    otpContainer.classList.remove('hidden');
+            otpContainer.classList.remove('hidden');
                 }
 
-                // Start 60 second timer
-                startTimer(fieldId, getOtpBtn, timerDiv);
+            // Start 60 second timer
+            startTimer(fieldId, getOtpBtn, timerDiv);
 
-            } else {
-                showAlert('Error', 'Error sending OTP: ' + result.error, 'error');
-                getOtpBtn.innerText = "Get OTP";
-                getOtpBtn.disabled = false;
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            showAlert('Connection Error', 'Failed to connect to server.', 'error');
+        } else {
+            showAlert('Error', 'Error sending OTP: ' + result.error, 'error');
             getOtpBtn.innerText = "Get OTP";
             getOtpBtn.disabled = false;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('Connection Error', 'Failed to connect to server.', 'error');
+        getOtpBtn.innerText = "Get OTP";
+        getOtpBtn.disabled = false;
         }
     }
 }
