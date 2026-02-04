@@ -1,3 +1,13 @@
+// --- API base hardening for multi-domain setups ---
+// If rider register page is served from a different host, force API to Passenger app host.
+(function ensureApiBase() {
+    const host = (window.location.hostname || '').toLowerCase();
+    const isLocal = host === 'localhost' || host === '127.0.0.1';
+    if (!isLocal && host.endsWith('impromptuindian.com')) {
+        window.IMPROMPTU_INDIAN_API_BASE = 'https://apparels.impromptuindian.com';
+    }
+})();
+
 // Initialize Lucide icons
 if (window.lucide) {
     lucide.createIcons();

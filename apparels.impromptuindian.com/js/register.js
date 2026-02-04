@@ -1,3 +1,14 @@
+// --- API base hardening for multi-domain setups ---
+// If register page is served from a different host (e.g. impromptuindian.com/www),
+// we must still call the API on the Passenger app host.
+(function ensureApiBase() {
+    const host = (window.location.hostname || '').toLowerCase();
+    const isLocal = host === 'localhost' || host === '127.0.0.1';
+    if (!isLocal && host.endsWith('impromptuindian.com')) {
+        window.IMPROMPTU_INDIAN_API_BASE = 'https://apparels.impromptuindian.com';
+    }
+})();
+
 const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
     const rawBase =
         window.IMPROMPTU_INDIAN_API_BASE ||

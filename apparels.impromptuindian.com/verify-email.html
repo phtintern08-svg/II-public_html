@@ -100,8 +100,17 @@
     </div>
 
     <script>
-        // Set API base URL (use existing or empty - ImpromptuIndianApi will normalize)
-        window.IMPROMPTU_INDIAN_API_BASE = window.IMPROMPTU_INDIAN_API_BASE || '';
+        // Set API base URL (multi-domain safe)
+        // If this page is opened on a different host, force API calls to the Passenger app host.
+        (function ensureApiBase() {
+            const host = (window.location.hostname || '').toLowerCase();
+            const isLocal = host === 'localhost' || host === '127.0.0.1';
+            if (!isLocal && host.endsWith('impromptuindian.com')) {
+                window.IMPROMPTU_INDIAN_API_BASE = 'https://apparels.impromptuindian.com';
+            } else {
+                window.IMPROMPTU_INDIAN_API_BASE = window.IMPROMPTU_INDIAN_API_BASE || '';
+            }
+        })();
         
         const token = new URLSearchParams(window.location.search).get("token");
         const titleEl = document.getElementById('title');
