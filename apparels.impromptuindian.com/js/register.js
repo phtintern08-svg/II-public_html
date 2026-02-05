@@ -298,26 +298,52 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (email && role) {
         // Auto-fill email field based on role
+        // ✅ BUG #3 FIX: If email comes from verification redirect, disable field and button
+        // Email is already verified, so user shouldn't be able to resend
         if (role === 'vendor') {
             const vendEmail = document.getElementById('vendEmail');
             if (vendEmail) {
                 vendEmail.value = email;
+                vendEmail.disabled = true; // ✅ Disable email field - already verified
+                vendEmail.classList.add('opacity-50', 'cursor-not-allowed');
                 activateTab(false); // false = vendor tab
-                // ✅ UX IMPROVEMENT: Show resend button if email is filled (token may have expired)
+                
+                // ✅ Disable send button - email already verified
+                const sendBtn = document.getElementById('vendEmailOtpBtn');
+                if (sendBtn) {
+                    sendBtn.disabled = true;
+                    sendBtn.innerText = "Email Verified";
+                    sendBtn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-green-600', 'text-white');
+                    sendBtn.classList.remove('bg-[#FFCC00]');
+                }
+                
+                // Hide resend button - not needed
                 const resendBtn = document.getElementById('resend-vendEmail');
                 if (resendBtn) {
-                    resendBtn.classList.remove('hidden');
+                    resendBtn.classList.add('hidden');
                 }
             }
         } else if (role === 'customer') {
             const custEmail = document.getElementById('custEmail');
             if (custEmail) {
                 custEmail.value = email;
+                custEmail.disabled = true; // ✅ Disable email field - already verified
+                custEmail.classList.add('opacity-50', 'cursor-not-allowed');
                 activateTab(true); // true = customer tab
-                // ✅ UX IMPROVEMENT: Show resend button if email is filled (token may have expired)
+                
+                // ✅ Disable send button - email already verified
+                const sendBtn = document.getElementById('custEmailOtpBtn');
+                if (sendBtn) {
+                    sendBtn.disabled = true;
+                    sendBtn.innerText = "Email Verified";
+                    sendBtn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-green-600', 'text-white');
+                    sendBtn.classList.remove('bg-[#FFCC00]');
+                }
+                
+                // Hide resend button - not needed
                 const resendBtn = document.getElementById('resend-custEmail');
                 if (resendBtn) {
-                    resendBtn.classList.remove('hidden');
+                    resendBtn.classList.add('hidden');
                 }
             }
         }

@@ -112,12 +112,45 @@
             }
         })();
         
-        const token = new URLSearchParams(window.location.search).get("token");
+        // ✅ FIX: Handle both direct API calls (redirected) and HTML page loads
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const verified = urlParams.get('verified');
+        const alreadyVerified = urlParams.get('already_verified');
         const titleEl = document.getElementById('title');
         const messageEl = document.getElementById('message');
         const spinnerEl = document.getElementById('spinner');
         const loginLinkEl = document.getElementById('loginLink');
 
+        // If already verified via API redirect, show success immediately
+        if (verified === '1') {
+            spinnerEl.classList.add('hidden');
+            titleEl.textContent = 'Email Verified ✔';
+            titleEl.className = 'success';
+            
+            if (alreadyVerified === '1') {
+                messageEl.textContent = 'Your email was already verified. Redirecting you back…';
+            } else {
+                messageEl.textContent = 'Your email has been verified successfully. Redirecting you back…';
+            }
+            messageEl.classList.remove('hidden');
+            messageEl.classList.add('success');
+            
+            // Redirect based on role
+            const email = urlParams.get('email');
+            const role = urlParams.get('role');
+            setTimeout(() => {
+                if (role === 'rider') {
+                    window.location.href = `rider-register.html?email=${encodeURIComponent(email)}&role=${role}`;
+                } else if (email && role) {
+                    window.location.href = `register.html?email=${encodeURIComponent(email)}&role=${role}`;
+                } else {
+                    window.location.href = 'register.html';
+                }
+            }, 2000);
+            return; // ✅ BUG #4 FIX: Exit early - don't call API again
+        }
+        
         if (!token) {
             titleEl.textContent = 'Verification Failed';
             titleEl.className = 'error';
