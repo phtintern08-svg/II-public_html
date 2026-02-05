@@ -101,37 +101,41 @@
     </div>
 
     <script>
-        // Set API base URL (multi-domain safe)
-        // If this page is opened on a different host, force API calls to the Passenger app host.
-        (function ensureApiBase() {
-            const host = (window.location.hostname || '').toLowerCase();
-            const isLocal = host === 'localhost' || host === '127.0.0.1';
-            if (!isLocal && host.endsWith('impromptuindian.com')) {
-                window.IMPROMPTU_INDIAN_API_BASE = 'https://apparels.impromptuindian.com';
-            } else {
-                window.IMPROMPTU_INDIAN_API_BASE = window.IMPROMPTU_INDIAN_API_BASE || '';
-            }
-        })();
-        
-        // ✅ FIX #1: Poll until verification is complete (short-lived, ~10 seconds max)
-        // Frontend needs confirmation loop because redirect params may not be immediately available
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
-        const verified = urlParams.get('verified');
-        const titleEl = document.getElementById('title');
-        const messageEl = document.getElementById('message');
-        const spinnerEl = document.getElementById('spinner');
-        const loginLinkEl = document.getElementById('loginLink');
-        const backBtnEl = document.getElementById('backBtn');
+        // ✅ FIX: Wrap entire script in IIFE to allow return statements
+        (function () {
+            // Set API base URL (multi-domain safe)
+            // If this page is opened on a different host, force API calls to the Passenger app host.
+            (function ensureApiBase() {
+                const host = (window.location.hostname || '').toLowerCase();
+                const isLocal = host === 'localhost' || host === '127.0.0.1';
+                if (!isLocal && host.endsWith('impromptuindian.com')) {
+                    window.IMPROMPTU_INDIAN_API_BASE = 'https://apparels.impromptuindian.com';
+                } else {
+                    window.IMPROMPTU_INDIAN_API_BASE = window.IMPROMPTU_INDIAN_API_BASE || '';
+                }
+            })();
+            
+            // ✅ FIX #1: Poll until verification is complete (short-lived, ~10 seconds max)
+            // Frontend needs confirmation loop because redirect params may not be immediately available
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            const verified = urlParams.get('verified');
+            const titleEl = document.getElementById('title');
+            const messageEl = document.getElementById('message');
+            const spinnerEl = document.getElementById('spinner');
+            const loginLinkEl = document.getElementById('loginLink');
+            const backBtnEl = document.getElementById('backBtn');
 
         // ✅ OPTIMIZATION: If already verified via redirect params, skip polling
         if (verified === '1' || verified === 'true') {
+            console.log('🔁 Email verification confirmed via redirect params');
             const email = urlParams.get('email');
             const role = urlParams.get('role');
             
             spinnerEl.classList.add('hidden');
             titleEl.textContent = 'Email Verified ✔';
-            titleEl.className = 'success';
+            titleEl.classList.remove('error');
+            titleEl.classList.add('success');
             messageEl.textContent = 'Your email has been verified successfully. Redirecting you back…';
             messageEl.classList.remove('hidden');
             messageEl.classList.add('success');
@@ -166,11 +170,14 @@
             }
 
             // Auto-redirect to registration page after 2 seconds (user can click button to go immediately)
+            // ✅ Note: email and role are captured in closure - safe for setTimeout
+            const redirectEmail = email;
+            const redirectRole = role;
             setTimeout(() => {
-                if (role === 'rider') {
-                    window.location.href = `rider-register.html?email=${encodeURIComponent(email)}&role=${role}`;
-                } else if (email && role) {
-                    window.location.href = `register.html?email=${encodeURIComponent(email)}&role=${role}`;
+                if (redirectRole === 'rider') {
+                    window.location.href = `rider-register.html?email=${encodeURIComponent(redirectEmail)}&role=${redirectRole}`;
+                } else if (redirectEmail && redirectRole) {
+                    window.location.href = `register.html?email=${encodeURIComponent(redirectEmail)}&role=${redirectRole}`;
                 } else {
                     window.location.href = 'register.html';
                 }
@@ -181,7 +188,8 @@
         if (!token) {
             spinnerEl.classList.add('hidden');
             titleEl.textContent = 'Verification Failed';
-            titleEl.className = 'error';
+            titleEl.classList.remove('success');
+            titleEl.classList.add('error');
             messageEl.textContent = 'Invalid verification link. Please check your email and try again.';
             messageEl.classList.remove('hidden');
             messageEl.classList.add('error');
@@ -193,9 +201,16 @@
 
         let attempts = 0;
         const MAX_ATTEMPTS = 10; // ~10 seconds (1 second intervals)
+        let pollingStarted = false; // ✅ Guard against double polling
 
         async function pollVerification() {
+            // ✅ Guard against double polling (edge case: fast refresh with verified URL)
+            if (pollingStarted) return;
+            pollingStarted = true;
+            
             attempts++;
+            // ✅ Optional: Log polling attempts (debug-only)
+            console.log(`⏳ Polling verification attempt ${attempts}/${MAX_ATTEMPTS}`);
 
             try {
                 const apiBase = window.IMPROMPTU_INDIAN_API_BASE || '';
@@ -222,10 +237,18 @@
                 const data = await res.json();
 
                 if (data.success) {
+                    // ✅ Log verification source (DB-confirmed vs idempotent)
+                    if (data.already_verified) {
+                        console.log('ℹ️ Email already verified (token already used)');
+                    } else {
+                        console.log('✅ Email verification confirmed from database');
+                    }
+                    
                     // ✅ VERIFIED - Show success and sync across tabs
                     spinnerEl.classList.add('hidden');
                     titleEl.textContent = 'Email Verified ✔';
-                    titleEl.className = 'success';
+                    titleEl.classList.remove('error');
+                    titleEl.classList.add('success');
 
                     // ✅ FIX #4: Improved UX messaging
                     messageEl.innerHTML = `
@@ -265,11 +288,14 @@
                     }
 
                     // Auto-redirect to registration page after 2 seconds (user can click button to go immediately)
+                    // ✅ Note: data.email and data.role are captured in closure - safe for setTimeout
+                    const redirectEmail = data.email;
+                    const redirectRole = data.role;
                     setTimeout(() => {
-                        if (data.role === 'rider') {
-                            window.location.href = `rider-register.html?email=${encodeURIComponent(data.email)}&role=${data.role}`;
-                        } else if (data.email && data.role) {
-                            window.location.href = `register.html?email=${encodeURIComponent(data.email)}&role=${data.role}`;
+                        if (redirectRole === 'rider') {
+                            window.location.href = `rider-register.html?email=${encodeURIComponent(redirectEmail)}&role=${redirectRole}`;
+                        } else if (redirectEmail && redirectRole) {
+                            window.location.href = `register.html?email=${encodeURIComponent(redirectEmail)}&role=${redirectRole}`;
                         } else {
                             window.location.href = 'register.html';
                         }
@@ -289,7 +315,8 @@
                 // Timeout - show error
                 spinnerEl.classList.add('hidden');
                 titleEl.textContent = 'Verification Timeout';
-                titleEl.className = 'error';
+                titleEl.classList.remove('success');
+                titleEl.classList.add('error');
                 messageEl.textContent = 'Verification timed out. Please try again or request a new verification link.';
                 messageEl.classList.remove('hidden');
                 messageEl.classList.add('error');
@@ -301,6 +328,7 @@
 
         // Start polling immediately
         pollVerification();
+        })(); // ✅ End of IIFE - now return statements are valid
     </script>
 </body>
 </html>
