@@ -123,7 +123,8 @@
         const loginLinkEl = document.getElementById('loginLink');
 
         // If already verified via API redirect, show success immediately
-        if (verified === '1') {
+        // ✅ ISSUE #5: Defensive check for both '1' and 'true' string values
+        if (verified === '1' || verified === 'true') {
             spinnerEl.classList.add('hidden');
             titleEl.textContent = 'Email Verified ✔';
             titleEl.className = 'success';
@@ -151,6 +152,10 @@
             return; // ✅ BUG #4 FIX: Exit early - don't call API again
         }
         
+        // ✅ FIX #5: Remove fetch - backend redirect handles everything
+        // If we reach here without verified=1, it means user navigated directly to this page
+        // with a token parameter, which shouldn't happen (links point to /api/verify-email)
+        // But handle gracefully anyway
         if (!token) {
             titleEl.textContent = 'Verification Failed';
             titleEl.className = 'error';
@@ -158,129 +163,24 @@
             messageEl.textContent = 'Invalid verification link. Please check your email and try again.';
             messageEl.classList.remove('hidden');
             messageEl.classList.add('error');
-            return;
-        }
-
-        // ✅ TIMEOUT: Matches backend Config.EMAIL_VERIFICATION_TTL (300 seconds = 5 minutes) + 5s buffer
-        const TIMEOUT = (5 * 60 + 5) * 1000; // 5 minutes + 5 seconds
-        let timeoutTriggered = false;
-        
-        const timeoutId = setTimeout(() => {
-            timeoutTriggered = true;
-            spinnerEl.classList.add('hidden');
-            titleEl.textContent = 'Verification Timeout';
-            titleEl.className = 'error';
-            // ✅ UX IMPROVEMENT: Show helpful message even if timeout triggers
-            // (Backend may have succeeded, but frontend timeout fired first)
-            messageEl.textContent = 'The verification process is taking longer than expected. If you clicked the link, your email may already be verified. You can return to the registration page and try to create your account.';
-            messageEl.classList.remove('hidden');
-            messageEl.classList.add('error');
-            // Show link to go back
-            loginLinkEl.textContent = 'Go back to Registration';
+            loginLinkEl.textContent = 'Go to Registration';
             loginLinkEl.href = 'register.html';
             loginLinkEl.classList.remove('hidden');
-        }, TIMEOUT);
-
-        // Build API URL
-        const apiBase = window.IMPROMPTU_INDIAN_API_BASE || '';
-        const apiUrl = `${apiBase}/api/verify-email?token=${encodeURIComponent(token)}`;
-
-        fetch(apiUrl)
-            .then(res => {
-                // Handle HTML error pages
-                const contentType = res.headers.get('content-type');
-                if (contentType && contentType.includes('text/html')) {
-                    throw new Error('Server returned HTML instead of JSON');
-                }
-                return res.json();
-            })
-            .then(data => {
-                // Clear timeout if verification succeeds
-                clearTimeout(timeoutId);
-                
-                if (timeoutTriggered) {
-                    return; // Don't process if timeout already triggered
-                }
-                
-                // ✅ Add buffer delay for better UX (fake processing feel)
-                setTimeout(() => {
-                    spinnerEl.classList.add('hidden');
-                    messageEl.classList.remove('hidden');
-                    
-                    if (data.success) {
-                        titleEl.textContent = 'Email Verified ✔';
-                        titleEl.className = 'success';
-                        
-                        // ✅ UX IMPROVEMENT: Show better message if already verified
-                        if (data.already_verified) {
-                            titleEl.textContent = 'Email Already Verified';
-                            messageEl.textContent = 'This email was already verified. Redirecting you back…';
-                            messageEl.classList.add('success');
-                            
-                            // Redirect based on role
-                            setTimeout(() => {
-                                if (data.pre_registration && data.email && data.role) {
-                                    if (data.role === 'rider') {
-                                        window.location.href = `rider-register.html?email=${encodeURIComponent(data.email)}&role=${data.role}`;
-                                    } else {
-                                        window.location.href = `register.html?email=${encodeURIComponent(data.email)}&role=${data.role}`;
-                                    }
-                                } else {
-                                    window.location.href = 'register.html';
-                                }
-                            }, 2000);
-                        } else if (data.pre_registration && data.email && data.role) {
-                            messageEl.textContent = 'Your email has been verified successfully. Redirecting you back…';
-                            messageEl.classList.add('success');
-                            
-                            // ✅ Redirect with email and role in URL (so page can auto-fill and verify)
-                            setTimeout(() => {
-                                if (data.role === 'rider') {
-                                    window.location.href = `rider-register.html?email=${encodeURIComponent(data.email)}&role=${data.role}`;
-                                } else if (data.role === 'vendor') {
-                                    window.location.href = `register.html?email=${encodeURIComponent(data.email)}&role=${data.role}`;
-                                } else {
-                                    window.location.href = `register.html?email=${encodeURIComponent(data.email)}&role=${data.role}`;
-                                }
-                            }, 2000);
-                        } else {
-                            messageEl.textContent = 'Your email has been verified successfully. You can now log in to your account.';
-                            messageEl.classList.add('success');
-                            loginLinkEl.textContent = 'Go back to Register';
-                            loginLinkEl.href = 'register.html';
-                            loginLinkEl.classList.remove('hidden');
-                        }
-                    } else {
-                        titleEl.textContent = 'Verification Failed';
-                        titleEl.className = 'error';
-                        
-                        // ✅ Better error messages for expired tokens (UX polish)
-                        if (data.error && (data.error.includes('expired') || data.error.includes('Invalid or expired'))) {
-                            messageEl.textContent = 'This verification link has expired. Please request a new one from the registration page.';
-                        } else {
-                            messageEl.textContent = data.error || 'Verification failed. The link may have expired. Please request a new verification email.';
-                        }
-                        
-                        messageEl.classList.add('error');
-                    }
-                }, 1200); // Buffer delay for better UX
-            })
-            .catch(error => {
-                clearTimeout(timeoutId); // Clear timeout on error
-                
-                if (timeoutTriggered) {
-                    return; // Don't process if timeout already triggered
-                }
-                
-                spinnerEl.classList.add('hidden');
-                titleEl.textContent = 'Verification Failed';
-                titleEl.className = 'error';
-                // ✅ Better error message for network/server errors
-                messageEl.textContent = 'An error occurred during verification. Please check your internet connection and try again. If the problem persists, please request a new verification link from the registration page.';
-                messageEl.classList.remove('hidden');
-                messageEl.classList.add('error');
-                console.error('Verification error:', error);
-            });
+            return;
+        }
+        
+        // If token exists but no verified=1, it means user navigated here directly
+        // This shouldn't happen (email links point to /api/verify-email which redirects here),
+        // but show helpful message
+        spinnerEl.classList.add('hidden');
+        titleEl.textContent = 'Invalid Link';
+        titleEl.className = 'error';
+        messageEl.textContent = 'This verification link is invalid. Please use the link from your email, or request a new verification link from the registration page.';
+        messageEl.classList.remove('hidden');
+        messageEl.classList.add('error');
+        loginLinkEl.textContent = 'Go to Registration';
+        loginLinkEl.href = 'register.html';
+        loginLinkEl.classList.remove('hidden');
     </script>
 </body>
 </html>

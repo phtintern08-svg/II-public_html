@@ -296,19 +296,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const email = params.get('email');
     const role = params.get('role');
     
+    // ✅ FIX #1: Treat redirect as verification confirmation
+    // If email/role come from URL params, it means user was redirected after verification
+    // This IS the signal that email is verified - no need to poll or check backend
     if (email && role) {
         // Auto-fill email field based on role
-        // ✅ BUG #3 FIX: If email comes from verification redirect, disable field and button
-        // Email is already verified, so user shouldn't be able to resend
+        // ✅ Email is verified (redirect is proof) - disable field and button
         if (role === 'vendor') {
             const vendEmail = document.getElementById('vendEmail');
             if (vendEmail) {
                 vendEmail.value = email;
-                vendEmail.disabled = true; // ✅ Disable email field - already verified
-                vendEmail.classList.add('opacity-50', 'cursor-not-allowed');
+                vendEmail.disabled = true; // Disable - already verified (redirect confirms this)
+                vendEmail.classList.add('opacity-50', 'cursor-not-allowed', 'border-green-400');
+                vendEmail.classList.remove('border-yellow-400');
                 activateTab(false); // false = vendor tab
                 
-                // ✅ Disable send button - email already verified
+                // Disable send button - email already verified
                 const sendBtn = document.getElementById('vendEmailOtpBtn');
                 if (sendBtn) {
                     sendBtn.disabled = true;
@@ -327,11 +330,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const custEmail = document.getElementById('custEmail');
             if (custEmail) {
                 custEmail.value = email;
-                custEmail.disabled = true; // ✅ Disable email field - already verified
-                custEmail.classList.add('opacity-50', 'cursor-not-allowed');
+                custEmail.disabled = true; // Disable - already verified (redirect confirms this)
+                custEmail.classList.add('opacity-50', 'cursor-not-allowed', 'border-green-400');
+                custEmail.classList.remove('border-yellow-400');
                 activateTab(true); // true = customer tab
                 
-                // ✅ Disable send button - email already verified
+                // Disable send button - email already verified
                 const sendBtn = document.getElementById('custEmailOtpBtn');
                 if (sendBtn) {
                     sendBtn.disabled = true;
@@ -347,24 +351,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         }
-    } else {
-        // ✅ UX IMPROVEMENT: Show resend button if email field is already filled (user may have refreshed)
-        const custEmail = document.getElementById('custEmail');
-        if (custEmail && custEmail.value) {
-            const resendBtn = document.getElementById('resend-custEmail');
-            if (resendBtn) {
-                resendBtn.classList.remove('hidden');
-            }
-        }
-        
-        const vendEmail = document.getElementById('vendEmail');
-        if (vendEmail && vendEmail.value) {
-            const resendBtn = document.getElementById('resend-vendEmail');
-            if (resendBtn) {
-                resendBtn.classList.remove('hidden');
-            }
-        }
     }
+    // ✅ REMOVED: Don't show resend button for filled emails without redirect
+    // Resend should only appear when backend explicitly says "link_sent"
 });
 
 // --- OTP/Verification Link Handling ---
@@ -432,36 +421,82 @@ async function handleGetOtp(fieldId) {
                 return;
             }
 
+            // ✅ FIX: Handle explicit backend states
             if (response.ok && result.success) {
-                // ✅ REDESIGNED: Just show message, disable button, let backend handle verification
-                inputField.classList.remove('border-green-400');
-                inputField.classList.add('border-yellow-400'); // Yellow = link sent
-                getOtpBtn.disabled = true;
-                getOtpBtn.innerText = "Link Sent";
-                getOtpBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                const status = result.status || 'link_sent';
+                const resendBtn = document.getElementById(`resend-${fieldId}`);
                 
-                // ✅ FIX: Show resend button after 5 minutes (timeout)
-                setTimeout(() => {
-                    const resendBtn = document.getElementById(`resend-${fieldId}`);
-                    if (resendBtn) {
-                        resendBtn.classList.remove('hidden');
-                    }
-                    // Re-enable send button as fallback
+                if (status === 'already_registered') {
+                    // Email is already registered - show login message
+                    showAlert(
+                        'Email Already Registered',
+                        result.message || 'This email is already registered. Please log in.',
+                        'info'
+                    );
+                    inputField.disabled = true;
+                    inputField.classList.add('opacity-50', 'cursor-not-allowed');
+                    getOtpBtn.disabled = true;
+                    getOtpBtn.innerText = "Already Registered";
+                    getOtpBtn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-500', 'text-white');
+                    getOtpBtn.classList.remove('bg-[#FFCC00]');
+                    if (resendBtn) resendBtn.classList.add('hidden');
+                    return;
+                }
+                
+                if (status === 'already_verified') {
+                    // Email is already verified - user can proceed
+                    showAlert(
+                        'Email Already Verified',
+                        result.message || 'You can proceed to create your account.',
+                        'success'
+                    );
+                    inputField.disabled = true;
+                    inputField.classList.add('opacity-50', 'cursor-not-allowed', 'border-green-400');
+                    inputField.classList.remove('border-yellow-400');
+                    getOtpBtn.disabled = true;
+                    getOtpBtn.innerText = "Email Verified";
+                    getOtpBtn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-green-600', 'text-white');
+                    getOtpBtn.classList.remove('bg-[#FFCC00]');
+                    if (resendBtn) resendBtn.classList.add('hidden');
+                    return;
+                }
+                
+                if (status === 'link_sent') {
+                    // Normal flow - link was sent
+                    inputField.classList.remove('border-green-400');
+                    inputField.classList.add('border-yellow-400'); // Yellow = link sent
+                    getOtpBtn.disabled = true;
+                    getOtpBtn.innerText = "Link Sent";
+                    getOtpBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    
+                    // ✅ FIX: Only show resend button when link_sent
+                    setTimeout(() => {
+                        if (resendBtn) {
+                            resendBtn.classList.remove('hidden');
+                        }
+                        // Re-enable send button as fallback
+                        getOtpBtn.disabled = false;
+                        getOtpBtn.innerText = "Send Verification Link";
+                        getOtpBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    }, 5 * 60 * 1000); // 5 minutes
+
+                    showAlert(
+                        'Verification Email Sent',
+                        'Check your inbox and click the link. Then return here to complete registration.',
+                        'success'
+                    );
+                } else {
+                    // Unknown status - treat as error
+                    showAlert('Error', result.message || 'Failed to send verification email', 'error');
                     getOtpBtn.disabled = false;
                     getOtpBtn.innerText = "Send Verification Link";
-                    getOtpBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                }, 5 * 60 * 1000); // 5 minutes
-
-                showAlert(
-                    'Verification Email Sent',
-                    'Check your inbox and click the link. Then return here to complete registration.',
-                    'success'
-                );
+                    if (resendBtn) resendBtn.classList.add('hidden');
+                }
             } else {
-                // ✅ FIX: Show resend button on error
+                // Error response
                 const resendBtn = document.getElementById(`resend-${fieldId}`);
                 if (resendBtn) {
-                    resendBtn.classList.remove('hidden');
+                    resendBtn.classList.add('hidden'); // Hide resend on error
                 }
                 showAlert('Error', result.error || 'Failed to send verification email', 'error');
                 getOtpBtn.disabled = false;
@@ -472,6 +507,11 @@ async function handleGetOtp(fieldId) {
             showAlert('Connection Error', 'Failed to connect to server.', 'error');
             getOtpBtn.disabled = false;
             getOtpBtn.innerText = "Send Verification Link";
+            // Hide resend button on connection error
+            const resendBtn = document.getElementById(`resend-${fieldId}`);
+            if (resendBtn) {
+                resendBtn.classList.add('hidden');
+            }
         }
         return;
     }
