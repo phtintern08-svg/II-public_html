@@ -97,6 +97,7 @@
         <div id="spinner" class="spinner"></div>
         <div id="message" class="message hidden"></div>
         <a href="login.html" id="loginLink" class="btn hidden">Go to Login</a>
+        <a href="#" id="backBtn" class="btn hidden">Go to Registration</a>
     </div>
 
     <script>
@@ -121,6 +122,7 @@
         const messageEl = document.getElementById('message');
         const spinnerEl = document.getElementById('spinner');
         const loginLinkEl = document.getElementById('loginLink');
+        const backBtnEl = document.getElementById('backBtn');
 
         // ✅ OPTIMIZATION: If already verified via redirect params, skip polling
         if (verified === '1' || verified === 'true') {
@@ -134,15 +136,36 @@
             messageEl.classList.remove('hidden');
             messageEl.classList.add('success');
 
-            // Cross-tab sync
+            // ✅ FIX #3: Cross-tab sync with forced storage event
             if (email && role) {
-                localStorage.setItem('email_verified', JSON.stringify({
+                const syncData = JSON.stringify({
                     email: email,
                     role: role,
                     ts: Date.now()
-                }));
+                });
+                localStorage.setItem('email_verified', syncData);
+                
+                // 🔥 Force storage event in same tab too (storage events don't fire in same tab)
+                window.dispatchEvent(
+                    new StorageEvent('storage', {
+                        key: 'email_verified',
+                        newValue: syncData,
+                        storageArea: localStorage
+                    })
+                );
+                
+                // ✅ FIX #4: Show manual "Go to Registration" button
+                if (backBtnEl) {
+                    if (role === 'rider') {
+                        backBtnEl.href = `rider-register.html?email=${encodeURIComponent(email)}&role=${role}`;
+                    } else {
+                        backBtnEl.href = `register.html?email=${encodeURIComponent(email)}&role=${role}`;
+                    }
+                    backBtnEl.classList.remove('hidden');
+                }
             }
 
+            // Auto-redirect to registration page after 2 seconds (user can click button to go immediately)
             setTimeout(() => {
                 if (role === 'rider') {
                     window.location.href = `rider-register.html?email=${encodeURIComponent(email)}&role=${role}`;
@@ -177,8 +200,24 @@
             try {
                 const apiBase = window.IMPROMPTU_INDIAN_API_BASE || '';
                 const res = await fetch(`${apiBase}/api/verify-email?token=${encodeURIComponent(token)}`, {
-                    headers: { 'Accept': 'application/json' }
+                    headers: { 
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'  // ✅ FIX #2: Explicit API request marker
+                    }
                 });
+
+                // ✅ FIX #2.1: Harden polling - check content type before parsing JSON
+                // Continue polling on non-JSON responses (could be 204, 401, 500, or HTML error)
+                // Only stop on success or timeout
+                const contentType = res.headers.get('content-type') || '';
+                
+                if (!contentType.includes('application/json')) {
+                    // Non-JSON response (redirect, error page, etc.) - continue polling if attempts remain
+                    if (attempts < MAX_ATTEMPTS) {
+                        setTimeout(pollVerification, 1000);
+                    }
+                    return;
+                }
 
                 const data = await res.json();
 
@@ -188,20 +227,44 @@
                     titleEl.textContent = 'Email Verified ✔';
                     titleEl.className = 'success';
 
-                    messageEl.textContent = 'Your email has been verified successfully. Redirecting you back…';
+                    // ✅ FIX #4: Improved UX messaging
+                    messageEl.innerHTML = `
+                        <div style="font-size:18px;margin-bottom:10px">✅ Verification Complete</div>
+                        <div>You can safely return to the registration page.</div>
+                    `;
                     messageEl.classList.remove('hidden');
                     messageEl.classList.add('success');
 
-                    // 🔥 Cross-tab sync: Notify other tabs that email is verified
+                    // ✅ FIX #3: Cross-tab sync with forced storage event
                     if (data.email && data.role) {
-                        localStorage.setItem('email_verified', JSON.stringify({
+                        const syncData = JSON.stringify({
                             email: data.email,
                             role: data.role,
                             ts: Date.now()
-                        }));
+                        });
+                        localStorage.setItem('email_verified', syncData);
+                        
+                        // 🔥 Force storage event in same tab too (storage events don't fire in same tab)
+                        window.dispatchEvent(
+                            new StorageEvent('storage', {
+                                key: 'email_verified',
+                                newValue: syncData,
+                                storageArea: localStorage
+                            })
+                        );
+                        
+                        // ✅ FIX #4: Show manual "Go to Registration" button
+                        if (backBtnEl) {
+                            if (data.role === 'rider') {
+                                backBtnEl.href = `rider-register.html?email=${encodeURIComponent(data.email)}&role=${data.role}`;
+                            } else {
+                                backBtnEl.href = `register.html?email=${encodeURIComponent(data.email)}&role=${data.role}`;
+                            }
+                            backBtnEl.classList.remove('hidden');
+                        }
                     }
 
-                    // Redirect to registration page
+                    // Auto-redirect to registration page after 2 seconds (user can click button to go immediately)
                     setTimeout(() => {
                         if (data.role === 'rider') {
                             window.location.href = `rider-register.html?email=${encodeURIComponent(data.email)}&role=${data.role}`;
