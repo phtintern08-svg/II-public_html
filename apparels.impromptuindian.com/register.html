@@ -78,13 +78,9 @@
               class="bg-[#FFCC00] text-black px-3 py-2 rounded font-medium text-sm whitespace-nowrap ">
               Send Verification Link
             </button>
-            <div id="verified-custEmail-icon" class="hidden text-green-400 flex items-center gap-1">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clip-rule="evenodd" />
-              </svg>
-            </div>
+            <button type="button" id="resend-custEmail" class="hidden text-sm underline text-yellow-400 hover:text-yellow-300" onclick="handleGetOtp('custEmail')">
+              Resend Verification Link
+            </button>
           </div>
           <div id="timer-custEmail" class="hidden mt-1 text-xs text-gray-400"></div>
         </div>
@@ -191,13 +187,9 @@
               class="bg-[#FFCC00] text-black px-3 py-2 rounded font-medium text-sm whitespace-nowrap ">
               Send Verification Link
             </button>
-            <div id="verified-vendEmail-icon" class="hidden text-green-400 flex items-center gap-1">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clip-rule="evenodd" />
-              </svg>
-            </div>
+            <button type="button" id="resend-vendEmail" class="hidden text-sm underline text-yellow-400 hover:text-yellow-300" onclick="handleGetOtp('vendEmail')">
+              Resend Verification Link
+            </button>
           </div>
           <div id="timer-vendEmail" class="hidden mt-1 text-xs text-gray-400"></div>
         </div>
@@ -308,10 +300,7 @@
   </div>
 
   <!-- Custom JS -->
-  <script>
-    // Point all API calls (send-otp, verify-otp, register, etc.) to the Flask backend
-    window.IMPROMPTU_INDIAN_API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://apparels.impromptuindian.com';
-  </script>
+  <!-- ✅ API base is handled in register.js ensureApiBase() - no duplicate definition needed -->
   <script src="js/register.js"></script>
   <script>
     // Initialize password toggle functionality for all password fields

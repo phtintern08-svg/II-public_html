@@ -1,12 +1,19 @@
 // --- API base hardening for multi-domain setups ---
+// ✅ SINGLE SOURCE OF TRUTH: API base is defined here only (not in register.html)
 // If register page is served from a different host (e.g. impromptuindian.com/www),
 // we must still call the API on the Passenger app host.
 (function ensureApiBase() {
     const host = (window.location.hostname || '').toLowerCase();
     const isLocal = host === 'localhost' || host === '127.0.0.1';
-    if (!isLocal && host.endsWith('impromptuindian.com')) {
+    
+    if (isLocal) {
+        // Local development: use localhost API
+        window.IMPROMPTU_INDIAN_API_BASE = 'http://localhost:5000';
+    } else if (host.endsWith('impromptuindian.com')) {
+        // Production: always use apparels subdomain for API
         window.IMPROMPTU_INDIAN_API_BASE = 'https://apparels.impromptuindian.com';
     }
+    // If neither condition matches, ImpromptuIndianApi will use origin as fallback
 })();
 
 const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
@@ -50,23 +57,20 @@ const tabVendor = document.getElementById("tabVendor");
 const customerForm = document.getElementById("customerForm");
 const vendorForm = document.getElementById("vendorForm");
 
-// Track verification status (only set to true when email is actually verified via link)
+// ✅ REDESIGNED: Phone OTP verification status (UI-only, not enforced)
+// Note: Phone OTP is currently disabled on backend
+// This is kept for future use when phone OTP is re-enabled
+// Phone verification is optional - not required for registration
 const verificationStatus = {
-    custEmail: false,
     custPhone: false,
-    vendEmail: false,
     vendPhone: false
 };
 
-// Track if verification link was sent (separate from verification status)
-const emailLinkSent = {
-    custEmail: false,
-    vendEmail: false,
-    riderEmail: false
+// Track timers - namespaced to prevent collisions between OTP and email verification
+const timers = {
+    otp: {},      // OTP timers: timers.otp[fieldId]
+    email: {}    // Email verification timers: timers.email[fieldId] (if needed in future)
 };
-
-// Track timers
-const timers = {};
 
 // --- Custom Alert Logic ---
 const customAlert = document.getElementById('customAlert');
@@ -285,49 +289,9 @@ if (tabCustomer && tabVendor) {
 // Initialize Lucide Icons
 lucide.createIcons();
 
-// ✅ Check email verification status from database (DB is single source of truth)
-async function checkEmailVerifiedFromDB(fieldId, role) {
-    const emailInput = document.getElementById(fieldId);
-    if (!emailInput) return;
-    
-    const email = emailInput.value.trim().toLowerCase();
-    if (!email) return;
-    
-    try {
-        const res = await ImpromptuIndianApi.fetch(
-            `/api/email-verification-status-by-email?email=${encodeURIComponent(email)}&role=${role}`
-        );
-        const data = await res.json();
-        
-        if (data.verified) {
-            // ✅ Email is verified in database - update UI
-            verificationStatus[fieldId] = true;
-            emailLinkSent[fieldId] = true;
-            
-            emailInput.readOnly = true;
-            emailInput.classList.remove('border-yellow-400', 'border-gray-700');
-            emailInput.classList.add('border-green-400');
-            
-            const btn = document.getElementById(`${fieldId}OtpBtn`);
-            if (btn) {
-                btn.innerText = 'Verified';
-                btn.disabled = true;
-                btn.classList.add('opacity-50', 'cursor-not-allowed');
-                btn.classList.remove('bg-[#FFCC00]');
-                btn.classList.add('bg-green-600', 'text-white');
-            }
-            
-            const verifiedIcon = document.getElementById(`verified-${fieldId}-icon`);
-            if (verifiedIcon) verifiedIcon.classList.remove('hidden');
-        }
-    } catch (err) {
-        console.error(`Error checking verification status for ${fieldId}:`, err);
-    }
-}
-
-// Check verification status on page load (DB-backed, refresh-proof)
+// ✅ REDESIGNED: Auto-fill email from URL params (from magic link redirect)
+// No polling, no state tracking - just auto-fill and let backend enforce verification
 document.addEventListener('DOMContentLoaded', () => {
-    // ✅ Auto-fill email from URL parameters (from magic link redirect)
     const params = new URLSearchParams(window.location.search);
     const email = params.get('email');
     const role = params.get('role');
@@ -338,31 +302,41 @@ document.addEventListener('DOMContentLoaded', () => {
             const vendEmail = document.getElementById('vendEmail');
             if (vendEmail) {
                 vendEmail.value = email;
-                // Activate vendor tab if needed
                 activateTab(false); // false = vendor tab
-                // Check verification status immediately
-                checkEmailVerifiedFromDB('vendEmail', 'vendor');
+                // ✅ UX IMPROVEMENT: Show resend button if email is filled (token may have expired)
+                const resendBtn = document.getElementById('resend-vendEmail');
+                if (resendBtn) {
+                    resendBtn.classList.remove('hidden');
+                }
             }
         } else if (role === 'customer') {
             const custEmail = document.getElementById('custEmail');
             if (custEmail) {
                 custEmail.value = email;
-                // Activate customer tab if needed
                 activateTab(true); // true = customer tab
-                // Check verification status immediately
-                checkEmailVerifiedFromDB('custEmail', 'customer');
+                // ✅ UX IMPROVEMENT: Show resend button if email is filled (token may have expired)
+                const resendBtn = document.getElementById('resend-custEmail');
+                if (resendBtn) {
+                    resendBtn.classList.remove('hidden');
+                }
             }
         }
     } else {
-        // No URL params - check existing email values
+        // ✅ UX IMPROVEMENT: Show resend button if email field is already filled (user may have refreshed)
         const custEmail = document.getElementById('custEmail');
         if (custEmail && custEmail.value) {
-            checkEmailVerifiedFromDB('custEmail', 'customer');
+            const resendBtn = document.getElementById('resend-custEmail');
+            if (resendBtn) {
+                resendBtn.classList.remove('hidden');
+            }
         }
         
         const vendEmail = document.getElementById('vendEmail');
         if (vendEmail && vendEmail.value) {
-            checkEmailVerifiedFromDB('vendEmail', 'vendor');
+            const resendBtn = document.getElementById('resend-vendEmail');
+            if (resendBtn) {
+                resendBtn.classList.remove('hidden');
+            }
         }
     }
 });
@@ -382,7 +356,7 @@ async function handleGetOtp(fieldId) {
     // Determine type
     const type = fieldId.toLowerCase().includes('email') ? 'email' : 'phone';
 
-    // For email: Send verification link immediately (before registration)
+    // For email: Send verification link (NO polling, NO state tracking)
     if (type === 'email') {
         const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!emailPattern.test(inputField.value)) {
@@ -433,30 +407,36 @@ async function handleGetOtp(fieldId) {
             }
 
             if (response.ok && result.success) {
-                // Email verification link sent successfully
-                // DO NOT mark as verified - only track that link was sent
-                emailLinkSent[fieldId] = true;
-                verificationStatus[fieldId] = false; // Explicitly set to false
-                
-                // Note: We no longer store in localStorage - DB is the single source of truth
-                // Frontend will check DB status on page load via checkEmailVerifiedFromDB()
-                
-                // Update UI to show link was sent (but NOT verified)
-                inputField.readOnly = false; // Keep editable until verified
+                // ✅ REDESIGNED: Just show message, disable button, let backend handle verification
                 inputField.classList.remove('border-green-400');
-                inputField.classList.add('border-yellow-400'); // Yellow = pending verification
+                inputField.classList.add('border-yellow-400'); // Yellow = link sent
                 getOtpBtn.disabled = true;
                 getOtpBtn.innerText = "Link Sent";
                 getOtpBtn.classList.add('opacity-50', 'cursor-not-allowed');
                 
-                // DO NOT show verified icon - email is not verified yet
-                const verifiedIcon = document.getElementById(`verified-${fieldId}-icon`);
-                if (verifiedIcon) {
-                    verifiedIcon.classList.add('hidden');
-                }
+                // ✅ FIX: Show resend button after 5 minutes (timeout)
+                setTimeout(() => {
+                    const resendBtn = document.getElementById(`resend-${fieldId}`);
+                    if (resendBtn) {
+                        resendBtn.classList.remove('hidden');
+                    }
+                    // Re-enable send button as fallback
+                    getOtpBtn.disabled = false;
+                    getOtpBtn.innerText = "Send Verification Link";
+                    getOtpBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }, 5 * 60 * 1000); // 5 minutes
 
-                showAlert('Verification Email Sent', 'Please check your inbox and click the verification link to verify your email. You must verify your email before you can create an account.', 'success');
+                showAlert(
+                    'Verification Email Sent',
+                    'Check your inbox and click the link. Then return here to complete registration.',
+                    'success'
+                );
             } else {
+                // ✅ FIX: Show resend button on error
+                const resendBtn = document.getElementById(`resend-${fieldId}`);
+                if (resendBtn) {
+                    resendBtn.classList.remove('hidden');
+                }
                 showAlert('Error', result.error || 'Failed to send verification email', 'error');
                 getOtpBtn.disabled = false;
                 getOtpBtn.innerText = "Send Verification Link";
@@ -472,79 +452,22 @@ async function handleGetOtp(fieldId) {
 
     // For phone: Use OTP (existing flow)
     if (type === 'phone') {
-        // Validate Indian phone number before sending OTP
-        if (!validateIndianPhone(inputField.value)) {
-            showAlert('Invalid Mobile Number', 'The mobile number you entered is not valid. Please provide a 10-digit Indian mobile number.', 'error');
-            return;
-        }
-
-    // Disable button temporarily
-    getOtpBtn.disabled = true;
-    getOtpBtn.innerText = "Sending...";
-
-    try {
-        const response = await ImpromptuIndianApi.fetch('/api/send-otp', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ recipient: inputField.value, type: type })
-        });
-
-        // Handle response - check for HTML error pages
-        let result;
-        try {
-            const text = await response.text();
-
-            // Check if response is HTML (error page)
-            if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
-                console.error('Server returned HTML instead of JSON. This usually means the API endpoint is not found or the server is returning an error page.');
-                showAlert('Server Error', 'Unable to reach the OTP service. Please check if the server is running.', 'error');
-                getOtpBtn.disabled = false;
-                getOtpBtn.innerText = "Get OTP";
-                return;
-            }
-
-            // Try to parse as JSON
-            result = JSON.parse(text);
-        } catch (parseError) {
-            // If JSON parsing fails, show a more helpful error
-            console.error('Failed to parse response as JSON:', parseError);
-            showAlert('Server Error', 'Server returned an invalid response. Please try again later.', 'error');
-            getOtpBtn.disabled = false;
-            getOtpBtn.innerText = "Get OTP";
-            return;
-        }
-
-        if (response.ok) {
-                showAlert('OTP Sent', `OTP sent to ${inputField.value}. Check your phone.`, 'success');
-
-            // Show OTP input
-                if (otpContainer) {
-            otpContainer.classList.remove('hidden');
-                }
-
-            // Start 60 second timer
-            startTimer(fieldId, getOtpBtn, timerDiv);
-
-        } else {
-            showAlert('Error', 'Error sending OTP: ' + result.error, 'error');
-            getOtpBtn.innerText = "Get OTP";
-            getOtpBtn.disabled = false;
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        showAlert('Connection Error', 'Failed to connect to server.', 'error');
-        getOtpBtn.innerText = "Get OTP";
-        getOtpBtn.disabled = false;
-        }
+        // ✅ FIX: Phone OTP is disabled on backend - show clear message
+        showAlert(
+            'Phone OTP Disabled',
+            'Phone OTP verification is currently disabled. Please use email verification instead.',
+            'error'
+        );
+        return;
     }
 }
 
 function startTimer(fieldId, button, timerDiv) {
     let timeLeft = 60;
 
-    // Clear any existing timer
-    if (timers[fieldId]) {
-        clearInterval(timers[fieldId]);
+    // Clear any existing timer (using namespaced timers)
+    if (timers.otp[fieldId]) {
+        clearInterval(timers.otp[fieldId]);
     }
 
     timerDiv.classList.remove('hidden');
@@ -553,12 +476,13 @@ function startTimer(fieldId, button, timerDiv) {
     button.classList.remove('bg-[#ffd43b]', 'text-black', 'hover:bg-[#e6be35]');
     button.classList.add('bg-transparent', 'text-[#ffd43b]', 'border', 'border-[#ffd43b]', 'hover:bg-[#ffd43b]', 'hover:text-black', 'opacity-50', 'cursor-not-allowed');
 
-    timers[fieldId] = setInterval(() => {
+    timers.otp[fieldId] = setInterval(() => {
         timeLeft--;
         timerDiv.textContent = `Resend OTP in ${timeLeft}s`;
 
         if (timeLeft <= 0) {
-            clearInterval(timers[fieldId]);
+            clearInterval(timers.otp[fieldId]);
+            delete timers.otp[fieldId];
             button.disabled = false;
             button.classList.remove('opacity-50', 'cursor-not-allowed');
             timerDiv.classList.add('hidden');
@@ -624,6 +548,8 @@ async function verifyOtp(fieldId) {
         }
 
         if (response.ok && result.verified) {
+            // ✅ Note: verificationStatus is set but not enforced (phone OTP is optional)
+            // Phone verification is UI-only feedback, not required for registration
             verificationStatus[fieldId] = true;
 
             // Hide OTP input container, button, and timer
@@ -631,9 +557,10 @@ async function verifyOtp(fieldId) {
             if (getOtpBtn) getOtpBtn.classList.add('hidden');
             if (timerDiv) timerDiv.classList.add('hidden');
 
-            // Clear any running timer
-            if (timers[fieldId]) {
-                clearInterval(timers[fieldId]);
+            // Clear any running timer (using namespaced timers)
+            if (timers.otp[fieldId]) {
+                clearInterval(timers.otp[fieldId]);
+                delete timers.otp[fieldId];
             }
 
             // Show green checkmark icon
@@ -687,12 +614,22 @@ async function registerUser(data) {
         }
 
         if (response.ok && result.success) {
-            showAlert('Check Your Email', 'Verification link sent to your email. Please verify your email before logging in.', 'success');
+            // ✅ FIX: Email was already verified before registration, account is created
+            showAlert('Account Created', 'Your account has been created successfully. You can now log in.', 'success');
             setTimeout(() => {
                 window.location.href = 'login.html';
             }, 3000);
         } else {
-            showAlert('Registration Failed', result.error || 'Registration failed', 'error');
+            // ✅ REDESIGNED: Handle 403 (email not verified) from backend
+            if (response.status === 403) {
+                showAlert(
+                    'Email Verification Required',
+                    result.error || 'Please verify your email before creating an account. Click the verification link sent to your email.',
+                    'error'
+                );
+            } else {
+                showAlert('Registration Failed', result.error || 'Registration failed', 'error');
+            }
         }
     } catch (error) {
         console.error('Error:', error);
@@ -746,16 +683,8 @@ if (customerForm) {
             }
         }
 
-        // ✅ SECURITY: Check if email was actually verified (backend-driven)
-        // Frontend only checks UI state - backend enforces actual verification
-        if (!verificationStatus.custEmail) {
-            showAlert(
-                'Email Verification Required',
-                'Please verify your email by clicking the link sent to your inbox. The link must be clicked before you can create an account.',
-                'error'
-            );
-            return;
-        }
+        // ✅ REDESIGNED: No frontend verification check - backend enforces it
+        // Backend will return 403 if email not verified, handled in registerUser()
 
         // Validate Indian phone number format (if provided)
         if (phone && !validateIndianPhone(phone)) {
@@ -805,16 +734,8 @@ if (vendorForm) {
             }
         }
 
-        // ✅ SECURITY: Check if email was actually verified (backend-driven)
-        // Frontend only checks UI state - backend enforces actual verification
-        if (!verificationStatus.vendEmail) {
-            showAlert(
-                'Email Verification Required',
-                'Please verify your email by clicking the link sent to your inbox. The link must be clicked before you can create an account.',
-                'error'
-            );
-            return;
-        }
+        // ✅ REDESIGNED: No frontend verification check - backend enforces it
+        // Backend will return 403 if email not verified, handled in registerUser()
 
         // Validate Indian phone number format (if provided)
         if (phone && !validateIndianPhone(phone)) {
