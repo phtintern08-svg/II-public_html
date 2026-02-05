@@ -126,6 +126,25 @@
             const loginLinkEl = document.getElementById('loginLink');
             const backBtnEl = document.getElementById('backBtn');
 
+        // ✅ Check for error params first (expired link from backend redirect)
+        const errorParam = urlParams.get('error');
+        const reasonParam = urlParams.get('reason');
+        
+        if (errorParam === 'expired') {
+            spinnerEl.classList.add('hidden');
+            titleEl.textContent = 'Link Expired';
+            titleEl.classList.remove('success');
+            titleEl.classList.add('error');
+            messageEl.textContent = 'This verification link has expired. Please request a new verification email.';
+            messageEl.classList.remove('hidden');
+            messageEl.classList.add('error');
+            loginLinkEl.textContent = 'Go to Registration';
+            loginLinkEl.href = 'register.html';
+            loginLinkEl.classList.remove('hidden');
+            console.log('⛔ Verification link expired:', reasonParam || 'unknown');
+            return;
+        }
+
         // ✅ OPTIMIZATION: If already verified via redirect params, skip polling
         if (verified === '1' || verified === 'true') {
             console.log('🔁 Email verification confirmed via redirect params');
@@ -136,7 +155,7 @@
             titleEl.textContent = 'Email Verified ✔';
             titleEl.classList.remove('error');
             titleEl.classList.add('success');
-            messageEl.textContent = 'Your email has been verified successfully. Redirecting you back…';
+            messageEl.textContent = 'Your email has been verified successfully. Click the button below to continue.';
             messageEl.classList.remove('hidden');
             messageEl.classList.add('success');
 
@@ -169,19 +188,7 @@
                 }
             }
 
-            // Auto-redirect to registration page after 2 seconds (user can click button to go immediately)
-            // ✅ Note: email and role are captured in closure - safe for setTimeout
-            const redirectEmail = email;
-            const redirectRole = role;
-            setTimeout(() => {
-                if (redirectRole === 'rider') {
-                    window.location.href = `rider-register.html?email=${encodeURIComponent(redirectEmail)}&role=${redirectRole}`;
-                } else if (redirectEmail && redirectRole) {
-                    window.location.href = `register.html?email=${encodeURIComponent(redirectEmail)}&role=${redirectRole}`;
-                } else {
-                    window.location.href = 'register.html';
-                }
-            }, 2000);
+            // ✅ PART 1: No auto-redirect - user must click button manually
             return;
         }
 
@@ -201,13 +208,8 @@
 
         let attempts = 0;
         const MAX_ATTEMPTS = 10; // ~10 seconds (1 second intervals)
-        let pollingStarted = false; // ✅ Guard against double polling
 
         async function pollVerification() {
-            // ✅ Guard against double polling (edge case: fast refresh with verified URL)
-            if (pollingStarted) return;
-            pollingStarted = true;
-            
             attempts++;
             // ✅ Optional: Log polling attempts (debug-only)
             console.log(`⏳ Polling verification attempt ${attempts}/${MAX_ATTEMPTS}`);
@@ -236,13 +238,25 @@
 
                 const data = await res.json();
 
+                // ✅ PART 3: Handle expired link errors
+                if (!data.success && data.error === 'Link expired') {
+                    spinnerEl.classList.add('hidden');
+                    titleEl.textContent = 'Link Expired';
+                    titleEl.classList.remove('success');
+                    titleEl.classList.add('error');
+                    messageEl.textContent = 'This verification link has expired. Please request a new verification email.';
+                    messageEl.classList.remove('hidden');
+                    messageEl.classList.add('error');
+                    loginLinkEl.textContent = 'Go to Registration';
+                    loginLinkEl.href = 'register.html';
+                    loginLinkEl.classList.remove('hidden');
+                    console.log('⛔ Verification link expired:', data.reason || 'unknown');
+                    return;
+                }
+
                 if (data.success) {
-                    // ✅ Log verification source (DB-confirmed vs idempotent)
-                    if (data.already_verified) {
-                        console.log('ℹ️ Email already verified (token already used)');
-                    } else {
-                        console.log('✅ Email verification confirmed from database');
-                    }
+                    // ✅ Log verification source (DB-confirmed)
+                    console.log('✅ Email verification confirmed from database');
                     
                     // ✅ VERIFIED - Show success and sync across tabs
                     spinnerEl.classList.add('hidden');
@@ -287,19 +301,7 @@
                         }
                     }
 
-                    // Auto-redirect to registration page after 2 seconds (user can click button to go immediately)
-                    // ✅ Note: data.email and data.role are captured in closure - safe for setTimeout
-                    const redirectEmail = data.email;
-                    const redirectRole = data.role;
-                    setTimeout(() => {
-                        if (redirectRole === 'rider') {
-                            window.location.href = `rider-register.html?email=${encodeURIComponent(redirectEmail)}&role=${redirectRole}`;
-                        } else if (redirectEmail && redirectRole) {
-                            window.location.href = `register.html?email=${encodeURIComponent(redirectEmail)}&role=${redirectRole}`;
-                        } else {
-                            window.location.href = 'register.html';
-                        }
-                    }, 2000);
+                    // ✅ PART 1: No auto-redirect - user must click button manually
 
                     return;
                 }
