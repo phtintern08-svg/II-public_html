@@ -356,6 +356,104 @@ document.addEventListener('DOMContentLoaded', () => {
     // Resend should only appear when backend explicitly says "link_sent"
 });
 
+// ✅ FIX #2: Cross-tab email verification sync
+// Listen for verification events from other tabs (when user clicks magic link in new tab)
+window.addEventListener('storage', (event) => {
+    if (event.key !== 'email_verified' || !event.newValue) return;
+
+    try {
+        const data = JSON.parse(event.newValue);
+        const { email, role } = data;
+
+        if (!email || !role) return;
+
+        // Update UI based on role
+        if (role === 'customer') {
+            const field = document.getElementById('custEmail');
+            const btn = document.getElementById('custEmailOtpBtn');
+            const resendBtn = document.getElementById('resend-custEmail');
+
+            if (field) {
+                field.value = email;
+                field.disabled = true;
+                field.classList.add('opacity-50', 'cursor-not-allowed', 'border-green-400');
+                field.classList.remove('border-yellow-400');
+            }
+
+            if (btn) {
+                btn.textContent = 'Email Verified';
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-green-600', 'text-white');
+                btn.classList.remove('bg-[#FFCC00]');
+            }
+
+            if (resendBtn) {
+                resendBtn.classList.add('hidden');
+            }
+
+            // Switch to customer tab if needed
+            activateTab(true);
+        }
+
+        if (role === 'vendor') {
+            const field = document.getElementById('vendEmail');
+            const btn = document.getElementById('vendEmailOtpBtn');
+            const resendBtn = document.getElementById('resend-vendEmail');
+
+            if (field) {
+                field.value = email;
+                field.disabled = true;
+                field.classList.add('opacity-50', 'cursor-not-allowed', 'border-green-400');
+                field.classList.remove('border-yellow-400');
+            }
+
+            if (btn) {
+                btn.textContent = 'Email Verified';
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-green-600', 'text-white');
+                btn.classList.remove('bg-[#FFCC00]');
+            }
+
+            if (resendBtn) {
+                resendBtn.classList.add('hidden');
+            }
+
+            // Switch to vendor tab if needed
+            activateTab(false);
+        }
+
+        // Show success alert
+        showAlert('Email Verified', 'Your email has been verified. You can now complete registration.', 'success');
+
+    } catch (e) {
+        console.error('Storage sync error:', e);
+    }
+});
+
+// ✅ Helper function to mark email as verified in UI
+function markEmailVerifiedUI(fieldId) {
+    const input = document.getElementById(fieldId);
+    const btn = document.getElementById(`${fieldId}OtpBtn`);
+    const resendBtn = document.getElementById(`resend-${fieldId}`);
+
+    if (input) {
+        input.disabled = true;
+        input.classList.add('opacity-50', 'cursor-not-allowed', 'border-green-400');
+        input.classList.remove('border-yellow-400');
+    }
+
+    if (btn) {
+        btn.textContent = 'Email Verified';
+        btn.disabled = true;
+        btn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-green-600', 'text-white');
+        btn.classList.remove('bg-[#FFCC00]');
+    }
+
+    if (resendBtn) {
+        resendBtn.classList.add('hidden');
+    }
+}
+
 // --- OTP/Verification Link Handling ---
 async function handleGetOtp(fieldId) {
     const inputField = document.getElementById(fieldId);
@@ -421,45 +519,32 @@ async function handleGetOtp(fieldId) {
                 return;
             }
 
+            // ✅ FIX #3: Handle explicit backend states with proper early returns
+            const status = result.status;
+            const resendBtn = document.getElementById(`resend-${fieldId}`);
+            
+            if (status === 'already_registered') {
+                // ✅ FIX #3: Early return - don't show resend button
+                showAlert('Already Registered', result.message || 'This email is already registered. Please log in.', 'info');
+                inputField.disabled = true;
+                inputField.classList.add('opacity-50', 'cursor-not-allowed');
+                getOtpBtn.disabled = true;
+                getOtpBtn.innerText = 'Already Registered';
+                getOtpBtn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-500', 'text-white');
+                getOtpBtn.classList.remove('bg-[#FFCC00]');
+                if (resendBtn) resendBtn.classList.add('hidden');
+                return;
+            }
+
+            if (status === 'already_verified') {
+                // ✅ FIX #3: Early return - use helper function
+                showAlert('Email Verified', result.message || 'You can proceed to create your account.', 'success');
+                markEmailVerifiedUI(fieldId);
+                return;
+            }
+
             // ✅ FIX: Handle explicit backend states
             if (response.ok && result.success) {
-                const status = result.status || 'link_sent';
-                const resendBtn = document.getElementById(`resend-${fieldId}`);
-                
-                if (status === 'already_registered') {
-                    // Email is already registered - show login message
-                    showAlert(
-                        'Email Already Registered',
-                        result.message || 'This email is already registered. Please log in.',
-                        'info'
-                    );
-                    inputField.disabled = true;
-                    inputField.classList.add('opacity-50', 'cursor-not-allowed');
-                    getOtpBtn.disabled = true;
-                    getOtpBtn.innerText = "Already Registered";
-                    getOtpBtn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-500', 'text-white');
-                    getOtpBtn.classList.remove('bg-[#FFCC00]');
-                    if (resendBtn) resendBtn.classList.add('hidden');
-                    return;
-                }
-                
-                if (status === 'already_verified') {
-                    // Email is already verified - user can proceed
-                    showAlert(
-                        'Email Already Verified',
-                        result.message || 'You can proceed to create your account.',
-                        'success'
-                    );
-                    inputField.disabled = true;
-                    inputField.classList.add('opacity-50', 'cursor-not-allowed', 'border-green-400');
-                    inputField.classList.remove('border-yellow-400');
-                    getOtpBtn.disabled = true;
-                    getOtpBtn.innerText = "Email Verified";
-                    getOtpBtn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-green-600', 'text-white');
-                    getOtpBtn.classList.remove('bg-[#FFCC00]');
-                    if (resendBtn) resendBtn.classList.add('hidden');
-                    return;
-                }
                 
                 if (status === 'link_sent') {
                     // Normal flow - link was sent

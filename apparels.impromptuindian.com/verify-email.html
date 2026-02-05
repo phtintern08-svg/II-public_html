@@ -112,34 +112,37 @@
             }
         })();
         
-        // ✅ FIX: Handle both direct API calls (redirected) and HTML page loads
+        // ✅ FIX #1: Poll until verification is complete (short-lived, ~10 seconds max)
+        // Frontend needs confirmation loop because redirect params may not be immediately available
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token');
         const verified = urlParams.get('verified');
-        const alreadyVerified = urlParams.get('already_verified');
         const titleEl = document.getElementById('title');
         const messageEl = document.getElementById('message');
         const spinnerEl = document.getElementById('spinner');
         const loginLinkEl = document.getElementById('loginLink');
 
-        // If already verified via API redirect, show success immediately
-        // ✅ ISSUE #5: Defensive check for both '1' and 'true' string values
+        // ✅ OPTIMIZATION: If already verified via redirect params, skip polling
         if (verified === '1' || verified === 'true') {
+            const email = urlParams.get('email');
+            const role = urlParams.get('role');
+            
             spinnerEl.classList.add('hidden');
             titleEl.textContent = 'Email Verified ✔';
             titleEl.className = 'success';
-            
-            if (alreadyVerified === '1') {
-                messageEl.textContent = 'Your email was already verified. Redirecting you back…';
-            } else {
-                messageEl.textContent = 'Your email has been verified successfully. Redirecting you back…';
-            }
+            messageEl.textContent = 'Your email has been verified successfully. Redirecting you back…';
             messageEl.classList.remove('hidden');
             messageEl.classList.add('success');
-            
-            // Redirect based on role
-            const email = urlParams.get('email');
-            const role = urlParams.get('role');
+
+            // Cross-tab sync
+            if (email && role) {
+                localStorage.setItem('email_verified', JSON.stringify({
+                    email: email,
+                    role: role,
+                    ts: Date.now()
+                }));
+            }
+
             setTimeout(() => {
                 if (role === 'rider') {
                     window.location.href = `rider-register.html?email=${encodeURIComponent(email)}&role=${role}`;
@@ -149,17 +152,13 @@
                     window.location.href = 'register.html';
                 }
             }, 2000);
-            return; // ✅ BUG #4 FIX: Exit early - don't call API again
+            return;
         }
-        
-        // ✅ FIX #5: Remove fetch - backend redirect handles everything
-        // If we reach here without verified=1, it means user navigated directly to this page
-        // with a token parameter, which shouldn't happen (links point to /api/verify-email)
-        // But handle gracefully anyway
+
         if (!token) {
+            spinnerEl.classList.add('hidden');
             titleEl.textContent = 'Verification Failed';
             titleEl.className = 'error';
-            spinnerEl.classList.add('hidden');
             messageEl.textContent = 'Invalid verification link. Please check your email and try again.';
             messageEl.classList.remove('hidden');
             messageEl.classList.add('error');
@@ -168,19 +167,77 @@
             loginLinkEl.classList.remove('hidden');
             return;
         }
-        
-        // If token exists but no verified=1, it means user navigated here directly
-        // This shouldn't happen (email links point to /api/verify-email which redirects here),
-        // but show helpful message
-        spinnerEl.classList.add('hidden');
-        titleEl.textContent = 'Invalid Link';
-        titleEl.className = 'error';
-        messageEl.textContent = 'This verification link is invalid. Please use the link from your email, or request a new verification link from the registration page.';
-        messageEl.classList.remove('hidden');
-        messageEl.classList.add('error');
-        loginLinkEl.textContent = 'Go to Registration';
-        loginLinkEl.href = 'register.html';
-        loginLinkEl.classList.remove('hidden');
+
+        let attempts = 0;
+        const MAX_ATTEMPTS = 10; // ~10 seconds (1 second intervals)
+
+        async function pollVerification() {
+            attempts++;
+
+            try {
+                const apiBase = window.IMPROMPTU_INDIAN_API_BASE || '';
+                const res = await fetch(`${apiBase}/api/verify-email?token=${encodeURIComponent(token)}`, {
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    // ✅ VERIFIED - Show success and sync across tabs
+                    spinnerEl.classList.add('hidden');
+                    titleEl.textContent = 'Email Verified ✔';
+                    titleEl.className = 'success';
+
+                    messageEl.textContent = 'Your email has been verified successfully. Redirecting you back…';
+                    messageEl.classList.remove('hidden');
+                    messageEl.classList.add('success');
+
+                    // 🔥 Cross-tab sync: Notify other tabs that email is verified
+                    if (data.email && data.role) {
+                        localStorage.setItem('email_verified', JSON.stringify({
+                            email: data.email,
+                            role: data.role,
+                            ts: Date.now()
+                        }));
+                    }
+
+                    // Redirect to registration page
+                    setTimeout(() => {
+                        if (data.role === 'rider') {
+                            window.location.href = `rider-register.html?email=${encodeURIComponent(data.email)}&role=${data.role}`;
+                        } else if (data.email && data.role) {
+                            window.location.href = `register.html?email=${encodeURIComponent(data.email)}&role=${data.role}`;
+                        } else {
+                            window.location.href = 'register.html';
+                        }
+                    }, 2000);
+
+                    return;
+                }
+
+            } catch (e) {
+                console.error('Verification polling error:', e);
+            }
+
+            // Continue polling if not verified yet
+            if (attempts < MAX_ATTEMPTS) {
+                setTimeout(pollVerification, 1000); // Poll every 1 second
+            } else {
+                // Timeout - show error
+                spinnerEl.classList.add('hidden');
+                titleEl.textContent = 'Verification Timeout';
+                titleEl.className = 'error';
+                messageEl.textContent = 'Verification timed out. Please try again or request a new verification link.';
+                messageEl.classList.remove('hidden');
+                messageEl.classList.add('error');
+                loginLinkEl.textContent = 'Go to Registration';
+                loginLinkEl.href = 'register.html';
+                loginLinkEl.classList.remove('hidden');
+            }
+        }
+
+        // Start polling immediately
+        pollVerification();
     </script>
 </body>
 </html>
