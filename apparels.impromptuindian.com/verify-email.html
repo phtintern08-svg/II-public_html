@@ -97,7 +97,7 @@
         <div id="spinner" class="spinner"></div>
         <div id="message" class="message hidden"></div>
         <a href="login.html" id="loginLink" class="btn hidden">Go to Login</a>
-        <a href="#" id="backBtn" class="btn hidden">Go to Registration</a>
+        <a href="#" id="backBtn" class="btn hidden">Continue Registration</a>
     </div>
 
     <script>
@@ -145,7 +145,7 @@
             messageEl.textContent = 'This verification link has expired. Please request a new verification email.';
             messageEl.classList.remove('hidden');
             messageEl.classList.add('error');
-            loginLinkEl.textContent = 'Go to Registration';
+            loginLinkEl.textContent = 'Continue Registration';
             loginLinkEl.href = 'register.html';
             loginLinkEl.classList.remove('hidden');
             console.log('⛔ Verification link expired:', reasonParam || 'unknown');
@@ -188,7 +188,7 @@
                     })
                 );
                 
-                // ✅ FIX #4: Show manual "Go to Registration" button
+                // ✅ FIX #4: Show manual "Continue Registration" button
                 if (backBtnEl) {
                     backBtnEl.classList.remove('hidden');
                 }
@@ -214,7 +214,7 @@
             messageEl.textContent = 'Invalid verification link. Please check your email and try again.';
             messageEl.classList.remove('hidden');
             messageEl.classList.add('error');
-            loginLinkEl.textContent = 'Go to Registration';
+            loginLinkEl.textContent = 'Continue Registration';
             loginLinkEl.href = 'register.html';
             loginLinkEl.classList.remove('hidden');
             return;
@@ -261,7 +261,7 @@
                     messageEl.textContent = 'This verification link has expired. Please request a new verification email.';
                     messageEl.classList.remove('hidden');
                     messageEl.classList.add('error');
-                    loginLinkEl.textContent = 'Go to Registration';
+                    loginLinkEl.textContent = 'Continue Registration';
                     loginLinkEl.href = 'register.html';
                     loginLinkEl.classList.remove('hidden');
                     console.log('⛔ Verification link expired:', data.reason || 'unknown');
@@ -312,7 +312,7 @@
                             })
                         );
                         
-                        // ✅ FIX #4: Show manual "Go to Registration" button
+                        // ✅ FIX #4: Show manual "Continue Registration" button
                         if (backBtnEl) {
                             backBtnEl.classList.remove('hidden');
                         }
@@ -347,7 +347,7 @@
                 messageEl.textContent = 'Verification timed out. Please try again or request a new verification link.';
                 messageEl.classList.remove('hidden');
                 messageEl.classList.add('error');
-                loginLinkEl.textContent = 'Go to Registration';
+                loginLinkEl.textContent = 'Continue Registration';
                 loginLinkEl.href = 'register.html';
                 loginLinkEl.classList.remove('hidden');
             }
