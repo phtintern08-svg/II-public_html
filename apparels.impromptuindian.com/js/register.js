@@ -356,79 +356,96 @@ document.addEventListener('DOMContentLoaded', () => {
     // Resend should only appear when backend explicitly says "link_sent"
 });
 
-// ✅ FIX #2: Cross-tab email verification sync
+// ✅ STEP 2: Apply email verification to UI (reusable function)
+function applyEmailVerified(email, role) {
+    if (!email || !role) return;
+
+    // Update UI based on role
+    if (role === 'customer') {
+        const field = document.getElementById('custEmail');
+        const btn = document.getElementById('custEmailOtpBtn');
+        const resendBtn = document.getElementById('resend-custEmail');
+
+        if (field) {
+            field.value = email;
+            field.disabled = true;
+            field.classList.add('opacity-50', 'cursor-not-allowed', 'border-green-400');
+            field.classList.remove('border-yellow-400');
+        }
+
+        if (btn) {
+            btn.textContent = 'Email Verified';
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-green-600', 'text-white');
+            btn.classList.remove('bg-[#FFCC00]');
+        }
+
+        if (resendBtn) {
+            resendBtn.classList.add('hidden');
+        }
+
+        // Switch to customer tab if needed
+        activateTab(true);
+    }
+
+    if (role === 'vendor') {
+        const field = document.getElementById('vendEmail');
+        const btn = document.getElementById('vendEmailOtpBtn');
+        const resendBtn = document.getElementById('resend-vendEmail');
+
+        if (field) {
+            field.value = email;
+            field.disabled = true;
+            field.classList.add('opacity-50', 'cursor-not-allowed', 'border-green-400');
+            field.classList.remove('border-yellow-400');
+        }
+
+        if (btn) {
+            btn.textContent = 'Email Verified';
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-green-600', 'text-white');
+            btn.classList.remove('bg-[#FFCC00]');
+        }
+
+        if (resendBtn) {
+            resendBtn.classList.add('hidden');
+        }
+
+        // Switch to vendor tab if needed
+        activateTab(false);
+    }
+
+    // Show success alert
+    showAlert('Email Verified', 'Your email has been verified. You can now complete registration.', 'success');
+    
+    console.log('✅ Register page updated from verification event');
+}
+
+// ✅ STEP 2: Cross-tab email verification sync
 // Listen for verification events from other tabs (when user clicks magic link in new tab)
 window.addEventListener('storage', (event) => {
     if (event.key !== 'email_verified' || !event.newValue) return;
 
     try {
         const data = JSON.parse(event.newValue);
-        const { email, role } = data;
-
-        if (!email || !role) return;
-
-        // Update UI based on role
-        if (role === 'customer') {
-            const field = document.getElementById('custEmail');
-            const btn = document.getElementById('custEmailOtpBtn');
-            const resendBtn = document.getElementById('resend-custEmail');
-
-            if (field) {
-                field.value = email;
-                field.disabled = true;
-                field.classList.add('opacity-50', 'cursor-not-allowed', 'border-green-400');
-                field.classList.remove('border-yellow-400');
-            }
-
-            if (btn) {
-                btn.textContent = 'Email Verified';
-                btn.disabled = true;
-                btn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-green-600', 'text-white');
-                btn.classList.remove('bg-[#FFCC00]');
-            }
-
-            if (resendBtn) {
-                resendBtn.classList.add('hidden');
-            }
-
-            // Switch to customer tab if needed
-            activateTab(true);
-        }
-
-        if (role === 'vendor') {
-            const field = document.getElementById('vendEmail');
-            const btn = document.getElementById('vendEmailOtpBtn');
-            const resendBtn = document.getElementById('resend-vendEmail');
-
-            if (field) {
-                field.value = email;
-                field.disabled = true;
-                field.classList.add('opacity-50', 'cursor-not-allowed', 'border-green-400');
-                field.classList.remove('border-yellow-400');
-            }
-
-            if (btn) {
-                btn.textContent = 'Email Verified';
-                btn.disabled = true;
-                btn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-green-600', 'text-white');
-                btn.classList.remove('bg-[#FFCC00]');
-            }
-
-            if (resendBtn) {
-                resendBtn.classList.add('hidden');
-            }
-
-            // Switch to vendor tab if needed
-            activateTab(false);
-        }
-
-        // Show success alert
-        showAlert('Email Verified', 'Your email has been verified. You can now complete registration.', 'success');
-
+        applyEmailVerified(data.email, data.role);
     } catch (e) {
         console.error('Storage sync error:', e);
     }
 });
+
+// ✅ STEP 2: Apply immediately on load (in case navigation happened)
+(function applyStoredVerification() {
+    const stored = localStorage.getItem('email_verified');
+    if (stored) {
+        try {
+            const data = JSON.parse(stored);
+            applyEmailVerified(data.email, data.role);
+        } catch (e) {
+            console.error('Error applying stored verification:', e);
+        }
+    }
+})();
 
 // ✅ Helper function to mark email as verified in UI
 function markEmailVerifiedUI(fieldId) {

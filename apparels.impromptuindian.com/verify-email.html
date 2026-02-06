@@ -125,6 +125,10 @@
             const spinnerEl = document.getElementById('spinner');
             const loginLinkEl = document.getElementById('loginLink');
             const backBtnEl = document.getElementById('backBtn');
+            
+            // Store email/role for button click handler
+            let verifiedEmail = null;
+            let verifiedRole = null;
 
         // ✅ Check for error params first (expired link from backend redirect)
         const errorParam = urlParams.get('error');
@@ -150,6 +154,10 @@
             console.log('🔁 Email verification confirmed via redirect params');
             const email = urlParams.get('email');
             const role = urlParams.get('role');
+            
+            // Store for button click handler
+            verifiedEmail = email;
+            verifiedRole = role;
             
             spinnerEl.classList.add('hidden');
             titleEl.textContent = 'Email Verified ✔';
@@ -179,11 +187,6 @@
                 
                 // ✅ FIX #4: Show manual "Go to Registration" button
                 if (backBtnEl) {
-                    if (role === 'rider') {
-                        backBtnEl.href = `rider-register.html?email=${encodeURIComponent(email)}&role=${role}`;
-                    } else {
-                        backBtnEl.href = `register.html?email=${encodeURIComponent(email)}&role=${role}`;
-                    }
                     backBtnEl.classList.remove('hidden');
                 }
             }
@@ -258,6 +261,10 @@
                     // ✅ Log verification source (DB-confirmed)
                     console.log('✅ Email verification confirmed from database');
                     
+                    // Store for button click handler
+                    verifiedEmail = data.email;
+                    verifiedRole = data.role;
+                    
                     // ✅ VERIFIED - Show success and sync across tabs
                     spinnerEl.classList.add('hidden');
                     titleEl.textContent = 'Email Verified ✔';
@@ -292,11 +299,6 @@
                         
                         // ✅ FIX #4: Show manual "Go to Registration" button
                         if (backBtnEl) {
-                            if (data.role === 'rider') {
-                                backBtnEl.href = `rider-register.html?email=${encodeURIComponent(data.email)}&role=${data.role}`;
-                            } else {
-                                backBtnEl.href = `register.html?email=${encodeURIComponent(data.email)}&role=${data.role}`;
-                            }
                             backBtnEl.classList.remove('hidden');
                         }
                     }
@@ -330,6 +332,33 @@
 
         // Start polling immediately
         pollVerification();
+        
+        // ✅ STEP 1: Add click handler for "Go to Registration" button (history.back() with fallback)
+        if (backBtnEl) {
+            backBtnEl.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                console.log('↩️ Returning to registration page');
+                
+                // If user came from register.html, this returns to SAME page instance
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    // Fallback: direct navigation (new tab / no history)
+                    const email = verifiedEmail || urlParams.get('email');
+                    const role = verifiedRole || urlParams.get('role');
+                    if (email && role) {
+                        if (role === 'rider') {
+                            window.location.href = `rider-register.html?email=${encodeURIComponent(email)}&role=${role}`;
+                        } else {
+                            window.location.href = `register.html?email=${encodeURIComponent(email)}&role=${role}`;
+                        }
+                    } else {
+                        window.location.href = 'register.html';
+                    }
+                }
+            });
+        }
         })(); // ✅ End of IIFE - now return statements are valid
     </script>
 </body>
