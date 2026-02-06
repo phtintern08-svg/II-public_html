@@ -129,6 +129,9 @@
             // Store email/role for button click handler
             let verifiedEmail = null;
             let verifiedRole = null;
+            
+            // ✅ Improvement 1: Guard flag to prevent duplicate polling after success
+            let verificationDone = false;
 
         // ✅ Check for error params first (expired link from backend redirect)
         const errorParam = urlParams.get('error');
@@ -188,6 +191,14 @@
                 // ✅ FIX #4: Show manual "Go to Registration" button
                 if (backBtnEl) {
                     backBtnEl.classList.remove('hidden');
+                }
+                
+                // ✅ Improvement 2: Clear token from URL (security + cleanliness)
+                // Prevents copy/paste of old token URLs, cleaner UX, matches banking apps behavior
+                if (window.history && window.history.replaceState) {
+                    const cleanUrl = window.location.pathname + '?verified=1&email=' +
+                        encodeURIComponent(email) + '&role=' + encodeURIComponent(role);
+                    window.history.replaceState({}, document.title, cleanUrl);
                 }
             }
 
@@ -258,6 +269,10 @@
                 }
 
                 if (data.success) {
+                    // ✅ Improvement 1: Stop polling after success (race guard)
+                    if (verificationDone) return;
+                    verificationDone = true;
+                    
                     // ✅ Log verification source (DB-confirmed)
                     console.log('✅ Email verification confirmed from database');
                     
@@ -302,6 +317,14 @@
                             backBtnEl.classList.remove('hidden');
                         }
                     }
+                    
+                    // ✅ Improvement 2: Clear token from URL (security + cleanliness)
+                    // Prevents copy/paste of old token URLs, cleaner UX, matches banking apps behavior
+                    if (window.history && window.history.replaceState) {
+                        const cleanUrl = window.location.pathname + '?verified=1&email=' +
+                            encodeURIComponent(verifiedEmail) + '&role=' + encodeURIComponent(verifiedRole);
+                        window.history.replaceState({}, document.title, cleanUrl);
+                    }
 
                     // ✅ PART 1: No auto-redirect - user must click button manually
 
@@ -333,29 +356,28 @@
         // Start polling immediately
         pollVerification();
         
-        // ✅ STEP 1: Add click handler for "Go to Registration" button (history.back() with fallback)
+        // ✅ FINAL FIX: Direct navigation with state restoration (industry standard)
+        // DO NOT use history.back() - use location.replace() for clean UX
         if (backBtnEl) {
             backBtnEl.addEventListener('click', (e) => {
                 e.preventDefault();
                 
-                console.log('↩️ Returning to registration page');
+                const email = verifiedEmail || urlParams.get('email');
+                const role = verifiedRole || urlParams.get('role');
                 
-                // If user came from register.html, this returns to SAME page instance
-                if (window.history.length > 1) {
-                    window.history.back();
+                console.log('➡️ Redirecting to registration with verified email');
+                
+                if (email && role) {
+                    const target =
+                        role === 'rider'
+                            ? `rider-register.html?email=${encodeURIComponent(email)}&role=${role}`
+                            : `register.html?email=${encodeURIComponent(email)}&role=${role}`;
+                    
+                    // ✅ IMPORTANT: replace(), not href
+                    // Prevents going back to verify page, prevents token reuse confusion, clean browser history
+                    window.location.replace(target);
                 } else {
-                    // Fallback: direct navigation (new tab / no history)
-                    const email = verifiedEmail || urlParams.get('email');
-                    const role = verifiedRole || urlParams.get('role');
-                    if (email && role) {
-                        if (role === 'rider') {
-                            window.location.href = `rider-register.html?email=${encodeURIComponent(email)}&role=${role}`;
-                        } else {
-                            window.location.href = `register.html?email=${encodeURIComponent(email)}&role=${role}`;
-                        }
-                    } else {
-                        window.location.href = 'register.html';
-                    }
+                    window.location.replace('register.html');
                 }
             });
         }
