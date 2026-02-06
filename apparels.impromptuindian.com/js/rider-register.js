@@ -605,9 +605,9 @@ if (riderForm) {
         const confirmPassword = document.getElementById('riderConfirmPass').value;
         const termsAccepted = document.getElementById('riderTerms').checked;
 
-        // Check password strength (basic validation)
-        if (password.length < 6) {
-            showAlert('Weak Password', 'Password must be at least 6 characters long.', 'error');
+        // Check password strength
+        if (!isPasswordValid(password)) {
+            showAlert('Weak Password', 'Password must be at least 8 characters with uppercase, lowercase, number, and special character.', 'error');
             return;
         }
 
@@ -639,6 +639,181 @@ function validateIndianPhone(phone) {
     // Indian mobile: 10 digits, starts with 6, 7, 8, or 9
     const regex = /^[6-9]\d{9}$/;
     return regex.test(cleaned);
+}
+
+// Restrict phone input to only numbers and enforce first digit rule
+function restrictRiderPhoneInput(event) {
+    const char = String.fromCharCode(event.which);
+    const input = event.target;
+    const currentValue = input.value;
+    
+    // Allow backspace, delete, tab, escape, enter
+    if ([8, 9, 27, 13, 46].indexOf(event.keyCode) !== -1 ||
+        // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+        (event.keyCode === 65 && event.ctrlKey === true) ||
+        (event.keyCode === 67 && event.ctrlKey === true) ||
+        (event.keyCode === 86 && event.ctrlKey === true) ||
+        (event.keyCode === 88 && event.ctrlKey === true)) {
+        return true;
+    }
+    
+    // Only allow numbers
+    if (!/[0-9]/.test(char)) {
+        event.preventDefault();
+        return false;
+    }
+    
+    // If first character, must be 6, 7, 8, or 9
+    if (currentValue.length === 0 && !/[6789]/.test(char)) {
+        event.preventDefault();
+        showAlert('Invalid Phone Number', 'Phone number must start with 6, 7, 8, or 9.', 'error');
+        return false;
+    }
+    
+    // Limit to 10 digits
+    if (currentValue.length >= 10) {
+        event.preventDefault();
+        return false;
+    }
+    
+    return true;
+}
+
+// Check phone validation for rider
+function checkRiderPhoneValidation() {
+    const phoneInput = document.getElementById('riderPhone');
+    let phoneValue = phoneInput.value;
+    
+    // Remove any non-numeric characters (in case of paste)
+    phoneValue = phoneValue.replace(/\D/g, '');
+    
+    // Limit to 10 digits
+    if (phoneValue.length > 10) {
+        phoneValue = phoneValue.substring(0, 10);
+    }
+    
+    // If first digit is not 6, 7, 8, or 9, clear it
+    if (phoneValue.length > 0 && !/[6789]/.test(phoneValue[0])) {
+        phoneValue = '';
+    }
+    
+    // Update the input value
+    phoneInput.value = phoneValue;
+
+    if (phoneValue === '') {
+        phoneInput.classList.remove('border-green-500', 'border-red-500');
+        return;
+    }
+
+    if (validateIndianPhone(phoneValue)) {
+        phoneInput.classList.remove('border-red-500');
+        phoneInput.classList.add('border-green-500');
+    } else {
+        phoneInput.classList.remove('border-green-500');
+        phoneInput.classList.add('border-red-500');
+    }
+}
+
+// --- Password Strength Validation ---
+function checkPasswordStrength(prefix) {
+    const password = document.getElementById(`${prefix}Pass`).value;
+    const strengthIndicator = document.getElementById(`${prefix}PasswordStrength`);
+
+    if (!strengthIndicator) return;
+
+    if (password === '') {
+        strengthIndicator.classList.add('hidden');
+        return;
+    }
+
+    strengthIndicator.classList.remove('hidden');
+
+    const conditions = {
+        length: password.length >= 8,
+        uppercase: /[A-Z]/.test(password),
+        lowercase: /[a-z]/.test(password),
+        number: /\d/.test(password),
+        special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    };
+
+    const lengthEl = document.getElementById(`${prefix}CondLength`);
+    const uppercaseEl = document.getElementById(`${prefix}CondUppercase`);
+    const lowercaseEl = document.getElementById(`${prefix}CondLowercase`);
+    const numberEl = document.getElementById(`${prefix}CondNumber`);
+    const specialEl = document.getElementById(`${prefix}CondSpecial`);
+
+    // Update each condition indicator
+    updateCondition(lengthEl, conditions.length);
+    updateCondition(uppercaseEl, conditions.uppercase);
+    updateCondition(lowercaseEl, conditions.lowercase);
+    updateCondition(numberEl, conditions.number);
+    updateCondition(specialEl, conditions.special);
+
+    // Update password input border
+    const passInput = document.getElementById(`${prefix}Pass`);
+    const allValid = conditions.length && conditions.uppercase && conditions.lowercase && conditions.number && conditions.special;
+
+    if (allValid) {
+        passInput.classList.remove('border-red-500', 'border-yellow-500');
+        passInput.classList.add('border-green-500');
+    } else if (conditions.length) {
+        passInput.classList.remove('border-red-500', 'border-green-500');
+        passInput.classList.add('border-yellow-500');
+    } else {
+        passInput.classList.remove('border-green-500', 'border-yellow-500');
+        passInput.classList.add('border-red-500');
+    }
+}
+
+function updateCondition(element, isValid) {
+    if (!element) return;
+    if (isValid) {
+        element.classList.remove('text-gray-500');
+        element.classList.add('text-green-400');
+        element.querySelector('.cond-icon').textContent = '✓';
+    } else {
+        element.classList.remove('text-green-400');
+        element.classList.add('text-gray-500');
+        element.querySelector('.cond-icon').textContent = '○';
+    }
+}
+
+function isPasswordValid(password) {
+    return password.length >= 8 &&
+        /[A-Z]/.test(password) &&
+        /[a-z]/.test(password) &&
+        /\d/.test(password) &&
+        /[!@#$%^&*(),.?":{}|<>]/.test(password);
+}
+
+// --- Password Match Validation ---
+function checkPasswordMatch(prefix) {
+    const password = document.getElementById(`${prefix}Pass`).value;
+    const confirmPassword = document.getElementById(`${prefix}ConfirmPass`).value;
+    const matchMessage = document.getElementById(`${prefix}PasswordMatch`);
+    const confirmInput = document.getElementById(`${prefix}ConfirmPass`);
+
+    if (confirmPassword === '') {
+        matchMessage.classList.add('hidden');
+        confirmInput.classList.remove('border-green-500', 'border-red-500');
+        return;
+    }
+
+    matchMessage.classList.remove('hidden');
+
+    if (password === confirmPassword) {
+        matchMessage.textContent = '✓ Passwords match';
+        matchMessage.classList.remove('text-red-400');
+        matchMessage.classList.add('text-green-400');
+        confirmInput.classList.remove('border-red-500');
+        confirmInput.classList.add('border-green-500');
+    } else {
+        matchMessage.textContent = '✗ Passwords do not match';
+        matchMessage.classList.remove('text-green-400');
+        matchMessage.classList.add('text-red-400');
+        confirmInput.classList.remove('border-green-500');
+        confirmInput.classList.add('border-red-500');
+    }
 }
 
 // Alert Functions

@@ -90,9 +90,11 @@
                 <div>
                     <label class="text-sm text-gray-300">Phone Number *</label>
                     <div class="flex gap-2 mt-1 items-center">
-                        <input type="text" id="riderPhone"
+                        <input type="text" id="riderPhone" maxlength="10"
                             class="flex-1 p-2 rounded bg-[#131820] border border-gray-700 text-white"
-                            placeholder="(123) 456-7890" required />
+                            placeholder="9876543210" required 
+                            oninput="checkRiderPhoneValidation()" 
+                            onkeypress="return restrictRiderPhoneInput(event)" />
                         <button type="button" id="riderPhoneOtpBtn" onclick="handleGetOtp('riderPhone')"
                             class="bg-[#FFCC00] text-black px-3 py-2 rounded font-medium text-sm whitespace-nowrap">
                             Get OTP
@@ -123,14 +125,38 @@
 
                 <div>
                     <label class="text-sm text-gray-300">Password *</label>
-                    <input type="password" id="riderPass"
-                        class="w-full mt-1 p-2 rounded bg-[#131820] border border-gray-700 text-white" required />
+                    <div class="relative">
+                        <input type="password" id="riderPass"
+                            class="w-full mt-1 p-2 pr-10 rounded bg-[#131820] border border-gray-700 text-white" required
+                            oninput="checkPasswordStrength('rider')" />
+                        <button type="button" id="toggleRiderPass" class="absolute right-3 top-1/2 -translate-y-1/2 mt-1 text-gray-400 hover:text-gray-300 focus:outline-none">
+                            <i data-lucide="eye" id="riderPassEyeIcon" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <!-- Password Strength Indicator -->
+                    <div id="riderPasswordStrength" class="hidden mt-2 text-xs space-y-1">
+                        <p id="riderCondLength" class="text-gray-500"><span class="cond-icon">○</span> Minimum 8 characters</p>
+                        <p id="riderCondUppercase" class="text-gray-500"><span class="cond-icon">○</span> At least one uppercase
+                            letter</p>
+                        <p id="riderCondLowercase" class="text-gray-500"><span class="cond-icon">○</span> At least one lowercase
+                            letter</p>
+                        <p id="riderCondNumber" class="text-gray-500"><span class="cond-icon">○</span> At least one number</p>
+                        <p id="riderCondSpecial" class="text-gray-500"><span class="cond-icon">○</span> At least one special
+                            character (!@#$%^&*)</p>
+                    </div>
                 </div>
 
                 <div>
                     <label class="text-sm text-gray-300">Confirm Password *</label>
-                    <input type="password" id="riderConfirmPass"
-                        class="w-full mt-1 p-2 rounded bg-[#131820] border border-gray-700 text-white" required />
+                    <div class="relative">
+                        <input type="password" id="riderConfirmPass"
+                            class="w-full mt-1 p-2 pr-10 rounded bg-[#131820] border border-gray-700 text-white" required
+                            oninput="checkPasswordMatch('rider')" />
+                        <button type="button" id="toggleRiderConfirmPass" class="absolute right-3 top-1/2 -translate-y-1/2 mt-1 text-gray-400 hover:text-gray-300 focus:outline-none">
+                            <i data-lucide="eye" id="riderConfirmPassEyeIcon" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <p id="riderPasswordMatch" class="text-xs mt-1 hidden"></p>
                 </div>
 
                 <!-- Terms & Conditions -->
@@ -200,6 +226,36 @@
         window.IMPROMPTU_INDIAN_API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://apparels.impromptuindian.com';
     </script>
     <script src="js/rider-register.js"></script>
+    <script>
+        // Initialize password toggle functionality for rider password fields
+        document.addEventListener('DOMContentLoaded', function() {
+            // Helper function to toggle password visibility
+            function setupPasswordToggle(inputId, toggleButtonId, iconId) {
+                const passwordInput = document.getElementById(inputId);
+                const toggleButton = document.getElementById(toggleButtonId);
+                const eyeIcon = document.getElementById(iconId);
+
+                if (toggleButton && passwordInput && eyeIcon) {
+                    toggleButton.addEventListener('click', function() {
+                        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                        passwordInput.setAttribute('type', type);
+                        
+                        // Toggle icon between eye and eye-off
+                        if (type === 'text') {
+                            eyeIcon.setAttribute('data-lucide', 'eye-off');
+                        } else {
+                            eyeIcon.setAttribute('data-lucide', 'eye');
+                        }
+                        lucide.createIcons();
+                    });
+                }
+            }
+
+            // Setup toggles for rider password fields
+            setupPasswordToggle('riderPass', 'toggleRiderPass', 'riderPassEyeIcon');
+            setupPasswordToggle('riderConfirmPass', 'toggleRiderConfirmPass', 'riderConfirmPassEyeIcon');
+        });
+    </script>
 
 </body>
 
