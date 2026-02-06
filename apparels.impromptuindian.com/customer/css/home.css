@@ -3,6 +3,18 @@ body {
     background-color: #0a0f1c;
 }
 
+/* Hide scrollbar for main content */
+main::-webkit-scrollbar {
+    display: none;
+}
+
+main {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}
+
 .sidebar {
     width: 265px;
 }

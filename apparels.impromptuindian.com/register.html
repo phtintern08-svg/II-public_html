@@ -71,14 +71,16 @@
 
         <div>
           <label class="text-sm text-gray-300">Email</label>
-          <div class="flex gap-2 mt-1 items-center">
+          <div class="flex flex-col sm:flex-row gap-2 mt-1 sm:items-center">
             <input type="email" id="custEmail" class="flex-1 p-2 rounded bg-[#131820] border border-gray-700 text-white"
               placeholder="name@example.com" required />
             <button type="button" id="custEmailOtpBtn" onclick="handleGetOtp('custEmail')"
-              class="bg-[#FFCC00] text-black px-3 py-2 rounded font-medium text-sm whitespace-nowrap ">
+              class="bg-[#FFCC00] text-black px-3 py-2 rounded font-medium text-sm whitespace-nowrap w-full sm:w-auto">
               Send Verification Link
             </button>
-            <button type="button" id="resend-custEmail" class="hidden text-sm underline text-yellow-400 hover:text-yellow-300" onclick="handleGetOtp('custEmail')">
+            <button type="button" id="resend-custEmail"
+              class="hidden text-sm underline text-yellow-400 hover:text-yellow-300"
+              onclick="handleGetOtp('custEmail')">
               Resend Verification Link
             </button>
           </div>
@@ -87,11 +89,11 @@
 
         <div>
           <label class="text-sm text-gray-300">Phone Number</label>
-          <div class="flex gap-2 mt-1 items-center">
+          <div class="flex flex-col sm:flex-row gap-2 mt-1 sm:items-center">
             <input type="text" id="custPhone" class="flex-1 p-2 rounded bg-[#131820] border border-gray-700 text-white"
               placeholder="9000000000" oninput="checkPhoneValidation('cust')" />
             <button type="button" id="custPhoneOtpBtn" onclick="handleGetOtp('custPhone')"
-              class="bg-[#FFCC00] text-black px-3 py-2 rounded font-medium text-sm whitespace-nowrap ">
+              class="bg-[#FFCC00] text-black px-3 py-2 rounded font-medium text-sm whitespace-nowrap w-full sm:w-auto">
               Get OTP
             </button>
             <div id="verified-custPhone-icon" class="hidden text-green-400 flex items-center gap-1">
@@ -102,7 +104,7 @@
               </svg>
             </div>
           </div>
-          
+
           <div id="timer-custPhone" class="hidden mt-1 text-xs text-gray-400"></div>
 
           <!-- OTP Container -->
@@ -125,7 +127,8 @@
             <input type="password" id="custPass"
               class="w-full mt-1 p-2 pr-10 rounded bg-[#131820] border border-gray-700 text-white" required
               oninput="checkPasswordStrength('cust')" />
-            <button type="button" id="toggleCustPass" class="absolute right-3 top-1/2 -translate-y-1/2 mt-1 text-gray-400 hover:text-gray-300 focus:outline-none">
+            <button type="button" id="toggleCustPass"
+              class="absolute right-3 top-1/2 -translate-y-1/2 mt-1 text-gray-400 hover:text-gray-300 focus:outline-none">
               <i data-lucide="eye" id="custPassEyeIcon" class="w-5 h-5"></i>
             </button>
           </div>
@@ -148,7 +151,8 @@
             <input type="password" id="custConfirmPass"
               class="w-full mt-1 p-2 pr-10 rounded bg-[#131820] border border-gray-700 text-white" required
               oninput="checkPasswordMatch('cust')" />
-            <button type="button" id="toggleCustConfirmPass" class="absolute right-3 top-1/2 -translate-y-1/2 mt-1 text-gray-400 hover:text-gray-300 focus:outline-none">
+            <button type="button" id="toggleCustConfirmPass"
+              class="absolute right-3 top-1/2 -translate-y-1/2 mt-1 text-gray-400 hover:text-gray-300 focus:outline-none">
               <i data-lucide="eye" id="custConfirmPassEyeIcon" class="w-5 h-5"></i>
             </button>
           </div>
@@ -180,14 +184,16 @@
 
         <div>
           <label class="text-sm text-gray-300">Email</label>
-          <div class="flex gap-2 mt-1 items-center">
+          <div class="flex flex-col sm:flex-row gap-2 mt-1 sm:items-center">
             <input type="email" id="vendEmail" class="flex-1 p-2 rounded bg-[#131820] border border-gray-700 text-white"
               placeholder="name@example.com" required />
             <button type="button" id="vendEmailOtpBtn" onclick="handleGetOtp('vendEmail')"
-              class="bg-[#FFCC00] text-black px-3 py-2 rounded font-medium text-sm whitespace-nowrap ">
+              class="bg-[#FFCC00] text-black px-3 py-2 rounded font-medium text-sm whitespace-nowrap w-full sm:w-auto">
               Send Verification Link
             </button>
-            <button type="button" id="resend-vendEmail" class="hidden text-sm underline text-yellow-400 hover:text-yellow-300" onclick="handleGetOtp('vendEmail')">
+            <button type="button" id="resend-vendEmail"
+              class="hidden text-sm underline text-yellow-400 hover:text-yellow-300"
+              onclick="handleGetOtp('vendEmail')">
               Resend Verification Link
             </button>
           </div>
@@ -196,11 +202,11 @@
 
         <div>
           <label class="text-sm text-gray-300">Phone Number</label>
-          <div class="flex gap-2 mt-1 items-center">
+          <div class="flex flex-col sm:flex-row gap-2 mt-1 sm:items-center">
             <input type="text" id="vendPhone" class="flex-1 p-2 rounded bg-[#131820] border border-gray-700 text-white"
               placeholder="9876543210" oninput="checkPhoneValidation('vend')" />
             <button type="button" id="vendPhoneOtpBtn" onclick="handleGetOtp('vendPhone')"
-              class="bg-[#FFCC00] text-black px-3 py-2 rounded font-medium text-sm whitespace-nowrap ">
+              class="bg-[#FFCC00] text-black px-3 py-2 rounded font-medium text-sm whitespace-nowrap w-full sm:w-auto">
               Get OTP
             </button>
             <div id="verified-vendPhone-icon" class="hidden text-green-400 flex items-center gap-1">
@@ -234,7 +240,8 @@
             <input type="password" id="vendPass"
               class="w-full mt-1 p-2 pr-10 rounded bg-[#131820] border border-gray-700 text-white" required
               oninput="checkPasswordStrength('vend')" />
-            <button type="button" id="toggleVendPass" class="absolute right-3 top-1/2 -translate-y-1/2 mt-1 text-gray-400 hover:text-gray-300 focus:outline-none">
+            <button type="button" id="toggleVendPass"
+              class="absolute right-3 top-1/2 -translate-y-1/2 mt-1 text-gray-400 hover:text-gray-300 focus:outline-none">
               <i data-lucide="eye" id="vendPassEyeIcon" class="w-5 h-5"></i>
             </button>
           </div>
@@ -257,15 +264,24 @@
             <input type="password" id="vendConfirmPass"
               class="w-full mt-1 p-2 pr-10 rounded bg-[#131820] border border-gray-700 text-white" required
               oninput="checkPasswordMatch('vend')" />
-            <button type="button" id="toggleVendConfirmPass" class="absolute right-3 top-1/2 -translate-y-1/2 mt-1 text-gray-400 hover:text-gray-300 focus:outline-none">
+            <button type="button" id="toggleVendConfirmPass"
+              class="absolute right-3 top-1/2 -translate-y-1/2 mt-1 text-gray-400 hover:text-gray-300 focus:outline-none">
               <i data-lucide="eye" id="vendConfirmPassEyeIcon" class="w-5 h-5"></i>
             </button>
           </div>
           <p id="vendPasswordMatch" class="text-xs mt-1 hidden"></p>
         </div>
 
-        <button type="submit"
-          class="w-full bg-[#1273EB]  transition text-white p-2 rounded-md font-medium">
+        <!-- Terms & Conditions -->
+        <div class="flex items-start gap-2">
+          <input type="checkbox" id="vendTerms" class="mt-1" required />
+          <label for="vendTerms" class="text-xs text-gray-400">
+            I agree to the <a href="#" class="text-[#FFCC00] underline">Terms & Conditions</a> and
+            <a href="#" class="text-[#FFCC00] underline">Privacy Policy</a>
+          </label>
+        </div>
+
+        <button type="submit" class="w-full bg-[#1273EB]  transition text-white p-2 rounded-md font-medium">
           Create Account
         </button>
 
@@ -313,34 +329,30 @@
   <script src="js/register.js"></script>
   <script>
     // Initialize password toggle functionality for all password fields
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       // Helper function to toggle password visibility
-      function setupPasswordToggle(inputId, toggleButtonId, iconId) {
+      function setupPasswordToggle(inputId, toggleButtonId) {
         const passwordInput = document.getElementById(inputId);
         const toggleButton = document.getElementById(toggleButtonId);
-        const eyeIcon = document.getElementById(iconId);
 
-        if (toggleButton && passwordInput && eyeIcon) {
-          toggleButton.addEventListener('click', function() {
+        if (toggleButton && passwordInput) {
+          toggleButton.addEventListener('click', function () {
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
-            
-            // Toggle icon between eye and eye-off
-            if (type === 'text') {
-              eyeIcon.setAttribute('data-lucide', 'eye-off');
-            } else {
-              eyeIcon.setAttribute('data-lucide', 'eye');
-            }
+
+            // Toggle icon using innerHTML replacement to ensure Lucide renders it correctly
+            const iconName = type === 'text' ? 'eye-off' : 'eye';
+            toggleButton.innerHTML = `<i data-lucide="${iconName}" class="w-5 h-5"></i>`;
             lucide.createIcons();
           });
         }
       }
 
       // Setup toggles for all password fields
-      setupPasswordToggle('custPass', 'toggleCustPass', 'custPassEyeIcon');
-      setupPasswordToggle('custConfirmPass', 'toggleCustConfirmPass', 'custConfirmPassEyeIcon');
-      setupPasswordToggle('vendPass', 'toggleVendPass', 'vendPassEyeIcon');
-      setupPasswordToggle('vendConfirmPass', 'toggleVendConfirmPass', 'vendConfirmPassEyeIcon');
+      setupPasswordToggle('custPass', 'toggleCustPass');
+      setupPasswordToggle('custConfirmPass', 'toggleCustConfirmPass');
+      setupPasswordToggle('vendPass', 'toggleVendPass');
+      setupPasswordToggle('vendConfirmPass', 'toggleVendConfirmPass');
     });
   </script>
 
