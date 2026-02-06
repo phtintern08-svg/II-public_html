@@ -1,12 +1,77 @@
 // Home Page JavaScript
 lucide.createIcons();
 
-// Populate welcome username
+// Load customer profile from database if not already loaded
+async function loadCustomerProfile() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        console.warn('No authentication token found');
+        return;
+    }
+
+    // Check if profile is already loaded
+    const existingProfile = localStorage.getItem('customer_profile');
+    if (existingProfile) {
+        try {
+            const profile = JSON.parse(existingProfile);
+            updateWelcomeMessage(profile);
+            return;
+        } catch (e) {
+            console.warn('Failed to parse existing profile, fetching fresh data');
+        }
+    }
+
+    try {
+        const response = await window.ImpromptuIndianApi.fetch('/api/customer/profile', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            const profileData = await response.json();
+            
+            // Store complete customer profile data from database
+            localStorage.setItem('customer_profile', JSON.stringify(profileData));
+            
+            // Update localStorage with fresh data from database
+            if (profileData.username) localStorage.setItem('username', profileData.username);
+            if (profileData.email) localStorage.setItem('email', profileData.email);
+            if (profileData.phone) localStorage.setItem('phone', profileData.phone);
+            if (profileData.bio) localStorage.setItem('bio', profileData.bio);
+            if (profileData.avatar_url) localStorage.setItem('avatar_url', profileData.avatar_url);
+            
+            updateWelcomeMessage(profileData);
+            console.log('Customer profile loaded from database:', profileData);
+        } else {
+            console.warn('Failed to fetch customer profile');
+        }
+    } catch (error) {
+        console.error('Error fetching customer profile:', error);
+    }
+}
+
+// Update welcome message with customer data
+function updateWelcomeMessage(profile) {
+    const welcomeUsername = document.getElementById('welcomeUsername');
+    if (welcomeUsername && profile.username) {
+        welcomeUsername.textContent = profile.username;
+    }
+}
+
+// Populate welcome username (use cached data if available)
 const welcomeUsername = document.getElementById('welcomeUsername');
 if (welcomeUsername) {
-  const username = localStorage.getItem('username') || 'Guest';
-  welcomeUsername.textContent = username;
+    const username = localStorage.getItem('username') || 'Guest';
+    welcomeUsername.textContent = username;
 }
+
+// Load customer profile from database on page load
+document.addEventListener('DOMContentLoaded', () => {
+    loadCustomerProfile();
+});
 
 // CATEGORY CARDS
 const categories = [

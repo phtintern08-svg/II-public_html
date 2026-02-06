@@ -182,10 +182,13 @@ if (loginForm) {
             }
 
             if (response.ok) {
-                // Token is now stored in HttpOnly cookie automatically
-                // No need to store in localStorage - cookie works across subdomains
+                // Token is stored in HttpOnly cookie automatically (for subdomain SSO)
+                // Also store in localStorage for frontend API calls
+                if (result.token) {
+                    localStorage.setItem('token', result.token);
+                }
                 
-                // Store user info in localStorage for UI display (optional)
+                // Store basic user info in localStorage for UI display
                 if (result.user_id) {
                     localStorage.setItem('user_id', result.user_id);
                 }
@@ -200,6 +203,41 @@ if (loginForm) {
                 }
                 if (result.phone) {
                     localStorage.setItem('phone', result.phone);
+                }
+
+                // For customer role, fetch full profile details from database
+                if (result.role === 'customer' && result.token) {
+                    try {
+                        const profileResponse = await ImpromptuIndianApi.fetch('/api/customer/profile', {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': `Bearer ${result.token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            credentials: 'include'  // Send cookies
+                        });
+
+                        if (profileResponse.ok) {
+                            const profileData = await profileResponse.json();
+                            
+                            // Store complete customer profile data from database
+                            localStorage.setItem('customer_profile', JSON.stringify(profileData));
+                            
+                            // Update localStorage with fresh data from database
+                            if (profileData.username) localStorage.setItem('username', profileData.username);
+                            if (profileData.email) localStorage.setItem('email', profileData.email);
+                            if (profileData.phone) localStorage.setItem('phone', profileData.phone);
+                            if (profileData.bio) localStorage.setItem('bio', profileData.bio);
+                            if (profileData.avatar_url) localStorage.setItem('avatar_url', profileData.avatar_url);
+                            
+                            console.log('Customer profile loaded from database:', profileData);
+                        } else {
+                            console.warn('Failed to fetch customer profile, using login response data');
+                        }
+                    } catch (profileError) {
+                        console.error('Error fetching customer profile:', profileError);
+                        // Continue with login even if profile fetch fails
+                    }
                 }
 
                 showAlert('Success', 'Login successful!', 'success');

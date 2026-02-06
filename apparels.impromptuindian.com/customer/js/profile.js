@@ -55,10 +55,15 @@ async function loadUserProfile() {
                 phoneInput.setAttribute('disabled', 'disabled');
             }
 
-            // Update localStorage with fresh data
+            // Store complete customer profile data from database
+            localStorage.setItem('customer_profile', JSON.stringify(data));
+            
+            // Update localStorage with fresh data from database
             if (data.username) localStorage.setItem('username', data.username);
             if (data.email) localStorage.setItem('email', data.email);
             if (data.phone) localStorage.setItem('phone', data.phone);
+            if (data.bio) localStorage.setItem('bio', data.bio);
+            if (data.avatar_url) localStorage.setItem('avatar_url', data.avatar_url);
 
             // Update avatar initial
             const avatarInitial = document.getElementById('avatarInitial');
