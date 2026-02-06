@@ -28,105 +28,105 @@ function initDropdowns() {
   });
 
   document.querySelectorAll(".custom-select").forEach((wrapper) => {
-  const native = wrapper.querySelector("select");
-  const trigger = wrapper.querySelector(".trigger");
-  const panel = wrapper.querySelector(".panel");
-  const display = trigger ? trigger.querySelector(".value") : null;
+    const native = wrapper.querySelector("select");
+    const trigger = wrapper.querySelector(".trigger");
+    const panel = wrapper.querySelector(".panel");
+    const display = trigger ? trigger.querySelector(".value") : null;
 
-  // Safety check - ensure all required elements exist
-  if (!native || !trigger || !panel || !display) {
-    console.warn("Custom select missing required elements:", wrapper);
-    return;
-  }
-
-  function rebuildOptions() {
-    if (!panel || !native) return;
-    
-    panel.innerHTML = "";
-    
-    // Ensure we have options to build
-    if (!native.options || native.options.length === 0) {
-      console.warn("No options found in select:", native);
+    // Safety check - ensure all required elements exist
+    if (!native || !trigger || !panel || !display) {
+      console.warn("Custom select missing required elements:", wrapper);
       return;
     }
-    
-    Array.from(native.options).forEach((opt) => {
-      const optEl = document.createElement("div");
-      optEl.className = "option";
-      optEl.dataset.value = opt.value || opt.text;
-      optEl.textContent = opt.text || opt.value;
-      if (opt.selected) optEl.classList.add("selected");
 
-      optEl.addEventListener("click", (e) => {
-        e.preventDefault(); // Prevent default browser behavior
-        e.stopPropagation(); // Stop event bubbling to document
-        const selectedValue = opt.value || opt.text;
-        const selectedText = opt.text || opt.value;
-        
-        if (native) native.value = selectedValue;
-        if (display) display.textContent = selectedText;
+    function rebuildOptions() {
+      if (!panel || !native) return;
 
-        panel.querySelectorAll(".option").forEach((o) => o.classList.remove("selected"));
-        optEl.classList.add("selected");
-        panel.classList.add("hidden");
+      panel.innerHTML = "";
 
-        if (wrapper.dataset.name === "product-type") {
-          const key = selectedText.trim();
-          
-          // Update dependent UI
-          renderCategories(key);
-          renderFabrics(key);
-          
-          // 🔥 FORCE SYNC after rebuild - ensures native select stays in sync
-          if (native) {
-            native.dispatchEvent(new Event("change"));
+      // Ensure we have options to build
+      if (!native.options || native.options.length === 0) {
+        console.warn("No options found in select:", native);
+        return;
+      }
+
+      Array.from(native.options).forEach((opt) => {
+        const optEl = document.createElement("div");
+        optEl.className = "option";
+        optEl.dataset.value = opt.value || opt.text;
+        optEl.textContent = opt.text || opt.value;
+        if (opt.selected) optEl.classList.add("selected");
+
+        optEl.addEventListener("click", (e) => {
+          e.preventDefault(); // Prevent default browser behavior
+          e.stopPropagation(); // Stop event bubbling to document
+          const selectedValue = opt.value || opt.text;
+          const selectedText = opt.text || opt.value;
+
+          if (native) native.value = selectedValue;
+          if (display) display.textContent = selectedText;
+
+          panel.querySelectorAll(".option").forEach((o) => o.classList.remove("selected"));
+          optEl.classList.add("selected");
+          panel.classList.add("hidden");
+
+          if (wrapper.dataset.name === "product-type") {
+            const key = selectedText.trim();
+
+            // Update dependent UI
+            renderCategories(key);
+            renderFabrics(key);
+
+            // 🔥 FORCE SYNC after rebuild - ensures native select stays in sync
+            if (native) {
+              native.dispatchEvent(new Event("change"));
+            }
+
+            // 🔥 Keep UI in sync after rebuild - prevents display from resetting
+            if (display) {
+              display.textContent = selectedText;
+            }
+
+            // 🔥 Re-initialize dropdowns after dynamic rebuild to ensure event listeners are bound
+            // This is safe because initDropdowns checks for existing elements
+            setTimeout(() => {
+              initDropdowns();
+            }, 0);
           }
-          
-          // 🔥 Keep UI in sync after rebuild - prevents display from resetting
-          if (display) {
-            display.textContent = selectedText;
+
+          // Trigger estimate check when any relevant dropdown changes
+          if (['product-type', 'fabric-type', 'sample-size'].includes(wrapper.dataset.name)) {
+            checkEstimate();
           }
-          
-          // 🔥 Re-initialize dropdowns after dynamic rebuild to ensure event listeners are bound
-          // This is safe because initDropdowns checks for existing elements
-          setTimeout(() => {
-            initDropdowns();
-          }, 0);
-        }
 
-        // Trigger estimate check when any relevant dropdown changes
-        if (['product-type', 'fabric-type', 'sample-size'].includes(wrapper.dataset.name)) {
-          checkEstimate();
-        }
+          // Trigger MODAL estimate check (for old modal)
+          if (wrapper.dataset.name === 'modal-sample-size') {
+            checkModalEstimate();
+          }
+        });
 
-        // Trigger MODAL estimate check (for old modal)
-        if (wrapper.dataset.name === 'modal-sample-size') {
-          checkModalEstimate();
-        }
+        panel.appendChild(optEl);
       });
-
-      panel.appendChild(optEl);
-    });
-  }
-
-  // Expose rebuild function for dynamic updates
-  wrapper.rebuild = rebuildOptions;
-
-  rebuildOptions();
-
-  trigger.addEventListener("click", (e) => {
-    e.preventDefault(); // Prevent default browser behavior
-    e.stopPropagation(); // Stop event bubbling
-    const isHidden = panel.classList.contains("hidden");
-    closeAllPanels(panel); // Pass current panel as exception
-    if (isHidden) {
-      panel.classList.remove("hidden");
-      // Ensure panel is visible and properly positioned
-      panel.style.display = "block";
     }
-  });
 
-  native.addEventListener("change", rebuildOptions);
+    // Expose rebuild function for dynamic updates
+    wrapper.rebuild = rebuildOptions;
+
+    rebuildOptions();
+
+    trigger.addEventListener("click", (e) => {
+      e.preventDefault(); // Prevent default browser behavior
+      e.stopPropagation(); // Stop event bubbling
+      const isHidden = panel.classList.contains("hidden");
+      closeAllPanels(panel); // Pass current panel as exception
+      if (isHidden) {
+        panel.classList.remove("hidden");
+        // Ensure panel is visible and properly positioned
+        panel.style.display = "block";
+      }
+    });
+
+    native.addEventListener("change", rebuildOptions);
   });
 }
 
@@ -169,7 +169,7 @@ function renderFabrics(productType) {
   if (wrapper.rebuild) {
     wrapper.rebuild();
   }
-  
+
   // 🔥 Re-initialize dropdowns after dynamic rebuild to ensure event listeners are bound
   // This ensures clicks work on newly created options
   setTimeout(() => {
@@ -477,7 +477,7 @@ function selectNeckType(cardEl, label) {
 function initCalendar() {
   const calendar = document.getElementById("calendar");
   if (!calendar) return;
-  
+
   const dateBtn = document.getElementById("dateBtn");
   const dateText = document.getElementById("dateText");
   const daysGrid = document.getElementById("daysGrid");
@@ -506,134 +506,134 @@ function initCalendar() {
   }
 
   function renderCalendar() {
-  daysGrid.innerHTML = "";
+    daysGrid.innerHTML = "";
 
-  const firstDay = new Date(viewYear, viewMonth, 1);
-  const firstWeekday = firstDay.getDay();
-  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+    const firstDay = new Date(viewYear, viewMonth, 1);
+    const firstWeekday = firstDay.getDay();
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
 
-  monthLabel.textContent = firstDay.toLocaleString("en-IN", { month: "long", year: "numeric" });
+    monthLabel.textContent = firstDay.toLocaleString("en-IN", { month: "long", year: "numeric" });
 
-  for (let i = 0; i < firstWeekday; i++) {
-    const blank = document.createElement("div");
-    blank.className = "cal-day";
-    blank.style.visibility = "hidden";
-    daysGrid.appendChild(blank);
-  }
-
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateObj = new Date(viewYear, viewMonth, d);
-    const el = document.createElement("div");
-    el.className = "cal-day";
-    el.textContent = d;
-
-    if (dateObj < minDate) {
-      el.classList.add("disabled");
-    } else {
-      el.addEventListener("click", () => {
-        selectedDate = dateObj;
-        dateText.textContent = formatLabel(dateObj);
-        calendar.classList.add("hidden");
-        renderCalendar();
-      });
+    for (let i = 0; i < firstWeekday; i++) {
+      const blank = document.createElement("div");
+      blank.className = "cal-day";
+      blank.style.visibility = "hidden";
+      daysGrid.appendChild(blank);
     }
 
-    if (
-      dateObj.getFullYear() === selectedDate.getFullYear() &&
-      dateObj.getMonth() === selectedDate.getMonth() &&
-      dateObj.getDate() === selectedDate.getDate()
-    ) {
-      el.classList.add("selected");
-    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateObj = new Date(viewYear, viewMonth, d);
+      const el = document.createElement("div");
+      el.className = "cal-day";
+      el.textContent = d;
 
-    daysGrid.appendChild(el);
-  }
+      if (dateObj < minDate) {
+        el.classList.add("disabled");
+      } else {
+        el.addEventListener("click", () => {
+          selectedDate = dateObj;
+          dateText.textContent = formatLabel(dateObj);
+          calendar.classList.add("hidden");
+          renderCalendar();
+        });
+      }
+
+      if (
+        dateObj.getFullYear() === selectedDate.getFullYear() &&
+        dateObj.getMonth() === selectedDate.getMonth() &&
+        dateObj.getDate() === selectedDate.getDate()
+      ) {
+        el.classList.add("selected");
+      }
+
+      daysGrid.appendChild(el);
+    }
   }
 
   renderCalendar();
   dateText.textContent = formatLabel(selectedDate);
 
   function toggleCalendar() {
-  const isHidden = calendar.classList.contains("hidden");
+    const isHidden = calendar.classList.contains("hidden");
 
-  if (!isHidden) {
-    calendar.classList.add("hidden");
-    return;
-  }
-
-  // Get button position
-  const rect = dateBtn.getBoundingClientRect();
-  const calHeight = 350; // Approximate calendar height
-  const calWidth = 320; // Approximate calendar width
-
-  const spaceBelow = window.innerHeight - rect.bottom;
-  const spaceAbove = rect.top;
-
-  // Smart positioning: choose side with more space
-  if (spaceBelow >= calHeight) {
-    // Enough space below - position below
-    calendar.style.top = rect.bottom + window.scrollY + 8 + "px";
-  } else if (spaceAbove >= calHeight) {
-    // Not enough below but enough above - position above
-    calendar.style.top = rect.top + window.scrollY - calHeight - 8 + "px";
-  } else {
-    // Not enough space either side - position below and let it be visible
-    calendar.style.top = rect.bottom + window.scrollY + 8 + "px";
-  }
-
-  // Horizontal positioning
-  calendar.style.left = rect.left + window.scrollX + "px";
-
-  // Prevent calendar from going off-screen horizontally
-  setTimeout(() => {
-    const calRect = calendar.getBoundingClientRect();
-    if (calRect.right > window.innerWidth) {
-      calendar.style.left = window.innerWidth - calWidth - 16 + window.scrollX + "px";
+    if (!isHidden) {
+      calendar.classList.add("hidden");
+      return;
     }
-    if (calRect.left < 0) {
-      calendar.style.left = 16 + window.scrollX + "px";
-    }
-  }, 0);
 
-  calendar.classList.remove("hidden");
+    // Get button position
+    const rect = dateBtn.getBoundingClientRect();
+    const calHeight = 350; // Approximate calendar height
+    const calWidth = 320; // Approximate calendar width
+
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    // Smart positioning: choose side with more space
+    if (spaceBelow >= calHeight) {
+      // Enough space below - position below
+      calendar.style.top = rect.bottom + window.scrollY + 8 + "px";
+    } else if (spaceAbove >= calHeight) {
+      // Not enough below but enough above - position above
+      calendar.style.top = rect.top + window.scrollY - calHeight - 8 + "px";
+    } else {
+      // Not enough space either side - position below and let it be visible
+      calendar.style.top = rect.bottom + window.scrollY + 8 + "px";
+    }
+
+    // Horizontal positioning
+    calendar.style.left = rect.left + window.scrollX + "px";
+
+    // Prevent calendar from going off-screen horizontally
+    setTimeout(() => {
+      const calRect = calendar.getBoundingClientRect();
+      if (calRect.right > window.innerWidth) {
+        calendar.style.left = window.innerWidth - calWidth - 16 + window.scrollX + "px";
+      }
+      if (calRect.left < 0) {
+        calendar.style.left = 16 + window.scrollX + "px";
+      }
+    }, 0);
+
+    calendar.classList.remove("hidden");
   }
 
   dateBtn.addEventListener("click", (e) => {
-  e.stopPropagation();
-  renderCalendar();
-  toggleCalendar();
+    e.stopPropagation();
+    renderCalendar();
+    toggleCalendar();
   });
 
   prevMonth.addEventListener("click", (e) => {
-  e.stopPropagation();
-  viewMonth--;
-  if (viewMonth < 0) {
-    viewMonth = 11;
-    viewYear--;
-  }
-  if (
-    viewYear < minDate.getFullYear() ||
-    (viewYear === minDate.getFullYear() && viewMonth < minDate.getMonth())
-  ) {
-    viewYear = minDate.getFullYear();
-    viewMonth = minDate.getMonth();
-  }
-  renderCalendar();
+    e.stopPropagation();
+    viewMonth--;
+    if (viewMonth < 0) {
+      viewMonth = 11;
+      viewYear--;
+    }
+    if (
+      viewYear < minDate.getFullYear() ||
+      (viewYear === minDate.getFullYear() && viewMonth < minDate.getMonth())
+    ) {
+      viewYear = minDate.getFullYear();
+      viewMonth = minDate.getMonth();
+    }
+    renderCalendar();
   });
 
   nextMonth.addEventListener("click", (e) => {
-  e.stopPropagation();
-  viewMonth++;
-  if (viewMonth > 11) {
-    viewMonth = 0;
-    viewYear++;
-  }
-  renderCalendar();
+    e.stopPropagation();
+    viewMonth++;
+    if (viewMonth > 11) {
+      viewMonth = 0;
+      viewYear++;
+    }
+    renderCalendar();
   });
 
   // Prevent calendar from closing when clicking inside it
   calendar.addEventListener("click", (e) => {
-  e.stopPropagation();
+    e.stopPropagation();
   });
 
   document.addEventListener("click", (e) => {
@@ -664,56 +664,56 @@ function initQuantities() {
   const qtyInputs = Array.from(document.querySelectorAll(".qty-input"));
   const totalQuantityEl = document.getElementById("totalQuantity");
   const sizeSumEl = document.getElementById("sizeSum");
-  
+
   if (!qtyInputs.length || !totalQuantityEl || !sizeSumEl) return;
 
   // Make computeSizeSum globally accessible for place order validation
-  window.computeSizeSum = function() {
+  window.computeSizeSum = function () {
     const inputs = Array.from(document.querySelectorAll(".qty-input"));
     return inputs.reduce((sum, inp) => sum + (parseInt(inp.value) || 0), 0);
   };
 
   function updateTotals() {
     const sum = window.computeSizeSum();
-  sizeSumEl.textContent = sum;
+    sizeSumEl.textContent = sum;
 
-  const total = Number(totalQuantityEl.value);
+    const total = Number(totalQuantityEl.value);
 
-  if (sum === total) {
-    sizeSumEl.classList.remove("text-red-500");
-    sizeSumEl.classList.add("text-green-400");
-  } else {
-    sizeSumEl.classList.remove("text-green-400");
-    sizeSumEl.classList.add("text-red-500");
-  }
-}
-
-qtyInputs.forEach((i) => {
-  // Clear 0 when user focuses on the input
-  i.addEventListener("focus", () => {
-    if (i.value === "0") {
-      i.value = "";
-    }
-  });
-
-  // Validate and update totals on input
-  i.addEventListener("input", () => {
-    if (i.value === "") {
-      i.value = "0";
+    if (sum === total) {
+      sizeSumEl.classList.remove("text-red-500");
+      sizeSumEl.classList.add("text-green-400");
     } else {
-      i.value = Math.max(0, Math.floor(Number(i.value) || 0));
+      sizeSumEl.classList.remove("text-green-400");
+      sizeSumEl.classList.add("text-red-500");
     }
-    updateTotals();
-  });
+  }
 
-  // Ensure at least 0 on blur
-  i.addEventListener("blur", () => {
-    if (i.value === "") {
-      i.value = "0";
-    }
-    updateTotals();
+  qtyInputs.forEach((i) => {
+    // Clear 0 when user focuses on the input
+    i.addEventListener("focus", () => {
+      if (i.value === "0") {
+        i.value = "";
+      }
+    });
+
+    // Validate and update totals on input
+    i.addEventListener("input", () => {
+      if (i.value === "") {
+        i.value = "0";
+      } else {
+        i.value = Math.max(0, Math.floor(Number(i.value) || 0));
+      }
+      updateTotals();
+    });
+
+    // Ensure at least 0 on blur
+    i.addEventListener("blur", () => {
+      if (i.value === "") {
+        i.value = "0";
+      }
+      updateTotals();
+    });
   });
-});
 
   totalQuantityEl.addEventListener("input", updateTotals);
 }
@@ -750,7 +750,7 @@ async function loadAddressForType(type) {
     if (resp.ok) {
       const data = await resp.json();
       const addresses = data.addresses || data;
-      
+
       // Handle empty array gracefully
       if (!Array.isArray(addresses) || addresses.length === 0) {
         // No addresses saved yet - show empty form for user to add
@@ -843,139 +843,139 @@ function initAddress() {
   btnWork.addEventListener("click", () => switchAddressType("work"));
   btnOther.addEventListener("click", () => switchAddressType("other"));
 
-/* ---------------------------
-   Enable / Disable form fields
----------------------------*/
-function toggleAddressFields(enable) {
-  const ids = [
-    "fldHouse",
-    "fldArea",
-    "fldLandmark",
-    "fldCity",
-    "fldState",
-    "fldCountry",
-    "fldPincode",
-    "fldPhone",
-  ];
+  /* ---------------------------
+     Enable / Disable form fields
+  ---------------------------*/
+  function toggleAddressFields(enable) {
+    const ids = [
+      "fldHouse",
+      "fldArea",
+      "fldLandmark",
+      "fldCity",
+      "fldState",
+      "fldCountry",
+      "fldPincode",
+      "fldPhone",
+    ];
 
-  ids.forEach((id) => {
-    const el = document.getElementById(id);
-    if (el) el.disabled = !enable;
-  });
-}
-
-/* ---------------------------
-   Show/Hide Save Button
----------------------------*/
-function toggleSaveButton(show) {
-  const saveAddressBtn = document.getElementById("saveAddressBtn");
-  if (!saveAddressBtn) return;
-  
-  if (show) {
-    saveAddressBtn.classList.remove("hidden");
-    saveAddressBtn.textContent =
-      "Save " + currentAddressType.charAt(0).toUpperCase() + currentAddressType.slice(1) + " Address";
-  } else {
-    saveAddressBtn.classList.add("hidden");
-  }
-}
-
-/* ---------------------------
-   Fill the form with backend data
----------------------------*/
-function fillAddressForm(addr) {
-  document.getElementById("fldHouse").value = addr.house || addr.address_line1?.split(" ")[0] || "";
-  document.getElementById("fldArea").value = addr.area || addr.address_line1?.split(" ").slice(1).join(" ") || "";
-  document.getElementById("fldLandmark").value = addr.landmark || "";
-  document.getElementById("fldCity").value = addr.city || "";
-  document.getElementById("fldState").value = addr.state || "";
-  document.getElementById("fldCountry").value = addr.country || "";
-  document.getElementById("fldPincode").value = addr.pincode || "";
-  document.getElementById("fldPhone").value = addr.alternative_phone || "";
-}
-
-/* ---------------------------
-   Clear input form
----------------------------*/
-function clearAddressForm() {
-  ["fldHouse", "fldArea", "fldLandmark", "fldCity", "fldState", "fldCountry", "fldPincode", "fldPhone"]
-    .forEach(id => document.getElementById(id).value = "");
-}
-
-/* ---------------------------
-   Save address (POST or PUT)
----------------------------*/
-async function saveAddress() {
-  const userId = localStorage.getItem("user_id");
-  if (!userId) return;
-
-  const house = document.getElementById("fldHouse").value.trim();
-  const area = document.getElementById("fldArea").value.trim();
-  const landmark = document.getElementById("fldLandmark").value.trim();
-  const city = document.getElementById("fldCity").value.trim();
-  const state = document.getElementById("fldState").value.trim();
-  const country = document.getElementById("fldCountry").value.trim();
-  const pincode = document.getElementById("fldPincode").value.trim();
-  const phone = document.getElementById("fldPhone").value.trim();
-
-  if (!house || !area || !city || !state || !pincode) {
-    showAlert("Missing Fields", "Please fill in all required fields.", "error");
-    return;
+    ids.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.disabled = !enable;
+    });
   }
 
-  const payload = {
-    customer_id: parseInt(userId),
-    address_type: currentAddressType,
-    address_line1: house + " " + area,
-    address_line2: landmark,
-    city,
-    state,
-    country,
-    pincode,
-    alternative_phone: phone,
-    landmark
-  };
+  /* ---------------------------
+     Show/Hide Save Button
+  ---------------------------*/
+  function toggleSaveButton(show) {
+    const saveAddressBtn = document.getElementById("saveAddressBtn");
+    if (!saveAddressBtn) return;
 
-  try {
-    const token = localStorage.getItem('token');
-    let response;
-    let existing = addressesData[currentAddressType];
-
-    if (existing && existing.id) {
-      response = await window.ImpromptuIndianApi.fetch(`/api/customer/addresses/${existing.id}`, {
-        method: "PUT",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(payload),
-      });
+    if (show) {
+      saveAddressBtn.classList.remove("hidden");
+      saveAddressBtn.textContent =
+        "Save " + currentAddressType.charAt(0).toUpperCase() + currentAddressType.slice(1) + " Address";
     } else {
-      response = await window.ImpromptuIndianApi.fetch("/api/customer/addresses", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(payload),
-      });
+      saveAddressBtn.classList.add("hidden");
+    }
+  }
+
+  /* ---------------------------
+     Fill the form with backend data
+  ---------------------------*/
+  function fillAddressForm(addr) {
+    document.getElementById("fldHouse").value = addr.house || addr.address_line1?.split(" ")[0] || "";
+    document.getElementById("fldArea").value = addr.area || addr.address_line1?.split(" ").slice(1).join(" ") || "";
+    document.getElementById("fldLandmark").value = addr.landmark || "";
+    document.getElementById("fldCity").value = addr.city || "";
+    document.getElementById("fldState").value = addr.state || "";
+    document.getElementById("fldCountry").value = addr.country || "";
+    document.getElementById("fldPincode").value = addr.pincode || "";
+    document.getElementById("fldPhone").value = addr.alternative_phone || "";
+  }
+
+  /* ---------------------------
+     Clear input form
+  ---------------------------*/
+  function clearAddressForm() {
+    ["fldHouse", "fldArea", "fldLandmark", "fldCity", "fldState", "fldCountry", "fldPincode", "fldPhone"]
+      .forEach(id => document.getElementById(id).value = "");
+  }
+
+  /* ---------------------------
+     Save address (POST or PUT)
+  ---------------------------*/
+  async function saveAddress() {
+    const userId = localStorage.getItem("user_id");
+    if (!userId) return;
+
+    const house = document.getElementById("fldHouse").value.trim();
+    const area = document.getElementById("fldArea").value.trim();
+    const landmark = document.getElementById("fldLandmark").value.trim();
+    const city = document.getElementById("fldCity").value.trim();
+    const state = document.getElementById("fldState").value.trim();
+    const country = document.getElementById("fldCountry").value.trim();
+    const pincode = document.getElementById("fldPincode").value.trim();
+    const phone = document.getElementById("fldPhone").value.trim();
+
+    if (!house || !area || !city || !state || !pincode) {
+      showAlert("Missing Fields", "Please fill in all required fields.", "error");
+      return;
     }
 
-    const result = await response.json();
+    const payload = {
+      customer_id: parseInt(userId),
+      address_type: currentAddressType,
+      address_line1: house + " " + area,
+      address_line2: landmark,
+      city,
+      state,
+      country,
+      pincode,
+      alternative_phone: phone,
+      landmark
+    };
 
-    if (response.ok) {
-      addressesData[currentAddressType] = result;
-      toggleAddressFields(false);
-      toggleSaveButton(false);
-      showAlert("Success", "Address saved successfully!", "success");
-    } else {
-      showAlert("Error", result.error || "Failed to save address", "error");
+    try {
+      const token = localStorage.getItem('token');
+      let response;
+      let existing = addressesData[currentAddressType];
+
+      if (existing && existing.id) {
+        response = await window.ImpromptuIndianApi.fetch(`/api/customer/addresses/${existing.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        response = await window.ImpromptuIndianApi.fetch("/api/customer/addresses", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(payload),
+        });
+      }
+
+      const result = await response.json();
+
+      if (response.ok) {
+        addressesData[currentAddressType] = result;
+        toggleAddressFields(false);
+        toggleSaveButton(false);
+        showAlert("Success", "Address saved successfully!", "success");
+      } else {
+        showAlert("Error", result.error || "Failed to save address", "error");
+      }
+    } catch (e) {
+      console.error("Save address error", e);
+      showAlert("Connection Error", "Unable to reach server", "error");
     }
-  } catch (e) {
-    console.error("Save address error", e);
-    showAlert("Connection Error", "Unable to reach server", "error");
   }
-}
 
   saveAddressBtn.addEventListener("click", saveAddress);
 
@@ -1005,11 +1005,11 @@ async function loadAllAddresses() {
         'Authorization': `Bearer ${token}`
       }
     });
-    
+
     if (resp.ok) {
       const data = await resp.json();
       const list = data.addresses || data;
-      
+
       // Handle empty array or null response gracefully
       if (Array.isArray(list) && list.length > 0) {
         list.forEach((addr) => {
@@ -1051,14 +1051,37 @@ if (useCurrentLocationBtn) {
         throw new Error("Geolocation not supported");
       }
 
+      // Ensure Mappls SDK is loaded before proceeding
+      try {
+        await loadMapplsConfig();
+        await waitForMapplsSDK();
+      } catch (sdkError) {
+        console.error("SDK load error:", sdkError);
+        showAlert("Configuration Error", "Map service is not available. Please refresh the page and try again.", "error");
+        useCurrentLocationBtn.innerHTML = btnHTML;
+        useCurrentLocationBtn.disabled = false;
+        lucide.createIcons();
+        return;
+      }
+
 
       // Search Functionality for Map
       const mapSearchBtn = document.getElementById("mapSearchBtn");
       const mapSearchInput = document.getElementById("mapSearchInput");
 
-      const performMapSearch = () => {
+      const performMapSearch = async () => {
         const query = mapSearchInput.value.trim();
         if (!query) return;
+
+        // Ensure SDK and map are ready
+        if (!map || typeof mappls === 'undefined' || !mappls.search) {
+          try {
+            await waitForMapplsSDK();
+          } catch (e) {
+            showAlert("Error", "Map service is not ready. Please wait a moment and try again.", "error");
+            return;
+          }
+        }
 
         const oldText = mapSearchBtn.innerText;
         mapSearchBtn.innerText = "...";
@@ -1142,13 +1165,17 @@ if (useCurrentLocationBtn) {
           const mapModal = document.getElementById("mapModal");
           mapModal.classList.remove("hidden");
 
-          // Initialize map (wait for modal to be visible)
-          setTimeout(() => {
-            if (typeof mappls === 'undefined' || !mappls.Map) {
-              console.error("Mappls SDK not loaded. Check your API Key in new-order.html");
-              showAlert("Configuration Error", "Map service is not loaded correcty. Please contact support.", "error");
+          // Initialize map (wait for modal to be visible and SDK to be ready)
+          setTimeout(async () => {
+            try {
+              // Ensure SDK is loaded
+              await waitForMapplsSDK();
+            } catch (sdkError) {
+              console.error("Mappls SDK not loaded:", sdkError);
+              showAlert("Configuration Error", "Map service is not loaded correctly. Please refresh the page and try again.", "error");
               useCurrentLocationBtn.innerHTML = btnHTML;
               useCurrentLocationBtn.disabled = false;
+              lucide.createIcons();
               return;
             }
 
@@ -1181,16 +1208,30 @@ if (useCurrentLocationBtn) {
                 strokeOpacity: 0.3,
               });
 
-              // Force redraw
-              setTimeout(() => { map.invalidateSize?.(); setTimeout(() => map.invalidateSize?.(), 100); }, 200);
+              // Force redraw after modal is fully visible
+              setTimeout(() => {
+                if (map && map.invalidateSize) {
+                  map.invalidateSize();
+                  setTimeout(() => {
+                    if (map && map.invalidateSize) map.invalidateSize();
+                  }, 100);
+                }
+              }, 300);
 
             } else {
               map.setCenter([lat, lng]);
               marker.setPosition({ lat: lat, lng: lng });
               map.setZoom(zoomLevel);
 
-              // Force redraw
-              setTimeout(() => { map.invalidateSize?.(); setTimeout(() => map.invalidateSize?.(), 100); }, 200);
+              // Force redraw after modal is fully visible
+              setTimeout(() => {
+                if (map && map.invalidateSize) {
+                  map.invalidateSize();
+                  setTimeout(() => {
+                    if (map && map.invalidateSize) map.invalidateSize();
+                  }, 100);
+                }
+              }, 300);
             }
           }, 300);
 
@@ -1212,9 +1253,16 @@ if (useCurrentLocationBtn) {
           const mapModal = document.getElementById("mapModal");
           mapModal.classList.remove("hidden");
 
-          setTimeout(() => {
-            if (typeof mappls === 'undefined' || !mappls.Map) {
-              console.error("Mappls SDK not loaded.");
+          setTimeout(async () => {
+            try {
+              // Ensure SDK is loaded
+              await waitForMapplsSDK();
+            } catch (sdkError) {
+              console.error("Mappls SDK not loaded:", sdkError);
+              showAlert("Configuration Error", "Map service is not available. Please refresh the page and try again.", "error");
+              useCurrentLocationBtn.innerHTML = btnHTML;
+              useCurrentLocationBtn.disabled = false;
+              lucide.createIcons();
               return;
             }
 
@@ -1222,12 +1270,28 @@ if (useCurrentLocationBtn) {
               map = new mappls.Map("mapContainer", { center: [lat, lng], zoom: 12 });
               marker = new mappls.Marker({ map: map, position: { lat: lat, lng: lng }, draggable: true });
 
-              setTimeout(() => { map.invalidateSize?.(); setTimeout(() => map.invalidateSize?.(), 100); }, 200);
+              // Force redraw after modal is fully visible
+              setTimeout(() => {
+                if (map && map.invalidateSize) {
+                  map.invalidateSize();
+                  setTimeout(() => {
+                    if (map && map.invalidateSize) map.invalidateSize();
+                  }, 100);
+                }
+              }, 300);
             } else {
               map.setCenter([lat, lng]);
               marker.setPosition({ lat: lat, lng: lng });
               map.setZoom(12);
-              setTimeout(() => { map.invalidateSize?.(); setTimeout(() => map.invalidateSize?.(), 100); }, 200);
+              // Force redraw after modal is fully visible
+              setTimeout(() => {
+                if (map && map.invalidateSize) {
+                  map.invalidateSize();
+                  setTimeout(() => {
+                    if (map && map.invalidateSize) map.invalidateSize();
+                  }, 100);
+                }
+              }, 300);
             }
           }, 300);
 
@@ -1629,166 +1693,178 @@ document.addEventListener('click', (e) => {
 /* ------------------------------------------------
    PLACE ORDER BUTTON
 --------------------------------------------------*/
+/* ------------------------------------------------
+   PLACE ORDER BUTTON
+--------------------------------------------------*/
 function initPlaceOrder() {
-  const placeOrderBtn = document.getElementById("placeOrderBtn");
-  if (!placeOrderBtn) return;
+  const desktopBtn = document.getElementById("placeOrderBtn");
+  const mobileBtn = document.getElementById("placeOrderBtnMobile");
 
-  placeOrderBtn.addEventListener("click", async () => {
+  const handlePlaceOrder = async () => {
+    /* 1. QUANTITY VALIDATION */
+    const sum = window.computeSizeSum();
+    const totalQuantityEl = document.getElementById("totalQuantity");
+    const rawTotal = totalQuantityEl.value;
+    const total = Math.floor(Number(rawTotal));
 
-  /* 1. QUANTITY VALIDATION */
-  const sum = window.computeSizeSum();
-  const totalQuantityEl = document.getElementById("totalQuantity");
-  const rawTotal = totalQuantityEl.value;
-  const total = Math.floor(Number(rawTotal));
+    if (!Number.isFinite(total) || total < 10 || total > 300) {
+      showAlert("Invalid Quantity", "Total quantity must be between 10 and 300.", "error");
+      return;
+    }
+    if (sum !== total) {
+      showAlert("Quantity Mismatch", "Sizes total must match the Total Quantity.", "error");
+      return;
+    }
 
-  if (!Number.isFinite(total) || total < 10 || total > 300) {
-    showAlert("Invalid Quantity", "Total quantity must be between 10 and 300.", "error");
-    return;
-  }
-  if (sum !== total) {
-    showAlert("Quantity Mismatch", "Sizes total must match the Total Quantity.", "error");
-    return;
-  }
+    /* 2. PRICE VALIDATION */
+    const pricePerPieceInput = document.getElementById("pricePerPiece");
+    const pricePerPiece = Number(pricePerPieceInput.value);
+    if (!pricePerPiece || pricePerPiece < 200) {
+      showAlert("Invalid Price", "Price per piece must be at least ₹200.", "error");
+      pricePerPieceInput.focus();
+      return;
+    }
 
-  /* 2. PRICE VALIDATION */
-  const pricePerPieceInput = document.getElementById("pricePerPiece");
-  const pricePerPiece = Number(pricePerPieceInput.value);
-  if (!pricePerPiece || pricePerPiece < 200) {
-    showAlert("Invalid Price", "Price per piece must be at least ₹200.", "error");
-    pricePerPieceInput.focus();
-    return;
-  }
+    /* 3. AUTH CHECK */
+    const userId = localStorage.getItem("user_id");
+    if (!userId) {
+      showAlert("Authentication Error", "You must be logged in to place an order.", "error");
+      return;
+    }
 
-  /* 3. AUTH CHECK */
-  const userId = localStorage.getItem("user_id");
-  if (!userId) {
-    showAlert("Authentication Error", "You must be logged in to place an order.", "error");
-    return;
-  }
+    /* 4. PRODUCT DETAILS */
+    const product = document.querySelector('.custom-select[data-name="product-type"] select').value;
+    const color = document.querySelector('.custom-select[data-name="color"] select').value;
+    const fabric = document.querySelector('.custom-select[data-name="fabric-type"] select').value;
+    const printType = document.querySelector('.custom-select[data-name="print-type"] select').value;
 
-  /* 4. PRODUCT DETAILS */
-  const product = document.querySelector('.custom-select[data-name="product-type"] select').value;
-  const color = document.querySelector('.custom-select[data-name="color"] select').value;
-  const fabric = document.querySelector('.custom-select[data-name="fabric-type"] select').value;
-  const printType = document.querySelector('.custom-select[data-name="print-type"] select').value;
+    if (!product || !selectedCategory) {
+      showAlert("Missing Details", "Please select a product type and category.", "error");
+      return;
+    }
 
-  if (!product || !selectedCategory) {
-    showAlert("Missing Details", "Please select a product type and category.", "error");
-    return;
-  }
+    /* 5. ADDRESS VALIDATION */
+    const house = document.getElementById("fldHouse").value.trim();
+    const area = document.getElementById("fldArea").value.trim();
+    const city = document.getElementById("fldCity").value.trim();
+    const state = document.getElementById("fldState").value.trim();
+    const pincode = document.getElementById("fldPincode").value.trim();
+    const landmark = document.getElementById("fldLandmark").value.trim();
+    const country = document.getElementById("fldCountry").value.trim();
 
-  /* 5. ADDRESS VALIDATION */
-  const house = document.getElementById("fldHouse").value.trim();
-  const area = document.getElementById("fldArea").value.trim();
-  const city = document.getElementById("fldCity").value.trim();
-  const state = document.getElementById("fldState").value.trim();
-  const pincode = document.getElementById("fldPincode").value.trim();
-  const landmark = document.getElementById("fldLandmark").value.trim();
-  const country = document.getElementById("fldCountry").value.trim();
+    if (!house || !area || !city || !state || !pincode) {
+      showAlert("Missing Address", "Please fill in all required address fields.", "error");
+      return;
+    }
 
-  if (!house || !area || !city || !state || !pincode) {
-    showAlert("Missing Address", "Please fill in all required address fields.", "error");
-    return;
-  }
+    /* 6. PAYMENT CHECK */
+    if (!isSamplePaid) {
+      // OPEN GATEWAY
+      const paymentModal = document.getElementById("paymentModal");
+      paymentModal.classList.remove("hidden");
 
-  /* 6. PAYMENT CHECK */
-  if (!isSamplePaid) {
-    // OPEN GATEWAY
-    const paymentModal = document.getElementById("paymentModal");
-    paymentModal.classList.remove("hidden");
-
-    // Sync Size
-    const mainSampleSize = document.querySelector('.custom-select[data-name="sample-size"] select')?.value;
-    if (mainSampleSize) {
-      // Trigger sync for gateway dropdown
-      const modalSelectWrapper = document.querySelector('.custom-select[data-name="modal-sample-size"]');
-      if (modalSelectWrapper) {
-        const modalOptions = modalSelectWrapper.querySelectorAll('.option');
-        let found = false;
-        modalOptions.forEach(opt => {
-          if (opt.dataset.value === mainSampleSize) {
-            opt.click();
-            found = true;
+      // Sync Size
+      const mainSampleSize = document.querySelector('.custom-select[data-name="sample-size"] select')?.value;
+      if (mainSampleSize) {
+        // Trigger sync for gateway dropdown
+        const modalSelectWrapper = document.querySelector('.custom-select[data-name="modal-sample-size"]');
+        if (modalSelectWrapper) {
+          const modalOptions = modalSelectWrapper.querySelectorAll('.option');
+          let found = false;
+          modalOptions.forEach(opt => {
+            if (opt.dataset.value === mainSampleSize) {
+              opt.click();
+              found = true;
+            }
+          });
+          if (!found) {
+            const sel = modalSelectWrapper.querySelector('select');
+            if (sel) sel.value = mainSampleSize;
+            const disp = modalSelectWrapper.querySelector('.trigger .value');
+            if (disp) disp.textContent = mainSampleSize;
+            // Use checkGatewayEstimate for payment gateway modal
+            if (typeof checkGatewayEstimate === 'function') checkGatewayEstimate();
           }
-        });
-        if (!found) {
-          const sel = modalSelectWrapper.querySelector('select');
-          if (sel) sel.value = mainSampleSize;
-          const disp = modalSelectWrapper.querySelector('.trigger .value');
-          if (disp) disp.textContent = mainSampleSize;
-          // Use checkGatewayEstimate for payment gateway modal
-          if (typeof checkGatewayEstimate === 'function') checkGatewayEstimate();
         }
       }
+      return;
     }
-    return;
-  }
 
-  /* 7. BUILD PAYLOAD */
-  const dateText = document.getElementById("dateText");
+    /* 7. BUILD PAYLOAD */
+    const dateText = document.getElementById("dateText");
 
-  // Sample Size
-  const mainSampleSize = document.querySelector('.custom-select[data-name="sample-size"] select')?.value;
-  const modalSampleSize = document.querySelector('.custom-select[data-name="modal-sample-size"] select')?.value;
-  const finalSampleSize = modalSampleSize || mainSampleSize || "M"; // fallback
+    // Sample Size
+    const mainSampleSize = document.querySelector('.custom-select[data-name="sample-size"] select')?.value;
+    const modalSampleSize = document.querySelector('.custom-select[data-name="modal-sample-size"] select')?.value;
+    const finalSampleSize = modalSampleSize || mainSampleSize || "M"; // fallback
 
-  // Cost Retrieval
-  const estimatedCostEl = document.getElementById("estimatedPriceDisplay");
-  // Try gateway cost first, then modal, then main
-  const gatewayTotal = document.getElementById("gatewayTotalPayable");
-  const modalCostEl = document.getElementById("modalCostDisplay");
+    // Cost Retrieval
+    const estimatedCostEl = document.getElementById("estimatedPriceDisplay");
+    // Try gateway cost first, then modal, then main
+    const gatewayTotal = document.getElementById("gatewayTotalPayable");
+    const modalCostEl = document.getElementById("modalCostDisplay");
 
-  let finalEstCost = estimatedCostEl?.textContent;
-  if (finalEstCost === "--" || finalEstCost === "N/A" || !finalEstCost) {
-    if (gatewayTotal && gatewayTotal.textContent !== "--") finalEstCost = gatewayTotal.textContent;
-    else if (modalCostEl) finalEstCost = modalCostEl.textContent;
-  }
+    let finalEstCost = estimatedCostEl?.textContent;
+    if (finalEstCost === "--" || finalEstCost === "N/A" || !finalEstCost) {
+      if (gatewayTotal && gatewayTotal.textContent !== "--") finalEstCost = gatewayTotal.textContent;
+      else if (modalCostEl) finalEstCost = modalCostEl.textContent;
+    }
 
-  // Actual numeric cost for backend
-  const storedCost = document.getElementById("paymentModal").dataset.currentCost;
-  const numericCost = storedCost ? parseFloat(storedCost) : 0.0;
+    // Actual numeric cost for backend
+    const storedCost = document.getElementById("paymentModal").dataset.currentCost;
+    const numericCost = storedCost ? parseFloat(storedCost) : 0.0;
 
-  const payload = {
-    customer_id: Number(userId),
-    product_type: product,
-    category: selectedCategory,
-    neck_type: selectedNeckType || "",
-    color: color,
-    fabric: fabric,
-    print_type: printType,
-    quantity: total,
-    price_per_piece: pricePerPiece,
-    sample_size: finalSampleSize,
-    estimated_cost: finalEstCost,
-    delivery_date: dateText.textContent,
-    address_line1: `${house} ${area}`,
-    address_line2: landmark,
-    city,
-    state,
-    pincode,
-    country,
-    transaction_id: currentTransactionId,
-    sample_cost: numericCost,
-    payment_method: window.paymentDetails?.method || 'card',
-    payment_details: JSON.stringify(window.paymentDetails || {})
+    const payload = {
+      customer_id: Number(userId),
+      product_type: product,
+      category: selectedCategory,
+      neck_type: selectedNeckType || "",
+      color: color,
+      fabric: fabric,
+      print_type: printType,
+      quantity: total,
+      price_per_piece: pricePerPiece,
+      sample_size: finalSampleSize,
+      estimated_cost: finalEstCost,
+      delivery_date: dateText.textContent,
+      address_line1: `${house} ${area}`,
+      address_line2: landmark,
+      city,
+      state,
+      pincode,
+      country,
+      transaction_id: currentTransactionId,
+      sample_cost: numericCost,
+      payment_method: window.paymentDetails?.method || 'card',
+      payment_details: JSON.stringify(window.paymentDetails || {})
+    };
+
+    /* 8. SUBMIT ORDER */
+    submitOrder(payload);
   };
 
-  /* 8. SUBMIT ORDER */
-  submitOrder(payload);
-  });
+  if (desktopBtn) desktopBtn.addEventListener("click", handlePlaceOrder);
+  if (mobileBtn) mobileBtn.addEventListener("click", handlePlaceOrder);
 }
 
 async function submitOrder(payload) {
-  const btn = document.getElementById("placeOrderBtn");
-  const oldText = btn.textContent;
-  btn.textContent = "Placing Order...";
-  btn.disabled = true;
+  const btns = [
+    document.getElementById("placeOrderBtn"),
+    document.getElementById("placeOrderBtnMobile")
+  ].filter(b => b);
+
+  // Update UI state
+  btns.forEach(btn => {
+    btn.dataset.oldText = btn.textContent;
+    btn.textContent = "Placing Order...";
+    btn.disabled = true;
+  });
 
   try {
     const token = localStorage.getItem('token');
     const res = await window.ImpromptuIndianApi.fetch("/api/orders/", {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
       },
@@ -1801,23 +1877,47 @@ async function submitOrder(payload) {
       showAlert("Success", "Order placed successfully! Redirecting to your orders...", "success", () => {
         window.location.href = "orders.html";
       });
-      
+
       // Auto-redirect after 2 seconds if user doesn't click
       setTimeout(() => {
         window.location.href = "orders.html";
       }, 2000);
-      
+
     } else {
       showAlert("Order Failed", result.error || "Failed to place order.", "error");
-      btn.textContent = oldText;
-      btn.disabled = false;
+      // Reset UI
+      btns.forEach(btn => {
+        btn.textContent = btn.dataset.oldText || "Place Order";
+        btn.disabled = false;
+      });
     }
   } catch (err) {
     console.error(err);
     showAlert("Connection Error", "Could not connect to server.", "error");
-    btn.textContent = oldText;
-    btn.disabled = false;
+    // Reset UI
+    btns.forEach(btn => {
+      btn.textContent = btn.dataset.oldText || "Place Order";
+      btn.disabled = false;
+    });
   }
+}
+
+// Wait for Mappls SDK to be loaded
+function waitForMapplsSDK(maxAttempts = 50, interval = 100) {
+  return new Promise((resolve, reject) => {
+    let attempts = 0;
+    const checkSDK = () => {
+      if (typeof mappls !== 'undefined' && mappls.Map) {
+        resolve(mappls);
+      } else if (attempts < maxAttempts) {
+        attempts++;
+        setTimeout(checkSDK, interval);
+      } else {
+        reject(new Error('Mappls SDK failed to load within timeout'));
+      }
+    };
+    checkSDK();
+  });
 }
 
 // Load Mappls API key from backend and inject into SDK URLs
@@ -1826,40 +1926,63 @@ async function loadMapplsConfig() {
     const token = localStorage.getItem('token');
     if (!token) {
       console.warn('No authentication token found. Map features may not work.');
-      return;
+      return Promise.resolve(false);
     }
-    
+
     const response = await fetch('/api/config', {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     });
-    
+
     if (response.ok) {
       const config = await response.json();
       const apiKey = config.mapplsApiKey || '';
-      
+
       if (apiKey) {
+        // Check if SDK is already loaded
+        if (typeof mappls !== 'undefined' && mappls.Map) {
+          console.log('Mappls SDK already loaded');
+          return Promise.resolve(true);
+        }
+
         // Update CSS link
         const cssLink = document.getElementById('mappls-css');
-        if (cssLink) {
-          cssLink.href = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk_plugins/v3.0/mappls.css`;
+        if (cssLink && !cssLink.href) {
+          cssLink.href = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk_plugins/v3.0/styles/mappls.css`;
         }
-        
+
         // Load script
         const script = document.getElementById('mappls-script');
-        if (script) {
-          script.src = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk?v=3.0&layer=vector&libraries=services`;
-          script.onload = () => console.log('Mappls SDK loaded');
-          script.onerror = () => console.error('Mappls SDK failed to load');
+        if (script && !script.src) {
+          return new Promise((resolve, reject) => {
+            script.src = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk?v=3.0&layer=vector&libraries=services`;
+            script.onload = () => {
+              console.log('Mappls SDK loaded');
+              // Wait a bit more for SDK to be fully initialized
+              setTimeout(() => {
+                waitForMapplsSDK().then(() => resolve(true)).catch(reject);
+              }, 100);
+            };
+            script.onerror = () => {
+              console.error('Mappls SDK failed to load');
+              reject(new Error('Failed to load Mappls SDK script'));
+            };
+          });
+        } else if (script && script.src) {
+          // Script is already loading/loaded, wait for it
+          return waitForMapplsSDK().then(() => true).catch(() => false);
         }
       } else {
         console.warn('Mappls API key not configured');
+        return Promise.resolve(false);
       }
     }
+    return Promise.resolve(false);
   } catch (error) {
     console.error('Failed to load map configuration:', error);
+    return Promise.resolve(false);
   }
 }
 
@@ -1877,14 +2000,14 @@ function initNewOrderPage() {
   // Note: Location functionality is handled inline in initAddress() via useCurrentLocationBtn
   initFileUpload();
   initPlaceOrder();
-  
+
   // Initialize cart badge
-  try { 
-    updateCartBadge(); 
-  } catch (e) { 
+  try {
+    updateCartBadge();
+  } catch (e) {
     console.warn("Cart badge update failed:", e);
   }
-  
+
   // Load Mappls config
   loadMapplsConfig();
 }

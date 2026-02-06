@@ -26,21 +26,22 @@
     <script src="js/sidebar.js"></script>
 
     <!-- MAIN -->
-    <main class="flex-1 p-10 main-scroll">
+    <main class="flex-1 p-6 pt-20 md:p-10 md:pt-10 overflow-y-auto main-scroll">
 
-      <div class="flex justify-between items-center">
+      <div class="flex flex-row justify-between items-center gap-4 mb-6">
         <div>
-          <h1 class="text-3xl font-bold mb-1">Products</h1>
-          <p class="text-gray-400 mb-6">Browse and add products to your cart.</p>
+          <h1 class="text-2xl md:text-3xl font-bold mb-1">Products</h1>
+          <p class="text-gray-400 text-base md:text-xl">Browse and add products.</p>
         </div>
 
         <button onclick="window.location='cart.html'"
-          class="bg-[#FFCC00] hover:bg-yellow-400 text-black font-semibold px-5 py-2 rounded-lg shadow transition-colors">
+          class="shrink-0 bg-[#FFCC00] hover:bg-yellow-400 text-black font-semibold px-3 py-1.5 text-sm md:px-5 md:py-2 md:text-base rounded-lg shadow transition-colors text-center">
           View Cart
         </button>
       </div>
 
-      <div id="productGrid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 pb-20"></div>
+      <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 pb-20">
+      </div>
 
     </main>
 

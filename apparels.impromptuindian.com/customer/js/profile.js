@@ -294,7 +294,7 @@ function initAddressEvents() {
         let marker = null;
         const btnHTML = '<i data-lucide="navigation" class="w-4 h-4"></i> Use Current Location';
 
-        useCurrentLocationBtn.addEventListener('click', () => {
+        useCurrentLocationBtn.addEventListener('click', async () => {
             useCurrentLocationBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Getting Location...';
             useCurrentLocationBtn.disabled = true;
             if (window.lucide) lucide.createIcons();
@@ -303,6 +303,19 @@ function initAddressEvents() {
                 showAlert("Error", "Geolocation is not supported by your browser", "error");
                 useCurrentLocationBtn.innerHTML = btnHTML;
                 useCurrentLocationBtn.disabled = false;
+                return;
+            }
+
+            // Ensure Mappls SDK is loaded before proceeding
+            try {
+                await loadMapplsConfig();
+                await waitForMapplsSDK();
+            } catch (sdkError) {
+                console.error("SDK load error:", sdkError);
+                showAlert("Configuration Error", "Map service is not available. Please refresh the page and try again.", "error");
+                useCurrentLocationBtn.innerHTML = btnHTML;
+                useCurrentLocationBtn.disabled = false;
+                if (window.lucide) lucide.createIcons();
                 return;
             }
 
@@ -318,10 +331,16 @@ function initAddressEvents() {
                     // Smart Zoom based on Accuracy
                     const zoomLevel = (pos.coords.accuracy > 500) ? 13 : 18;
 
-                    setTimeout(() => {
-                        if (typeof mappls === 'undefined' || !mappls.Map) {
-                            console.error("Mappls SDK not loaded.");
-                            showAlert("Configuration Error", "Map service not loaded.", "error");
+                    setTimeout(async () => {
+                        try {
+                            // Ensure SDK is loaded
+                            await waitForMapplsSDK();
+                        } catch (sdkError) {
+                            console.error("Mappls SDK not loaded:", sdkError);
+                            showAlert("Configuration Error", "Map service is not loaded correctly. Please refresh the page and try again.", "error");
+                            useCurrentLocationBtn.innerHTML = btnHTML;
+                            useCurrentLocationBtn.disabled = false;
+                            if (window.lucide) lucide.createIcons();
                             return;
                         }
 
@@ -347,13 +366,28 @@ function initAddressEvents() {
                                 strokeOpacity: 0.3,
                             });
 
-                            // Force redraw
-                            setTimeout(() => { map.invalidateSize?.(); setTimeout(() => map.invalidateSize?.(), 100); }, 200);
+                            // Force redraw after modal is fully visible
+                            setTimeout(() => {
+                                if (map && map.invalidateSize) {
+                                    map.invalidateSize();
+                                    setTimeout(() => {
+                                        if (map && map.invalidateSize) map.invalidateSize();
+                                    }, 100);
+                                }
+                            }, 300);
                         } else {
                             map.setCenter([lat, lng]);
                             marker.setPosition({ lat: lat, lng: lng });
                             map.setZoom(zoomLevel);
-                            setTimeout(() => { map.invalidateSize?.(); setTimeout(() => map.invalidateSize?.(), 100); }, 200);
+                            // Force redraw after modal is fully visible
+                            setTimeout(() => {
+                                if (map && map.invalidateSize) {
+                                    map.invalidateSize();
+                                    setTimeout(() => {
+                                        if (map && map.invalidateSize) map.invalidateSize();
+                                    }, 100);
+                                }
+                            }, 300);
                         }
                     }, 300);
 
@@ -369,17 +403,43 @@ function initAddressEvents() {
                     const mapModal = document.getElementById("mapModal");
                     mapModal.classList.remove("hidden");
 
-                    setTimeout(() => {
-                        if (typeof mappls === 'undefined' || !mappls.Map) return;
+                    setTimeout(async () => {
+                        try {
+                            // Ensure SDK is loaded
+                            await waitForMapplsSDK();
+                        } catch (sdkError) {
+                            console.error("Mappls SDK not loaded:", sdkError);
+                            showAlert("Configuration Error", "Map service is not available. Please refresh the page and try again.", "error");
+                            useCurrentLocationBtn.innerHTML = btnHTML;
+                            useCurrentLocationBtn.disabled = false;
+                            if (window.lucide) lucide.createIcons();
+                            return;
+                        }
                         if (!map) {
                             map = new mappls.Map("mapContainer", { center: [lat, lng], zoom: 12 });
                             marker = new mappls.Marker({ map: map, position: { lat: lat, lng: lng }, draggable: true });
-                            setTimeout(() => { map.invalidateSize?.(); setTimeout(() => map.invalidateSize?.(), 100); }, 200);
+                            // Force redraw after modal is fully visible
+                            setTimeout(() => {
+                                if (map && map.invalidateSize) {
+                                    map.invalidateSize();
+                                    setTimeout(() => {
+                                        if (map && map.invalidateSize) map.invalidateSize();
+                                    }, 100);
+                                }
+                            }, 300);
                         } else {
                             map.setCenter([lat, lng]);
                             marker.setPosition({ lat: lat, lng: lng });
                             map.setZoom(12);
-                            setTimeout(() => { map.invalidateSize?.(); setTimeout(() => map.invalidateSize?.(), 100); }, 200);
+                            // Force redraw after modal is fully visible
+                            setTimeout(() => {
+                                if (map && map.invalidateSize) {
+                                    map.invalidateSize();
+                                    setTimeout(() => {
+                                        if (map && map.invalidateSize) map.invalidateSize();
+                                    }, 100);
+                                }
+                            }, 300);
                         }
                     }, 300);
 
@@ -395,9 +455,19 @@ function initAddressEvents() {
         const mapSearchBtn = document.getElementById("mapSearchBtn");
         const mapSearchInput = document.getElementById("mapSearchInput");
 
-        const performMapSearch = () => {
+        const performMapSearch = async () => {
             const query = mapSearchInput.value.trim();
             if (!query) return;
+
+            // Ensure SDK and map are ready
+            if (!map || typeof mappls === 'undefined' || !mappls.search) {
+                try {
+                    await waitForMapplsSDK();
+                } catch (e) {
+                    showAlert("Error", "Map service is not ready. Please wait a moment and try again.", "error");
+                    return;
+                }
+            }
 
             const oldText = mapSearchBtn.innerText;
             mapSearchBtn.innerText = "...";
@@ -947,13 +1017,31 @@ if (document.readyState === 'loading') {
     window.addEventListener('scroll', revealOnScroll);
 }
 
+// Wait for Mappls SDK to be loaded
+function waitForMapplsSDK(maxAttempts = 50, interval = 100) {
+    return new Promise((resolve, reject) => {
+        let attempts = 0;
+        const checkSDK = () => {
+            if (typeof mappls !== 'undefined' && mappls.Map) {
+                resolve(mappls);
+            } else if (attempts < maxAttempts) {
+                attempts++;
+                setTimeout(checkSDK, interval);
+            } else {
+                reject(new Error('Mappls SDK failed to load within timeout'));
+            }
+        };
+        checkSDK();
+    });
+}
+
 // Load Mappls API key from backend and inject into SDK URLs
 async function loadMapplsConfig() {
     try {
         const token = localStorage.getItem('token');
         if (!token) {
             console.warn('No authentication token found. Map features may not work.');
-            return;
+            return Promise.resolve(false);
         }
         
         const response = await fetch('/api/config', {
@@ -968,25 +1056,48 @@ async function loadMapplsConfig() {
             const apiKey = config.mapplsApiKey || '';
             
             if (apiKey) {
+                // Check if SDK is already loaded
+                if (typeof mappls !== 'undefined' && mappls.Map) {
+                    console.log('Mappls SDK already loaded');
+                    return Promise.resolve(true);
+                }
+
                 // Update CSS link
                 const cssLink = document.getElementById('mappls-css');
-                if (cssLink) {
+                if (cssLink && !cssLink.href) {
                     cssLink.href = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk_plugins/v3.0/styles/mappls.css`;
                 }
                 
                 // Load script
                 const script = document.getElementById('mappls-script');
-                if (script) {
-                    script.src = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk?v=3.0&layer=vector&libraries=services`;
-                    script.onload = () => console.log('Mappls SDK loaded');
-                    script.onerror = () => console.error('Mappls SDK failed to load');
+                if (script && !script.src) {
+                    return new Promise((resolve, reject) => {
+                        script.src = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk?v=3.0&layer=vector&libraries=services`;
+                        script.onload = () => {
+                            console.log('Mappls SDK loaded');
+                            // Wait a bit more for SDK to be fully initialized
+                            setTimeout(() => {
+                                waitForMapplsSDK().then(() => resolve(true)).catch(reject);
+                            }, 100);
+                        };
+                        script.onerror = () => {
+                            console.error('Mappls SDK failed to load');
+                            reject(new Error('Failed to load Mappls SDK script'));
+                        };
+                    });
+                } else if (script && script.src) {
+                    // Script is already loading/loaded, wait for it
+                    return waitForMapplsSDK().then(() => true).catch(() => false);
                 }
             } else {
                 console.warn('Mappls API key not configured');
+                return Promise.resolve(false);
             }
         }
+        return Promise.resolve(false);
     } catch (error) {
         console.error('Failed to load map configuration:', error);
+        return Promise.resolve(false);
     }
 }
 

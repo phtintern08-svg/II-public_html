@@ -33,7 +33,7 @@ function loadCartPage() {
   if (cart.length === 0) {
     main.innerHTML = `
     <h1 class="text-3xl font-bold mb-2">Your Cart is Empty</h1>
-    <p class="text-gray-400 mb-6">Looks like you haven't added anything to your cart yet.</p>
+    <p class="text-gray-400 mb-6 text-base md:text-xl">Looks like you haven't added anything to your cart yet.</p>
 
     <div class="border border-gray-600 border-dashed rounded-xl p-10 text-center">
       <i data-lucide="shopping-cart" class="w-16 h-16 text-gray-500 mx-auto"></i>

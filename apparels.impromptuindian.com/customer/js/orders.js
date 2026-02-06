@@ -97,13 +97,17 @@ document.getElementById('searchInput')?.addEventListener('input', (e) => {
     renderOrders(filtered);
 });
 
-/* Render Orders Table */
+/* Render Orders Table & Mobile Cards */
 function renderOrders(data) {
     const table = document.getElementById('ordersTable');
-    table.innerHTML = '';
+    const mobileList = document.getElementById('ordersListMobile');
+
+    // Clear both
+    if (table) table.innerHTML = '';
+    if (mobileList) mobileList.innerHTML = '';
 
     if (!data || data.length === 0) {
-        table.innerHTML = `
+        const emptyState = `
             <tr>
                 <td colspan="7" class="text-center py-12 text-gray-400">
                     <div class="flex flex-col items-center gap-2">
@@ -112,6 +116,16 @@ function renderOrders(data) {
                     </div>
                 </td>
             </tr>`;
+
+        if (table) table.innerHTML = emptyState;
+        if (mobileList) {
+            mobileList.innerHTML = `
+                <div class="text-center py-12 text-gray-400 flex flex-col items-center gap-2">
+                    <i data-lucide="package-open" class="w-10 h-10 opacity-50"></i>
+                    <p>No orders found yet</p>
+                </div>
+             `;
+        }
         if (window.lucide) lucide.createIcons();
         return;
     }
@@ -120,11 +134,6 @@ function renderOrders(data) {
     data.sort((a, b) => b.id - a.id);
 
     data.forEach((order, index) => {
-        const row = document.createElement('tr');
-        row.className = 'hover:bg-[#1e293b]/50 border-b border-gray-800 last:border-none transition-all duration-300 opacity-0 translate-y-2';
-        // Staggered animation
-        setTimeout(() => row.classList.remove('opacity-0', 'translate-y-2'), index * 50);
-
         // Construct Product Details (e.g., "T-Shirt - Cotton")
         const productParts = [order.product_type, order.category, order.fabric].filter(Boolean);
         const productDetails = productParts.length ? productParts.join(' • ') : 'Custom order';
@@ -140,23 +149,75 @@ function renderOrders(data) {
         const statusLabel = normalizedStatus.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
         const totalDisplay = calculatedTotal > 0 ? `₹${calculatedTotal.toLocaleString()}` : '—';
 
-        row.innerHTML = `
-            <td class="px-4 py-4 font-medium text-white">#${order.id}</td>
-            <td class="px-4 py-4 text-gray-300">${productDetails}</td>
-            <td class="px-4 py-4"><span class="${statusClass} whitespace-nowrap">${statusLabel}</span></td>
-            <td class="px-4 py-4 text-gray-300">${order.quantity}</td>
-            <td class="px-4 py-4 text-gray-300">${order.delivery_date || '—'}</td>
-            <td class="px-4 py-4 text-right text-white font-medium">${totalDisplay}</td>
-            <td class="px-4 py-4 text-right">
-                <button onclick="goDetails(${order.id})" 
-                    class="group px-3 py-1.5 bg-[#1273EB]/10 hover:bg-[#1273EB] text-[#1273EB] hover:text-white border border-[#1273EB]/50 hover:border-transparent text-xs font-semibold rounded transition-all duration-300 flex items-center gap-1 ml-auto">
-                    View
-                    <i data-lucide="arrow-right" class="w-3 h-3 transition-transform group-hover:translate-x-1"></i>
-                </button>
-            </td>
-        `;
+        // 1. DESKTOP ROW
+        if (table) {
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-[#1e293b]/50 border-b border-gray-800 last:border-none transition-all duration-300 opacity-0 translate-y-2';
+            // Staggered animation
+            setTimeout(() => row.classList.remove('opacity-0', 'translate-y-2'), index * 50);
 
-        table.appendChild(row);
+            row.innerHTML = `
+                <td class="px-4 py-4 font-medium text-white">#${order.id}</td>
+                <td class="px-4 py-4 text-gray-300">${productDetails}</td>
+                <td class="px-4 py-4"><span class="${statusClass} whitespace-nowrap">${statusLabel}</span></td>
+                <td class="px-4 py-4 text-gray-300">${order.quantity}</td>
+                <td class="px-4 py-4 text-gray-300">${order.delivery_date || '—'}</td>
+                <td class="px-4 py-4 text-right text-white font-medium">${totalDisplay}</td>
+                <td class="px-4 py-4 text-right">
+                    <button onclick="goDetails(${order.id})" 
+                        class="group px-3 py-1.5 bg-[#1273EB]/10 hover:bg-[#1273EB] text-[#1273EB] hover:text-white border border-[#1273EB]/50 hover:border-transparent text-xs font-semibold rounded transition-all duration-300 flex items-center gap-1 ml-auto">
+                        View
+                        <i data-lucide="arrow-right" class="w-3 h-3 transition-transform group-hover:translate-x-1"></i>
+                    </button>
+                </td>
+            `;
+            table.appendChild(row);
+        }
+
+        // 2. MOBILE CARD (Box Layout)
+        if (mobileList) {
+            const card = document.createElement('div');
+            card.className = "bg-[#1f2937]/40 border border-gray-700 rounded-lg p-3 flex flex-col gap-3";
+            card.innerHTML = `
+                <!-- Header Box: Order ID & Status -->
+                <div class="flex justify-between items-center bg-[#0f172a] rounded p-2 border border-gray-700">
+                    <span class="text-xs font-mono text-gray-400">#${order.id}</span>
+                    <span class="${statusClass} text-[10px] uppercase font-bold tracking-wide">${statusLabel}</span>
+                </div>
+
+                <!-- Product Box -->
+                <div class="bg-[#111827] rounded p-3 border border-gray-700">
+                    <h3 class="font-bold text-white text-base">${order.product_type}</h3>
+                    <p class="text-xs text-gray-400 mt-1">${productDetails}</p>
+                </div>
+
+                <!-- Metrics Grid Boxes -->
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-[#111827] rounded p-2 border border-gray-700 flex flex-col items-center justify-center">
+                         <span class="text-[10px] text-gray-500 uppercase">Quantity</span>
+                         <span class="text-sm font-semibold text-white">${order.quantity}</span>
+                    </div>
+                    <div class="bg-[#111827] rounded p-2 border border-gray-700 flex flex-col items-center justify-center">
+                         <span class="text-[10px] text-gray-500 uppercase">Sample Paid</span>
+                         <span class="text-sm font-semibold text-white">${totalDisplay}</span>
+                    </div>
+                </div>
+
+                <!-- Deadline Box -->
+                 <div class="bg-[#111827] rounded p-2 border border-gray-700 flex justify-between items-center px-3">
+                     <span class="text-[10px] text-gray-500 uppercase">Deadline</span>
+                     <span class="text-sm font-medium text-gray-300">${order.delivery_date || '—'}</span>
+                </div>
+
+                <!-- Action Button -->
+                <button onclick="goDetails(${order.id})" 
+                    class="w-full mt-1 py-2.5 bg-[#FFCC00] hover:bg-yellow-400 text-black text-sm font-bold rounded shadow-md transition-all flex items-center justify-center gap-2">
+                    View Details
+                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </button>
+            `;
+            mobileList.appendChild(card);
+        }
     });
 
     if (window.lucide) lucide.createIcons();
