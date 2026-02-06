@@ -132,6 +132,32 @@
             
             // ✅ Improvement 1: Guard flag to prevent duplicate polling after success
             let verificationDone = false;
+            
+            // ✅ CRITICAL FIX: Register click handler BEFORE any return statements
+            // This ensures the button works even when page loads with ?verified=1
+            if (backBtnEl) {
+                backBtnEl.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    const email = verifiedEmail || urlParams.get('email');
+                    const role = verifiedRole || urlParams.get('role');
+                    
+                    console.log('➡️ Redirecting to registration with verified email');
+                    
+                    if (email && role) {
+                        const target =
+                            role === 'rider'
+                                ? `rider-register.html?email=${encodeURIComponent(email)}&role=${role}`
+                                : `register.html?email=${encodeURIComponent(email)}&role=${role}`;
+                        
+                        // ✅ IMPORTANT: replace(), not href
+                        // Prevents going back to verify page, prevents token reuse confusion, clean browser history
+                        window.location.replace(target);
+                    } else {
+                        window.location.replace('register.html');
+                    }
+                });
+            }
 
         // ✅ Check for error params first (expired link from backend redirect)
         const errorParam = urlParams.get('error');
@@ -355,32 +381,6 @@
 
         // Start polling immediately
         pollVerification();
-        
-        // ✅ FINAL FIX: Direct navigation with state restoration (industry standard)
-        // DO NOT use history.back() - use location.replace() for clean UX
-        if (backBtnEl) {
-            backBtnEl.addEventListener('click', (e) => {
-                e.preventDefault();
-                
-                const email = verifiedEmail || urlParams.get('email');
-                const role = verifiedRole || urlParams.get('role');
-                
-                console.log('➡️ Redirecting to registration with verified email');
-                
-                if (email && role) {
-                    const target =
-                        role === 'rider'
-                            ? `rider-register.html?email=${encodeURIComponent(email)}&role=${role}`
-                            : `register.html?email=${encodeURIComponent(email)}&role=${role}`;
-                    
-                    // ✅ IMPORTANT: replace(), not href
-                    // Prevents going back to verify page, prevents token reuse confusion, clean browser history
-                    window.location.replace(target);
-                } else {
-                    window.location.replace('register.html');
-                }
-            });
-        }
         })(); // ✅ End of IIFE - now return statements are valid
     </script>
 </body>
