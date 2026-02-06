@@ -1185,8 +1185,8 @@ if (useCurrentLocationBtn) {
           const mapModal = document.getElementById("mapModal");
           mapModal.classList.remove("hidden");
 
-          // Initialize map (wait for modal to be visible AND SDK to load)
-          setTimeout(async () => {
+          // Initialize map AFTER modal is visible (use requestAnimationFrame for proper rendering)
+          requestAnimationFrame(async () => {
             try {
               // Load SDK if not already loaded
               await loadMapplsSDK();
@@ -1223,16 +1223,17 @@ if (useCurrentLocationBtn) {
                   strokeOpacity: 0.3,
                 });
 
-                // Force redraw
-                setTimeout(() => { map.invalidateSize?.(); setTimeout(() => map.invalidateSize?.(), 100); }, 200);
+                console.log('Map initialized correctly');
 
               } else {
+                // Map already exists - update position and resize
                 map.setCenter([lat, lng]);
                 marker.setPosition({ lat: lat, lng: lng });
                 map.setZoom(zoomLevel);
-
-                // Force redraw
-                setTimeout(() => { map.invalidateSize?.(); setTimeout(() => map.invalidateSize?.(), 100); }, 200);
+                // Resize map to handle container size changes
+                if (map.resize) {
+                  requestAnimationFrame(() => map.resize());
+                }
               }
             } catch (err) {
               console.error("Map initialization error:", err);
@@ -1241,7 +1242,7 @@ if (useCurrentLocationBtn) {
               useCurrentLocationBtn.disabled = false;
               return;
             }
-          }, 300);
+          });
 
           // Reset button
           useCurrentLocationBtn.innerHTML = btnHTML;
@@ -1261,7 +1262,8 @@ if (useCurrentLocationBtn) {
           const mapModal = document.getElementById("mapModal");
           mapModal.classList.remove("hidden");
 
-          setTimeout(async () => {
+          // Initialize map AFTER modal is visible (use requestAnimationFrame for proper rendering)
+          requestAnimationFrame(async () => {
             try {
               // Load SDK if not already loaded
               await loadMapplsSDK();
@@ -1273,19 +1275,22 @@ if (useCurrentLocationBtn) {
               if (!map) {
                 map = new mappls.Map("mapContainer", { center: [lat, lng], zoom: 12 });
                 marker = new mappls.Marker({ map: map, position: { lat: lat, lng: lng }, draggable: true });
-
-                setTimeout(() => { map.invalidateSize?.(); setTimeout(() => map.invalidateSize?.(), 100); }, 200);
+                console.log('Map initialized correctly');
               } else {
+                // Map already exists - update position and resize
                 map.setCenter([lat, lng]);
                 marker.setPosition({ lat: lat, lng: lng });
                 map.setZoom(12);
-                setTimeout(() => { map.invalidateSize?.(); setTimeout(() => map.invalidateSize?.(), 100); }, 200);
+                // Resize map to handle container size changes
+                if (map.resize) {
+                  requestAnimationFrame(() => map.resize());
+                }
               }
             } catch (err) {
               console.error("Map initialization error:", err);
               showAlert("Configuration Error", "Map service failed to load. Please try again later.", "error");
             }
-          }, 300);
+          });
 
           useCurrentLocationBtn.innerHTML = btnHTML;
           useCurrentLocationBtn.disabled = false;
