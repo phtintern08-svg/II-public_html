@@ -16,23 +16,20 @@ function initProfilePage() {
 
 // Load user data from API (database)
 async function loadUserProfile() {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        console.warn('No authentication token found');
-        return;
-    }
-
     try {
-
         // Fetch profile data from API
         const response = await window.ImpromptuIndianApi.fetch('/api/customer/profile', {
             headers: {
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             }
         });
 
         if (response.ok) {
-            const data = await response.json();
+            const data = await response.json().catch(() => null);
+            if (!data) {
+                console.warn('Failed to parse profile response');
+                return;
+            }
             
             // Populate form fields with data from database
             const nameInput = document.getElementById('profileName');
@@ -69,6 +66,12 @@ async function loadUserProfile() {
             const avatarInitial = document.getElementById('avatarInitial');
             if (avatarInitial && data.username) {
                 avatarInitial.textContent = data.username.charAt(0).toUpperCase();
+            }
+            
+            // Show account verified badge if email is verified
+            if (data.is_email_verified) {
+                const badge = document.getElementById('accountVerifiedBadge');
+                if (badge) badge.classList.remove('hidden');
             }
 
             // Update display name and email in header
@@ -183,12 +186,10 @@ async function saveProfileChanges() {
     }
 
     try {
-        const token = localStorage.getItem('token');
         const response = await window.ImpromptuIndianApi.fetch(`/api/customer/profile`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 // Only include editable fields here (e.g., bio)
@@ -196,7 +197,11 @@ async function saveProfileChanges() {
             })
         });
 
-        const result = await response.json();
+        const result = await response.json().catch(() => null);
+        if (!result) {
+            console.warn('Failed to parse response');
+            return;
+        }
 
         if (response.ok) {
             showAlert('Success', 'Profile updated successfully!', 'success');
@@ -232,17 +237,10 @@ async function changePassword() {
     }
 
     try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            showAlert('Error', 'Authentication required. Please log in again.', 'error');
-            return;
-        }
-
         const response = await window.ImpromptuIndianApi.fetch(`/api/customer/change-password`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 current_password: currentPassword,
@@ -250,7 +248,11 @@ async function changePassword() {
             })
         });
 
-        const result = await response.json();
+        const result = await response.json().catch(() => null);
+        if (!result) {
+            console.warn('Failed to parse response');
+            return;
+        }
 
         if (response.ok) {
             showAlert('Success', 'Password changed successfully!', 'success');
@@ -477,7 +479,11 @@ function initAddressEvents() {
                 // Using backend proxy if possible, or try client side reverse if key allows.
                 // We established backend proxy '/api/reverse-geocode' is safer/better
                 const response = await window.ImpromptuIndianApi.fetch(`/api/reverse-geocode?lat=${lat}&lng=${lng}`);
-                const data = await response.json();
+                const data = await response.json().catch(() => null);
+                if (!data) {
+                    console.warn('Failed to parse geocode response');
+                    return;
+                }
 
                 if (data && !data.error) {
                     // Fill fields
@@ -688,15 +694,18 @@ async function loadAddressForType(type) {
 
     try {
         // Fetch all addresses for the user
-        const token = localStorage.getItem('token');
         const response = await window.ImpromptuIndianApi.fetch(`/api/customer/addresses`, {
             headers: {
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             }
         });
 
         if (response.ok) {
-            const raw = await response.json();
+            const raw = await response.json().catch(() => null);
+            if (!raw) {
+                console.warn('Failed to parse addresses response');
+                return;
+            }
             const addresses = normalizeAddressResponse(raw);
             
             // Handle empty array gracefully - always show empty form for new users
@@ -847,15 +856,13 @@ async function saveAddress() {
         // Check if address already exists (either in memory or we can try update)
         const existingAddress = addressesData[currentAddressType];
 
-        const token = localStorage.getItem('token');
         let response;
         if (existingAddress && existingAddress.id) {
             // Update existing address
             response = await window.ImpromptuIndianApi.fetch(`/api/customer/addresses/${existingAddress.id}`, {
                 method: 'PUT',
                 headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(addressData)
             });
@@ -864,14 +871,17 @@ async function saveAddress() {
             response = await window.ImpromptuIndianApi.fetch('/api/customer/addresses', {
                 method: 'POST',
                 headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(addressData)
             });
         }
 
-        const result = await response.json();
+        const result = await response.json().catch(() => null);
+        if (!result) {
+            console.warn('Failed to parse response');
+            return;
+        }
 
         if (response.ok) {
             // Update local cache immediately
@@ -896,18 +906,19 @@ async function saveAddress() {
 
 // Load all addresses when page loads
 async function loadAllAddresses() {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-
     try {
         const response = await window.ImpromptuIndianApi.fetch(`/api/customer/addresses`, {
             headers: {
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             }
         });
 
         if (response.ok) {
-            const raw = await response.json();
+            const raw = await response.json().catch(() => null);
+            if (!raw) {
+                console.warn('Failed to parse addresses response');
+                return;
+            }
             const addresses = normalizeAddressResponse(raw);
 
             // Handle empty array or null response gracefully
@@ -974,21 +985,18 @@ if (document.readyState === 'loading') {
 // Load Mappls API key from backend and inject into SDK URLs
 async function loadMapplsConfig() {
     try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            console.warn('No authentication token found. Map features may not work.');
-            return;
-        }
-        
-        const response = await fetch('/api/config', {
+        const response = await window.ImpromptuIndianApi.fetch('/api/config', {
             headers: {
-                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             }
         });
         
         if (response.ok) {
-            const config = await response.json();
+            const config = await response.json().catch(() => null);
+            if (!config) {
+                console.warn('Failed to parse config response');
+                return;
+            }
             const apiKey = config.mapplsApiKey || '';
             
             if (apiKey) {

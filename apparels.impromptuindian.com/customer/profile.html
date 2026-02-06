@@ -27,9 +27,6 @@
     <!-- SIDEBAR CONTAINER -->
     <div id="sidebar-container"></div>
 
-    <!-- Sidebar Script -->
-    <script src="js/sidebar.js"></script>
-
     <!-- MAIN CONTENT -->
     <main class="flex-1 overflow-y-auto p-8 pt-20 md:p-10 md:pt-10 no-scrollbar">
 
@@ -59,7 +56,7 @@
               </p>
             </div>
           </div>
-          <div class="flex items-center gap-2 px-4 py-2 bg-[#1273EB]/20 border border-[#1273EB]/30 rounded-lg">
+          <div id="accountVerifiedBadge" class="flex items-center gap-2 px-4 py-2 bg-[#1273EB]/20 border border-[#1273EB]/30 rounded-lg hidden">
             <i data-lucide="shield-check" class="w-5 h-5 text-[#1273EB]"></i>
             <span class="text-sm font-medium text-[#1273EB]">Account Verified</span>
           </div>
@@ -182,12 +179,12 @@
             <!-- Address Action Buttons -->
             <div class="mt-6 flex justify-end gap-3">
               <button id="editAddressBtn"
-                class="px-5 py-2.5 rounded-lg bg-[#1273EB] hover:bg-[#0e5ac0] text-white font-semibold transition-colors shadow-lg hover:shadow-xl hidden flex items-center gap-2">
+                class="px-5 py-2.5 rounded-lg bg-[#1273EB] hover:bg-[#0e5ac0] text-white font-semibold transition-colors shadow-lg hover:shadow-xl flex items-center gap-2">
                 <i data-lucide="edit" class="w-4 h-4"></i>
                 Edit
               </button>
               <button id="saveAddressBtn"
-                class="px-5 py-2.5 rounded-lg bg-[#FFCC00] hover:bg-[#ffdb4d] text-black font-semibold transition-colors shadow-lg hover:shadow-xl flex items-center gap-2">
+                class="px-5 py-2.5 rounded-lg bg-[#FFCC00] hover:bg-[#ffdb4d] text-black font-semibold transition-colors shadow-lg hover:shadow-xl hidden flex items-center gap-2">
                 <i data-lucide="save" class="w-4 h-4"></i>
                 Save Address
               </button>
@@ -305,7 +302,7 @@
 
   <!-- MapmyIndia SDK - API key will be loaded dynamically from backend -->
   <link rel="stylesheet" id="mappls-css" href="">
-  <script id="mappls-script" src=""></script>
+  <script id="mappls-script" src="" defer></script>
 
   <!-- MAP MODAL -->
   <div id="mapModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 hidden z-50 px-4">
@@ -354,9 +351,10 @@
     </div>
   </div>
 
-  <script src="js/custom-alert.js"></script>
-  <script src="js/location-service.js"></script>
-  <script src="js/profile.js"></script>
+  <script src="js/sidebar.js" defer></script>
+  <script src="js/custom-alert.js" defer></script>
+  <script src="js/location-service.js" defer></script>
+  <script src="js/profile.js" defer></script>
 
 </body>
 

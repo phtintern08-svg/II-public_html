@@ -377,14 +377,21 @@ async function fetchEstimate(product, category, neck, fabric, size) {
     size: size
   };
 
-  const resp = await window.ImpromptuIndianApi.fetch("/api/estimate-price", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
+  try {
+    const resp = await window.ImpromptuIndianApi.fetch("/api/estimate-price", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
 
-  const data = await resp.json();
-  return (resp.ok && data.estimated_price > 0) ? data.estimated_price : 0;
+    if (!resp.ok) return 0;
+
+    const data = await resp.json().catch(() => null);
+    return data?.estimated_price > 0 ? data.estimated_price : 0;
+  } catch (error) {
+    console.error("Estimate API error:", error);
+    return 0;
+  }
 }
 
 /* ---------------------------
@@ -807,12 +814,6 @@ function fillAddressForm(addr) {
    Save address (POST or PUT) (global scope)
 ---------------------------*/
 async function saveAddress() {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    showAlert("Error", "Authentication required. Please log in again.", "error");
-    return;
-  }
-
   const house = document.getElementById("fldHouse").value.trim();
   const area = document.getElementById("fldArea").value.trim();
   const landmark = document.getElementById("fldLandmark").value.trim();
@@ -847,8 +848,7 @@ async function saveAddress() {
       response = await window.ImpromptuIndianApi.fetch(`/api/customer/addresses/${existing.id}`, {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          "Content-Type": "application/json"
         },
         body: JSON.stringify(payload),
       });
@@ -856,8 +856,7 @@ async function saveAddress() {
       response = await window.ImpromptuIndianApi.fetch("/api/customer/addresses", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          "Content-Type": "application/json"
         },
         body: JSON.stringify(payload),
       });
@@ -893,6 +892,8 @@ async function saveAddress() {
 async function loadAddressForType(type) {
   const token = localStorage.getItem("token");
   if (!token) {
+    // Clear address cache on token loss
+    addressesData = {};
     clearAddressForm();
     toggleAddressFields(true);
     toggleSaveButton(true);
@@ -908,10 +909,9 @@ async function loadAddressForType(type) {
   }
 
   try {
-    const token = localStorage.getItem('token');
     const resp = await window.ImpromptuIndianApi.fetch(`/api/customer/addresses`, {
       headers: {
-        'Authorization': `Bearer ${token}`
+        'Content-Type': 'application/json'
       }
     });
 
@@ -1416,7 +1416,8 @@ try { updateCartBadge(); } catch { }
 /* ------------------------------------------------
    PAYMENT MODAL LOGIC & VALIDATION
 --------------------------------------------------*/
-let isSamplePaid = false;
+// Load payment state from localStorage
+let isSamplePaid = localStorage.getItem("sample_paid") === "1";
 let currentTransactionId = null;
 
 // Card Number Formatting - safely check for element existence
@@ -1597,6 +1598,7 @@ async function processGatewayPayment(btnId) {
 
     // Payment successful
     isSamplePaid = true;
+    localStorage.setItem("sample_paid", "1");
     currentTransactionId = paymentResult.transactionId;
 
     // Store payment details for order
@@ -1704,14 +1706,7 @@ function initPlaceOrder() {
       return;
     }
 
-    /* 3. AUTH CHECK */
-    const token = localStorage.getItem("token");
-    if (!token) {
-      showAlert("Authentication Error", "You must be logged in to place an order.", "error");
-      return;
-    }
-
-    /* 4. PRODUCT DETAILS */
+    /* 3. PRODUCT DETAILS */
     const product = document.querySelector('.custom-select[data-name="product-type"] select').value;
     const color = document.querySelector('.custom-select[data-name="color"] select').value;
     const fabric = document.querySelector('.custom-select[data-name="fabric-type"] select').value;
@@ -1843,8 +1838,7 @@ async function submitOrder(payload) {
     const res = await window.ImpromptuIndianApi.fetch("/api/orders/", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
+        "Content-Type": "application/json"
       },
       body: JSON.stringify(payload)
     });
@@ -1883,15 +1877,8 @@ async function submitOrder(payload) {
 // Load Mappls API key from backend and inject into SDK URLs
 async function loadMapplsConfig() {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      console.warn('No authentication token found. Map features may not work.');
-      return;
-    }
-
-    const response = await fetch('/api/config', {
+    const response = await window.ImpromptuIndianApi.fetch('/api/config', {
       headers: {
-        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     });
