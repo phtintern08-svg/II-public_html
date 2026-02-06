@@ -16,18 +16,13 @@ function initProfilePage() {
 
 // Load user data from API (database)
 async function loadUserProfile() {
-    const userId = localStorage.getItem('user_id');
-    if (!userId) {
-        console.warn('No user ID found');
+    const token = localStorage.getItem('token');
+    if (!token) {
+        console.warn('No authentication token found');
         return;
     }
 
     try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            console.warn('No authentication token found');
-            return;
-        }
 
         // Fetch profile data from API
         const response = await window.ImpromptuIndianApi.fetch('/api/customer/profile', {
@@ -212,8 +207,6 @@ async function saveProfileChanges() {
 
 // Change password
 async function changePassword() {
-    const userId = localStorage.getItem('user_id');
-    const role = localStorage.getItem('role');
     const currentPassword = document.getElementById('currentPassword').value;
     const newPassword = document.getElementById('newPassword').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
@@ -234,14 +227,19 @@ async function changePassword() {
     }
 
     try {
-        const response = await window.ImpromptuIndianApi.fetch(`/change-password`, {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            showAlert('Error', 'Authentication required. Please log in again.', 'error');
+            return;
+        }
+
+        const response = await window.ImpromptuIndianApi.fetch(`/api/customer/change-password`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
-                user_id: userId,
-                role: role,
                 current_password: currentPassword,
                 new_password: newPassword
             })
@@ -269,6 +267,16 @@ async function changePassword() {
 let currentAddressType = 'home';
 let addressesData = {};
 
+/* ---------------------------
+   Normalize address API response (handles all formats)
+---------------------------*/
+function normalizeAddressResponse(data) {
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data.addresses)) return data.addresses;
+    return [];
+}
+
 // Initialize Address Events
 function initAddressEvents() {
     const btnHome = document.getElementById('btnHome');
@@ -294,7 +302,7 @@ function initAddressEvents() {
         let marker = null;
         const btnHTML = '<i data-lucide="navigation" class="w-4 h-4"></i> Use Current Location';
 
-        useCurrentLocationBtn.addEventListener('click', async () => {
+        useCurrentLocationBtn.addEventListener('click', () => {
             useCurrentLocationBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Getting Location...';
             useCurrentLocationBtn.disabled = true;
             if (window.lucide) lucide.createIcons();
@@ -303,19 +311,6 @@ function initAddressEvents() {
                 showAlert("Error", "Geolocation is not supported by your browser", "error");
                 useCurrentLocationBtn.innerHTML = btnHTML;
                 useCurrentLocationBtn.disabled = false;
-                return;
-            }
-
-            // Ensure Mappls SDK is loaded before proceeding
-            try {
-                await loadMapplsConfig();
-                await waitForMapplsSDK();
-            } catch (sdkError) {
-                console.error("SDK load error:", sdkError);
-                showAlert("Configuration Error", "Map service is not available. Please refresh the page and try again.", "error");
-                useCurrentLocationBtn.innerHTML = btnHTML;
-                useCurrentLocationBtn.disabled = false;
-                if (window.lucide) lucide.createIcons();
                 return;
             }
 
@@ -331,16 +326,10 @@ function initAddressEvents() {
                     // Smart Zoom based on Accuracy
                     const zoomLevel = (pos.coords.accuracy > 500) ? 13 : 18;
 
-                    setTimeout(async () => {
-                        try {
-                            // Ensure SDK is loaded
-                            await waitForMapplsSDK();
-                        } catch (sdkError) {
-                            console.error("Mappls SDK not loaded:", sdkError);
-                            showAlert("Configuration Error", "Map service is not loaded correctly. Please refresh the page and try again.", "error");
-                            useCurrentLocationBtn.innerHTML = btnHTML;
-                            useCurrentLocationBtn.disabled = false;
-                            if (window.lucide) lucide.createIcons();
+                    setTimeout(() => {
+                        if (typeof mappls === 'undefined' || !mappls.Map) {
+                            console.error("Mappls SDK not loaded.");
+                            showAlert("Configuration Error", "Map service not loaded.", "error");
                             return;
                         }
 
@@ -366,28 +355,13 @@ function initAddressEvents() {
                                 strokeOpacity: 0.3,
                             });
 
-                            // Force redraw after modal is fully visible
-                            setTimeout(() => {
-                                if (map && map.invalidateSize) {
-                                    map.invalidateSize();
-                                    setTimeout(() => {
-                                        if (map && map.invalidateSize) map.invalidateSize();
-                                    }, 100);
-                                }
-                            }, 300);
+                            // Force redraw
+                            setTimeout(() => { map.invalidateSize?.(); setTimeout(() => map.invalidateSize?.(), 100); }, 200);
                         } else {
                             map.setCenter([lat, lng]);
                             marker.setPosition({ lat: lat, lng: lng });
                             map.setZoom(zoomLevel);
-                            // Force redraw after modal is fully visible
-                            setTimeout(() => {
-                                if (map && map.invalidateSize) {
-                                    map.invalidateSize();
-                                    setTimeout(() => {
-                                        if (map && map.invalidateSize) map.invalidateSize();
-                                    }, 100);
-                                }
-                            }, 300);
+                            setTimeout(() => { map.invalidateSize?.(); setTimeout(() => map.invalidateSize?.(), 100); }, 200);
                         }
                     }, 300);
 
@@ -403,43 +377,17 @@ function initAddressEvents() {
                     const mapModal = document.getElementById("mapModal");
                     mapModal.classList.remove("hidden");
 
-                    setTimeout(async () => {
-                        try {
-                            // Ensure SDK is loaded
-                            await waitForMapplsSDK();
-                        } catch (sdkError) {
-                            console.error("Mappls SDK not loaded:", sdkError);
-                            showAlert("Configuration Error", "Map service is not available. Please refresh the page and try again.", "error");
-                            useCurrentLocationBtn.innerHTML = btnHTML;
-                            useCurrentLocationBtn.disabled = false;
-                            if (window.lucide) lucide.createIcons();
-                            return;
-                        }
+                    setTimeout(() => {
+                        if (typeof mappls === 'undefined' || !mappls.Map) return;
                         if (!map) {
                             map = new mappls.Map("mapContainer", { center: [lat, lng], zoom: 12 });
                             marker = new mappls.Marker({ map: map, position: { lat: lat, lng: lng }, draggable: true });
-                            // Force redraw after modal is fully visible
-                            setTimeout(() => {
-                                if (map && map.invalidateSize) {
-                                    map.invalidateSize();
-                                    setTimeout(() => {
-                                        if (map && map.invalidateSize) map.invalidateSize();
-                                    }, 100);
-                                }
-                            }, 300);
+                            setTimeout(() => { map.invalidateSize?.(); setTimeout(() => map.invalidateSize?.(), 100); }, 200);
                         } else {
                             map.setCenter([lat, lng]);
                             marker.setPosition({ lat: lat, lng: lng });
                             map.setZoom(12);
-                            // Force redraw after modal is fully visible
-                            setTimeout(() => {
-                                if (map && map.invalidateSize) {
-                                    map.invalidateSize();
-                                    setTimeout(() => {
-                                        if (map && map.invalidateSize) map.invalidateSize();
-                                    }, 100);
-                                }
-                            }, 300);
+                            setTimeout(() => { map.invalidateSize?.(); setTimeout(() => map.invalidateSize?.(), 100); }, 200);
                         }
                     }, 300);
 
@@ -455,19 +403,9 @@ function initAddressEvents() {
         const mapSearchBtn = document.getElementById("mapSearchBtn");
         const mapSearchInput = document.getElementById("mapSearchInput");
 
-        const performMapSearch = async () => {
+        const performMapSearch = () => {
             const query = mapSearchInput.value.trim();
             if (!query) return;
-
-            // Ensure SDK and map are ready
-            if (!map || typeof mappls === 'undefined' || !mappls.search) {
-                try {
-                    await waitForMapplsSDK();
-                } catch (e) {
-                    showAlert("Error", "Map service is not ready. Please wait a moment and try again.", "error");
-                    return;
-                }
-            }
 
             const oldText = mapSearchBtn.innerText;
             mapSearchBtn.innerText = "...";
@@ -715,8 +653,8 @@ function toggleEditMode(enable) {
 
 // Load address for specific type
 async function loadAddressForType(type) {
-    const userId = localStorage.getItem('user_id');
-    if (!userId) return;
+    const token = localStorage.getItem('token');
+    if (!token) return;
 
     // Check if we already have this address in memory
     if (addressesData[type]) {
@@ -753,12 +691,11 @@ async function loadAddressForType(type) {
         });
 
         if (response.ok) {
-            const data = await response.json();
-            const list = data.addresses || data; // Handle both formats
+            const raw = await response.json();
+            const addresses = normalizeAddressResponse(raw);
             
-            // Handle empty array gracefully
-            if (!Array.isArray(list) || list.length === 0) {
-                // No addresses saved yet - show empty form for user to add (no error)
+            // Handle empty array gracefully - always show empty form for new users
+            if (addresses.length === 0) {
                 clearAddressForm();
                 toggleEditMode(true); // Edit mode
                 const saveBtn = document.getElementById('saveAddressBtn');
@@ -768,7 +705,7 @@ async function loadAddressForType(type) {
                 return;
             }
 
-            const address = list.find(a => a && a.address_type === type);
+            const address = addresses.find(a => a && a.address_type === type);
 
             if (address && Object.keys(address).length > 0) {
                 addressesData[type] = address;
@@ -835,11 +772,12 @@ async function loadAddressForType(type) {
 
 // Fill address form with data
 function fillAddressForm(address) {
-    // address_line1 may contain house and area combined; we split loosely
+    // Note: address_line1 splitting is fragile for complex addresses like "Flat No 12 Block A Phase 2"
+    // For MVP, we split on first space. Future: consider storing house/area separately in DB
     const line1 = address.address_line1 || '';
     const parts = line1.split(' ');
-    const house = parts.shift() || '';
-    const area = parts.join(' ');
+    const house = address.house || (parts.length > 0 ? parts[0] : '');
+    const area = address.area || (parts.length > 1 ? parts.slice(1).join(' ') : '');
 
     if (document.getElementById('fldHouse')) document.getElementById('fldHouse').value = house;
     if (document.getElementById('fldArea')) document.getElementById('fldArea').value = area;
@@ -862,7 +800,12 @@ function clearAddressForm() {
 
 // Save address
 async function saveAddress() {
-    const userId = localStorage.getItem('user_id');
+    const token = localStorage.getItem('token');
+    if (!token) {
+        showAlert('Error', 'Authentication required. Please log in again.', 'error');
+        return;
+    }
+
     const house = document.getElementById('fldHouse').value.trim();
     const area = document.getElementById('fldArea').value.trim();
     const landmark = document.getElementById('fldLandmark').value.trim();
@@ -884,7 +827,6 @@ async function saveAddress() {
     }
 
     const addressData = {
-        customer_id: parseInt(userId),
         address_type: currentAddressType,
         address_line1: house + ' ' + area,
         address_line2: landmark,
@@ -927,9 +869,17 @@ async function saveAddress() {
         const result = await response.json();
 
         if (response.ok) {
+            // Update local cache immediately
             addressesData[currentAddressType] = result;
-            showAlert('Success', `${currentAddressType.charAt(0).toUpperCase() + currentAddressType.slice(1)} address saved successfully!`, 'success');
+            
+            // Immediately reflect in UI
+            fillAddressForm(result);
             toggleEditMode(false); // Switch back to view mode
+            
+            // Trigger cross-page sync
+            localStorage.setItem('address_updated_at', Date.now().toString());
+            
+            showAlert('Success', `${currentAddressType.charAt(0).toUpperCase() + currentAddressType.slice(1)} address saved successfully!`, 'success');
         } else {
             showAlert('Error', result.error || 'Failed to save address', 'error');
         }
@@ -941,11 +891,10 @@ async function saveAddress() {
 
 // Load all addresses when page loads
 async function loadAllAddresses() {
-    const userId = localStorage.getItem('user_id');
-    if (!userId) return;
+    const token = localStorage.getItem('token');
+    if (!token) return;
 
     try {
-        const token = localStorage.getItem('token');
         const response = await window.ImpromptuIndianApi.fetch(`/api/customer/addresses`, {
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -953,11 +902,11 @@ async function loadAllAddresses() {
         });
 
         if (response.ok) {
-            const data = await response.json();
-            const addresses = data.addresses || data; // Handle both formats
+            const raw = await response.json();
+            const addresses = normalizeAddressResponse(raw);
 
             // Handle empty array or null response gracefully
-            if (Array.isArray(addresses) && addresses.length > 0) {
+            if (addresses.length > 0) {
                 // Store addresses by type
                 addresses.forEach(address => {
                     if (address && address.address_type) {
@@ -1017,31 +966,13 @@ if (document.readyState === 'loading') {
     window.addEventListener('scroll', revealOnScroll);
 }
 
-// Wait for Mappls SDK to be loaded
-function waitForMapplsSDK(maxAttempts = 50, interval = 100) {
-    return new Promise((resolve, reject) => {
-        let attempts = 0;
-        const checkSDK = () => {
-            if (typeof mappls !== 'undefined' && mappls.Map) {
-                resolve(mappls);
-            } else if (attempts < maxAttempts) {
-                attempts++;
-                setTimeout(checkSDK, interval);
-            } else {
-                reject(new Error('Mappls SDK failed to load within timeout'));
-            }
-        };
-        checkSDK();
-    });
-}
-
 // Load Mappls API key from backend and inject into SDK URLs
 async function loadMapplsConfig() {
     try {
         const token = localStorage.getItem('token');
         if (!token) {
             console.warn('No authentication token found. Map features may not work.');
-            return Promise.resolve(false);
+            return;
         }
         
         const response = await fetch('/api/config', {
@@ -1056,48 +987,25 @@ async function loadMapplsConfig() {
             const apiKey = config.mapplsApiKey || '';
             
             if (apiKey) {
-                // Check if SDK is already loaded
-                if (typeof mappls !== 'undefined' && mappls.Map) {
-                    console.log('Mappls SDK already loaded');
-                    return Promise.resolve(true);
-                }
-
                 // Update CSS link
                 const cssLink = document.getElementById('mappls-css');
-                if (cssLink && !cssLink.href) {
+                if (cssLink) {
                     cssLink.href = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk_plugins/v3.0/styles/mappls.css`;
                 }
                 
                 // Load script
                 const script = document.getElementById('mappls-script');
-                if (script && !script.src) {
-                    return new Promise((resolve, reject) => {
-                        script.src = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk?v=3.0&layer=vector&libraries=services`;
-                        script.onload = () => {
-                            console.log('Mappls SDK loaded');
-                            // Wait a bit more for SDK to be fully initialized
-                            setTimeout(() => {
-                                waitForMapplsSDK().then(() => resolve(true)).catch(reject);
-                            }, 100);
-                        };
-                        script.onerror = () => {
-                            console.error('Mappls SDK failed to load');
-                            reject(new Error('Failed to load Mappls SDK script'));
-                        };
-                    });
-                } else if (script && script.src) {
-                    // Script is already loading/loaded, wait for it
-                    return waitForMapplsSDK().then(() => true).catch(() => false);
+                if (script) {
+                    script.src = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk?v=3.0&layer=vector&libraries=services`;
+                    script.onload = () => console.log('Mappls SDK loaded');
+                    script.onerror = () => console.error('Mappls SDK failed to load');
                 }
             } else {
                 console.warn('Mappls API key not configured');
-                return Promise.resolve(false);
             }
         }
-        return Promise.resolve(false);
     } catch (error) {
         console.error('Failed to load map configuration:', error);
-        return Promise.resolve(false);
     }
 }
 
@@ -1111,7 +1019,19 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize address management
     initAddressEvents();
-    loadAllAddresses();
+    
+    // Check for cross-page sync (address updated on another page)
+    const lastSeenUpdate = localStorage.getItem('address_updated_at_seen');
+    const currentUpdate = localStorage.getItem('address_updated_at');
+    
+    if (currentUpdate && currentUpdate !== lastSeenUpdate) {
+        // Address was updated on another page - reload addresses
+        loadAllAddresses().then(() => {
+            localStorage.setItem('address_updated_at_seen', currentUpdate);
+        });
+    } else {
+        loadAllAddresses();
+    }
     
     // Show content immediately
     showAllReveals();

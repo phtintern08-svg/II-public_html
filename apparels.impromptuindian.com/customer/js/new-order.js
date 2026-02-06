@@ -725,11 +725,179 @@ let currentAddressType = "home";
 let addressesData = {};
 
 /* ---------------------------
+   Normalize address API response (handles all formats)
+---------------------------*/
+function normalizeAddressResponse(data) {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data.addresses)) return data.addresses;
+  return [];
+}
+
+/* ---------------------------
+   Clear input form (global scope)
+---------------------------*/
+function clearAddressForm() {
+  ["fldHouse", "fldArea", "fldLandmark", "fldCity", "fldState", "fldCountry", "fldPincode", "fldPhone"]
+    .forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = "";
+    });
+}
+
+/* ---------------------------
+   Enable / Disable form fields (global scope)
+---------------------------*/
+function toggleAddressFields(enable) {
+  const ids = [
+    "fldHouse",
+    "fldArea",
+    "fldLandmark",
+    "fldCity",
+    "fldState",
+    "fldCountry",
+    "fldPincode",
+    "fldPhone",
+  ];
+
+  ids.forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = !enable;
+  });
+}
+
+/* ---------------------------
+   Show/Hide Save Button (global scope)
+---------------------------*/
+function toggleSaveButton(show) {
+  const saveAddressBtn = document.getElementById("saveAddressBtn");
+  if (!saveAddressBtn) return;
+
+  if (show) {
+    saveAddressBtn.classList.remove("hidden");
+    saveAddressBtn.textContent =
+      "Save " + currentAddressType.charAt(0).toUpperCase() + currentAddressType.slice(1) + " Address";
+  } else {
+    saveAddressBtn.classList.add("hidden");
+  }
+}
+
+/* ---------------------------
+   Fill the form with backend data (global scope)
+---------------------------*/
+function fillAddressForm(addr) {
+  // Note: address_line1 splitting is fragile for complex addresses like "Flat No 12 Block A Phase 2"
+  // For MVP, we split on first space. Future: consider storing house/area separately in DB
+  const line1 = addr.address_line1 || "";
+  const parts = line1.split(" ");
+  const house = addr.house || (parts.length > 0 ? parts[0] : "");
+  const area = addr.area || (parts.length > 1 ? parts.slice(1).join(" ") : "");
+  
+  document.getElementById("fldHouse").value = house;
+  document.getElementById("fldArea").value = area;
+  document.getElementById("fldLandmark").value = addr.landmark || "";
+  document.getElementById("fldCity").value = addr.city || "";
+  document.getElementById("fldState").value = addr.state || "";
+  document.getElementById("fldCountry").value = addr.country || "";
+  document.getElementById("fldPincode").value = addr.pincode || "";
+  document.getElementById("fldPhone").value = addr.alternative_phone || "";
+}
+
+/* ---------------------------
+   Save address (POST or PUT) (global scope)
+---------------------------*/
+async function saveAddress() {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    showAlert("Error", "Authentication required. Please log in again.", "error");
+    return;
+  }
+
+  const house = document.getElementById("fldHouse").value.trim();
+  const area = document.getElementById("fldArea").value.trim();
+  const landmark = document.getElementById("fldLandmark").value.trim();
+  const city = document.getElementById("fldCity").value.trim();
+  const state = document.getElementById("fldState").value.trim();
+  const country = document.getElementById("fldCountry").value.trim();
+  const pincode = document.getElementById("fldPincode").value.trim();
+  const phone = document.getElementById("fldPhone").value.trim();
+
+  if (!house || !area || !city || !state || !pincode) {
+    showAlert("Missing Fields", "Please fill in all required fields.", "error");
+    return;
+  }
+
+  const payload = {
+    address_type: currentAddressType,
+    address_line1: house + " " + area,
+    address_line2: landmark,
+    city,
+    state,
+    country,
+    pincode,
+    alternative_phone: phone,
+    landmark
+  };
+
+  try {
+    let response;
+    let existing = addressesData[currentAddressType];
+
+    if (existing && existing.id) {
+      response = await window.ImpromptuIndianApi.fetch(`/api/customer/addresses/${existing.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(payload),
+      });
+    } else {
+      response = await window.ImpromptuIndianApi.fetch("/api/customer/addresses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(payload),
+      });
+    }
+
+    const result = await response.json();
+
+    if (response.ok) {
+      // Update local cache immediately
+      addressesData[currentAddressType] = result;
+      
+      // Immediately reflect in UI
+      fillAddressForm(result);
+      toggleAddressFields(false);
+      toggleSaveButton(false);
+      
+      // Trigger cross-page sync
+      localStorage.setItem('address_updated_at', Date.now().toString());
+      
+      showAlert("Success", "Address saved successfully!", "success");
+    } else {
+      showAlert("Error", result.error || "Failed to save address", "error");
+    }
+  } catch (e) {
+    console.error("Save address error", e);
+    showAlert("Connection Error", "Unable to reach server", "error");
+  }
+}
+
+/* ---------------------------
    Load address from backend
 ---------------------------*/
 async function loadAddressForType(type) {
-  const userId = localStorage.getItem("user_id");
-  if (!userId) return clearAddressForm();
+  const token = localStorage.getItem("token");
+  if (!token) {
+    clearAddressForm();
+    toggleAddressFields(true);
+    toggleSaveButton(true);
+    return;
+  }
 
   // If already cached
   if (addressesData[type]) {
@@ -748,12 +916,11 @@ async function loadAddressForType(type) {
     });
 
     if (resp.ok) {
-      const data = await resp.json();
-      const addresses = data.addresses || data;
+      const raw = await resp.json();
+      const addresses = normalizeAddressResponse(raw);
 
-      // Handle empty array gracefully
-      if (!Array.isArray(addresses) || addresses.length === 0) {
-        // No addresses saved yet - show empty form for user to add
+      // Handle empty array gracefully - always show empty form for new users
+      if (addresses.length === 0) {
         clearAddressForm();
         toggleAddressFields(true);
         toggleSaveButton(true);
@@ -843,162 +1010,38 @@ function initAddress() {
   btnWork.addEventListener("click", () => switchAddressType("work"));
   btnOther.addEventListener("click", () => switchAddressType("other"));
 
-  /* ---------------------------
-     Enable / Disable form fields
-  ---------------------------*/
-  function toggleAddressFields(enable) {
-    const ids = [
-      "fldHouse",
-      "fldArea",
-      "fldLandmark",
-      "fldCity",
-      "fldState",
-      "fldCountry",
-      "fldPincode",
-      "fldPhone",
-    ];
-
-    ids.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) el.disabled = !enable;
-    });
-  }
-
-  /* ---------------------------
-     Show/Hide Save Button
-  ---------------------------*/
-  function toggleSaveButton(show) {
-    const saveAddressBtn = document.getElementById("saveAddressBtn");
-    if (!saveAddressBtn) return;
-
-    if (show) {
-      saveAddressBtn.classList.remove("hidden");
-      saveAddressBtn.textContent =
-        "Save " + currentAddressType.charAt(0).toUpperCase() + currentAddressType.slice(1) + " Address";
-    } else {
-      saveAddressBtn.classList.add("hidden");
-    }
-  }
-
-  /* ---------------------------
-     Fill the form with backend data
-  ---------------------------*/
-  function fillAddressForm(addr) {
-    document.getElementById("fldHouse").value = addr.house || addr.address_line1?.split(" ")[0] || "";
-    document.getElementById("fldArea").value = addr.area || addr.address_line1?.split(" ").slice(1).join(" ") || "";
-    document.getElementById("fldLandmark").value = addr.landmark || "";
-    document.getElementById("fldCity").value = addr.city || "";
-    document.getElementById("fldState").value = addr.state || "";
-    document.getElementById("fldCountry").value = addr.country || "";
-    document.getElementById("fldPincode").value = addr.pincode || "";
-    document.getElementById("fldPhone").value = addr.alternative_phone || "";
-  }
-
-  /* ---------------------------
-     Clear input form
-  ---------------------------*/
-  function clearAddressForm() {
-    ["fldHouse", "fldArea", "fldLandmark", "fldCity", "fldState", "fldCountry", "fldPincode", "fldPhone"]
-      .forEach(id => document.getElementById(id).value = "");
-  }
-
-  /* ---------------------------
-     Save address (POST or PUT)
-  ---------------------------*/
-  async function saveAddress() {
-    const userId = localStorage.getItem("user_id");
-    if (!userId) return;
-
-    const house = document.getElementById("fldHouse").value.trim();
-    const area = document.getElementById("fldArea").value.trim();
-    const landmark = document.getElementById("fldLandmark").value.trim();
-    const city = document.getElementById("fldCity").value.trim();
-    const state = document.getElementById("fldState").value.trim();
-    const country = document.getElementById("fldCountry").value.trim();
-    const pincode = document.getElementById("fldPincode").value.trim();
-    const phone = document.getElementById("fldPhone").value.trim();
-
-    if (!house || !area || !city || !state || !pincode) {
-      showAlert("Missing Fields", "Please fill in all required fields.", "error");
-      return;
-    }
-
-    const payload = {
-      customer_id: parseInt(userId),
-      address_type: currentAddressType,
-      address_line1: house + " " + area,
-      address_line2: landmark,
-      city,
-      state,
-      country,
-      pincode,
-      alternative_phone: phone,
-      landmark
-    };
-
-    try {
-      const token = localStorage.getItem('token');
-      let response;
-      let existing = addressesData[currentAddressType];
-
-      if (existing && existing.id) {
-        response = await window.ImpromptuIndianApi.fetch(`/api/customer/addresses/${existing.id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify(payload),
-        });
-      } else {
-        response = await window.ImpromptuIndianApi.fetch("/api/customer/addresses", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify(payload),
-        });
-      }
-
-      const result = await response.json();
-
-      if (response.ok) {
-        addressesData[currentAddressType] = result;
-        toggleAddressFields(false);
-        toggleSaveButton(false);
-        showAlert("Success", "Address saved successfully!", "success");
-      } else {
-        showAlert("Error", result.error || "Failed to save address", "error");
-      }
-    } catch (e) {
-      console.error("Save address error", e);
-      showAlert("Connection Error", "Unable to reach server", "error");
-    }
-  }
-
+  // All address functions are now in global scope (see above)
+  // Just wire up the event listener
   saveAddressBtn.addEventListener("click", saveAddress);
 
   /* ---------------------------
      Load ALL addresses at start
   ---------------------------*/
-  loadAllAddresses();
-  switchAddressType("home");
+  
+  // Check for cross-page sync (address updated on another page)
+  const lastSeenUpdate = localStorage.getItem('address_updated_at_seen');
+  const currentUpdate = localStorage.getItem('address_updated_at');
+  
+  if (currentUpdate && currentUpdate !== lastSeenUpdate) {
+    // Address was updated on another page - reload addresses
+    loadAllAddresses().then(() => {
+      localStorage.setItem('address_updated_at_seen', currentUpdate);
+      switchAddressType(currentAddressType);
+    });
+  } else {
+    loadAllAddresses();
+    switchAddressType("home");
+  }
 }
 
 async function loadAllAddresses() {
-  const userId = localStorage.getItem("user_id");
-  if (!userId) {
-    // No user ID - silently return, user can still add addresses
+  const token = localStorage.getItem('token');
+  if (!token) {
+    // No token - silently return, user can still add addresses
     return;
   }
 
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      // No token - silently return, user can still add addresses
-      return;
-    }
 
     const resp = await window.ImpromptuIndianApi.fetch(`/api/customer/addresses`, {
       headers: {
@@ -1007,12 +1050,12 @@ async function loadAllAddresses() {
     });
 
     if (resp.ok) {
-      const data = await resp.json();
-      const list = data.addresses || data;
+      const raw = await resp.json();
+      const addresses = normalizeAddressResponse(raw);
 
       // Handle empty array or null response gracefully
-      if (Array.isArray(list) && list.length > 0) {
-        list.forEach((addr) => {
+      if (addresses.length > 0) {
+        addresses.forEach((addr) => {
           if (addr && addr.address_type) {
             addressesData[addr.address_type] = addr;
           }
@@ -1051,37 +1094,14 @@ if (useCurrentLocationBtn) {
         throw new Error("Geolocation not supported");
       }
 
-      // Ensure Mappls SDK is loaded before proceeding
-      try {
-        await loadMapplsConfig();
-        await waitForMapplsSDK();
-      } catch (sdkError) {
-        console.error("SDK load error:", sdkError);
-        showAlert("Configuration Error", "Map service is not available. Please refresh the page and try again.", "error");
-        useCurrentLocationBtn.innerHTML = btnHTML;
-        useCurrentLocationBtn.disabled = false;
-        lucide.createIcons();
-        return;
-      }
-
 
       // Search Functionality for Map
       const mapSearchBtn = document.getElementById("mapSearchBtn");
       const mapSearchInput = document.getElementById("mapSearchInput");
 
-      const performMapSearch = async () => {
+      const performMapSearch = () => {
         const query = mapSearchInput.value.trim();
         if (!query) return;
-
-        // Ensure SDK and map are ready
-        if (!map || typeof mappls === 'undefined' || !mappls.search) {
-          try {
-            await waitForMapplsSDK();
-          } catch (e) {
-            showAlert("Error", "Map service is not ready. Please wait a moment and try again.", "error");
-            return;
-          }
-        }
 
         const oldText = mapSearchBtn.innerText;
         mapSearchBtn.innerText = "...";
@@ -1165,17 +1185,13 @@ if (useCurrentLocationBtn) {
           const mapModal = document.getElementById("mapModal");
           mapModal.classList.remove("hidden");
 
-          // Initialize map (wait for modal to be visible and SDK to be ready)
-          setTimeout(async () => {
-            try {
-              // Ensure SDK is loaded
-              await waitForMapplsSDK();
-            } catch (sdkError) {
-              console.error("Mappls SDK not loaded:", sdkError);
-              showAlert("Configuration Error", "Map service is not loaded correctly. Please refresh the page and try again.", "error");
+          // Initialize map (wait for modal to be visible)
+          setTimeout(() => {
+            if (typeof mappls === 'undefined' || !mappls.Map) {
+              console.error("Mappls SDK not loaded. Check your API Key in new-order.html");
+              showAlert("Configuration Error", "Map service is not loaded correcty. Please contact support.", "error");
               useCurrentLocationBtn.innerHTML = btnHTML;
               useCurrentLocationBtn.disabled = false;
-              lucide.createIcons();
               return;
             }
 
@@ -1208,30 +1224,16 @@ if (useCurrentLocationBtn) {
                 strokeOpacity: 0.3,
               });
 
-              // Force redraw after modal is fully visible
-              setTimeout(() => {
-                if (map && map.invalidateSize) {
-                  map.invalidateSize();
-                  setTimeout(() => {
-                    if (map && map.invalidateSize) map.invalidateSize();
-                  }, 100);
-                }
-              }, 300);
+              // Force redraw
+              setTimeout(() => { map.invalidateSize?.(); setTimeout(() => map.invalidateSize?.(), 100); }, 200);
 
             } else {
               map.setCenter([lat, lng]);
               marker.setPosition({ lat: lat, lng: lng });
               map.setZoom(zoomLevel);
 
-              // Force redraw after modal is fully visible
-              setTimeout(() => {
-                if (map && map.invalidateSize) {
-                  map.invalidateSize();
-                  setTimeout(() => {
-                    if (map && map.invalidateSize) map.invalidateSize();
-                  }, 100);
-                }
-              }, 300);
+              // Force redraw
+              setTimeout(() => { map.invalidateSize?.(); setTimeout(() => map.invalidateSize?.(), 100); }, 200);
             }
           }, 300);
 
@@ -1253,16 +1255,9 @@ if (useCurrentLocationBtn) {
           const mapModal = document.getElementById("mapModal");
           mapModal.classList.remove("hidden");
 
-          setTimeout(async () => {
-            try {
-              // Ensure SDK is loaded
-              await waitForMapplsSDK();
-            } catch (sdkError) {
-              console.error("Mappls SDK not loaded:", sdkError);
-              showAlert("Configuration Error", "Map service is not available. Please refresh the page and try again.", "error");
-              useCurrentLocationBtn.innerHTML = btnHTML;
-              useCurrentLocationBtn.disabled = false;
-              lucide.createIcons();
+          setTimeout(() => {
+            if (typeof mappls === 'undefined' || !mappls.Map) {
+              console.error("Mappls SDK not loaded.");
               return;
             }
 
@@ -1270,28 +1265,12 @@ if (useCurrentLocationBtn) {
               map = new mappls.Map("mapContainer", { center: [lat, lng], zoom: 12 });
               marker = new mappls.Marker({ map: map, position: { lat: lat, lng: lng }, draggable: true });
 
-              // Force redraw after modal is fully visible
-              setTimeout(() => {
-                if (map && map.invalidateSize) {
-                  map.invalidateSize();
-                  setTimeout(() => {
-                    if (map && map.invalidateSize) map.invalidateSize();
-                  }, 100);
-                }
-              }, 300);
+              setTimeout(() => { map.invalidateSize?.(); setTimeout(() => map.invalidateSize?.(), 100); }, 200);
             } else {
               map.setCenter([lat, lng]);
               marker.setPosition({ lat: lat, lng: lng });
               map.setZoom(12);
-              // Force redraw after modal is fully visible
-              setTimeout(() => {
-                if (map && map.invalidateSize) {
-                  map.invalidateSize();
-                  setTimeout(() => {
-                    if (map && map.invalidateSize) map.invalidateSize();
-                  }, 100);
-                }
-              }, 300);
+              setTimeout(() => { map.invalidateSize?.(); setTimeout(() => map.invalidateSize?.(), 100); }, 200);
             }
           }, 300);
 
@@ -1726,8 +1705,8 @@ function initPlaceOrder() {
     }
 
     /* 3. AUTH CHECK */
-    const userId = localStorage.getItem("user_id");
-    if (!userId) {
+    const token = localStorage.getItem("token");
+    if (!token) {
       showAlert("Authentication Error", "You must be logged in to place an order.", "error");
       return;
     }
@@ -1815,7 +1794,6 @@ function initPlaceOrder() {
     const numericCost = storedCost ? parseFloat(storedCost) : 0.0;
 
     const payload = {
-      customer_id: Number(userId),
       product_type: product,
       category: selectedCategory,
       neck_type: selectedNeckType || "",
@@ -1902,31 +1880,13 @@ async function submitOrder(payload) {
   }
 }
 
-// Wait for Mappls SDK to be loaded
-function waitForMapplsSDK(maxAttempts = 50, interval = 100) {
-  return new Promise((resolve, reject) => {
-    let attempts = 0;
-    const checkSDK = () => {
-      if (typeof mappls !== 'undefined' && mappls.Map) {
-        resolve(mappls);
-      } else if (attempts < maxAttempts) {
-        attempts++;
-        setTimeout(checkSDK, interval);
-      } else {
-        reject(new Error('Mappls SDK failed to load within timeout'));
-      }
-    };
-    checkSDK();
-  });
-}
-
 // Load Mappls API key from backend and inject into SDK URLs
 async function loadMapplsConfig() {
   try {
     const token = localStorage.getItem('token');
     if (!token) {
       console.warn('No authentication token found. Map features may not work.');
-      return Promise.resolve(false);
+      return;
     }
 
     const response = await fetch('/api/config', {
@@ -1941,48 +1901,25 @@ async function loadMapplsConfig() {
       const apiKey = config.mapplsApiKey || '';
 
       if (apiKey) {
-        // Check if SDK is already loaded
-        if (typeof mappls !== 'undefined' && mappls.Map) {
-          console.log('Mappls SDK already loaded');
-          return Promise.resolve(true);
-        }
-
         // Update CSS link
         const cssLink = document.getElementById('mappls-css');
-        if (cssLink && !cssLink.href) {
-          cssLink.href = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk_plugins/v3.0/styles/mappls.css`;
+        if (cssLink) {
+          cssLink.href = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk_plugins/v3.0/mappls.css`;
         }
 
         // Load script
         const script = document.getElementById('mappls-script');
-        if (script && !script.src) {
-          return new Promise((resolve, reject) => {
-            script.src = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk?v=3.0&layer=vector&libraries=services`;
-            script.onload = () => {
-              console.log('Mappls SDK loaded');
-              // Wait a bit more for SDK to be fully initialized
-              setTimeout(() => {
-                waitForMapplsSDK().then(() => resolve(true)).catch(reject);
-              }, 100);
-            };
-            script.onerror = () => {
-              console.error('Mappls SDK failed to load');
-              reject(new Error('Failed to load Mappls SDK script'));
-            };
-          });
-        } else if (script && script.src) {
-          // Script is already loading/loaded, wait for it
-          return waitForMapplsSDK().then(() => true).catch(() => false);
+        if (script) {
+          script.src = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk?v=3.0&layer=vector&libraries=services`;
+          script.onload = () => console.log('Mappls SDK loaded');
+          script.onerror = () => console.error('Mappls SDK failed to load');
         }
       } else {
         console.warn('Mappls API key not configured');
-        return Promise.resolve(false);
       }
     }
-    return Promise.resolve(false);
   } catch (error) {
     console.error('Failed to load map configuration:', error);
-    return Promise.resolve(false);
   }
 }
 
