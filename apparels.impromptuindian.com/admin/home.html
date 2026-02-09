@@ -24,11 +24,17 @@
             <div class="dashboard-header mb-6 sm:mb-8">
                 <div>
                     <h1 class="dashboard-title">Admin Dashboard</h1>
-                    <p class="dashboard-subtitle">Real-time overview of operations</p>
+                    <div class="flex items-center justify-between gap-3 mt-1">
+                        <p class="dashboard-subtitle">Real-time overview of operations</p>
+                        <button class="md:hidden p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition flex-shrink-0"
+                            id="refreshDashboardBtn">
+                            <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
+                        </button>
+                    </div>
                 </div>
-                <button class="btn-refresh-modern" id="refreshDashboardBtn">
-                    <i data-lucide="refresh-ccw" class="w-4 h-4 sm:w-5 sm:h-5"></i>
-                    <span class="hidden sm:inline">Refresh</span>
+                <button class="hidden md:flex btn-refresh-modern" id="refreshDashboardBtnDesktop">
+                    <i data-lucide="refresh-ccw" class="w-5 h-5"></i>
+                    <span>Refresh</span>
                 </button>
             </div>
 

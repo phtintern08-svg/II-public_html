@@ -230,6 +230,11 @@ window.addEventListener('DOMContentLoaded', () => {
         refreshBtn.addEventListener('click', refreshDashboard);
     }
 
+    const refreshBtnDesktop = document.getElementById('refreshDashboardBtnDesktop');
+    if (refreshBtnDesktop) {
+        refreshBtnDesktop.addEventListener('click', refreshDashboard);
+    }
+
     const refreshOtpBtn = document.getElementById('refreshOtpBtn');
     if (refreshOtpBtn) {
         refreshOtpBtn.addEventListener('click', fetchOTPLogs);

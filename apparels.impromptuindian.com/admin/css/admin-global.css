@@ -571,7 +571,7 @@ tr:hover {
     display: none;
 }
 
-#customAlert > div {
+#customAlert>div {
     background: #0f131a;
     border: 1px solid rgba(148, 163, 184, 0.2);
     border-radius: 0.75rem;
@@ -589,7 +589,7 @@ tr:hover {
     margin-bottom: 1rem;
 }
 
-#customAlert #alertIcon > div {
+#customAlert #alertIcon>div {
     width: 3rem;
     height: 3rem;
     border-radius: 9999px;
@@ -874,7 +874,7 @@ tr:hover {
 }
 
 /* Multiple Toasts Stack */
-.toast + .toast {
+.toast+.toast {
     margin-bottom: 0.75rem;
 }
 
@@ -1083,4 +1083,21 @@ tr:hover {
 /* Hide scrollbar for IE and Edge */
 * {
     -ms-overflow-style: none;
+}
+
+/* ========================================
+   MOBILE RESPONSIVE UTILITIES
+   ======================================== */
+/* Mobile top padding to avoid hamburger menu collision */
+@media (max-width: 768px) {
+    main {
+        padding-top: 5rem !important;
+    }
+}
+
+/* Ensure proper spacing on tablet */
+@media (min-width: 769px) {
+    main {
+        padding-top: 2rem;
+    }
 }
