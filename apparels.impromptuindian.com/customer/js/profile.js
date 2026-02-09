@@ -271,8 +271,11 @@ async function changePassword() {
 
 // --- ADDRESS MANAGEMENT ---
 
-let currentAddressType = 'home';
-let addressesData = {};
+// Namespace address state to prevent global variable collisions
+window.AddressState = window.AddressState || {
+    currentType: 'home',
+    data: {}
+};
 
 /* ---------------------------
    Normalize address API response (handles all formats)
@@ -477,13 +480,17 @@ function initAddressEvents() {
             }
         };
 
+        // Use onclick to prevent listener stacking
         if (mapSearchBtn) mapSearchBtn.onclick = performMapSearch;
 
         // Confirm Location (Reverse Geocode)
-        document.getElementById("confirmLocationBtn").onclick = async () => {
+        const confirmBtn = document.getElementById("confirmLocationBtn");
+        if (confirmBtn && !confirmBtn.dataset.bound) {
+          confirmBtn.dataset.bound = "1";
+          confirmBtn.addEventListener("click", async () => {
             if (!marker) return;
 
-            const btn = document.getElementById("confirmLocationBtn");
+            const btn = confirmBtn;
             const oldHTML = btn.innerHTML;
             btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Processing...';
             btn.disabled = true;
@@ -553,7 +560,8 @@ function initAddressEvents() {
                 btn.disabled = false;
                 lucide.createIcons();
             }
-        };
+          });
+        }
     }
 }
 
@@ -640,7 +648,7 @@ function initLocationAutocomplete() {
 
 // Switch address type tabs
 function switchAddressType(type) {
-    currentAddressType = type;
+    AddressState.currentType = type;
 
     const btnHome = document.getElementById('btnHome');
     const btnWork = document.getElementById('btnWork');
@@ -673,7 +681,7 @@ function toggleEditMode(enable) {
     if (enable) {
         if (saveBtn) {
             saveBtn.classList.remove('hidden');
-            saveBtn.textContent = `Save ${currentAddressType.charAt(0).toUpperCase() + currentAddressType.slice(1)} Address`;
+            saveBtn.textContent = `Save ${AddressState.currentType.charAt(0).toUpperCase() + AddressState.currentType.slice(1)} Address`;
         }
         if (editBtn) editBtn.classList.add('hidden');
     } else {
@@ -688,8 +696,8 @@ async function loadAddressForType(type) {
     if (!token) return;
 
     // Check if we already have this address in memory
-    if (addressesData[type]) {
-        fillAddressForm(addressesData[type]);
+    if (AddressState.data[type]) {
+        fillAddressForm(AddressState.data[type]);
         toggleEditMode(false); // View mode
 
         // Check for missing fields
@@ -742,7 +750,7 @@ async function loadAddressForType(type) {
             const address = addresses.find(a => a && a.address_type === type);
 
             if (address && Object.keys(address).length > 0) {
-                addressesData[type] = address;
+                AddressState.data[type] = address;
                 fillAddressForm(address);
                 toggleEditMode(false); // View mode
 
@@ -861,7 +869,7 @@ async function saveAddress() {
     }
 
     const addressData = {
-        address_type: currentAddressType,
+        address_type: AddressState.currentType,
         address_line1: house + ' ' + area,
         address_line2: landmark,
         city: city,
@@ -874,7 +882,7 @@ async function saveAddress() {
 
     try {
         // Check if address already exists (either in memory or we can try update)
-        const existingAddress = addressesData[currentAddressType];
+        const existingAddress = AddressState.data[AddressState.currentType];
 
         let response;
         if (existingAddress && existingAddress.id) {
@@ -905,7 +913,7 @@ async function saveAddress() {
 
         if (response.ok) {
             // Update local cache immediately
-            addressesData[currentAddressType] = result;
+            AddressState.data[AddressState.currentType] = result;
             
             // Immediately reflect in UI
             fillAddressForm(result);
@@ -914,7 +922,7 @@ async function saveAddress() {
             // Trigger cross-page sync
             localStorage.setItem('address_updated_at', Date.now().toString());
             
-            showAlert('Success', `${currentAddressType.charAt(0).toUpperCase() + currentAddressType.slice(1)} address saved successfully!`, 'success');
+            showAlert('Success', `${AddressState.currentType.charAt(0).toUpperCase() + AddressState.currentType.slice(1)} address saved successfully!`, 'success');
         } else {
             showAlert('Error', result.error || 'Failed to save address', 'error');
         }
@@ -946,11 +954,11 @@ async function loadAllAddresses() {
                 // Store addresses by type
                 addresses.forEach(address => {
                     if (address && address.address_type) {
-                        addressesData[address.address_type] = address;
+                        AddressState.data[address.address_type] = address;
                     }
                 });
             }
-            // If addresses array is empty, addressesData remains empty - this is fine
+            // If addresses array is empty, AddressState.data remains empty - this is fine
             // User can add addresses on this page
 
             // Load the current address type (default home) - this will show empty form if no address
@@ -1002,46 +1010,6 @@ if (document.readyState === 'loading') {
     window.addEventListener('scroll', revealOnScroll);
 }
 
-// Load Mappls API key from backend and inject into SDK URLs
-async function loadMapplsConfig() {
-    try {
-        const response = await window.ImpromptuIndianApi.fetch('/api/config', {
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (response.ok) {
-            const config = await response.json().catch(() => null);
-            if (!config) {
-                console.warn('Failed to parse config response');
-                return;
-            }
-            const apiKey = config?.mappls?.apiKey || '';
-            
-            if (apiKey) {
-                // Update CSS link
-                const cssLink = document.getElementById('mappls-css');
-                if (cssLink) {
-                    cssLink.href = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk_plugins/v3.0/styles/mappls.css`;
-                }
-                
-                // Load script
-                const script = document.getElementById('mappls-script');
-                if (script) {
-                    script.src = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk?v=3.0&layer=vector&libraries=services`;
-                    script.onload = () => console.log('Mappls SDK loaded');
-                    script.onerror = () => console.error('Mappls SDK failed to load');
-                }
-            } else {
-                console.warn('Mappls API key not configured');
-            }
-        }
-    } catch (error) {
-        console.error('Failed to load map configuration:', error);
-    }
-}
-
 // Load profile data when page loads
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize icons first
@@ -1070,6 +1038,6 @@ document.addEventListener('DOMContentLoaded', () => {
     showAllReveals();
     revealOnScroll();
     
-    // Load Mappls configuration
-    loadMapplsConfig();
+    // Note: Mappls SDK will be loaded on-demand when map modal opens (via loadMapplsSDK from new-order.js)
+    // This prevents loading SDK on every page load and avoids double-loading conflicts
 });

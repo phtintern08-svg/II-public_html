@@ -28,37 +28,40 @@
     <div id="sidebar-container"></div>
 
     <!-- MAIN CONTENT -->
-    <main class="flex-1 overflow-y-auto p-8 pt-20 md:p-10 md:pt-10 no-scrollbar">
+    <main class="flex-1 overflow-y-auto p-4 pt-20 sm:p-6 md:p-8 lg:p-10 md:pt-10 no-scrollbar">
 
       <!-- Page Header -->
-      <div class="mb-8 reveal">
-        <h1 class="text-4xl font-bold mb-2 flex items-center gap-3">
-          <i data-lucide="user-circle" class="w-10 h-10 text-[#1273EB]"></i>
+      <div class="mb-4 sm:mb-6 md:mb-8 reveal">
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
+          <i data-lucide="user-circle" class="w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10 text-[#1273EB]"></i>
           My Profile
         </h1>
-        <p class="text-gray-400 text-base md:text-xl">Manage your account settings and personal information</p>
+        <p class="text-gray-400 text-sm sm:text-base md:text-xl">Manage your account settings and personal information
+        </p>
       </div>
 
       <!-- Account Overview Card -->
-      <div class="bg-gradient-to-br from-[#111827] to-[#0d1117] border border-gray-700 rounded-xl p-6 mb-6 reveal">
+      <div
+        class="bg-gradient-to-br from-[#111827] to-[#0d1117] border border-gray-700 rounded-xl p-4 sm:p-5 md:p-6 mb-4 sm:mb-5 md:mb-6 reveal">
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div class="flex items-center gap-4">
+          <div class="flex items-center gap-3 sm:gap-4 w-full md:w-auto">
             <div id="avatarInitial"
-              class="w-20 h-20 rounded-full bg-gradient-to-br from-[#FFCC00] to-[#ffdb4d] text-black flex items-center justify-center text-3xl font-bold shadow-lg">
+              class="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-[#FFCC00] to-[#ffdb4d] text-black flex items-center justify-center text-xl sm:text-2xl md:text-3xl font-bold shadow-lg flex-shrink-0">
               A
             </div>
-            <div>
-              <h2 id="displayName" class="text-2xl font-bold mb-1">Loading...</h2>
-              <p id="displayEmail" class="text-gray-400 text-sm">Loading...</p>
+            <div class="flex-1 min-w-0">
+              <h2 id="displayName" class="text-lg sm:text-xl md:text-2xl font-bold mb-1 truncate">Loading...</h2>
+              <p id="displayEmail" class="text-gray-400 text-xs sm:text-sm truncate">Loading...</p>
               <p id="memberSince" class="text-gray-500 text-xs mt-1 flex items-center gap-1">
-                <i data-lucide="calendar" class="w-3 h-3"></i>
-                <span>Member since <span id="accountDate">--</span></span>
+                <i data-lucide="calendar" class="w-3 h-3 flex-shrink-0"></i>
+                <span class="truncate">Member since <span id="accountDate">--</span></span>
               </p>
             </div>
           </div>
-          <div id="accountVerifiedBadge" class="flex items-center gap-2 px-4 py-2 bg-[#1273EB]/20 border border-[#1273EB]/30 rounded-lg hidden">
-            <i data-lucide="shield-check" class="w-5 h-5 text-[#1273EB]"></i>
-            <span class="text-sm font-medium text-[#1273EB]">Account Verified</span>
+          <div id="accountVerifiedBadge"
+            class="flex items-center gap-2 px-3 sm:px-4 py-2 bg-[#1273EB]/20 border border-[#1273EB]/30 rounded-lg hidden w-full md:w-auto justify-center md:justify-start">
+            <i data-lucide="shield-check" class="w-4 sm:w-5 h-4 sm:h-5 text-[#1273EB]"></i>
+            <span class="text-xs sm:text-sm font-medium text-[#1273EB]">Account Verified</span>
           </div>
         </div>
       </div>
@@ -69,12 +72,12 @@
         <div class="lg:col-span-2 space-y-6">
 
           <!-- PERSONAL INFORMATION -->
-          <div class="bg-[#111827] border border-gray-700 rounded-xl p-6 reveal">
-            <div class="flex items-center gap-2 mb-4">
-              <i data-lucide="user" class="w-5 h-5 text-[#1273EB]"></i>
-              <h2 class="text-xl font-bold">Personal Information</h2>
+          <div class="bg-[#111827] border border-gray-700 rounded-xl p-4 sm:p-5 md:p-6 reveal">
+            <div class="flex items-center gap-2 mb-3 sm:mb-4">
+              <i data-lucide="user" class="w-4 h-4 sm:w-5 sm:h-5 text-[#1273EB]"></i>
+              <h2 class="text-lg sm:text-xl font-bold">Personal Information</h2>
             </div>
-            <p class="text-gray-400 text-sm mb-6">Your account details are managed securely</p>
+            <p class="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-6">Your account details are managed securely</p>
 
             <div class="space-y-4">
               <div>
@@ -134,57 +137,61 @@
           </div>
 
           <!-- SAVED ADDRESSES -->
-          <div class="bg-[#111827] border border-gray-700 rounded-xl p-6 reveal">
-            <div class="flex items-center justify-between mb-4">
+          <div class="bg-[#111827] border border-gray-700 rounded-xl p-4 sm:p-5 md:p-6 reveal">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-3 sm:mb-4">
               <div class="flex items-center gap-2">
-                <i data-lucide="map-pin" class="w-5 h-5 text-[#1273EB]"></i>
-                <h2 class="text-xl font-bold">Delivery Addresses</h2>
+                <i data-lucide="map-pin" class="w-4 h-4 sm:w-5 sm:h-5 text-[#1273EB]"></i>
+                <h2 class="text-lg sm:text-xl font-bold">Delivery Addresses</h2>
               </div>
               <button id="useCurrentLocationBtn"
-                class="px-4 py-2 bg-[#1273EB] hover:bg-[#0e5ac0] text-white text-sm rounded-lg font-semibold transition-colors flex items-center gap-2 shadow-lg hover:shadow-xl">
-                <i data-lucide="navigation" class="w-4 h-4"></i>
-                Use Current Location
+                class="px-3 sm:px-4 py-2 bg-[#1273EB] hover:bg-[#0e5ac0] text-white text-xs sm:text-sm rounded-lg font-semibold transition-colors flex items-center gap-2 shadow-lg hover:shadow-xl w-full sm:w-auto justify-center">
+                <i data-lucide="navigation" class="w-3 h-3 sm:w-4 sm:h-4"></i>
+                <span class="whitespace-nowrap">Use Current Location</span>
               </button>
             </div>
-            <p class="text-gray-400 text-sm mb-6">Manage your delivery addresses for quick checkout</p>
+            <p class="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-6">Manage your delivery addresses for quick checkout
+            </p>
 
             <!-- Address Type Buttons -->
-            <div class="flex gap-3 mb-6">
-              <button id="btnHome" class="addr-pill flex items-center gap-2">
-                <i data-lucide="home" class="w-4 h-4"></i>
-                Home
+            <div class="flex gap-2 sm:gap-3 mb-4 sm:mb-6">
+              <button id="btnHome"
+                class="addr-pill flex items-center gap-1.5 sm:gap-2 flex-1 sm:flex-initial justify-center">
+                <i data-lucide="home" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
+                <span class="text-xs sm:text-sm">Home</span>
               </button>
-              <button id="btnWork" class="addr-pill flex items-center gap-2">
-                <i data-lucide="briefcase" class="w-4 h-4"></i>
-                Work
+              <button id="btnWork"
+                class="addr-pill flex items-center gap-1.5 sm:gap-2 flex-1 sm:flex-initial justify-center">
+                <i data-lucide="briefcase" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
+                <span class="text-xs sm:text-sm">Work</span>
               </button>
-              <button id="btnOther" class="addr-pill flex items-center gap-2">
-                <i data-lucide="map-pin" class="w-4 h-4"></i>
-                Other
+              <button id="btnOther"
+                class="addr-pill flex items-center gap-1.5 sm:gap-2 flex-1 sm:flex-initial justify-center">
+                <i data-lucide="map-pin" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
+                <span class="text-xs sm:text-sm">Other</span>
               </button>
             </div>
 
             <!-- Address Form -->
-            <div class="grid md:grid-cols-2 gap-4">
-              <input id="fldHouse" class="blk-input" placeholder="House / Flat No.">
-              <input id="fldArea" class="blk-input" placeholder="Area / Street">
-              <input id="fldLandmark" class="blk-input" placeholder="Landmark">
-              <input id="fldCountry" class="blk-input" placeholder="Country">
-              <input id="fldState" class="blk-input" placeholder="State">
-              <input id="fldCity" class="blk-input" placeholder="City">
-              <input id="fldPincode" class="blk-input" placeholder="Pincode" maxlength="6">
-              <input id="fldPhone" class="blk-input" placeholder="Alternative Phone Number">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <input id="fldHouse" class="blk-input text-sm" placeholder="House / Flat No.">
+              <input id="fldArea" class="blk-input text-sm" placeholder="Area / Street">
+              <input id="fldLandmark" class="blk-input text-sm" placeholder="Landmark">
+              <input id="fldCountry" class="blk-input text-sm" placeholder="Country">
+              <input id="fldState" class="blk-input text-sm" placeholder="State">
+              <input id="fldCity" class="blk-input text-sm" placeholder="City">
+              <input id="fldPincode" class="blk-input text-sm" placeholder="Pincode" maxlength="6">
+              <input id="fldPhone" class="blk-input text-sm" placeholder="Alternative Phone Number">
             </div>
 
             <!-- Address Action Buttons -->
-            <div class="mt-6 flex justify-end gap-3">
+            <div class="mt-4 sm:mt-6 flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
               <button id="editAddressBtn"
-                class="px-5 py-2.5 rounded-lg bg-[#1273EB] hover:bg-[#0e5ac0] text-white font-semibold transition-colors shadow-lg hover:shadow-xl flex items-center gap-2">
+                class="px-4 sm:px-5 py-2.5 rounded-lg bg-[#1273EB] hover:bg-[#0e5ac0] text-white text-sm sm:text-base font-semibold transition-colors shadow-lg hover:shadow-xl flex items-center gap-2 justify-center">
                 <i data-lucide="edit" class="w-4 h-4"></i>
                 Edit
               </button>
               <button id="saveAddressBtn"
-                class="px-5 py-2.5 rounded-lg bg-[#FFCC00] hover:bg-[#ffdb4d] text-black font-semibold transition-colors shadow-lg hover:shadow-xl hidden flex items-center gap-2">
+                class="px-4 sm:px-5 py-2.5 rounded-lg bg-[#FFCC00] hover:bg-[#ffdb4d] text-black text-sm sm:text-base font-semibold transition-colors shadow-lg hover:shadow-xl hidden flex items-center gap-2 justify-center">
                 <i data-lucide="save" class="w-4 h-4"></i>
                 Save Address
               </button>
@@ -192,12 +199,13 @@
           </div>
 
           <!-- CHANGE PASSWORD -->
-          <div class="bg-[#111827] border border-gray-700 rounded-xl p-6 reveal">
-            <div class="flex items-center gap-2 mb-4">
-              <i data-lucide="lock" class="w-5 h-5 text-[#1273EB]"></i>
-              <h2 class="text-xl font-bold">Security Settings</h2>
+          <div class="bg-[#111827] border border-gray-700 rounded-xl p-4 sm:p-5 md:p-6 reveal">
+            <div class="flex items-center gap-2 mb-3 sm:mb-4">
+              <i data-lucide="lock" class="w-4 h-4 sm:w-5 sm:h-5 text-[#1273EB]"></i>
+              <h2 class="text-lg sm:text-xl font-bold">Security Settings</h2>
             </div>
-            <p class="text-gray-400 text-sm mb-6">Update your password to keep your account secure</p>
+            <p class="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-6">Update your password to keep your account secure
+            </p>
 
             <div class="space-y-4 max-w-md">
               <div>
@@ -229,7 +237,7 @@
             </div>
 
             <button onclick="changePassword()"
-              class="mt-6 px-6 py-2.5 rounded-lg bg-[#FFCC00] hover:bg-[#ffdb4d] text-black font-semibold transition-colors shadow-lg hover:shadow-xl flex items-center gap-2">
+              class="mt-4 sm:mt-6 px-5 sm:px-6 py-2.5 rounded-lg bg-[#FFCC00] hover:bg-[#ffdb4d] text-black text-sm sm:text-base font-semibold transition-colors shadow-lg hover:shadow-xl flex items-center gap-2 justify-center w-full sm:w-auto">
               <i data-lucide="shield-check" class="w-4 h-4"></i>
               Update Password
             </button>
@@ -240,41 +248,41 @@
         <div class="space-y-6">
 
           <!-- Account Status Card -->
-          <div class="bg-gradient-to-br from-[#111827] to-[#0d1117] border border-gray-700 rounded-xl p-6 reveal">
-            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-              <i data-lucide="activity" class="w-5 h-5 text-[#1273EB]"></i>
+          <div class="bg-gradient-to-br from-[#111827] to-[#0d1117] border border-gray-700 rounded-xl p-4 sm:p-5 md:p-6 reveal">
+            <h3 class="text-base sm:text-lg font-bold mb-3 sm:mb-4 flex items-center gap-2">
+              <i data-lucide="activity" class="w-4 h-4 sm:w-5 sm:h-5 text-[#1273EB]"></i>
               Account Status
             </h3>
-            <div class="space-y-3">
-              <div class="flex items-center justify-between p-3 bg-[#0d1117] rounded-lg border border-gray-700">
-                <span class="text-sm text-gray-400">Profile Complete</span>
+            <div class="space-y-2 sm:space-y-3">
+              <div class="flex items-center justify-between p-2.5 sm:p-3 bg-[#0d1117] rounded-lg border border-gray-700">
+                <span class="text-xs sm:text-sm text-gray-400">Profile Complete</span>
                 <span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-medium rounded">100%</span>
               </div>
-              <div class="flex items-center justify-between p-3 bg-[#0d1117] rounded-lg border border-gray-700">
-                <span class="text-sm text-gray-400">Email Verified</span>
-                <i data-lucide="check-circle" class="w-5 h-5 text-green-400"></i>
+              <div class="flex items-center justify-between p-2.5 sm:p-3 bg-[#0d1117] rounded-lg border border-gray-700">
+                <span class="text-xs sm:text-sm text-gray-400">Email Verified</span>
+                <i data-lucide="check-circle" class="w-4 h-4 sm:w-5 sm:h-5 text-green-400"></i>
               </div>
-              <div class="flex items-center justify-between p-3 bg-[#0d1117] rounded-lg border border-gray-700">
-                <span class="text-sm text-gray-400">Phone Verified</span>
-                <i data-lucide="check-circle" class="w-5 h-5 text-green-400"></i>
+              <div class="flex items-center justify-between p-2.5 sm:p-3 bg-[#0d1117] rounded-lg border border-gray-700">
+                <span class="text-xs sm:text-sm text-gray-400">Phone Verified</span>
+                <i data-lucide="check-circle" class="w-4 h-4 sm:w-5 sm:h-5 text-green-400"></i>
               </div>
             </div>
           </div>
 
           <!-- Quick Actions -->
-          <div class="bg-[#111827] border border-gray-700 rounded-xl p-6 reveal">
-            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-              <i data-lucide="zap" class="w-5 h-5 text-[#FFCC00]"></i>
+          <div class="bg-[#111827] border border-gray-700 rounded-xl p-4 sm:p-5 md:p-6 reveal">
+            <h3 class="text-base sm:text-lg font-bold mb-3 sm:mb-4 flex items-center gap-2">
+              <i data-lucide="zap" class="w-4 h-4 sm:w-5 sm:h-5 text-[#FFCC00]"></i>
               Quick Actions
             </h3>
             <div class="space-y-2">
               <button onclick="window.location.href='new-order.html'"
-                class="w-full px-4 py-3 bg-[#1273EB] hover:bg-[#0e5ac0] text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 shadow-lg hover:shadow-xl">
+                class="w-full px-4 py-2.5 sm:py-3 bg-[#1273EB] hover:bg-[#0e5ac0] text-white text-sm sm:text-base rounded-lg font-medium transition-colors flex items-center justify-center gap-2 shadow-lg hover:shadow-xl">
                 <i data-lucide="plus-circle" class="w-4 h-4"></i>
                 Create New Order
               </button>
               <button onclick="window.location.href='orders.html'"
-                class="w-full px-4 py-3 bg-[#0d1117] hover:bg-[#1a1f2e] border border-gray-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                class="w-full px-4 py-2.5 sm:py-3 bg-[#0d1117] hover:bg-[#1a1f2e] border border-gray-700 text-white text-sm sm:text-base rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
                 <i data-lucide="package" class="w-4 h-4"></i>
                 View Orders
               </button>
@@ -282,15 +290,15 @@
           </div>
 
           <!-- Help & Support -->
-          <div class="bg-[#111827] border border-gray-700 rounded-xl p-6 reveal">
-            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-              <i data-lucide="help-circle" class="w-5 h-5 text-[#1273EB]"></i>
+          <div class="bg-[#111827] border border-gray-700 rounded-xl p-4 sm:p-5 md:p-6 reveal">
+            <h3 class="text-base sm:text-lg font-bold mb-3 sm:mb-4 flex items-center gap-2">
+              <i data-lucide="help-circle" class="w-4 h-4 sm:w-5 sm:h-5 text-[#1273EB]"></i>
               Need Help?
             </h3>
-            <p class="text-sm text-gray-400 mb-4">If you need to update your personal information, please contact
+            <p class="text-xs sm:text-sm text-gray-400 mb-3 sm:mb-4">If you need to update your personal information, please contact
               support.</p>
             <button
-              class="w-full px-4 py-2.5 bg-[#0d1117] hover:bg-[#1a1f2e] border border-gray-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+              class="w-full px-4 py-2.5 bg-[#0d1117] hover:bg-[#1a1f2e] border border-gray-700 text-white text-sm sm:text-base rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
               <i data-lucide="message-circle" class="w-4 h-4"></i>
               Contact Support
             </button>
@@ -305,22 +313,22 @@
   <script id="mappls-script" src="" defer></script>
 
   <!-- MAP MODAL -->
-  <div id="mapModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 hidden z-50 px-4">
+  <div id="mapModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 hidden z-50 p-2 sm:p-4">
     <div
-      class="bg-[#0f131a] border border-gray-800 rounded-xl overflow-hidden shadow-2xl w-full max-w-2xl h-[600px] flex flex-col">
+      class="bg-[#0f131a] border border-gray-800 rounded-lg sm:rounded-xl overflow-hidden shadow-2xl w-full max-w-2xl h-[90vh] sm:h-[600px] flex flex-col">
 
       <!-- Modal Header with Helper Text & Search -->
-      <div class="p-4 border-b border-gray-800 bg-[#161b22]">
-        <div class="flex justify-between items-start mb-3">
-          <div>
-            <h3 class="text-lg font-semibold text-white">Confirm Location</h3>
+      <div class="p-3 sm:p-4 border-b border-gray-800 bg-[#161b22]">
+        <div class="flex justify-between items-start mb-2 sm:mb-3">
+          <div class="flex-1 min-w-0 pr-2">
+            <h3 class="text-base sm:text-lg font-semibold text-white">Confirm Location</h3>
             <p class="text-xs text-yellow-500 mt-1">
               <i data-lucide="info" class="w-3 h-3 inline mr-1"></i>
               Location is approximate. Drag pin or search below.
             </p>
           </div>
           <button onclick="document.getElementById('mapModal').classList.add('hidden')"
-            class="text-gray-400 hover:text-white transition-colors">
+            class="text-gray-400 hover:text-white transition-colors flex-shrink-0">
             <i data-lucide="x" class="w-5 h-5"></i>
           </button>
         </div>
@@ -328,22 +336,22 @@
         <!-- SEARCH BAR IN MODAL -->
         <div class="flex gap-2">
           <input id="mapSearchInput" type="text" placeholder="Search for your city/area..."
-            class="flex-1 bg-[#0d1117] border border-gray-700 text-white text-sm rounded px-3 py-2 focus:border-[#1273EB] focus:outline-none" />
+            class="flex-1 bg-[#0d1117] border border-gray-700 text-white text-xs sm:text-sm rounded px-2 sm:px-3 py-2 focus:border-[#1273EB] focus:outline-none" />
           <button id="mapSearchBtn"
-            class="bg-[#1273EB] hover:bg-[#0e5ac0] text-white px-4 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2">
-            <i data-lucide="search" class="w-4 h-4"></i>
-            Search
+            class="bg-[#1273EB] hover:bg-[#0e5ac0] text-white px-3 sm:px-4 py-2 rounded text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            <i data-lucide="search" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
+            <span class="hidden sm:inline">Search</span>
           </button>
         </div>
       </div>
 
       <div id="mapContainer" class="flex-1 w-full bg-gray-900 relative"></div>
 
-      <div class="p-4 border-t border-gray-800 bg-[#161b22] flex justify-end gap-3">
+      <div class="p-3 sm:p-4 border-t border-gray-800 bg-[#161b22] flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
         <button onclick="document.getElementById('mapModal').classList.add('hidden')"
-          class="px-4 py-2 text-gray-300 hover:text-white font-medium transition-colors">Cancel</button>
+          class="px-4 py-2 text-gray-300 hover:text-white text-sm sm:text-base font-medium transition-colors order-2 sm:order-1">Cancel</button>
         <button id="confirmLocationBtn"
-          class="px-4 py-2 bg-[#1273EB] hover:bg-[#0e5ac0] text-white rounded-lg font-medium transition-colors flex items-center gap-2">
+          class="px-4 py-2 bg-[#1273EB] hover:bg-[#0e5ac0] text-white rounded-lg text-sm sm:text-base font-medium transition-colors flex items-center gap-2 justify-center order-1 sm:order-2">
           <i data-lucide="check" class="w-4 h-4"></i>
           Confirm Location
         </button>

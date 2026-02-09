@@ -39,9 +39,23 @@
     @apply bg-[#1273EB] border-[#1273EB] text-white;
 }
 
+/* Mobile responsive address pills */
+@media (max-width: 640px) {
+    .addr-pill {
+        @apply px-3 py-2 text-sm;
+    }
+}
+
 /* Input field enhancements */
 .blk-input {
     @apply w-full px-4 py-3 rounded-lg bg-[#0d1117] border border-gray-700 text-white placeholder-gray-500 focus:border-[#FFCC00] focus:outline-none transition-colors;
+}
+
+/* Mobile responsive input fields */
+@media (max-width: 640px) {
+    .blk-input {
+        @apply px-3 py-2.5 text-sm;
+    }
 }
 
 /* Card hover effects */
@@ -68,4 +82,25 @@ button[class*="bg-\[#FFCC00\]"] {
 
 button[class*="bg-\[#FFCC00\]"]:hover {
     transform: translateY(-1px);
+}
+
+/* Mobile specific adjustments */
+@media (max-width: 768px) {
+    /* Ensure proper spacing on mobile */
+    .space-y-6 > * + * {
+        margin-top: 1rem !important;
+    }
+    
+    /* Reduce grid gap on mobile */
+    .grid.gap-6 {
+        gap: 1rem;
+    }
+}
+
+/* Tablet specific adjustments */
+@media (min-width: 641px) and (max-width: 1024px) {
+    /* Optimize for tablet view */
+    .lg\:col-span-2 {
+        grid-column: span 2 / span 2;
+    }
 }
