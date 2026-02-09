@@ -55,66 +55,104 @@ function saveNotificationSettings() {
 
 // Load vendor data
 async function loadVendorProfile() {
-    const userId = localStorage.getItem('user_id');
-    if (!userId) return;
+    // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
+    const token = localStorage.getItem('token');
+    if (!token) {
+        console.warn('No authentication token found - cannot load vendor profile');
+        return;
+    }
 
     try {
-        // Fetch full vendor data from backend
-        // We might need a generic user profile endpoint or use a specific vendor one
-        // For now, let's try to get initial data from localStorage and then fetch
-
-        const username = localStorage.getItem('username') || '';
-        const email = localStorage.getItem('email') || '';
-        const phone = localStorage.getItem('phone') || '';
-
-        document.getElementById('profileBusinessName').value = localStorage.getItem('business_name') || username;
-        document.getElementById('profileEmail').value = email;
-        document.getElementById('profilePhone').value = phone;
-
-        // Fetch remaining details from backend (bio, business_type, address, lat, lon)
-        // Since we don't have a specific "get vendor by id" endpoint that's public for the vendor itself yet, 
-        // let's assume one exists or we might need to add it.
-        // Actually, many pages use /vendor/status/ID, let's see if that has profile info.
-
-        const token = localStorage.getItem('token');
+        // Always fetch fresh data from backend - don't rely on localStorage
         const response = await ImpromptuIndianApi.fetch(`/api/vendor/profile`, {
             headers: {
-                'Authorization': `Bearer ${token}`
-            }
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'  // Send cookies
         });
         if (response.ok) {
             const data = await response.json();
-            document.getElementById('profileBusinessName').value = data.business_name || '';
-            document.getElementById('profileEmail').value = data.email || '';
-            document.getElementById('profilePhone').value = data.phone || '';
-            document.getElementById('profileBusinessType').value = data.business_type || '';
-            document.getElementById('profileBio').value = data.bio || '';
+            
+            // Store complete vendor profile data from database
+            localStorage.setItem('vendor_profile', JSON.stringify(data));
+            
+            // Update localStorage with fresh data from database
+            if (data.username) localStorage.setItem('username', data.username);
+            if (data.email) localStorage.setItem('email', data.email);
+            if (data.phone) localStorage.setItem('phone', data.phone);
+            if (data.business_name) localStorage.setItem('business_name', data.business_name);
+            if (data.business_type) localStorage.setItem('business_type', data.business_type);
+            if (data.bio) localStorage.setItem('bio', data.bio);
+            if (data.avatar_url) localStorage.setItem('avatar_url', data.avatar_url);
+            if (data.address) localStorage.setItem('address', data.address);
+            if (data.city) localStorage.setItem('city', data.city);
+            if (data.state) localStorage.setItem('state', data.state);
+            if (data.pincode) localStorage.setItem('pincode', data.pincode);
+            
+            // Populate form fields
+            if (document.getElementById('profileBusinessName')) {
+                document.getElementById('profileBusinessName').value = data.business_name || '';
+            }
+            if (document.getElementById('profileEmail')) {
+                document.getElementById('profileEmail').value = data.email || '';
+            }
+            if (document.getElementById('profilePhone')) {
+                document.getElementById('profilePhone').value = data.phone || '';
+            }
+            if (document.getElementById('profileBusinessType')) {
+                document.getElementById('profileBusinessType').value = data.business_type || '';
+            }
+            if (document.getElementById('profileBio')) {
+                document.getElementById('profileBio').value = data.bio || '';
+            }
 
             // Address details
-            document.getElementById('fldFullAddress').value = data.address || '';
-            document.getElementById('fldCity').value = data.city || '';
-            document.getElementById('fldState').value = data.state || '';
-            document.getElementById('fldPincode').value = data.pincode || '';
+            if (document.getElementById('fldFullAddress')) {
+                document.getElementById('fldFullAddress').value = data.address || '';
+            }
+            if (document.getElementById('fldCity')) {
+                document.getElementById('fldCity').value = data.city || '';
+            }
+            if (document.getElementById('fldState')) {
+                document.getElementById('fldState').value = data.state || '';
+            }
+            if (document.getElementById('fldPincode')) {
+                document.getElementById('fldPincode').value = data.pincode || '';
+            }
 
             if (data.latitude && data.longitude) {
-                document.getElementById('coordDisplay').textContent = `${data.latitude.toFixed(4)}, ${data.longitude.toFixed(4)}`;
+                if (document.getElementById('coordDisplay')) {
+                    document.getElementById('coordDisplay').textContent = `${data.latitude.toFixed(4)}, ${data.longitude.toFixed(4)}`;
+                }
                 window.currentCoords = { lat: data.latitude, lon: data.longitude };
             }
 
             // Update avatar
             const avatarInitial = document.getElementById('avatarInitial');
             if (avatarInitial) {
-                avatarInitial.textContent = (data.business_name || username).charAt(0).toUpperCase();
+                avatarInitial.textContent = (data.business_name || data.username || '').charAt(0).toUpperCase();
             }
 
             // Additional details for the new UI
-            if (data.created_at) {
+            if (data.created_at && document.getElementById('profileMemberSince')) {
                 const date = new Date(data.created_at);
                 const options = { day: '2-digit', month: 'short', year: 'numeric' };
                 document.getElementById('profileMemberSince').value = date.toLocaleDateString('en-GB', options);
             }
-            if (data.service_zone) {
+            if (data.service_zone && document.getElementById('profileServiceZone')) {
                 document.getElementById('profileServiceZone').value = data.service_zone;
+            }
+            
+            console.log('Vendor profile loaded from database:', data);
+        } else {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            console.error('Failed to fetch vendor profile:', response.status, errorData);
+            
+            // If 401/403, token might be invalid - redirect to login
+            if (response.status === 401 || response.status === 403) {
+                console.warn('Authentication failed - redirecting to login');
+                window.location.href = 'https://apparels.impromptuindian.com/login.html';
             }
         }
 
@@ -141,7 +179,14 @@ async function loadVendorProfile() {
 
 // Save profile changes (Basic Details)
 async function saveProfileChanges() {
-    const userId = localStorage.getItem('user_id');
+    // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
+    const token = localStorage.getItem('token');
+    if (!token) {
+        showToast('Authentication required. Please log in again.', 'error');
+        window.location.href = 'https://apparels.impromptuindian.com/login.html';
+        return;
+    }
+    
     const businessName = document.getElementById('profileBusinessName').value;
     const email = document.getElementById('profileEmail').value;
     const phone = document.getElementById('profilePhone').value;
@@ -170,10 +215,19 @@ async function saveProfileChanges() {
         });
 
         if (response.ok) {
-            localStorage.setItem('username', businessName);
-            localStorage.setItem('business_name', businessName);
-            localStorage.setItem('email', email);
-            localStorage.setItem('phone', phone);
+            const result = await response.json();
+            
+            // ✅ FIX: Update localStorage with fresh data from backend response
+            if (result.profile) {
+                const profile = result.profile;
+                localStorage.setItem('vendor_profile', JSON.stringify(profile));
+                if (profile.username) localStorage.setItem('username', profile.username);
+                if (profile.business_name) localStorage.setItem('business_name', profile.business_name);
+                if (profile.email) localStorage.setItem('email', profile.email);
+                if (profile.phone) localStorage.setItem('phone', profile.phone);
+                if (profile.business_type) localStorage.setItem('business_type', profile.business_type);
+                if (profile.bio) localStorage.setItem('bio', profile.bio);
+            }
 
             showToast('Profile updated successfully!');
 
@@ -181,7 +235,7 @@ async function saveProfileChanges() {
             const avatarInitial = document.getElementById('avatarInitial');
             if (avatarInitial) avatarInitial.textContent = businessName.charAt(0).toUpperCase();
         } else {
-            const err = await response.json();
+            const err = await response.json().catch(() => ({ error: 'Update failed' }));
             showToast(err.error || 'Update failed', 'error');
         }
     } catch (error) {
@@ -191,7 +245,14 @@ async function saveProfileChanges() {
 
 // Save Location details
 async function saveLocation() {
-    const userId = localStorage.getItem('user_id');
+    // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
+    const token = localStorage.getItem('token');
+    if (!token) {
+        showToast('Authentication required. Please log in again.', 'error');
+        window.location.href = 'https://apparels.impromptuindian.com/login.html';
+        return;
+    }
+    
     const fullAddress = document.getElementById('fldFullAddress').value;
     const city = document.getElementById('fldCity').value;
     const state = document.getElementById('fldState').value;
@@ -364,7 +425,14 @@ function showToast(message, type = 'success') {
 
 // Change Password
 async function changePassword() {
-    const userId = localStorage.getItem('user_id');
+    // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
+    const token = localStorage.getItem('token');
+    if (!token) {
+        showToast('Authentication required. Please log in again.', 'error');
+        window.location.href = 'https://apparels.impromptuindian.com/login.html';
+        return;
+    }
+    
     const currentPassword = document.getElementById('currentPassword').value;
     const newPassword = document.getElementById('newPassword').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
@@ -379,7 +447,6 @@ async function changePassword() {
     }
 
     try {
-        const token = localStorage.getItem('token');
         const response = await ImpromptuIndianApi.fetch(`/api/vendor/change-password`, {
             method: 'PUT',
             headers: { 

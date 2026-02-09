@@ -324,7 +324,9 @@ function initAddressEvents() {
                 
                 const duplicateCheck = checkDuplicatePhone(phone);
                 if (duplicateCheck.isDuplicate) {
-                    showAlert("Duplicate Phone Number", duplicateCheck.message, "warning");
+                    showAlert("Phone Number Already Exists", duplicateCheck.message, "error");
+                    e.target.value = ""; // Clear the field
+                    e.target.focus();
                 }
             }
         });
@@ -1078,21 +1080,47 @@ function validatePhoneNumber(phone) {
 function checkDuplicatePhone(phone) {
     // Get registered phone from localStorage
     const customerProfile = localStorage.getItem('customer_profile');
+    let registeredPhone = null;
+    
     if (customerProfile) {
         try {
             const profile = JSON.parse(customerProfile);
-            const registeredPhone = profile.phone || localStorage.getItem('phone');
-            if (registeredPhone) {
-                const registeredCleaned = registeredPhone.replace(/\D/g, '');
-                const inputCleaned = phone.replace(/\D/g, '');
-                if (registeredCleaned === inputCleaned) {
-                    return { isDuplicate: true, message: "This phone number is already registered as your primary phone number" };
-                }
-            }
+            registeredPhone = profile.phone || localStorage.getItem('phone');
         } catch (e) {
             console.warn("Failed to parse customer profile", e);
         }
     }
+    
+    // Also check localStorage directly as fallback
+    if (!registeredPhone) {
+        registeredPhone = localStorage.getItem('phone');
+    }
+    
+    if (registeredPhone) {
+        // Remove all non-digits and handle country codes
+        // Indian numbers: +91XXXXXXXXXX or XXXXXXXXXX (10 digits)
+        let registeredCleaned = registeredPhone.replace(/\D/g, '');
+        let inputCleaned = phone.replace(/\D/g, '');
+        
+        // If registered phone has country code (+91), remove it (keep last 10 digits)
+        if (registeredCleaned.length > 10) {
+            registeredCleaned = registeredCleaned.slice(-10);
+        }
+        
+        // If input phone has country code (+91), remove it (keep last 10 digits)
+        if (inputCleaned.length > 10) {
+            inputCleaned = inputCleaned.slice(-10);
+        }
+        
+        // Compare the last 10 digits
+        if (registeredCleaned === inputCleaned && registeredCleaned.length === 10) {
+            return { 
+                isDuplicate: true, 
+                message: "Phone number already exists. Please add a different number. This number is already registered as your primary phone number." 
+            };
+        }
+    }
+    
     return { isDuplicate: false };
 }
 
@@ -1191,11 +1219,10 @@ async function saveAddress() {
         // Check for duplicate with registered phone
         const duplicateCheck = checkDuplicatePhone(phone);
         if (duplicateCheck.isDuplicate) {
-            const proceed = confirm(duplicateCheck.message + "\n\nDo you still want to use this number?");
-            if (!proceed) {
-                document.getElementById('fldPhone').focus();
-                return;
-            }
+            showAlert("Phone Number Already Exists", duplicateCheck.message, "error");
+            document.getElementById('fldPhone').value = ""; // Clear the field
+            document.getElementById('fldPhone').focus();
+            return; // Prevent saving
         }
     }
 
