@@ -308,11 +308,11 @@
   </div>
 
   <!-- MapmyIndia SDK - API key will be loaded dynamically from backend -->
+  <!-- CSS placeholder (script will be created dynamically in JS) -->
   <link rel="stylesheet" id="mappls-css" href="">
-  <script id="mappls-script" src="" defer></script>
 
   <!-- MAP MODAL -->
-  <div id="mapModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 hidden z-50 p-2 sm:p-4">
+  <div id="mapModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 map-hidden z-50 p-2 sm:p-4">
     <div
       class="bg-[#0f131a] border border-gray-800 rounded-lg sm:rounded-xl overflow-hidden shadow-2xl w-full max-w-2xl h-[90vh] sm:h-[600px] flex flex-col">
 
@@ -326,7 +326,7 @@
               Location is approximate. Drag pin or search below.
             </p>
           </div>
-          <button onclick="document.getElementById('mapModal').classList.add('hidden')"
+          <button onclick="document.getElementById('mapModal').classList.remove('map-visible'); document.getElementById('mapModal').classList.add('map-hidden');"
             class="text-gray-400 hover:text-white transition-colors flex-shrink-0">
             <i data-lucide="x" class="w-5 h-5"></i>
           </button>
