@@ -1108,6 +1108,7 @@ async function loadMapplsSDK() {
       if (!apiKey) throw new Error("Mappls API key missing");
 
       // ✅ CSS - Element must exist in HTML
+      // CRITICAL: URL must include /api/ segment: /advancedmaps/api/${apiKey}/map_sdk.css
       const css = document.getElementById("mappls-css");
       if (!css) {
         throw new Error('Mappls CSS element (id="mappls-css") not found in HTML. Add <link id="mappls-css" rel="stylesheet" /> to <head>');
@@ -1115,14 +1116,14 @@ async function loadMapplsSDK() {
       css.href = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk.css`;
 
       // ✅ JS - CREATE SCRIPT DYNAMICALLY (DO NOT REUSE EXISTING TAG)
-      // This fixes browser edge case where setting src on existing empty script tag may not execute
-      // CRITICAL: Include search and autosuggest plugins for map search functionality
+      // CRITICAL: URL must include /api/ segment: /advancedmaps/api/${apiKey}/map_sdk.js
+      // Start without plugins first to ensure base SDK loads, then add plugins if needed
       await new Promise((resolve, reject) => {
         const script = document.createElement("script");
-        script.src = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk.js?plugins=search,autosuggest`;
+        script.src = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk.js`;
         script.async = true;
         script.onload = resolve;
-        script.onerror = () => reject(new Error("Mappls SDK failed to load"));
+        script.onerror = () => reject(new Error("Mappls SDK failed to load (404 – invalid URL or key not whitelisted)"));
         document.head.appendChild(script);
       });
 
@@ -1135,12 +1136,9 @@ async function loadMapplsSDK() {
         throw new Error("Mappls Map plugin not loaded");
       }
 
-      // Warn if search plugins are missing (non-fatal, but search won't work)
-      if (!window.mappls.search || !window.mappls.autoSuggest) {
-        console.warn("⚠️ Mappls search/autosuggest plugins not loaded. Map search may not work.");
-      } else {
-        console.log("✅ Mappls SDK loaded successfully with search plugins");
-      }
+      // Note: Search plugins can be added later if needed via ?plugins=search,autosuggest
+      // For now, we load base SDK first to ensure it works
+      console.log("✅ Mappls SDK loaded successfully");
     } catch (err) {
       console.error('Mappls SDK load error:', err);
       mapplsLoadingPromise = null; // Reset on error so it can be retried
