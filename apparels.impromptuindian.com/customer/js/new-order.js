@@ -1080,6 +1080,7 @@ async function loadAllAddresses() {
 const useCurrentLocationBtn = document.getElementById("useCurrentLocationBtn");
 let map = null;
 let marker = null;
+let mapplsLoadingPromise = null;
 
 if (useCurrentLocationBtn) {
   useCurrentLocationBtn.addEventListener("click", async () => {
@@ -1225,6 +1226,15 @@ if (useCurrentLocationBtn) {
 
                 console.log('Map initialized correctly');
 
+                // Force resize to handle modal animation timing
+                setTimeout(() => {
+                  if (map && map.resize) map.resize();
+                }, 300);
+
+                setTimeout(() => {
+                  if (map && map.resize) map.resize();
+                }, 800);
+
               } else {
                 // Map already exists - update position and resize
                 map.setCenter([lat, lng]);
@@ -1276,6 +1286,15 @@ if (useCurrentLocationBtn) {
                 map = new mappls.Map("mapContainer", { center: [lat, lng], zoom: 12 });
                 marker = new mappls.Marker({ map: map, position: { lat: lat, lng: lng }, draggable: true });
                 console.log('Map initialized correctly');
+
+                // Force resize to handle modal animation timing
+                setTimeout(() => {
+                  if (map && map.resize) map.resize();
+                }, 300);
+
+                setTimeout(() => {
+                  if (map && map.resize) map.resize();
+                }, 800);
               } else {
                 // Map already exists - update position and resize
                 map.setCenter([lat, lng]);
@@ -1900,64 +1919,60 @@ async function loadMapplsSDK() {
     return Promise.resolve();
   }
 
-  try {
-    const res = await window.ImpromptuIndianApi.fetch('/api/config', { 
-      credentials: 'include' 
-    });
-    
-    if (!res.ok) {
-      throw new Error('Failed to load config');
-    }
-
-    const config = await res.json();
-    const apiKey = config?.mappls?.apiKey;
-
-    if (!apiKey) {
-      throw new Error('Mappls API key missing');
-    }
-
-    // CSS
-    const css = document.getElementById('mappls-css');
-    if (css) {
-      css.href = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk.css`;
-    }
-
-    // JS
-    const script = document.getElementById('mappls-script');
-    if (!script) {
-      throw new Error('Mappls script element not found');
-    }
-
-    // If script is already loading or loaded, wait for it
-    if (script.src && script.src !== '') {
-      return new Promise((resolve, reject) => {
-        if (typeof mappls !== 'undefined' && mappls.Map) {
-          resolve();
-        } else {
-          script.onload = () => {
-            console.log('Mappls SDK loaded');
-            resolve();
-          };
-          script.onerror = () => reject(new Error('Mappls SDK failed to load'));
-        }
-      });
-    }
-
-    // Set script source and load
-    script.src = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk.js`;
-    script.defer = true;
-
-    return new Promise((resolve, reject) => {
-      script.onload = () => {
-        console.log('Mappls SDK loaded');
-        resolve();
-      };
-      script.onerror = () => reject(new Error('Mappls SDK failed to load'));
-    });
-  } catch (err) {
-    console.error('Mappls SDK load error:', err);
-    throw err;
+  // If already loading, return the existing promise
+  if (mapplsLoadingPromise) {
+    return mapplsLoadingPromise;
   }
+
+  // Create and store the loading promise
+  mapplsLoadingPromise = (async () => {
+    try {
+      const res = await window.ImpromptuIndianApi.fetch('/api/config', { 
+        credentials: 'include' 
+      });
+      
+      if (!res.ok) {
+        throw new Error('Failed to load config');
+      }
+
+      const config = await res.json();
+      const apiKey = config?.mappls?.apiKey;
+
+      if (!apiKey) {
+        throw new Error('Mappls API key missing');
+      }
+
+      // CSS
+      const css = document.getElementById('mappls-css');
+      if (css) {
+        css.href = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk.css`;
+      }
+
+      // JS
+      const script = document.getElementById('mappls-script');
+      if (!script) {
+        throw new Error('Mappls script element not found');
+      }
+
+      // Set script source and load
+      script.src = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk.js`;
+      script.defer = true;
+
+      await new Promise((resolve, reject) => {
+        script.onload = () => {
+          console.log('Mappls SDK loaded');
+          resolve();
+        };
+        script.onerror = () => reject(new Error('Mappls SDK failed to load'));
+      });
+    } catch (err) {
+      console.error('Mappls SDK load error:', err);
+      mapplsLoadingPromise = null; // Reset on error so it can be retried
+      throw err;
+    }
+  })();
+
+  return mapplsLoadingPromise;
 }
 
 /* ---------------------------

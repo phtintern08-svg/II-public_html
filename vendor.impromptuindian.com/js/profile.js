@@ -325,7 +325,14 @@ function setupMap(lat, lng) {
         marker.setPosition({ lat, lng });
     }
 
-    setTimeout(() => map.invalidateSize?.(), 200);
+    // Force resize to handle modal animation timing
+    setTimeout(() => {
+        if (map && map.resize) map.resize();
+    }, 300);
+
+    setTimeout(() => {
+        if (map && map.resize) map.resize();
+    }, 800);
 }
 
 // Toast helper
@@ -469,7 +476,7 @@ async function loadMapplsConfig() {
         
         if (response.ok) {
             const config = await response.json();
-            const apiKey = config.mapplsApiKey || '';
+            const apiKey = config?.mappls?.apiKey || '';
             
             if (apiKey) {
                 // Update CSS link

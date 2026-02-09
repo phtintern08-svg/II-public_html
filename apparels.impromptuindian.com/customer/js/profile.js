@@ -362,13 +362,22 @@ function initAddressEvents() {
                                 strokeOpacity: 0.3,
                             });
 
-                            // Force redraw
-                            setTimeout(() => { map.invalidateSize?.(); setTimeout(() => map.invalidateSize?.(), 100); }, 200);
+                            // Force resize to handle modal animation timing
+                            setTimeout(() => {
+                                if (map && map.resize) map.resize();
+                            }, 300);
+
+                            setTimeout(() => {
+                                if (map && map.resize) map.resize();
+                            }, 800);
                         } else {
                             map.setCenter([lat, lng]);
                             marker.setPosition({ lat: lat, lng: lng });
                             map.setZoom(zoomLevel);
-                            setTimeout(() => { map.invalidateSize?.(); setTimeout(() => map.invalidateSize?.(), 100); }, 200);
+                            // Resize map to handle container size changes
+                            if (map.resize) {
+                                requestAnimationFrame(() => map.resize());
+                            }
                         }
                     }, 300);
 
@@ -389,12 +398,23 @@ function initAddressEvents() {
                         if (!map) {
                             map = new mappls.Map("mapContainer", { center: [lat, lng], zoom: 12 });
                             marker = new mappls.Marker({ map: map, position: { lat: lat, lng: lng }, draggable: true });
-                            setTimeout(() => { map.invalidateSize?.(); setTimeout(() => map.invalidateSize?.(), 100); }, 200);
+                            
+                            // Force resize to handle modal animation timing
+                            setTimeout(() => {
+                                if (map && map.resize) map.resize();
+                            }, 300);
+
+                            setTimeout(() => {
+                                if (map && map.resize) map.resize();
+                            }, 800);
                         } else {
                             map.setCenter([lat, lng]);
                             marker.setPosition({ lat: lat, lng: lng });
                             map.setZoom(12);
-                            setTimeout(() => { map.invalidateSize?.(); setTimeout(() => map.invalidateSize?.(), 100); }, 200);
+                            // Resize map to handle container size changes
+                            if (map.resize) {
+                                requestAnimationFrame(() => map.resize());
+                            }
                         }
                     }, 300);
 
@@ -997,7 +1017,7 @@ async function loadMapplsConfig() {
                 console.warn('Failed to parse config response');
                 return;
             }
-            const apiKey = config.mapplsApiKey || '';
+            const apiKey = config?.mappls?.apiKey || '';
             
             if (apiKey) {
                 // Update CSS link
