@@ -814,6 +814,117 @@ function fillAddressForm(addr) {
 }
 
 /* ---------------------------
+   Phone Number Validation
+---------------------------*/
+function validatePhoneNumber(phone) {
+  // Remove all non-digit characters
+  const cleaned = phone.replace(/\D/g, '');
+  
+  // Check length (Indian phone numbers: 10 digits)
+  if (cleaned.length !== 10) {
+    return { valid: false, error: "Phone number must be exactly 10 digits" };
+  }
+  
+  // Check format (should start with 6-9 for Indian mobile numbers)
+  if (!/^[6-9]/.test(cleaned)) {
+    return { valid: false, error: "Phone number must start with 6, 7, 8, or 9" };
+  }
+  
+  return { valid: true, cleaned };
+}
+
+function checkDuplicatePhone(phone) {
+  // Get registered phone from localStorage
+  const customerProfile = localStorage.getItem('customer_profile');
+  if (customerProfile) {
+    try {
+      const profile = JSON.parse(customerProfile);
+      const registeredPhone = profile.phone || localStorage.getItem('phone');
+      if (registeredPhone) {
+        const registeredCleaned = registeredPhone.replace(/\D/g, '');
+        const inputCleaned = phone.replace(/\D/g, '');
+        if (registeredCleaned === inputCleaned) {
+          return { isDuplicate: true, message: "This phone number is already registered as your primary phone number" };
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to parse customer profile", e);
+    }
+  }
+  return { isDuplicate: false };
+}
+
+/* ---------------------------
+   Address Type Selection Dialog
+---------------------------*/
+async function selectAddressType(addressData) {
+  return new Promise((resolve) => {
+    // Check which address types are already filled
+    const hasHome = !!AddressState.data.home;
+    const hasWork = !!AddressState.data.work;
+    const hasOther = !!AddressState.data.other;
+    
+    // Count how many "other" addresses exist
+    const otherAddresses = Object.keys(AddressState.data).filter(key => 
+      key.startsWith('other') && AddressState.data[key]
+    );
+    const otherCount = otherAddresses.length;
+    
+    // If all three basic types are filled, offer other1, other2, etc.
+    if (hasHome && hasWork && hasOther) {
+      const nextOtherNum = otherCount + 1;
+      const options = [
+        { value: `other${nextOtherNum}`, label: `Other ${nextOtherNum}` }
+      ];
+      
+      // Show custom dialog
+      const userChoice = confirm(
+        `All primary address types (Home, Work, Other) are filled.\n\n` +
+        `Would you like to save this as "Other ${nextOtherNum}"?\n\n` +
+        `Click OK to save as "Other ${nextOtherNum}" or Cancel to choose a different type.`
+      );
+      
+      if (userChoice) {
+        resolve(`other${nextOtherNum}`);
+      } else {
+        // Let user manually select
+        resolve(null);
+      }
+      return;
+    }
+    
+    // If home exists, ask where to add
+    if (hasHome && (!hasWork || !hasOther)) {
+      const options = [];
+      if (!hasWork) options.push('work');
+      if (!hasOther) options.push('other');
+      
+      if (options.length === 1) {
+        // Only one option, auto-select
+        resolve(options[0]);
+        return;
+      }
+      
+      // Multiple options, show dialog
+      const choice = confirm(
+        `You already have a Home address.\n\n` +
+        `Where would you like to add this address?\n\n` +
+        `Click OK for Work, Cancel for Other`
+      );
+      
+      resolve(choice ? 'work' : 'other');
+      return;
+    }
+    
+    // Default: auto-select first empty slot
+    if (!hasHome) resolve('home');
+    else if (!hasWork) resolve('work');
+    else if (!hasOther) resolve('other');
+    else resolve('other1');
+  });
+}
+
+/* ---------------------------
    Save address (POST or PUT) (global scope)
 ---------------------------*/
 async function saveAddress() {
@@ -825,6 +936,25 @@ async function saveAddress() {
   const country = document.getElementById("fldCountry").value.trim();
   const pincode = document.getElementById("fldPincode").value.trim();
   const phone = document.getElementById("fldPhone").value.trim();
+  
+  // Validate phone number if provided
+  if (phone) {
+    const phoneValidation = validatePhoneNumber(phone);
+    if (!phoneValidation.valid) {
+      showAlert("Invalid Phone Number", phoneValidation.error, "error");
+      return;
+    }
+    
+    // Check for duplicate with registered phone
+    const duplicateCheck = checkDuplicatePhone(phone);
+    if (duplicateCheck.isDuplicate) {
+      const proceed = confirm(duplicateCheck.message + "\n\nDo you still want to use this number?");
+      if (!proceed) {
+        document.getElementById("fldPhone").focus();
+        return;
+      }
+    }
+  }
 
   if (!house || !area || !city || !state || !pincode) {
     showAlert("Missing Fields", "Please fill in all required fields.", "error");
@@ -1016,6 +1146,36 @@ function initAddress() {
   // All address functions are now in global scope (see above)
   // Just wire up the event listener
   saveAddressBtn.addEventListener("click", saveAddress);
+  
+  // Add phone number validation on input
+  const phoneInput = document.getElementById("fldPhone");
+  if (phoneInput) {
+    phoneInput.addEventListener("input", (e) => {
+      const value = e.target.value;
+      // Allow only digits and common formatting characters
+      const cleaned = value.replace(/[^\d\s\-\(\)]/g, '');
+      if (cleaned !== value) {
+        e.target.value = cleaned;
+      }
+    });
+    
+    phoneInput.addEventListener("blur", (e) => {
+      const phone = e.target.value.trim();
+      if (phone) {
+        const validation = validatePhoneNumber(phone);
+        if (!validation.valid) {
+          showAlert("Invalid Phone Number", validation.error, "error");
+          e.target.focus();
+          return;
+        }
+        
+        const duplicateCheck = checkDuplicatePhone(phone);
+        if (duplicateCheck.isDuplicate) {
+          showAlert("Duplicate Phone Number", duplicateCheck.message, "warning");
+        }
+      }
+    });
+  }
 
   /* ---------------------------
      Load ALL addresses at start
@@ -1445,13 +1605,17 @@ if (useCurrentLocationBtn) {
           const locService = new LocationService();
           const addressData = await locService.reverseGeocodeMappls(lat, lng);
 
-          // Determine target address type (Home -> Work -> Other)
-          // Use existing logic to find empty slot or default to current
-          let targetType = AddressState.currentType;
-          if (!AddressState.data.home) targetType = 'home';
-          else if (!AddressState.data.work) targetType = 'work';
-          else if (!AddressState.data.other) targetType = 'other';
-          else targetType = AddressState.currentType;
+          // Determine target address type with user selection
+          let targetType = await selectAddressType(addressData);
+          
+          // If user cancelled selection, don't proceed
+          if (!targetType) {
+            showAlert("Info", "Address type selection cancelled. Please select an address type manually.", "info");
+            btn.innerHTML = oldHTML;
+            btn.disabled = false;
+            lucide.createIcons();
+            return;
+          }
 
           // Prepare address object for the form (Draft mode, not saved to backend) //
           const newAddress = {
@@ -1479,18 +1643,42 @@ if (useCurrentLocationBtn) {
             toggleAddressFields(true);
             toggleSaveButton(true);
 
-          // Focus on the first empty field (likely House)
-          const houseInput = document.getElementById("fldHouse");
-          if (houseInput && !houseInput.value) houseInput.focus();
-        }, 50);
+            // Focus on the first empty field (likely House)
+            const houseInput = document.getElementById("fldHouse");
+            if (houseInput && !houseInput.value) houseInput.focus();
+          }, 50);
 
-        // CRITICAL: mapModal must be defined in this scope
-        const mapModal = document.getElementById("mapModal");
-        if (mapModal) {
-          mapModal.classList.remove("map-visible");
-          mapModal.classList.add("map-hidden");
-        }
-        showAlert("Location Fetched", "Please verify details and save the address.", "info");
+          // CRITICAL: mapModal must be defined in this scope
+          const mapModal = document.getElementById("mapModal");
+          if (mapModal) {
+            mapModal.classList.remove("map-visible");
+            mapModal.classList.add("map-hidden");
+          }
+          
+          // Auto-save the address to backend
+          try {
+            // Wait a bit for form to be ready
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Check if mandatory fields are filled
+            const house = document.getElementById("fldHouse").value.trim();
+            const area = document.getElementById("fldArea").value.trim();
+            const city = document.getElementById("fldCity").value.trim();
+            const state = document.getElementById("fldState").value.trim();
+            const pincode = document.getElementById("fldPincode").value.trim();
+            
+            if (house && area && city && state && pincode) {
+              // All mandatory fields present, auto-save
+              await saveAddress();
+              showAlert("Success", "Address saved successfully!", "success");
+            } else {
+              // Some fields missing, prompt user
+              showAlert("Location Fetched", "Please fill in the missing address details and save.", "info");
+            }
+          } catch (saveErr) {
+            console.error("Auto-save error:", saveErr);
+            showAlert("Location Fetched", "Address details loaded. Please verify and save manually.", "info");
+          }
 
         } catch (err) {
           console.error(err);
