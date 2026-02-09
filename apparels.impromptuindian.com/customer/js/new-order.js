@@ -1116,11 +1116,11 @@ async function loadMapplsSDK() {
       css.href = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk.css`;
 
       // ✅ JS - CREATE SCRIPT DYNAMICALLY (DO NOT REUSE EXISTING TAG)
-      // CRITICAL: URL must include /api/ segment: /advancedmaps/api/${apiKey}/map_sdk.js
-      // Start without plugins first to ensure base SDK loads, then add plugins if needed
+      // CRITICAL: JavaScript SDK URL does NOT have .js extension - it's just /map_sdk (not /map_sdk.js)
+      // CSS has .css extension, but JS does not
       await new Promise((resolve, reject) => {
         const script = document.createElement("script");
-        script.src = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk.js`;
+        script.src = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk`;
         script.async = true;
         script.onload = resolve;
         script.onerror = () => reject(new Error("Mappls SDK failed to load (404 – invalid URL or key not whitelisted)"));
