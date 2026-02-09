@@ -19,17 +19,30 @@ let dispatchOrders = [];
 let selectedOrderId = null;
 
 async function fetchDispatchOrders() {
-    const vendorId = localStorage.getItem('user_id');
-    if (!vendorId) return;
+    // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
+    const token = localStorage.getItem('token');
+    if (!token) {
+        console.warn('No authentication token found - cannot fetch dispatch orders');
+        return;
+    }
 
     try {
-        const token = localStorage.getItem('token');
         const response = await ImpromptuIndianApi.fetch(`/api/vendor/orders?status=in_production`, {
             headers: {
-                'Authorization': `Bearer ${token}`
-            }
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
         });
-        if (!response.ok) throw new Error('Failed to fetch orders');
+        
+        if (!response.ok) {
+            if (response.status === 401 || response.status === 403) {
+                console.warn('Authentication failed - redirecting to login');
+                window.location.href = 'https://apparels.impromptuindian.com/login.html';
+                return;
+            }
+            throw new Error(`Failed to fetch orders: ${response.status}`);
+        }
 
         const responseData = await response.json();
         const allOrders = responseData.orders || responseData;
@@ -123,10 +136,14 @@ function closeDispatchModal() {
 async function confirmDispatch() {
     if (!selectedOrderId) return;
 
-    const vendorId = localStorage.getItem('user_id');
+    // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
+    const token = localStorage.getItem('token');
+    if (!token) {
+        console.warn('No authentication token found');
+        return;
+    }
 
     try {
-        const token = localStorage.getItem('token');
         const response = await ImpromptuIndianApi.fetch(`/api/orders/${selectedOrderId}/status`, {
             method: 'PUT',
             headers: {
@@ -142,7 +159,7 @@ async function confirmDispatch() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 order_id: selectedOrderId,
-                vendor_id: vendorId,
+                // ✅ FIX: Removed vendor_id - backend uses request.user_id from JWT token
                 stage_id: 'dispatched',
                 notes: 'Order dispatched by vendor logistics.'
             })

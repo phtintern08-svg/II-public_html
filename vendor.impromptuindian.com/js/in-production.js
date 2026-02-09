@@ -21,25 +21,36 @@ let currentOrderId = null;
 let uploadedFiles = [];
 let currentView = 'list';
 let pipelineFilter = '';
-const vendorId = localStorage.getItem('user_id');
 
 /* ---------------------------
    FETCH ORDERS FROM BACKEND
 ---------------------------*/
 async function fetchProductionOrders() {
-    if (!vendorId) {
-        showToast('Vendor ID not found. Please log in again.');
+    // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
+    const token = localStorage.getItem('token');
+    if (!token) {
+        showToast('Authentication required. Please log in again.', 'error');
+        window.location.href = 'https://apparels.impromptuindian.com/login.html';
         return;
     }
 
     try {
-        const token = localStorage.getItem('token');
         const response = await ImpromptuIndianApi.fetch(`/api/vendor/orders?status=in_production`, {
             headers: {
-                'Authorization': `Bearer ${token}`
-            }
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
         });
-        if (!response.ok) throw new Error('Failed to fetch production orders');
+        
+        if (!response.ok) {
+            if (response.status === 401 || response.status === 403) {
+                showToast('Authentication failed. Please log in again.', 'error');
+                window.location.href = 'https://apparels.impromptuindian.com/login.html';
+                return;
+            }
+            throw new Error(`Failed to fetch production orders: ${response.status}`);
+        }
 
         const responseData = await response.json();
         const data = responseData.orders || responseData;

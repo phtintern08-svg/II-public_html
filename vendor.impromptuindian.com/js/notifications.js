@@ -35,16 +35,22 @@
     let currentFilter = 'all';
 
     async function fetchNotifications() {
-        const vendorId = localStorage.getItem('user_id');
-        if (!vendorId) return;
+        // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
+        const token = localStorage.getItem('token');
+        if (!token) {
+            console.warn('No authentication token found - cannot fetch notifications');
+            return;
+        }
 
         try {
-            const token = localStorage.getItem('token');
             const response = await ImpromptuIndianApi.fetch(`/api/vendor/notifications`, {
                 headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
             });
+            
             if (response.ok) {
                 const data = await response.json();
                 const notificationsData = data.notifications || data;
@@ -133,10 +139,23 @@
     async function markAsRead(id) {
         const notif = notifications.find(n => n.id === id);
         if (notif && !notif.read) {
+            // ✅ FIX: Ensure token is sent with request
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.warn('No authentication token found');
+                return;
+            }
+            
             try {
                 const response = await ImpromptuIndianApi.fetch(`/api/vendor/notifications/${id}/read`, {
-                    method: 'POST'
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
                 });
+                
                 if (response.ok) {
                     notif.read = true;
                     renderNotifications();

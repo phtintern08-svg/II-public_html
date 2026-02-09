@@ -6,26 +6,37 @@ lucide.createIcons();
 ---------------------------*/
 let newOrders = [];
 let currentOrderId = null;
-const vendorId = localStorage.getItem('user_id');
 let filterQuery = '';
 
 /* ---------------------------
    FETCH ORDERS FROM BACKEND
 ---------------------------*/
 async function fetchOrders() {
-    if (!vendorId) {
-        showToast('Vendor ID not found. Please log in again.', 'error');
+    // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
+    const token = localStorage.getItem('token');
+    if (!token) {
+        showToast('Authentication required. Please log in again.', 'error');
+        window.location.href = 'https://apparels.impromptuindian.com/login.html';
         return;
     }
 
     try {
-        const token = localStorage.getItem('token');
         const response = await ImpromptuIndianApi.fetch(`/api/vendor/orders?status=new`, {
             headers: {
-                'Authorization': `Bearer ${token}`
-            }
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
         });
-        if (!response.ok) throw new Error('Failed to fetch new orders');
+        
+        if (!response.ok) {
+            if (response.status === 401 || response.status === 403) {
+                showToast('Authentication failed. Please log in again.', 'error');
+                window.location.href = 'https://apparels.impromptuindian.com/login.html';
+                return;
+            }
+            throw new Error(`Failed to fetch new orders: ${response.status}`);
+        }
 
         const data = await response.json();
 

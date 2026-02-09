@@ -136,19 +136,32 @@ const dashboardData = {
    RENDER ORDER SUMMARY
 ---------------------------*/
 async function fetchDashboardStats() {
-    const vId = localStorage.getItem('user_id');
-    if (!vId) return;
+    // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
+    const token = localStorage.getItem('token');
+    if (!token) {
+        console.warn('No authentication token found - cannot fetch dashboard stats');
+        return;
+    }
 
     try {
-        const token = localStorage.getItem('token');
         const response = await ImpromptuIndianApi.fetch(`/api/vendor/dashboard/stats`, {
             headers: {
-                'Authorization': `Bearer ${token}`
-            }
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
         });
-        if (!response.ok) throw new Error('Failed to fetch stats');
+        
+        if (!response.ok) {
+            if (response.status === 401 || response.status === 403) {
+                console.warn('Authentication failed - redirecting to login');
+                window.location.href = 'https://apparels.impromptuindian.com/login.html';
+                return;
+            }
+            throw new Error(`Failed to fetch stats: ${response.status}`);
+        }
+        
         const data = await response.json();
-
         dashboardData.orderSummary = data;
         renderOrderSummary();
     } catch (e) {
@@ -157,17 +170,31 @@ async function fetchDashboardStats() {
 }
 
 async function fetchUpcomingDeadlines() {
-    const vId = localStorage.getItem('user_id');
-    if (!vId) return;
+    // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
+    const token = localStorage.getItem('token');
+    if (!token) {
+        console.warn('No authentication token found - cannot fetch deadlines');
+        return;
+    }
 
     try {
-        const token = localStorage.getItem('token');
         const response = await ImpromptuIndianApi.fetch(`/api/vendor/orders?status=new`, {
             headers: {
-                'Authorization': `Bearer ${token}`
-            }
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
         });
-        if (!response.ok) throw new Error('Failed to fetch deadlines');
+        
+        if (!response.ok) {
+            if (response.status === 401 || response.status === 403) {
+                console.warn('Authentication failed - redirecting to login');
+                window.location.href = 'https://apparels.impromptuindian.com/login.html';
+                return;
+            }
+            throw new Error(`Failed to fetch deadlines: ${response.status}`);
+        }
+        
         const data = await response.json();
 
         dashboardData.upcomingDeadlines = data

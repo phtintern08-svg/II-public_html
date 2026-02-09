@@ -43,16 +43,20 @@ function showAlert(title, message, type, onConfirm = null) {
 
     let iconName = "info";
     let colorClass = "text-blue-500";
+    let bgColorClass = "bg-blue-900/30";
 
     if (type === "success") {
         iconName = "check-circle";
         colorClass = "text-green-500";
+        bgColorClass = "bg-green-900/30";
     } else if (type === "error") {
         iconName = "alert-circle";
         colorClass = "text-red-500";
+        bgColorClass = "bg-red-900/30";
     } else if (type === "confirm") {
         iconName = "help-circle";
         colorClass = "text-yellow-500";
+        bgColorClass = "bg-yellow-900/30";
 
         if (alertOkBtn && alertCancelBtn) {
             // Show Cancel button
@@ -83,11 +87,27 @@ function showAlert(title, message, type, onConfirm = null) {
         }
     }
 
-    // Create icon element
+    // Update title color based on type (matching login page style)
+    if (type === "success") {
+        alertTitle.className = "text-lg font-bold mb-2 text-green-500";
+    } else if (type === "error") {
+        alertTitle.className = "text-lg font-bold mb-2 text-red-500";
+    } else if (type === "confirm") {
+        alertTitle.className = "text-lg font-bold mb-2 text-yellow-500";
+    } else {
+        alertTitle.className = "text-lg font-bold mb-2 text-blue-500";
+    }
+
+    // Create icon element with background circle (matching login page style)
+    const iconWrapper = document.createElement("div");
+    iconWrapper.className = `w-12 h-12 rounded-full ${bgColorClass} flex items-center justify-center`;
+    
     const icon = document.createElement("i");
     icon.setAttribute("data-lucide", iconName);
-    icon.className = `w-12 h-12 ${colorClass} mx-auto`;
-    alertIcon.appendChild(icon);
+    icon.className = `w-8 h-8 ${colorClass}`;
+    
+    iconWrapper.appendChild(icon);
+    alertIcon.appendChild(iconWrapper);
 
     if (window.lucide) {
         lucide.createIcons();

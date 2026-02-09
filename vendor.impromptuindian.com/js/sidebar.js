@@ -116,24 +116,48 @@
   `;
 
   async function fetchAndUpdateStatus() {
-    const vendorId = localStorage.getItem('user_id');
-    if (!vendorId) return;
+    // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.warn('No authentication token found - cannot fetch status');
+      return;
+    }
 
     try {
-      const verRes = await ImpromptuIndianApi.fetch(`/api/vendor/verification/status/${vendorId}`);
+      // ✅ FIX: Backend routes don't accept vendorId in URL - they use request.user_id from JWT
+      const verRes = await ImpromptuIndianApi.fetch(`/api/vendor/verification/status`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+      
       if (verRes.ok) {
         const verData = await verRes.json();
         localStorage.setItem('vendorVerificationStatus', verData.status);
 
         if (verData.status === 'approved') {
-          const quotRes = await ImpromptuIndianApi.fetch(`/api/vendor/quotation/status/${vendorId}`);
+          const quotRes = await ImpromptuIndianApi.fetch(`/api/vendor/quotation/status`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+          });
           if (quotRes.ok) {
             const quotData = await quotRes.json();
             localStorage.setItem('vendorQuotationStatus', quotData.status === 'approved' ? 'approved' : (quotData.status || 'pending'));
           }
         }
 
-        const notifRes = await ImpromptuIndianApi.fetch(`/api/vendor/notifications/${vendorId}`);
+        const notifRes = await ImpromptuIndianApi.fetch(`/api/vendor/notifications`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include'
+        });
         if (notifRes.ok) {
           const notifs = await notifRes.json();
           const unreadCount = notifs.filter(n => !n.is_read).length;
@@ -141,7 +165,13 @@
         }
 
         // Fetch Vendor Order Stats for Sidebar
-        const orderStatsRes = await ImpromptuIndianApi.fetch(`/api/vendor/${vendorId}/order-stats`);
+        const orderStatsRes = await ImpromptuIndianApi.fetch(`/api/vendor/order-stats`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include'
+        });
         if (orderStatsRes.ok) {
           const stats = await orderStatsRes.json();
           localStorage.setItem('vendorNewOrdersCount', stats.newOrders || 0);
