@@ -1,6 +1,90 @@
 // Vendor Dashboard Page JavaScript
 lucide.createIcons();
 
+// Load vendor profile from database if not already loaded
+async function loadVendorProfile() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        console.warn('No authentication token found');
+        return;
+    }
+
+    // Check if profile is already loaded
+    const existingProfile = localStorage.getItem('vendor_profile');
+    if (existingProfile) {
+        try {
+            const profile = JSON.parse(existingProfile);
+            updateVendorWelcomeMessage(profile);
+            return;
+        } catch (e) {
+            console.warn('Failed to parse existing vendor profile, fetching fresh data');
+        }
+    }
+
+    try {
+        const response = await window.ImpromptuIndianApi.fetch('/api/vendor/profile', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            const profileData = await response.json();
+            
+            // Store complete vendor profile data from database
+            localStorage.setItem('vendor_profile', JSON.stringify(profileData));
+            
+            // Update localStorage with fresh data from database
+            if (profileData.username) localStorage.setItem('username', profileData.username);
+            if (profileData.email) localStorage.setItem('email', profileData.email);
+            if (profileData.phone) localStorage.setItem('phone', profileData.phone);
+            if (profileData.business_name) localStorage.setItem('business_name', profileData.business_name);
+            if (profileData.business_type) localStorage.setItem('business_type', profileData.business_type);
+            if (profileData.bio) localStorage.setItem('bio', profileData.bio);
+            if (profileData.avatar_url) localStorage.setItem('avatar_url', profileData.avatar_url);
+            if (profileData.address) localStorage.setItem('address', profileData.address);
+            if (profileData.city) localStorage.setItem('city', profileData.city);
+            if (profileData.state) localStorage.setItem('state', profileData.state);
+            if (profileData.pincode) localStorage.setItem('pincode', profileData.pincode);
+            
+            updateVendorWelcomeMessage(profileData);
+            console.log('Vendor profile loaded from database:', profileData);
+        } else {
+            console.warn('Failed to fetch vendor profile');
+        }
+    } catch (error) {
+        console.error('Error fetching vendor profile:', error);
+    }
+}
+
+function updateVendorWelcomeMessage(profile) {
+    // Update any welcome message or vendor name display elements
+    const welcomeBusinessName = document.getElementById('welcomeBusinessName');
+    const welcomeVendorName = document.getElementById('welcomeVendorName');
+    
+    if (welcomeBusinessName && profile.business_name) {
+        welcomeBusinessName.textContent = profile.business_name;
+    }
+    
+    if (welcomeVendorName && profile.username) {
+        welcomeVendorName.textContent = profile.username;
+    }
+    
+    // Update sidebar or header vendor name if elements exist
+    const sidebarVendorName = document.getElementById('sidebarVendorName');
+    const headerVendorName = document.getElementById('headerVendorName');
+    
+    if (sidebarVendorName && profile.business_name) {
+        sidebarVendorName.textContent = profile.business_name;
+    }
+    
+    if (headerVendorName && profile.business_name) {
+        headerVendorName.textContent = profile.business_name;
+    }
+}
+
 /* ---------------------------
    MOCK DATA
 ---------------------------*/
@@ -278,6 +362,9 @@ function getTimeRemaining(deadline) {
    INITIALIZATION
 ---------------------------*/
 document.addEventListener('DOMContentLoaded', () => {
+    // Load vendor profile from database on page load
+    loadVendorProfile();
+    
     // Initial fetch from backend
     fetchDashboardStats();
     fetchUpcomingDeadlines();
