@@ -240,6 +240,47 @@ if (loginForm) {
                     }
                 }
 
+                // For vendor role, fetch full profile details from database
+                if (result.role === 'vendor' && result.token) {
+                    try {
+                        const profileResponse = await ImpromptuIndianApi.fetch('/api/vendor/profile', {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': `Bearer ${result.token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            credentials: 'include'  // Send cookies
+                        });
+
+                        if (profileResponse.ok) {
+                            const profileData = await profileResponse.json();
+                            
+                            // Store complete vendor profile data from database
+                            localStorage.setItem('vendor_profile', JSON.stringify(profileData));
+                            
+                            // Update localStorage with fresh data from database
+                            if (profileData.username) localStorage.setItem('username', profileData.username);
+                            if (profileData.email) localStorage.setItem('email', profileData.email);
+                            if (profileData.phone) localStorage.setItem('phone', profileData.phone);
+                            if (profileData.business_name) localStorage.setItem('business_name', profileData.business_name);
+                            if (profileData.business_type) localStorage.setItem('business_type', profileData.business_type);
+                            if (profileData.bio) localStorage.setItem('bio', profileData.bio);
+                            if (profileData.avatar_url) localStorage.setItem('avatar_url', profileData.avatar_url);
+                            if (profileData.address) localStorage.setItem('address', profileData.address);
+                            if (profileData.city) localStorage.setItem('city', profileData.city);
+                            if (profileData.state) localStorage.setItem('state', profileData.state);
+                            if (profileData.pincode) localStorage.setItem('pincode', profileData.pincode);
+                            
+                            console.log('Vendor profile loaded from database:', profileData);
+                        } else {
+                            console.warn('Failed to fetch vendor profile, using login response data');
+                        }
+                    } catch (profileError) {
+                        console.error('Error fetching vendor profile:', profileError);
+                        // Continue with login even if profile fetch fails
+                    }
+                }
+
                 showAlert('Success', 'Login successful!', 'success');
                 setTimeout(() => {
                     // Use redirect_url directly from backend - never construct URLs in frontend
