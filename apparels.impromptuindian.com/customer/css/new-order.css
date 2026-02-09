@@ -450,6 +450,21 @@ select._native-hidden {
   z-index: 9999 !important;
 }
 
+/* Map Modal Visibility Classes (DO NOT use display: none for Mappls containers) */
+.map-hidden {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.map-visible {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.2s ease;
+}
+
 /* Utility to hide elements */
 .hidden {
   display: none !important;

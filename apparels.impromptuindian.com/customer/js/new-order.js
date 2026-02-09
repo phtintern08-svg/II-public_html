@@ -1116,16 +1116,17 @@ async function loadMapplsSDK() {
         throw new Error('Mappls API key missing');
       }
 
-      // CSS
+      // CSS - CRITICAL: Element must exist in HTML
       const css = document.getElementById('mappls-css');
-      if (css) {
-        css.href = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk.css`;
+      if (!css) {
+        throw new Error('Mappls CSS element (id="mappls-css") not found in HTML. Add <link id="mappls-css" rel="stylesheet" /> to <head>');
       }
+      css.href = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk.css`;
 
-      // JS
+      // JS - CRITICAL: Element must exist in HTML
       const script = document.getElementById('mappls-script');
       if (!script) {
-        throw new Error('Mappls script element not found');
+        throw new Error('Mappls script element (id="mappls-script") not found in HTML. Add <script id="mappls-script"></script> to <head>');
       }
 
       // Set script source and load
@@ -1255,7 +1256,8 @@ if (useCurrentLocationBtn) {
           }
 
           const mapModal = document.getElementById("mapModal");
-          mapModal.classList.remove("hidden");
+          mapModal.classList.remove("map-hidden");
+          mapModal.classList.add("map-visible");
 
           // Initialize map AFTER modal is visible (use requestAnimationFrame for proper rendering)
           requestAnimationFrame(async () => {
@@ -1265,6 +1267,13 @@ if (useCurrentLocationBtn) {
 
               if (typeof mappls === 'undefined' || !mappls.Map) {
                 throw new Error("Mappls SDK not loaded");
+              }
+
+              // CRITICAL: Set container height before map creation (Mappls needs non-zero dimensions)
+              const container = document.getElementById("mapContainer");
+              if (container) {
+                container.style.height = "100%";
+                container.style.minHeight = "420px";
               }
 
               // Smart Zoom based on Accuracy
@@ -1341,7 +1350,8 @@ if (useCurrentLocationBtn) {
           let lng = 77.5946;
 
           const mapModal = document.getElementById("mapModal");
-          mapModal.classList.remove("hidden");
+          mapModal.classList.remove("map-hidden");
+          mapModal.classList.add("map-visible");
 
           // Initialize map AFTER modal is visible (use requestAnimationFrame for proper rendering)
           requestAnimationFrame(async () => {
@@ -1351,6 +1361,13 @@ if (useCurrentLocationBtn) {
 
               if (typeof mappls === 'undefined' || !mappls.Map) {
                 throw new Error("Mappls SDK not loaded");
+              }
+
+              // CRITICAL: Set container height before map creation (Mappls needs non-zero dimensions)
+              const container = document.getElementById("mapContainer");
+              if (container) {
+                container.style.height = "100%";
+                container.style.minHeight = "420px";
               }
 
               if (!map) {
@@ -1458,7 +1475,8 @@ if (useCurrentLocationBtn) {
             if (houseInput && !houseInput.value) houseInput.focus();
           }, 50);
 
-          mapModal.classList.add("hidden");
+          mapModal.classList.remove("map-visible");
+          mapModal.classList.add("map-hidden");
           showAlert("Location Fetched", "Please verify details and save the address.", "info");
 
         } catch (err) {
