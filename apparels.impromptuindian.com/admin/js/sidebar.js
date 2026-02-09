@@ -105,7 +105,7 @@
     </div>
   </aside>
 
-  <button id="mobile-menu-toggle" class="md:hidden fixed top-4 left-4 z-50 bg-blue-600 p-2 rounded-full shadow-lg text-white hover:bg-blue-700 transition">
+  <button id="mobile-menu-toggle" class="md:hidden fixed top-4 right-4 z-50 bg-blue-600 p-2 rounded-full shadow-lg text-white hover:bg-blue-700 transition">
     <i data-lucide="menu" class="w-6 h-6"></i>
   </button>
 
@@ -270,13 +270,13 @@
     const container = document.getElementById("sidebar-container");
     if (container) {
       container.innerHTML = sidebarHTML;
-      
+
       // Attach logout handler (must be after sidebar HTML is injected)
       const logoutBtn = document.getElementById('logoutBtn');
       if (logoutBtn) {
         logoutBtn.addEventListener('click', logout);
       }
-      
+
       if (window.lucide) lucide.createIcons();
       setActiveLink();
       populateUserData();

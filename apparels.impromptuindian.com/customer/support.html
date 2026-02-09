@@ -30,46 +30,47 @@
     <script src="js/sidebar.js"></script>
 
     <!-- MAIN CONTENT -->
-    <main class="flex-1 overflow-y-auto p-10 pt-20 md:pt-10">
+    <main class="flex-1 overflow-y-auto p-4 pt-20 sm:p-6 md:p-8 lg:p-10 md:pt-10">
 
       <!-- Header -->
-      <h1 class="text-4xl font-bold">Help & Support</h1>
-      <p class="opacity-70 mt-1 mb-10 text-base md:text-xl">Find answers or reach our support team.</p>
+      <h1 class="text-3xl sm:text-3xl md:text-4xl font-bold">Help & Support</h1>
+      <p class="opacity-70 mt-1 mb-6 sm:mb-8 md:mb-10 text-sm sm:text-base md:text-xl">Find answers or reach our support
+        team.</p>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
 
         <!-- LEFT SIDE -->
-        <div class="lg:col-span-1 space-y-8">
+        <div class="lg:col-span-1 space-y-4 sm:space-y-6 md:space-y-8">
 
           <!-- Get Help -->
-          <div class="bg-[#111827] border border-gray-700 rounded-xl p-6">
-            <div class="flex items-center gap-3 mb-4">
-              <i data-lucide="life-buoy" class="w-6 h-6 text-blue-400"></i>
-              <h2 class="text-xl font-bold">Get Help</h2>
+          <div class="bg-[#111827] border border-gray-700 rounded-xl p-4 sm:p-5 md:p-6">
+            <div class="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+              <i data-lucide="life-buoy" class="w-5 h-5 sm:w-6 sm:h-6 text-blue-400"></i>
+              <h2 class="text-lg sm:text-xl font-bold">Get Help</h2>
             </div>
-            <p class="opacity-60 mb-4">For urgent issues or questions.</p>
+            <p class="opacity-60 mb-3 sm:mb-4 text-sm sm:text-base">For urgent issues or questions.</p>
 
             <button
-              class="w-full mb-3 bg-[#FFCC00] hover:bg-yellow-400 text-black font-semibold py-2 rounded-lg flex items-center justify-start gap-2 px-3 transition-colors">
+              class="w-full mb-2 sm:mb-3 bg-[#FFCC00] hover:bg-yellow-400 text-black font-semibold py-2.5 sm:py-2 rounded-lg flex items-center justify-start gap-2 px-3 transition-colors text-sm sm:text-base">
               <i data-lucide="mail" class="w-4 h-4"></i>
               Email Us
             </button>
 
             <button
-              class="w-full bg-[#FFCC00] hover:bg-yellow-400 text-black font-semibold py-2 rounded-lg flex items-center justify-start gap-2 px-3 transition-colors">
+              class="w-full bg-[#FFCC00] hover:bg-yellow-400 text-black font-semibold py-2.5 sm:py-2 rounded-lg flex items-center justify-start gap-2 px-3 transition-colors text-sm sm:text-base">
               <i data-lucide="phone" class="w-4 h-4"></i>
               Call Support
             </button>
           </div>
 
           <!-- Tickets -->
-          <div class="bg-[#111827] border border-gray-700 rounded-xl p-6">
-            <div class="flex items-center gap-3 mb-4">
-              <i data-lucide="ticket" class="w-6 h-6 text-yellow-400"></i>
-              <h2 class="text-xl font-bold">My Tickets</h2>
+          <div class="bg-[#111827] border border-gray-700 rounded-xl p-4 sm:p-5 md:p-6">
+            <div class="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+              <i data-lucide="ticket" class="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400"></i>
+              <h2 class="text-lg sm:text-xl font-bold">My Tickets</h2>
             </div>
 
-            <table class="w-full text-sm">
+            <table class="w-full text-xs sm:text-sm">
               <thead class="opacity-60">
                 <tr>
                   <th class="text-left py-2">Ticket ID</th>
@@ -93,51 +94,55 @@
 
         <!-- RIGHT SIDE -->
         <div class="lg:col-span-2">
-          <div class="bg-[#111827] border border-gray-700 rounded-xl p-6">
-            <h2 class="text-2xl font-bold mb-1">Frequently Asked Questions</h2>
-            <p class="opacity-60 mb-6">Common questions answered</p>
+          <div class="bg-[#111827] border border-gray-700 rounded-xl p-4 sm:p-5 md:p-6">
+            <h2 class="text-xl sm:text-2xl font-bold mb-1">Frequently Asked Questions</h2>
+            <p class="opacity-60 mb-4 sm:mb-6 text-sm sm:text-base">Common questions answered</p>
 
             <!-- FAQ ACCORDION -->
             <div id="faq">
 
               <div class="border-b border-gray-800 py-3 cursor-pointer accordion">
-                <div class="flex justify-between items-center">
-                  <p class="font-medium">How do I place an order?</p>
-                  <i data-lucide="chevron-down" class="accordion-icon w-5 h-5 transition"></i>
+                <div class="flex justify-between items-center gap-2">
+                  <p class="font-medium text-sm sm:text-base">How do I place an order?</p>
+                  <i data-lucide="chevron-down"
+                    class="accordion-icon w-4 h-4 sm:w-5 sm:h-5 transition flex-shrink-0"></i>
                 </div>
-                <div class="accordion-content text-gray-400 mt-2">
+                <div class="accordion-content text-gray-400 mt-2 text-xs sm:text-sm">
                   You can place an order by navigating to the "New Order" page and filling out the required details
                   including product type, quantity, and delivery information.
                 </div>
               </div>
 
               <div class="border-b border-gray-800 py-3 cursor-pointer accordion">
-                <div class="flex justify-between items-center">
-                  <p class="font-medium">What is the typical delivery time?</p>
-                  <i data-lucide="chevron-down" class="accordion-icon w-5 h-5 transition"></i>
+                <div class="flex justify-between items-center gap-2">
+                  <p class="font-medium text-sm sm:text-base">What is the typical delivery time?</p>
+                  <i data-lucide="chevron-down"
+                    class="accordion-icon w-4 h-4 sm:w-5 sm:h-5 transition flex-shrink-0"></i>
                 </div>
-                <div class="accordion-content text-gray-400 mt-2">
+                <div class="accordion-content text-gray-400 mt-2 text-xs sm:text-sm">
                   Standard delivery takes 5–7 business days after the order is confirmed and payment is received.
                 </div>
               </div>
 
               <div class="border-b border-gray-800 py-3 cursor-pointer accordion">
-                <div class="flex justify-between items-center">
-                  <p class="font-medium">Can I cancel my order?</p>
-                  <i data-lucide="chevron-down" class="accordion-icon w-5 h-5 transition"></i>
+                <div class="flex justify-between items-center gap-2">
+                  <p class="font-medium text-sm sm:text-base">Can I cancel my order?</p>
+                  <i data-lucide="chevron-down"
+                    class="accordion-icon w-4 h-4 sm:w-5 sm:h-5 transition flex-shrink-0"></i>
                 </div>
-                <div class="accordion-content text-gray-400 mt-2">
+                <div class="accordion-content text-gray-400 mt-2 text-xs sm:text-sm">
                   Orders can be cancelled within 24 hours of placement. After that, please contact support for
                   assistance.
                 </div>
               </div>
 
               <div class="border-b border-gray-800 py-3 cursor-pointer accordion">
-                <div class="flex justify-between items-center">
-                  <p class="font-medium">How do I track my order?</p>
-                  <i data-lucide="chevron-down" class="accordion-icon w-5 h-5 transition"></i>
+                <div class="flex justify-between items-center gap-2">
+                  <p class="font-medium text-sm sm:text-base">How do I track my order?</p>
+                  <i data-lucide="chevron-down"
+                    class="accordion-icon w-4 h-4 sm:w-5 sm:h-5 transition flex-shrink-0"></i>
                 </div>
-                <div class="accordion-content text-gray-400 mt-2">
+                <div class="accordion-content text-gray-400 mt-2 text-xs sm:text-sm">
                   You can track your order from the "My Orders" page. Click on any order to see its current status and
                   tracking information.
                 </div>

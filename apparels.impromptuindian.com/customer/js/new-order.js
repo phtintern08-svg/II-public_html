@@ -1086,60 +1086,61 @@ let marker = null;
 let mapplsLoadingPromise = null;
 
 // Load Mappls SDK dynamically (DEFINED BEFORE USE to avoid order dependency issues)
+// CRITICAL: Creates script dynamically instead of reusing existing tag (browser edge case fix)
 async function loadMapplsSDK() {
-  // Check if SDK is already loaded
-  if (typeof mappls !== 'undefined' && mappls.Map) {
-    console.log('Mappls SDK already loaded');
-    return Promise.resolve();
+  if (window.mappls && window.mappls.Map) {
+    console.log("Mappls SDK already loaded");
+    return;
   }
 
-  // If already loading, return the existing promise
-  if (mapplsLoadingPromise) {
-    return mapplsLoadingPromise;
-  }
+  if (mapplsLoadingPromise) return mapplsLoadingPromise;
 
-  // Create and store the loading promise
   mapplsLoadingPromise = (async () => {
     try {
-      const res = await window.ImpromptuIndianApi.fetch('/api/config', { 
-        credentials: 'include' 
+      const res = await window.ImpromptuIndianApi.fetch("/api/config", {
+        credentials: "include"
       });
-      
-      if (!res.ok) {
-        throw new Error('Failed to load config');
-      }
+
+      if (!res.ok) throw new Error("Failed to load config");
 
       const config = await res.json();
       const apiKey = config?.mappls?.apiKey;
+      if (!apiKey) throw new Error("Mappls API key missing");
 
-      if (!apiKey) {
-        throw new Error('Mappls API key missing');
-      }
-
-      // CSS - CRITICAL: Element must exist in HTML
-      const css = document.getElementById('mappls-css');
+      // ✅ CSS - Element must exist in HTML
+      const css = document.getElementById("mappls-css");
       if (!css) {
         throw new Error('Mappls CSS element (id="mappls-css") not found in HTML. Add <link id="mappls-css" rel="stylesheet" /> to <head>');
       }
       css.href = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk.css`;
 
-      // JS - CRITICAL: Element must exist in HTML
-      const script = document.getElementById('mappls-script');
-      if (!script) {
-        throw new Error('Mappls script element (id="mappls-script") not found in HTML. Add <script id="mappls-script"></script> to <head>');
+      // ✅ JS - CREATE SCRIPT DYNAMICALLY (DO NOT REUSE EXISTING TAG)
+      // This fixes browser edge case where setting src on existing empty script tag may not execute
+      // CRITICAL: Include search and autosuggest plugins for map search functionality
+      await new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk.js?plugins=search,autosuggest`;
+        script.async = true;
+        script.onload = resolve;
+        script.onerror = () => reject(new Error("Mappls SDK failed to load"));
+        document.head.appendChild(script);
+      });
+
+      if (!window.mappls) {
+        throw new Error("Mappls loaded but mappls is undefined");
       }
 
-      // Set script source and load
-      script.src = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk.js`;
-      script.defer = true;
+      // Validate that required plugins are loaded
+      if (!window.mappls.Map) {
+        throw new Error("Mappls Map plugin not loaded");
+      }
 
-      await new Promise((resolve, reject) => {
-        script.onload = () => {
-          console.log('Mappls SDK loaded');
-          resolve();
-        };
-        script.onerror = () => reject(new Error('Mappls SDK failed to load'));
-      });
+      // Warn if search plugins are missing (non-fatal, but search won't work)
+      if (!window.mappls.search || !window.mappls.autoSuggest) {
+        console.warn("⚠️ Mappls search/autosuggest plugins not loaded. Map search may not work.");
+      } else {
+        console.log("✅ Mappls SDK loaded successfully with search plugins");
+      }
     } catch (err) {
       console.error('Mappls SDK load error:', err);
       mapplsLoadingPromise = null; // Reset on error so it can be retried
@@ -1171,6 +1172,11 @@ if (mapSearchBtn && !mapSearchBtn.dataset.bound) {
     };
 
     try {
+      // Check if search plugin is available before using it
+      if (typeof mappls.search !== 'function') {
+        throw new Error("Mappls search plugin not loaded. Please refresh the page.");
+      }
+
       // Try calling as function first (common in v3.0 updates)
       mappls.search(searchOptions, (data) => {
         mapSearchBtn.innerText = oldText;
@@ -1195,7 +1201,9 @@ if (mapSearchBtn && !mapSearchBtn.dataset.bound) {
           }
         } else {
           // Try Autosuggest if Search fails (sometimes different results)
-          new mappls.autoSuggest({ query: query }, (autoData) => {
+          // Check if autosuggest plugin is available
+          if (typeof mappls.autoSuggest === 'function') {
+            new mappls.autoSuggest({ query: query }, (autoData) => {
             if (autoData && autoData.length > 0) {
               const autoRes = autoData[0];
               const aLat = parseFloat(autoRes.latitude || autoRes.lat);
@@ -1208,7 +1216,10 @@ if (mapSearchBtn && !mapSearchBtn.dataset.bound) {
               }
             }
             showAlert("Not Found", "Location not found. Try a broader area name.", "info");
-          });
+            });
+          } else {
+            showAlert("Not Found", "Location not found. Try a broader area name.", "info");
+          }
         }
       });
     } catch (e) {
@@ -1470,14 +1481,18 @@ if (useCurrentLocationBtn) {
             toggleAddressFields(true);
             toggleSaveButton(true);
 
-            // Focus on the first empty field (likely House)
-            const houseInput = document.getElementById("fldHouse");
-            if (houseInput && !houseInput.value) houseInput.focus();
-          }, 50);
+          // Focus on the first empty field (likely House)
+          const houseInput = document.getElementById("fldHouse");
+          if (houseInput && !houseInput.value) houseInput.focus();
+        }, 50);
 
+        // CRITICAL: mapModal must be defined in this scope
+        const mapModal = document.getElementById("mapModal");
+        if (mapModal) {
           mapModal.classList.remove("map-visible");
           mapModal.classList.add("map-hidden");
-          showAlert("Location Fetched", "Please verify details and save the address.", "info");
+        }
+        showAlert("Location Fetched", "Please verify details and save the address.", "info");
 
         } catch (err) {
           console.error(err);
