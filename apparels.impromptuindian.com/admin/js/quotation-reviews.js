@@ -92,7 +92,7 @@ function openQuotationModal(id) {
 
     // Set download link
     const downloadLink = document.getElementById('modal-download-link');
-    downloadLink.href = ImpromptuIndianApi.buildUrl(`/vendor/quotation/download/${sub.vendor_id}`);
+    downloadLink.href = ImpromptuIndianApi.buildUrl(`/api/admin/quotation-submissions/${sub.id}/download`);
 
     document.getElementById('quotation-modal').classList.remove('hidden');
 }
@@ -173,4 +173,15 @@ window.addEventListener('DOMContentLoaded', () => {
     fetchQuotations();
     onScroll();
     window.addEventListener('scroll', onScroll);
+    
+    // Setup download link to open in new tab (prevents page navigation)
+    const downloadLink = document.getElementById('modal-download-link');
+    if (downloadLink) {
+        downloadLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (downloadLink.href && downloadLink.href !== '#') {
+                window.open(downloadLink.href, '_blank');
+            }
+        });
+    }
 });
