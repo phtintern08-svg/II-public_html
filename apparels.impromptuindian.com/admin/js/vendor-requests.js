@@ -22,17 +22,37 @@ function showToast(msg) {
 let requests = [];
 let currentVendorId = null;
 
+// Normalize status values for UI consistency
+function normalizeStatus(status) {
+  if (status === 'under-review') return 'pending';
+  if (!status || status === 'not-submitted') return 'pending';
+  return status;
+}
+
 async function fetchRequests() {
   try {
-    const token = localStorage.getItem('token');
-    const response = await ImpromptuIndianApi.fetch('/api/admin/vendors?status=pending', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+    const response = await ImpromptuIndianApi.fetch('/api/admin/vendor-requests', {
+      credentials: 'include'  // Use cookie-based authentication
     });
     if (!response.ok) throw new Error('Failed to fetch requests');
     const data = await response.json();
-    requests = data.vendors || data;
+    
+    // Normalize data shape to match frontend expectations
+    requests = (Array.isArray(data) ? data : (data.vendors || [])).map(v => ({
+      id: v.id,
+      name: v.name || v.username || v.business_name || 'Unknown',
+      businessType: v.businessType || v.business_type || 'N/A',
+      submitted: v.submitted || (v.created_at ? new Date(v.created_at).toLocaleDateString() : 'N/A'),
+      status: normalizeStatus(v.status || v.verification_status),
+      documents: v.documents || {},
+      address: v.address || '',
+      contact: {
+        email: v.contact?.email || v.email || 'N/A',
+        phone: v.contact?.phone || v.phone || 'N/A'
+      },
+      adminRemarks: v.adminRemarks || v.admin_remarks || ''
+    }));
+    
     console.log('Fetched requests:', requests);
     renderRequests();
   } catch (e) {
@@ -53,14 +73,15 @@ function renderRequests() {
   requests.forEach(r => {
     // Check if documents exist
     const hasDocs = r.documents && Object.keys(r.documents).length > 0;
-    const statusDisplay = hasDocs ? r.status : 'Missing Docs';
-    const statusClass = hasDocs ? r.status : 'rejected'; // Use red for missing docs
+    const status = normalizeStatus(r.status);
+    const statusDisplay = hasDocs ? status : 'Missing Docs';
+    const statusClass = hasDocs ? status : 'rejected'; // Use red for missing docs
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${r.name}</td>
-      <td>${r.businessType}</td>
-      <td>${r.submitted}</td>
+      <td>${r.name || 'Unknown'}</td>
+      <td>${r.businessType || 'N/A'}</td>
+      <td>${r.submitted || 'N/A'}</td>
       <td><span class="doc-status ${statusClass}">${statusDisplay}</span></td>
       <td class="text-right">
         <button class="btn-primary" onclick="openVendorModal(${r.id})"><i data-lucide="eye" class="w-4 h-4"></i></button>
@@ -75,19 +96,24 @@ function filterRequests() {
   const status = document.getElementById('status-filter').value;
   const term = document.getElementById('search-vendor').value.toLowerCase();
   const filtered = requests.filter(r => {
-    const matchStatus = status === 'all' || r.status === status;
-    const matchTerm = r.name.toLowerCase().includes(term) || r.businessType.toLowerCase().includes(term);
+    const normalizedStatus = normalizeStatus(r.status);
+    const matchStatus = status === 'all' || normalizedStatus === status;
+    // Safe access to prevent crashes
+    const matchTerm = 
+      (r.name || '').toLowerCase().includes(term) || 
+      (r.businessType || '').toLowerCase().includes(term);
     return matchStatus && matchTerm;
   });
   const tbody = document.getElementById('requests-table');
   tbody.innerHTML = '';
   filtered.forEach(r => {
+    const status = normalizeStatus(r.status);
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${r.name}</td>
-      <td>${r.businessType}</td>
-      <td>${r.submitted}</td>
-      <td><span class="doc-status ${r.status}">${r.status}</span></td>
+      <td>${r.name || 'Unknown'}</td>
+      <td>${r.businessType || 'N/A'}</td>
+      <td>${r.submitted || 'N/A'}</td>
+      <td><span class="doc-status ${status}">${status}</span></td>
       <td class="text-right">
         <button class="btn-primary" onclick="openVendorModal(${r.id})"><i data-lucide="eye" class="w-4 h-4"></i></button>
       </td>
@@ -297,15 +323,13 @@ async function approveVendor() {
   if (!currentVendorId) return;
 
   try {
-    const token = localStorage.getItem('token');
-    const response = await ImpromptuIndianApi.fetch(`/api/admin/vendors/${currentVendorId}/verify`, {
-      method: 'PUT',
+    const response = await ImpromptuIndianApi.fetch(`/api/admin/vendors/${currentVendorId}/approve`, {
+      method: 'POST',
       headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        'Content-Type': 'application/json'
       },
+      credentials: 'include',  // Use cookie-based authentication
       body: JSON.stringify({
-        status: 'verified',
         remarks: 'Approved by admin'
       })
     });
@@ -315,7 +339,8 @@ async function approveVendor() {
       closeVendorModal();
       fetchRequests();
     } else {
-      showToast('Failed to approve vendor');
+      const errorData = await response.json().catch(() => ({ error: 'Failed to approve vendor' }));
+      showToast(errorData.error || 'Failed to approve vendor');
     }
   } catch (e) {
     console.error(e);
@@ -395,15 +420,13 @@ async function rejectVendor() {
   }
 
   try {
-    const token = localStorage.getItem('token');
-    const response = await ImpromptuIndianApi.fetch(`/api/admin/vendors/${currentVendorId}/verify`, {
-      method: 'PUT',
+    const response = await ImpromptuIndianApi.fetch(`/api/admin/vendors/${currentVendorId}/reject`, {
+      method: 'POST',
       headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        'Content-Type': 'application/json'
       },
+      credentials: 'include',  // Use cookie-based authentication
       body: JSON.stringify({
-        status: 'rejected',
         reason: reason,
         rejected_documents: rejectedDocs
       })
@@ -414,7 +437,8 @@ async function rejectVendor() {
       closeVendorModal();
       fetchRequests();
     } else {
-      showToast('Failed to reject vendor');
+      const errorData = await response.json().catch(() => ({ error: 'Failed to reject vendor' }));
+      showToast(errorData.error || 'Failed to reject vendor');
     }
   } catch (e) {
     console.error(e);
@@ -429,8 +453,9 @@ async function deleteVendorRequest() {
 
   showAlert('Confirm Delete', 'Are you sure you want to delete this vendor request? This will reset their verification status and remove all documents.', 'confirm', async () => {
     try {
-      const response = await ImpromptuIndianApi.fetch(`/ admin / vendor - requests / ${currentVendorId}/delete`, {
-        method: 'DELETE'
+      const response = await ImpromptuIndianApi.fetch(`/api/admin/vendor-requests/${currentVendorId}/delete`, {
+        method: 'DELETE',
+        credentials: 'include'  // Use cookie-based authentication
       });
 
       if (response.ok) {
