@@ -404,6 +404,13 @@ select._native-hidden {
   cursor: not-allowed;
 }
 
+/* Show desktop place order button on tablet and desktop */
+@media (min-width: 768px) {
+  #placeOrderBtn.hidden {
+    display: block !important;
+  }
+}
+
 /* Placement Type Buttons */
 .placement-btn {
   background: var(--input-bg);
