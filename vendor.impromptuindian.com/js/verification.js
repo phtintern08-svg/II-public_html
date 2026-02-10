@@ -224,7 +224,6 @@ async function submitVerification() {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
-            credentials: 'include',
             body: JSON.stringify(payload)
         });
 
@@ -587,7 +586,6 @@ async function submitQuotation() {
                 'Authorization': `Bearer ${token}`
                 // Note: Don't set Content-Type for FormData - browser sets it automatically with boundary
             },
-            credentials: 'include',
             body: formData
         });
 
@@ -901,7 +899,6 @@ async function confirmUpload() {
                 'Authorization': `Bearer ${token}`
                 // Note: Don't set Content-Type for FormData - browser sets it automatically with boundary
             },
-            credentials: 'include',
             body: formData
         });
 
@@ -983,7 +980,6 @@ async function submitVerification() {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            credentials: 'include',
             // ✅ FIX: Removed vendor_id from body - backend uses request.user_id from JWT token
             body: JSON.stringify({})
         });

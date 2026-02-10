@@ -27,7 +27,6 @@ async function loadVendorProfile() {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
-            credentials: 'include'
         });
 
         if (response.ok) {
@@ -149,7 +148,6 @@ async function fetchDashboardStats() {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
-            credentials: 'include'
         });
         
         if (!response.ok) {
@@ -183,7 +181,6 @@ async function fetchUpcomingDeadlines() {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
-            credentials: 'include'
         });
         
         if (!response.ok) {

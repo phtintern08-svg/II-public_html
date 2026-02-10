@@ -518,13 +518,45 @@ function startTimer(fieldId, button, timerDiv) {
 
 // --- API Integration ---
 
+/**
+ * Get the correct API base URL based on user role
+ * This ensures vendor registrations go to vendor/apparels backend,
+ * customer registrations go to customer backend, etc.
+ */
+function getApiBaseForRole(role) {
+    const host = window.location.hostname;
+
+    if (host === 'localhost' || host === '127.0.0.1') {
+        return 'http://localhost:5000';
+    }
+
+    // Role-based routing: each role goes to its correct backend
+    if (role === 'vendor') {
+        return 'https://apparels.impromptuindian.com';
+    } else if (role === 'customer') {
+        return 'https://impromptuindian.com';
+    } else if (role === 'rider') {
+        return 'https://apparels.impromptuindian.com';
+    }
+
+    // Default fallback
+    return 'https://apparels.impromptuindian.com';
+}
+
 async function registerUser(data) {
     try {
-        const response = await ImpromptuIndianApi.fetch('/api/register', {
+        // ✅ FIX: Use role-based API routing to ensure requests hit the correct backend
+        const apiBase = getApiBaseForRole(data.role);
+        
+        // Build the full URL with the role-specific API base
+        const url = `${apiBase}/api/register`;
+        
+        const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
+            credentials: 'include', // Include credentials for session-based auth
             body: JSON.stringify(data)
         });
 

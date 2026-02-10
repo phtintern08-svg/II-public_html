@@ -50,10 +50,9 @@
         baseUrl: base,
         buildUrl,
         fetch: (path, options = {}) => {
-          // Include credentials to send cookies (REQUIRED for subdomain SSO)
+          // Using Bearer token authentication - no need for credentials: 'include'
           return fetch(buildUrl(path), {
-            ...options,
-            credentials: 'include'
+            ...options
           });
         },
       };
@@ -130,7 +129,6 @@
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        credentials: 'include'
       });
       
       if (verRes.ok) {
@@ -143,7 +141,6 @@
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
             },
-            credentials: 'include'
           });
           if (quotRes.ok) {
             const quotData = await quotRes.json();
@@ -156,7 +153,6 @@
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
-          credentials: 'include'
         });
         if (notifRes.ok) {
           const notifs = await notifRes.json();
@@ -170,7 +166,6 @@
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
-          credentials: 'include'
         });
         if (orderStatsRes.ok) {
           const stats = await orderStatsRes.json();

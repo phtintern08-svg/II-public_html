@@ -69,7 +69,6 @@ async function loadVendorProfile() {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
-            credentials: 'include'  // Send cookies
         });
         if (response.ok) {
             const data = await response.json();
@@ -454,8 +453,6 @@ async function changePassword() {
                 'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
-                user_id: userId,
-                role: 'vendor',
                 current_password: currentPassword,
                 new_password: newPassword
             })
