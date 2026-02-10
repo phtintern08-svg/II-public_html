@@ -535,8 +535,32 @@ const quotationFilename = document.getElementById('quotation-filename');
 if (quotationDropzone) {
     quotationDropzone.onclick = () => quotationInput.click();
     quotationInput.onchange = (e) => {
-        if (e.target.files[0]) {
-            quotationFilename.textContent = e.target.files[0].name;
+        const file = e.target.files[0];
+        if (file) {
+            // Validate CSV file type
+            const allowedTypes = ['text/csv', 'application/csv', 'text/plain'];
+            const fileExtension = file.name.toLowerCase().split('.').pop();
+            
+            const isValidType = allowedTypes.includes(file.type) || fileExtension === 'csv';
+            
+            if (!isValidType) {
+                showToast('Only CSV files are allowed for quotation submission', 'error');
+                quotationInput.value = ''; // Clear the input
+                quotationFilename.textContent = 'Click to upload or drag and drop';
+                quotationFilename.classList.remove('text-blue-400');
+                return;
+            }
+            
+            // Validate file size (10MB limit)
+            if (file.size > 10 * 1024 * 1024) {
+                showToast('File size must be under 10MB', 'error');
+                quotationInput.value = ''; // Clear the input
+                quotationFilename.textContent = 'Click to upload or drag and drop';
+                quotationFilename.classList.remove('text-blue-400');
+                return;
+            }
+            
+            quotationFilename.textContent = file.name;
             quotationFilename.classList.add('text-blue-400');
         }
     };
@@ -552,6 +576,22 @@ async function submitQuotation() {
     // Client-side validation
     if (!file) {
         showToast('Please upload quotation file', 'error');
+        return;
+    }
+    
+    // Validate CSV file type
+    const allowedTypes = ['text/csv', 'application/csv', 'text/plain'];
+    const fileExtension = file.name.toLowerCase().split('.').pop();
+    const isValidType = allowedTypes.includes(file.type) || fileExtension === 'csv';
+    
+    if (!isValidType) {
+        showToast('Only CSV files are allowed for quotation submission', 'error');
+        return;
+    }
+    
+    // Validate file size (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+        showToast('File size must be under 10MB', 'error');
         return;
     }
     
