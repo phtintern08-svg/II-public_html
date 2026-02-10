@@ -12,20 +12,12 @@ let filterQuery = '';
    FETCH ORDERS FROM BACKEND
 ---------------------------*/
 async function fetchOrders() {
-    // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
-    const token = localStorage.getItem('token');
-    if (!token) {
-        showToast('Authentication required. Please log in again.', 'error');
-        window.location.href = 'https://apparels.impromptuindian.com/login.html';
-        return;
-    }
-
+    // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
     try {
         const response = await ImpromptuIndianApi.fetch(`/api/vendor/orders?status=new`, {
             headers: {
-                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
-            },
+            }
         });
         
         if (!response.ok) {
@@ -283,12 +275,11 @@ async function moveToProduction() {
     if (!currentOrderId) return;
 
     try {
-        const token = localStorage.getItem('token');
+        // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
         const response = await ImpromptuIndianApi.fetch(`/api/orders/${currentOrderId}/status`, {
             method: 'PUT',
             headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 status: 'accepted_by_vendor'
@@ -346,12 +337,11 @@ async function confirmReject() {
     const fullReason = notes ? `${reason}: ${notes}` : reason;
 
     try {
-        const token = localStorage.getItem('token');
+        // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
         const response = await ImpromptuIndianApi.fetch(`/api/orders/${currentOrderId}/status`, {
             method: 'PUT',
             headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 status: 'rejected_by_vendor',

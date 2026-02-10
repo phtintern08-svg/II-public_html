@@ -19,17 +19,11 @@ let dispatchOrders = [];
 let selectedOrderId = null;
 
 async function fetchDispatchOrders() {
-    // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
-    const token = localStorage.getItem('token');
-    if (!token) {
-        console.warn('No authentication token found - cannot fetch dispatch orders');
-        return;
-    }
+    // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
 
     try {
         const response = await ImpromptuIndianApi.fetch(`/api/vendor/orders?status=in_production`, {
             headers: {
-                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
         });
@@ -135,32 +129,18 @@ function closeDispatchModal() {
 async function confirmDispatch() {
     if (!selectedOrderId) return;
 
-    // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
-    const token = localStorage.getItem('token');
-    if (!token) {
-        console.warn('No authentication token found');
-        return;
-    }
+    // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
 
     try {
+        // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
         const response = await ImpromptuIndianApi.fetch(`/api/orders/${selectedOrderId}/status`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 status: 'dispatched',
                 remarks: 'Order dispatched by vendor logistics.'
-            })
-        });
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                order_id: selectedOrderId,
-                // ✅ FIX: Removed vendor_id - backend uses request.user_id from JWT token
-                stage_id: 'dispatched',
-                notes: 'Order dispatched by vendor logistics.'
             })
         });
 

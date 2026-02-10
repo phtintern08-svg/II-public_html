@@ -208,12 +208,7 @@ async function submitVerification() {
 
     try {
         // ✅ FIX: Removed vendor_id from payload - backend uses request.user_id from JWT token
-        const token = localStorage.getItem('token');
-        if (!token) {
-            console.warn('No authentication token found');
-            return;
-        }
-        
+        // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
         const payload = {
             ...extraData
         };
@@ -221,7 +216,6 @@ async function submitVerification() {
         const response = await ImpromptuIndianApi.fetch('/api/vendor/verification/submit', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(payload)
@@ -344,15 +338,10 @@ async function fetchVerificationStatus() {
 
     try {
         // ✅ FIX: Backend route doesn't accept vendorId in URL - uses request.user_id from JWT
-        const token = localStorage.getItem('token');
-        if (!token) {
-            console.warn('No authentication token found');
-            return;
-        }
+        // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
         
         const response = await ImpromptuIndianApi.fetch(`/api/vendor/verification/status`, {
             headers: {
-                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
             credentials: 'include'
@@ -440,18 +429,12 @@ function freezeVerificationUI() {
    QUOTATION STATUS
 ---------------------------*/
 async function fetchQuotationStatus() {
-    // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
-    const token = localStorage.getItem('token');
-    if (!token) {
-        console.warn('No authentication token found - cannot fetch quotation status');
-        return;
-    }
+    // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
     
     try {
         // ✅ FIX: Backend route doesn't accept vendorId in URL - uses request.user_id from JWT
         const response = await ImpromptuIndianApi.fetch(`/api/vendor/quotation/status`, {
             headers: {
-                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
             credentials: 'include'
@@ -565,11 +548,7 @@ async function submitQuotation() {
     if (parseFloat(commission) < 15) return showToast('Minimum commission is 15%', 'error');
 
     // ✅ FIX: Removed vendor_id from formData - backend uses request.user_id from JWT token
-    const token = localStorage.getItem('token');
-    if (!token) {
-        showToast('Authentication required. Please log in again.', 'error');
-        return;
-    }
+    // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
     
     const formData = new FormData();
     formData.append('file', file);
@@ -583,7 +562,6 @@ async function submitQuotation() {
         const response = await ImpromptuIndianApi.fetch('/api/vendor/quotation/submit', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${token}`
                 // Note: Don't set Content-Type for FormData - browser sets it automatically with boundary
             },
             body: formData
@@ -858,11 +836,7 @@ async function confirmUpload() {
     // ✅ FIX: Removed vendorId check - backend uses request.user_id from JWT token
     if (!selectedFile || !currentDocumentId) return;
 
-    const token = localStorage.getItem('token');
-    if (!token) {
-        showToast('Authentication required. Please log in again.', 'error');
-        return;
-    }
+    // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
 
     const formData = new FormData();
     formData.append('file', selectedFile);
@@ -896,7 +870,6 @@ async function confirmUpload() {
         const response = await ImpromptuIndianApi.fetch('/api/vendor/verification/upload', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${token}`
                 // Note: Don't set Content-Type for FormData - browser sets it automatically with boundary
             },
             body: formData
@@ -967,18 +940,13 @@ async function submitVerification() {
     }
 
     // ✅ FIX: Ensure token is sent with request
-    const token = localStorage.getItem('token');
-    if (!token) {
-        showToast('Authentication required. Please log in again.', 'error');
-        return;
-    }
+    // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
     
     try {
         const response = await ImpromptuIndianApi.fetch('/api/vendor/verification/submit', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
             },
             // ✅ FIX: Removed vendor_id from body - backend uses request.user_id from JWT token
             body: JSON.stringify({})
@@ -1037,19 +1005,13 @@ function closeRemarksModal() {
 ---------------------------*/
 function viewDocument(docId) {
     // ✅ FIX: Backend route doesn't accept vendorId in URL - uses request.user_id from JWT
-    const token = localStorage.getItem('token');
-    if (!token) {
-        console.warn('No authentication token found');
-        showToast('Authentication required', 'error');
-        return;
-    }
+    // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
     
     const url = ImpromptuIndianApi.buildUrl(`/api/vendor/verification/document/${docId}`);
     
     // ✅ FIX: Use fetch with Authorization header since window.open doesn't support headers
     fetch(url, {
         headers: {
-            'Authorization': `Bearer ${token}`
         },
         credentials: 'include'
     })

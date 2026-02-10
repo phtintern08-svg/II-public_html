@@ -1,17 +1,11 @@
 /* orders-stats.js */
 async function fetchOrderStats() {
-    // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
-    const token = localStorage.getItem('token');
-    if (!token) {
-        console.warn('No authentication token found - cannot fetch order stats');
-        return;
-    }
+    // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
 
     try {
         // ✅ FIX: Backend route doesn't accept vendorId in URL - uses request.user_id from JWT
         const response = await ImpromptuIndianApi.fetch(`/api/vendor/order-stats`, {
             headers: {
-                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
         });

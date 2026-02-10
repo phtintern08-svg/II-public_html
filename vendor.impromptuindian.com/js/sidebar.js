@@ -50,8 +50,9 @@
         baseUrl: base,
         buildUrl,
         fetch: (path, options = {}) => {
-          // Using Bearer token authentication - no need for credentials: 'include'
+          // Use cookie-based authentication (HttpOnly access_token cookie set by backend)
           return fetch(buildUrl(path), {
+            credentials: 'include',
             ...options
           });
         },
@@ -115,20 +116,14 @@
   `;
 
   async function fetchAndUpdateStatus() {
-    // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
-    const token = localStorage.getItem('token');
-    if (!token) {
-      console.warn('No authentication token found - cannot fetch status');
-      return;
-    }
-
+    // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
+    // No need to check localStorage.token - backend uses HttpOnly cookies for security
     try {
-      // ✅ FIX: Backend routes don't accept vendorId in URL - they use request.user_id from JWT
+      // ✅ FIX: Backend routes use request.user_id from JWT token in cookie
       const verRes = await ImpromptuIndianApi.fetch(`/api/vendor/verification/status`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        },
+        }
       });
       
       if (verRes.ok) {
@@ -138,9 +133,8 @@
         if (verData.status === 'approved') {
           const quotRes = await ImpromptuIndianApi.fetch(`/api/vendor/quotation/status`, {
             headers: {
-              'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
-            },
+            }
           });
           if (quotRes.ok) {
             const quotData = await quotRes.json();
@@ -150,9 +144,8 @@
 
         const notifRes = await ImpromptuIndianApi.fetch(`/api/vendor/notifications`, {
           headers: {
-            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
-          },
+          }
         });
         if (notifRes.ok) {
           const notifs = await notifRes.json();
@@ -163,9 +156,8 @@
         // Fetch Vendor Order Stats for Sidebar
         const orderStatsRes = await ImpromptuIndianApi.fetch(`/api/vendor/order-stats`, {
           headers: {
-            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
-          },
+          }
         });
         if (orderStatsRes.ok) {
           const stats = await orderStatsRes.json();

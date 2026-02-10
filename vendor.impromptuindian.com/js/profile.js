@@ -55,20 +55,14 @@ function saveNotificationSettings() {
 
 // Load vendor data
 async function loadVendorProfile() {
-    // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
-    const token = localStorage.getItem('token');
-    if (!token) {
-        console.warn('No authentication token found - cannot load vendor profile');
-        return;
-    }
-
+    // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
+    // No need to check localStorage.token - backend uses HttpOnly cookies for security
     try {
         // Always fetch fresh data from backend - don't rely on localStorage
         const response = await ImpromptuIndianApi.fetch(`/api/vendor/profile`, {
             headers: {
-                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
-            },
+            }
         });
         if (response.ok) {
             const data = await response.json();
@@ -179,13 +173,7 @@ async function loadVendorProfile() {
 // Save profile changes (Basic Details)
 async function saveProfileChanges() {
     // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
-    const token = localStorage.getItem('token');
-    if (!token) {
-        showToast('Authentication required. Please log in again.', 'error');
-        window.location.href = 'https://apparels.impromptuindian.com/login.html';
-        return;
-    }
-    
+    // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
     const businessName = document.getElementById('profileBusinessName').value;
     const email = document.getElementById('profileEmail').value;
     const phone = document.getElementById('profilePhone').value;
@@ -198,12 +186,10 @@ async function saveProfileChanges() {
     }
 
     try {
-        const token = localStorage.getItem('token');
         const response = await ImpromptuIndianApi.fetch(`/api/vendor/profile`, {
             method: 'PUT',
             headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 business_name: businessName,
@@ -245,13 +231,7 @@ async function saveProfileChanges() {
 // Save Location details
 async function saveLocation() {
     // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
-    const token = localStorage.getItem('token');
-    if (!token) {
-        showToast('Authentication required. Please log in again.', 'error');
-        window.location.href = 'https://apparels.impromptuindian.com/login.html';
-        return;
-    }
-    
+    // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
     const fullAddress = document.getElementById('fldFullAddress').value;
     const city = document.getElementById('fldCity').value;
     const state = document.getElementById('fldState').value;
@@ -260,12 +240,10 @@ async function saveLocation() {
     const coords = window.currentCoords || { lat: null, lon: null };
 
     try {
-        const token = localStorage.getItem('token');
         const response = await ImpromptuIndianApi.fetch(`/api/vendor/profile`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 address: fullAddress,
@@ -425,13 +403,7 @@ function showToast(message, type = 'success') {
 // Change Password
 async function changePassword() {
     // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
-    const token = localStorage.getItem('token');
-    if (!token) {
-        showToast('Authentication required. Please log in again.', 'error');
-        window.location.href = 'https://apparels.impromptuindian.com/login.html';
-        return;
-    }
-    
+    // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
     const currentPassword = document.getElementById('currentPassword').value;
     const newPassword = document.getElementById('newPassword').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
@@ -449,8 +421,7 @@ async function changePassword() {
         const response = await ImpromptuIndianApi.fetch(`/api/vendor/change-password`, {
             method: 'PUT',
             headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 current_password: currentPassword,
@@ -525,15 +496,10 @@ document.addEventListener('DOMContentLoaded', () => {
 // Load Mappls API key from backend and inject into SDK URLs
 async function loadMapplsConfig() {
     try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            console.warn('No authentication token found. Map features may not work.');
-            return;
-        }
-        
+        // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
         const response = await fetch('/api/config', {
+            credentials: 'include',
             headers: {
-                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             }
         });

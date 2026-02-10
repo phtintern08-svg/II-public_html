@@ -35,17 +35,10 @@
     let currentFilter = 'all';
 
     async function fetchNotifications() {
-        // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
-        const token = localStorage.getItem('token');
-        if (!token) {
-            console.warn('No authentication token found - cannot fetch notifications');
-            return;
-        }
-
+        // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
         try {
             const response = await ImpromptuIndianApi.fetch(`/api/vendor/notifications`, {
                 headers: {
-                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
             });
@@ -138,18 +131,12 @@
     async function markAsRead(id) {
         const notif = notifications.find(n => n.id === id);
         if (notif && !notif.read) {
-            // ✅ FIX: Ensure token is sent with request
-            const token = localStorage.getItem('token');
-            if (!token) {
-                console.warn('No authentication token found');
-                return;
-            }
+            // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
             
             try {
                 const response = await ImpromptuIndianApi.fetch(`/api/vendor/notifications/${id}/read`, {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
                 });

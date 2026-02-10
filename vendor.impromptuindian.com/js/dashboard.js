@@ -3,12 +3,7 @@ lucide.createIcons();
 
 // Load vendor profile from database if not already loaded
 async function loadVendorProfile() {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        console.warn('No authentication token found');
-        return;
-    }
-
+    // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
     // Check if profile is already loaded
     const existingProfile = localStorage.getItem('vendor_profile');
     if (existingProfile) {
@@ -24,9 +19,8 @@ async function loadVendorProfile() {
     try {
         const response = await window.ImpromptuIndianApi.fetch('/api/vendor/profile', {
             headers: {
-                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
-            },
+            }
         });
 
         if (response.ok) {
@@ -136,18 +130,12 @@ const dashboardData = {
 ---------------------------*/
 async function fetchDashboardStats() {
     // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
-    const token = localStorage.getItem('token');
-    if (!token) {
-        console.warn('No authentication token found - cannot fetch dashboard stats');
-        return;
-    }
-
+    // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
     try {
         const response = await ImpromptuIndianApi.fetch(`/api/vendor/dashboard/stats`, {
             headers: {
-                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
-            },
+            }
         });
         
         if (!response.ok) {
@@ -168,19 +156,12 @@ async function fetchDashboardStats() {
 }
 
 async function fetchUpcomingDeadlines() {
-    // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
-    const token = localStorage.getItem('token');
-    if (!token) {
-        console.warn('No authentication token found - cannot fetch deadlines');
-        return;
-    }
-
+    // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
     try {
         const response = await ImpromptuIndianApi.fetch(`/api/vendor/orders?status=new`, {
             headers: {
-                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
-            },
+            }
         });
         
         if (!response.ok) {

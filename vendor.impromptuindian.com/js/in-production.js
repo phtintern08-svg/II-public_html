@@ -26,18 +26,11 @@ let pipelineFilter = '';
    FETCH ORDERS FROM BACKEND
 ---------------------------*/
 async function fetchProductionOrders() {
-    // ✅ FIX: Remove dependency on localStorage.user_id - rely only on JWT token
-    const token = localStorage.getItem('token');
-    if (!token) {
-        showToast('Authentication required. Please log in again.', 'error');
-        window.location.href = 'https://apparels.impromptuindian.com/login.html';
-        return;
-    }
+    // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
 
     try {
         const response = await ImpromptuIndianApi.fetch(`/api/vendor/orders?status=in_production`, {
             headers: {
-                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
         });
@@ -233,12 +226,11 @@ async function quickAdvance(orderId) {
     const nextStage = PRODUCTION_STAGES[currentIndex + 1].id;
 
     try {
-        const token = localStorage.getItem('token');
+        // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
         const response = await ImpromptuIndianApi.fetch(`/api/orders/${orderId}/status`, {
             method: 'PUT',
             headers: { 
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
                 status: nextStage,
@@ -438,12 +430,11 @@ async function saveUpdate() {
     const notes = document.getElementById('internal-notes')?.value || '';
 
     try {
-        const token = localStorage.getItem('token');
+        // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
         const response = await ImpromptuIndianApi.fetch(`/api/orders/${currentOrderId}/status`, {
             method: 'PUT',
             headers: { 
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
                 status: stageId,
