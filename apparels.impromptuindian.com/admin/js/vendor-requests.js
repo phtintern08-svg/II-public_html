@@ -211,7 +211,7 @@ function openVendorModal(id) {
                       ${statusBadge}
                       <div class="flex gap-2 mt-1">
                         ${doc.fileName ?
-          `<button onclick="previewDocument('${ImpromptuIndianApi.baseUrl}/vendor/verification/document/${vendor.id}/${key}', '${doc.fileName}', '${key}')" 
+          `<button onclick="previewDocument('${ImpromptuIndianApi.baseUrl}/api/admin/vendor-requests/${vendor.id}/document/${key}', '${doc.fileName}', '${key}')" 
                               class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors cursor-pointer bg-transparent border-none">
                               View <i data-lucide="eye" class="w-3 h-3"></i>
                            </button>` : ''
