@@ -455,9 +455,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('scroll', reveal);
     setTimeout(reveal, 100);
 
-    document.getElementById('saveLocationBtn').onclick = saveAddress; // Map to saveLocation
-    // Re-linking since I used both names
-    window.saveAddress = saveLocation;
+    // ✅ FIX: Use saveLocation directly - no aliasing needed
+    document.getElementById('saveLocationBtn').onclick = saveLocation;
     
     // Load Mappls configuration
     loadMapplsConfig();
