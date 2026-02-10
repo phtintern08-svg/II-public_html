@@ -39,7 +39,7 @@ const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
     '';
 
   let base = rawBase.trim().replace(/\/$/, '');
-  
+
   // Use relative paths when base is empty
   // This allows Passenger to route requests correctly on each subdomain
   // Cookie is first-party, avoiding CORS issues
@@ -162,8 +162,8 @@ const sidebarHTML = (status) => {
   </div>
 </aside>
 
-<button id="mobile-menu-toggle" class="md:hidden fixed top-4 right-4 z-50 bg-blue-600 p-2 rounded-full shadow-lg text-white hover:bg-blue-700 transition">
-  <i data-lucide="menu" class="w-6 h-6"></i>
+<button id="mobile-menu-toggle" class="md:hidden fixed top-4 right-4 z-50 p-2 rounded-full shadow-lg transition" style="background-color: #FFCC00;">
+  <i data-lucide="menu" class="w-6 h-6" style="color: #1273EB;"></i>
 </button>
 
 <style>
@@ -241,12 +241,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       const response = await ImpromptuIndianApi.fetch('/api/rider/profile', {
         method: 'GET'
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         // Use verification_status from the API response
         status = data.verification_status || 'pending_verification';
-        
+
         // Update local storage with user info
         const user = JSON.parse(localStorage.getItem('user')) || {};
         user.verification_status = status;

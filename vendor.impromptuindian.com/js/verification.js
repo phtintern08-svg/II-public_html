@@ -796,8 +796,22 @@ function closeUploadModal() {
 function handleFileSelect(file) {
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-        showToast('File size must be under 5MB', 'error');
+    // Validate file size (2.2MB limit - allows for metadata/EXIF)
+    if (file.size > 2.2 * 1024 * 1024) {
+        showToast('File size must be under 2.2MB', 'error');
+        return;
+    }
+
+    // Validate file type (PDF, JPG, JPEG only)
+    const allowedTypes = ['application/pdf', 'image/jpeg'];
+    const fileExtension = file.name.toLowerCase().split('.').pop();
+    const allowedExtensions = ['pdf', 'jpg', 'jpeg'];
+    
+    // Check both MIME type and file extension
+    const isValidType = allowedTypes.includes(file.type) || allowedExtensions.includes(fileExtension);
+    
+    if (!isValidType) {
+        showToast('Only PDF, JPG, and JPEG files are allowed', 'error');
         return;
     }
 

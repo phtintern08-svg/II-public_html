@@ -85,8 +85,8 @@
   </aside>
 
   <!-- Mobile Toggle Button -->
-  <button id="mobile-menu-toggle" class="md:hidden fixed top-4 right-4 z-50 bg-blue-600 p-2 rounded-full shadow-lg text-white hover:bg-blue-700 transition">
-    <i data-lucide="menu" class="w-6 h-6"></i>
+  <button id="mobile-menu-toggle" class="md:hidden fixed top-4 right-4 z-50 p-2 rounded-full shadow-lg transition" style="background-color: #FFCC00;">
+    <i data-lucide="menu" class="w-6 h-6" style="color: #1273EB;"></i>
   </button>
 
   <style>
@@ -125,7 +125,7 @@
           'Content-Type': 'application/json'
         }
       });
-      
+
       if (verRes.ok) {
         const verData = await verRes.json();
         localStorage.setItem('vendorVerificationStatus', verData.status);
@@ -273,13 +273,13 @@
     const container = document.getElementById("sidebar-container");
     if (container) {
       container.innerHTML = sidebarHTML;
-      
+
       // Attach logout handler (must be after sidebar HTML is injected)
       const logoutBtn = document.getElementById('logoutBtn');
       if (logoutBtn) {
         logoutBtn.addEventListener('click', logout);
       }
-      
+
       renderSidebarNav();
       fetchAndUpdateStatus();
       populateUserData();

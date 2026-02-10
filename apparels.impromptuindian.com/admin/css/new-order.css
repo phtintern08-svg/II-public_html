@@ -136,7 +136,8 @@ body {
     background: #2563eb;
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
     color: white;
-    animation: none; /* Override float animation from admin-global.css */
+    animation: none;
+    /* Override float animation from admin-global.css */
 }
 
 .summary-card:nth-child(2) .summary-icon {
@@ -601,47 +602,150 @@ table tbody td:first-child {
 /* ========================================
    RESPONSIVE
    ======================================== */
+/* ========================================
+   RESPONSIVE
+   ======================================== */
 @media (max-width: 1024px) {
     .summary-card {
-        flex-direction: column;
-        text-align: center;
+        flex-direction: row;
+        /* Keep row for tablet, card layout handles text alignment better */
+        text-align: left;
     }
 
     .filters-bar {
         flex-direction: column;
+        align-items: stretch;
+        /* Stretch children to full width */
     }
 
     .search-input-wrapper {
         width: 100%;
     }
+
+    .filter-select {
+        width: 100%;
+    }
+
+    .flex.gap-3 {
+        /* Container for filter selects */
+        flex-direction: column;
+        width: 100%;
+    }
 }
 
 @media (max-width: 768px) {
+
+    /* Page Layout & Spacing */
+    main.p-8 {
+        padding: 1rem !important;
+    }
+
+    /* Header */
     .reveal.mb-8 {
         flex-direction: column;
         gap: 1rem;
+        align-items: flex-start;
     }
 
-    .reveal.mb-8 > div:first-child {
+    .reveal.mb-8>div:first-child {
         width: 100%;
     }
 
-    .reveal.mb-8 > div:last-child {
+    .reveal.mb-8>div:last-child {
         width: 100%;
+        display: flex;
         flex-direction: column;
+        gap: 0.75rem;
     }
 
-    table {
-        font-size: 0.75rem;
+    .reveal.mb-8 a,
+    .btn-refresh {
+        width: 100%;
+        justify-content: center;
+        padding: 0.875rem;
     }
 
-    table thead th,
-    table tbody td {
-        padding: 0.75rem 1rem;
+    .reveal.mb-8 h1 {
+        font-size: 1.5rem;
+    }
+
+    /* Summary Cards */
+    .grid-cols-1.md\:grid-cols-4 {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .summary-card {
+        padding: 1rem;
+        border-radius: 0.75rem;
+    }
+
+    .summary-icon {
+        width: 3rem;
+        height: 3rem;
+    }
+
+    /* Filters */
+    .filters-bar {
+        padding: 0.75rem;
+        gap: 0.75rem;
+    }
+
+    /* Modal Mobile Adjustments - FULL SCREEN SHEET STYLE */
+    .modal {
+        padding: 0;
+        align-items: flex-end;
     }
 
     .modal-content {
         max-width: 100%;
-        margin: 0;
+        max-height: 100dvh;
+        height: 100dvh;
+        border-radius: 0;
+        display: flex;
+        flex-direction: column;
+        border: none;
+    }
+
+    .modal-content.modal-large {
+        height: 100dvh;
+        border-radius: 0;
+    }
+
+    .modal-body {
+        padding: 1rem;
+    }
+
+    .modal-header,
+    .modal-footer {
+        padding: 1rem;
+    }
+
+    .modal-footer {
+        flex-direction: column-reverse;
+        gap: 0.75rem;
+    }
+
+    .modal-footer button {
+        width: 100%;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    /* Layout inside modal grid */
+    #modal-body .grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}
+
+/* Small Tablet / Large Mobile Tweaks */
+@media (min-width: 640px) and (max-width: 1024px) {
+
+    /* Summary Grid - 2x2 */
+    .grid-cols-1.md\:grid-cols-4 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
     }
 }

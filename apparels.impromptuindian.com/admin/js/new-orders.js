@@ -99,33 +99,33 @@ function renderOrders(ordersToRender = orders) {
     const tr = document.createElement('tr');
     tr.className = 'hover:bg-white/5 transition-colors duration-200';
     tr.innerHTML = `
-      <td class="px-4 py-4 font-mono text-sm text-[#1273EB]">#${o.id}</td>
-      <td class="px-4 py-4">
+      <td class="px-4 py-4 font-mono text-sm text-[#1273EB]" data-label="Order ID">#${o.id}</td>
+      <td class="px-4 py-4" data-label="Customer">
         <div class="flex flex-col">
           <span class="font-semibold text-gray-100">${o.customer}</span>
           <span class="text-xs text-gray-500 font-medium truncate max-w-[150px]">${o.address}</span>
         </div>
       </td>
-      <td class="px-4 py-4">
+      <td class="px-4 py-4" data-label="Apparel Type">
         <span class="px-2 py-1 rounded-md bg-blue-500/10 text-blue-400 text-xs font-bold uppercase tracking-wider">${o.type}</span>
       </td>
-      <td class="px-4 py-4">
+      <td class="px-4 py-4" data-label="Qty">
         <div class="flex items-center gap-1.5">
           <span class="font-bold text-gray-200">${o.qty}</span>
           <span class="text-xs text-gray-500">pcs</span>
         </div>
       </td>
-      <td class="px-4 py-4 font-bold text-yellow-400">₹${o.amount > 0 ? o.amount.toLocaleString() : '—'}</td>
-      <td class="px-4 py-4">
+      <td class="px-4 py-4 font-bold text-yellow-400" data-label="Amount">₹${o.amount > 0 ? o.amount.toLocaleString() : '—'}</td>
+      <td class="px-4 py-4" data-label="Deadline">
         <div class="flex items-center gap-2 text-xs font-medium text-gray-400">
           <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-400"></i>
           ${o.deadline}
         </div>
       </td>
-      <td class="px-4 py-4">
+      <td class="px-4 py-4" data-label="Status">
         <span class="status-${o.status} shadow-sm">${o.status}</span>
       </td>
-      <td class="px-4 py-4 text-right">
+      <td class="px-4 py-4 text-right" data-label="Actions">
         <button class="p-2 rounded-lg bg-blue-600/10 hover:bg-blue-600 transition-all text-blue-400 hover:text-white" onclick="openOrderModal(${o.id})">
           <i data-lucide="external-link" class="w-4 h-4"></i>
         </button>
@@ -317,7 +317,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       el.classList.add('show');
     });
   });
-  
+
   try {
     await fetchApprovedVendors();
     await fetchOrders();
@@ -325,11 +325,11 @@ window.addEventListener('DOMContentLoaded', async () => {
   } catch (error) {
     console.error('Error initializing page:', error);
   }
-  
+
   // Also set up scroll listener for any elements that come into view later
   onScroll();
   window.addEventListener('scroll', onScroll);
-  
+
   // Initialize Lucide icons
   if (window.lucide) {
     lucide.createIcons();

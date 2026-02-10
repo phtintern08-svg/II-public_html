@@ -19,18 +19,17 @@
         <div id="sidebar-container"></div>
         <script src="js/sidebar.js"></script>
 
-        <main class="flex-1 overflow-y-auto p-4 pt-20 sm:p-6 md:p-8 md:pt-8">
+        <main class="flex-1 overflow-y-auto p-4 pt-20 sm:p-6 md:p-8 md:pt-8 relative">
             <!-- Header -->
             <div class="dashboard-header mb-6 sm:mb-8">
-                <div>
-                    <h1 class="dashboard-title">Admin Dashboard</h1>
-                    <div class="flex items-center justify-between gap-3 mt-1">
-                        <p class="dashboard-subtitle">Real-time overview of operations</p>
-                        <button class="md:hidden p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition flex-shrink-0"
-                            id="refreshDashboardBtn">
+                <div class="flex-1">
+                    <div class="flex items-center justify-between">
+                        <h1 class="dashboard-title">Admin Dashboard</h1>
+                        <button class="md:hidden btn-refresh-modern-mobile" id="refreshDashboardBtn">
                             <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
                         </button>
                     </div>
+                    <p class="dashboard-subtitle mt-1">Real-time overview of operations</p>
                 </div>
                 <button class="hidden md:flex btn-refresh-modern" id="refreshDashboardBtnDesktop">
                     <i data-lucide="refresh-ccw" class="w-5 h-5"></i>

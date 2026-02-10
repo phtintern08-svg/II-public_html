@@ -8,15 +8,15 @@
    ======================================== */
 .dashboard-header {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
     gap: 0.5rem;
     font-weight: 500;
 }
 
 @media (min-width: 768px) {
     .dashboard-header {
-        flex-direction: row;
-        justify-content: space-between;
         align-items: center;
     }
 }
@@ -52,6 +52,29 @@
 }
 
 .btn-refresh-modern:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.btn-refresh-modern-mobile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    background: #2563eb;
+    border: none;
+    border-radius: 0.5rem;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: absolute;
+    top: 5.5rem;
+    right: 1rem;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+}
+
+.btn-refresh-modern-mobile:hover {
     background: #1d4ed8;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
@@ -652,10 +675,10 @@
    RESPONSIVE
    ======================================== */
 
-/* Tablet and below */
+/* Tablet and below - keep 4 columns */
 @media (max-width: 1400px) {
     .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(4, 1fr);
     }
 }
 
@@ -703,13 +726,11 @@
     .btn-refresh-modern {
         padding: 0.625rem 1rem;
         font-size: 0.875rem;
-        width: 100%;
-        justify-content: center;
     }
 
-    /* Stats grid - single column */
+    /* Stats grid - keep 2 columns on mobile */
     .stats-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
         gap: 1rem;
     }
 
@@ -804,6 +825,29 @@
     .alert-icon {
         width: 2.5rem;
         height: 2.5rem;
+    }
+
+    /* Process Monitor - Circular Progress Responsive */
+    .info-card-body .relative.w-32 {
+        width: 6rem !important;
+        height: 6rem !important;
+    }
+
+    .info-card-body .relative.w-32 svg {
+        width: 6rem !important;
+        height: 6rem !important;
+    }
+
+    /* Scale the SVG circles properly for tablet */
+    .info-card-body .relative.w-32 svg circle {
+        cx: 48 !important;
+        cy: 48 !important;
+        r: 40 !important;
+    }
+
+    .info-card-body .relative.w-32 #cpu-percent,
+    .info-card-body .relative.w-32 #ram-percent {
+        font-size: 1.5rem !important;
     }
 }
 
@@ -911,6 +955,37 @@
 
     .action-card span {
         font-size: 0.8rem;
+    }
+
+    /* Process Monitor - Smaller Circular Progress for Mobile */
+    .info-card-body .relative.w-32 {
+        width: 5rem !important;
+        height: 5rem !important;
+    }
+
+    .info-card-body .relative.w-32 svg {
+        width: 5rem !important;
+        height: 5rem !important;
+    }
+
+    /* Scale the SVG circles properly */
+    .info-card-body .relative.w-32 svg circle {
+        cx: 40 !important;
+        cy: 40 !important;
+        r: 35 !important;
+    }
+
+    .info-card-body .relative.w-32 #cpu-percent,
+    .info-card-body .relative.w-32 #ram-percent {
+        font-size: 1.25rem !important;
+    }
+
+    .info-card-body .text-sm {
+        font-size: 0.75rem !important;
+    }
+
+    .info-card-body .text-xs {
+        font-size: 0.65rem !important;
     }
 
     .alert-card {
