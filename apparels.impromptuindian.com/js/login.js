@@ -86,13 +86,33 @@ if (loginForm) {
             return;
         }
 
+        // ✅ FIX: Detect role from URL parameter or subdomain
+        // Check URL parameter first (e.g., ?role=vendor)
+        const urlParams = new URLSearchParams(window.location.search);
+        let role = urlParams.get('role');
+        
+        // If no URL parameter, try to detect from subdomain or referrer
+        if (!role) {
+            const hostname = window.location.hostname;
+            if (hostname.includes('vendor.')) {
+                role = 'vendor';
+            } else if (hostname.includes('rider.')) {
+                role = 'rider';
+            } else if (hostname.includes('admin.')) {
+                role = 'admin';
+            } else {
+                // Default to customer if on main domain
+                role = 'customer';
+            }
+        }
+
         try {
             const response = await ImpromptuIndianApi.fetch('/api/authenticate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ identifier, password })
+                body: JSON.stringify({ identifier, password, role })
             });
 
             // Check for 404 specifically (endpoint not found)
