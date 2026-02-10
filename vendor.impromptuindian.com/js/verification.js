@@ -222,14 +222,20 @@ async function submitVerification() {
         });
 
         if (!response.ok) {
-            showToast('Failed to submit verification', 'error');
+            const errorData = await response.json().catch(() => ({ error: 'Failed to submit verification' }));
+            showToast(errorData.error || 'Failed to submit verification', 'error');
             return;
         }
 
         verificationStatus = 'pending';
-
+        
         // Reload status to refresh valid data
         await fetchVerificationStatus();
+        
+        // Update UI
+        renderStatusBanner();
+        renderTimeline();
+        renderDocumentsGrid();
 
         showToast('Documents submitted for verification!', 'success');
 
@@ -803,7 +809,7 @@ function handleFileSelect(file) {
     }
 
     // Validate file type (PDF, JPG, JPEG only)
-    const allowedTypes = ['application/pdf', 'image/jpeg'];
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg'];
     const fileExtension = file.name.toLowerCase().split('.').pop();
     const allowedExtensions = ['pdf', 'jpg', 'jpeg'];
     
@@ -893,7 +899,7 @@ async function confirmUpload() {
             const data = await response.json();
 
             documents[currentDocumentId] = {
-                ...documents[currentDocumentId], // Preserves manual inputs
+                ...(documents[currentDocumentId] || {}), // Preserves manual inputs, guards against undefined
                 status: 'uploaded',
                 fileName: selectedFile.name,
                 fileUrl: data.fileUrl,
@@ -940,53 +946,8 @@ function removeDocument(docId) {
 }
 
 /* ---------------------------
-   SUBMIT VERIFICATION
+   SUBMIT VERIFICATION (DUPLICATE REMOVED - using the earlier definition)
 ---------------------------*/
-async function submitVerification() {
-    // Validate required documents
-    const missing = REQUIRED_DOCUMENTS.filter(doc =>
-        doc.required && (!documents[doc.id] || documents[doc.id].status === 'pending')
-    );
-
-    if (missing.length > 0) {
-        showToast(`Upload all required documents (${missing.length} missing)`, 'error');
-        return;
-    }
-
-    // ✅ FIX: Ensure token is sent with request
-    // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
-    
-    try {
-        const response = await ImpromptuIndianApi.fetch('/api/vendor/verification/submit', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            // ✅ FIX: Removed vendor_id from body - backend uses request.user_id from JWT token
-            body: JSON.stringify({})
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Failed to submit verification' }));
-            showToast(errorData.error || 'Failed to submit verification', 'error');
-            return;
-        }
-
-        verificationStatus = 'pending';
-        renderStatusBanner();
-        renderTimeline();
-        renderDocumentsGrid();
-
-        showToast('Documents submitted for verification!', 'success');
-
-        // Lock UI completely
-        freezeVerificationUI();
-
-    } catch (e) {
-        console.error(e);
-        showToast('Error submitting verification', 'error');
-    }
-}
 
 /* ---------------------------
    VIEW REMARKS
@@ -1046,8 +1007,8 @@ function viewDocument(docId) {
         if (!newWindow) {
             showToast('Please allow popups to view documents', 'error');
         }
-        // Clean up blob URL after a delay
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+        // Clean up blob URL after a delay (10s to allow PDFs to load fully)
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
     })
     .catch(error => {
         console.error('Error fetching document:', error);
