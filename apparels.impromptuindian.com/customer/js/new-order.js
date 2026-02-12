@@ -295,6 +295,39 @@ let currentModalEstimateRequestId = 0;
 let currentGatewayEstimateRequestId = 0;
 
 /* ---------------------------
+   Reset Order State - Clear All Stale Data
+---------------------------*/
+function resetOrderState() {
+  // Reset selection variables
+  selectedCategory = "";
+  selectedNeckType = "";
+
+  // Reset request IDs to prevent stale responses
+  currentEstimateRequestId = 0;
+  currentModalEstimateRequestId = 0;
+  currentGatewayEstimateRequestId = 0;
+
+  // Reset payment state
+  isSamplePaid = false;
+  currentTransactionId = null;
+  window.paymentDetails = null;
+
+  // Clear payment-related localStorage
+  localStorage.removeItem("sample_paid");
+
+  // Reset payment modal dataset
+  const paymentModal = document.getElementById("paymentModal");
+  if (paymentModal) {
+    paymentModal.dataset.currentCost = "0";
+  }
+
+  // Clear all estimate UI displays
+  clearEstimateUI();
+
+  console.log("Order state reset - all stale data cleared");
+}
+
+/* ---------------------------
    Clear UI Immediately on Selection Change
 ---------------------------*/
 function clearEstimateUI() {
@@ -530,7 +563,7 @@ async function fetchEstimate(product, category, neck, fabric, size) {
     const data = await resp.json().catch(() => null);
     console.log("Estimate Response Data:", data);
     
-    if (data && data.estimated_price && data.estimated_price > 0) {
+    if (data && typeof data.estimated_price === "number") {
       return data.estimated_price;
     }
     
@@ -2487,6 +2520,9 @@ async function submitOrder(payload) {
    MAIN INITIALIZATION
 ---------------------------*/
 function initNewOrderPage() {
+  // 🔥 Reset all order state FIRST to prevent stale data from previous sessions
+  resetOrderState();
+
   lucide.createIcons();
 
   // Initialize all page components

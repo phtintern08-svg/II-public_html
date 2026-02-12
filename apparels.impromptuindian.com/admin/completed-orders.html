@@ -20,21 +20,77 @@
         <div id="sidebar-container"></div>
         <script src="js/sidebar.js"></script>
 
-        <main class="flex-1 overflow-y-auto p-8">
-            <div class="reveal mb-8 flex items-start justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold">Completed Orders</h1>
-                    <p class="text-gray-400 mt-1">Delivered orders with payout calculations</p>
+        <main class="flex-1 overflow-y-auto p-4 pt-20 md:p-8 md:pt-8">
+            <div class="reveal mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div class="w-full md:w-auto">
+                    <h1 class="text-2xl md:text-3xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
+                        <i data-lucide="check-circle" class="w-6 h-6 md:w-7 md:h-7 text-[#FFCC00]"></i>
+                        Completed Orders
+                    </h1>
+                    <p class="text-gray-400 text-sm md:text-base">Delivered orders with payout calculations</p>
                 </div>
-                <div class="flex gap-4">
-                    <a href="orders.html" class="flex items-center gap-2">
-                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                    <a href="orders.html"
+                        class="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-800/50 text-gray-300 rounded-xl transition-all border border-white/10 hover:border-blue-500/50 hover:bg-gray-800 hover:text-white w-full md:w-auto">
+                        <i data-lucide="arrow-left" class="w-4 h-4 text-blue-400"></i>
                         <span class="text-sm font-semibold tracking-wide uppercase">Back to Orders</span>
                     </a>
-                    <button class="btn-export" id="exportBtn" onclick="exportCSV()">
+                    <button class="btn-export w-full md:w-auto" id="exportBtn" onclick="exportCSV()">
                         <i data-lucide="download" class="w-4 h-4"></i>
                         <span>Export CSV</span>
                     </button>
+                </div>
+            </div>
+
+            <!-- Summary Statistics Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8 reveal" style="transition-delay: 100ms;">
+                <div class="summary-card summary-card-primary">
+                    <div class="summary-icon summary-icon-primary">
+                        <i data-lucide="check-circle" class="w-5 h-5 md:w-6 md:h-6"></i>
+                    </div>
+                    <div class="summary-content">
+                        <p class="summary-label">Total Completed</p>
+                        <p class="summary-value" id="total-completed-count">
+                            <span class="summary-number">0</span>
+                        </p>
+                    </div>
+                    <div class="summary-glow"></div>
+                </div>
+                <div class="summary-card summary-card-success">
+                    <div class="summary-icon summary-icon-success">
+                        <i data-lucide="dollar-sign" class="w-5 h-5 md:w-6 md:h-6"></i>
+                    </div>
+                    <div class="summary-content">
+                        <p class="summary-label">Total Revenue</p>
+                        <p class="summary-value" id="total-revenue">
+                            <span class="summary-number">₹0</span>
+                        </p>
+                    </div>
+                    <div class="summary-glow"></div>
+                </div>
+                <div class="summary-card summary-card-warning">
+                    <div class="summary-icon summary-icon-warning">
+                        <i data-lucide="clock" class="w-5 h-5 md:w-6 md:h-6"></i>
+                    </div>
+                    <div class="summary-content">
+                        <p class="summary-label">Avg Delivery</p>
+                        <p class="summary-value" id="avg-delivery">
+                            <span class="summary-number">0h</span>
+                        </p>
+                    </div>
+                    <div class="summary-glow"></div>
+                </div>
+                <div class="summary-card summary-card-danger">
+                    <div class="summary-icon summary-icon-danger">
+                        <i data-lucide="trending-up" class="w-5 h-5 md:w-6 md:h-6"></i>
+                    </div>
+                    <div class="summary-content">
+                        <p class="summary-label">Total Commission</p>
+                        <p class="summary-value" id="total-commission">
+                            <span class="summary-number">₹0</span>
+                        </p>
+                    </div>
+                    <div class="summary-glow"></div>
                 </div>
             </div>
 
@@ -54,32 +110,75 @@
                     </div>
                 </div>
                 <div class="search-input-wrapper">
-                    <i data-lucide="search" class="w-4 h-4"></i>
-                    <input type="text" id="search-completed" class="search-input" placeholder="Search order ID..."
+                    <i data-lucide="search" class="w-4 h-4 search-icon"></i>
+                    <input type="text" id="search-completed" class="search-input" placeholder="Search by Order ID or Customer name... (Ctrl+K)"
                         oninput="filterCompleted()" autocomplete="off" />
+                    <button class="search-clear hidden" id="search-clear-btn" onclick="clearSearch()" title="Clear search">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
                 </div>
+                <button class="filter-reset-btn" id="filter-reset-btn" onclick="resetFilters()" title="Reset filters">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                    <span class="hidden md:inline">Reset</span>
+                </button>
             </div>
 
             <div class="reveal card" style="transition-delay: 200ms;">
                 <div class="card-header">
-                    <h3 class="card-title">Delivered Orders</h3>
+                    <div class="flex items-center justify-between">
+                        <h3 class="card-title">
+                            <i data-lucide="check-circle" class="w-5 h-5 inline mr-2"></i>
+                            Delivered Orders
+                        </h3>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-gray-400" id="completed-count-display">0 orders</span>
+                            <div class="loading-spinner hidden" id="table-loading">
+                                <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="table-container">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Order ID</th>
-                                    <th>Vendor</th>
-                                    <th>Customer</th>
-                                    <th>Delivery Time (hrs)</th>
-                                    <th>Vendor Payout</th>
-                                    <th>Commission</th>
-                                    <th>Penalty</th>
-                                    <th>Total Earned</th>
+                                    <th class="flex items-center gap-2 rounded-tl-xl">
+                                        <i data-lucide="hash" class="w-3.5 h-3.5"></i> Order ID
+                                    </th>
+                                    <th>
+                                        <i data-lucide="building" class="w-3.5 h-3.5 inline mr-1"></i> Vendor
+                                    </th>
+                                    <th>
+                                        <i data-lucide="user" class="w-3.5 h-3.5 inline mr-1"></i> Customer
+                                    </th>
+                                    <th>
+                                        <i data-lucide="clock" class="w-3.5 h-3.5 inline mr-1"></i> Delivery Time
+                                    </th>
+                                    <th>
+                                        <i data-lucide="dollar-sign" class="w-3.5 h-3.5 inline mr-1"></i> Vendor Payout
+                                    </th>
+                                    <th>
+                                        <i data-lucide="percent" class="w-3.5 h-3.5 inline mr-1"></i> Commission
+                                    </th>
+                                    <th>
+                                        <i data-lucide="alert-triangle" class="w-3.5 h-3.5 inline mr-1"></i> Penalty
+                                    </th>
+                                    <th class="text-right rounded-tr-xl">
+                                        <i data-lucide="trending-up" class="w-3.5 h-3.5 inline mr-1"></i> Total Earned
+                                    </th>
                                 </tr>
                             </thead>
-                            <tbody id="completed-table"></tbody>
+                            <tbody id="completed-table">
+                                <tr>
+                                    <td colspan="8" class="text-center py-12">
+                                        <div class="flex flex-col items-center gap-3">
+                                            <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-blue-400"></i>
+                                            <p class="text-gray-400">Loading completed orders...</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>

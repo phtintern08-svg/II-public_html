@@ -199,6 +199,11 @@ async function logout(event) {
 
   // Clear all auth storage
   localStorage.clear();
+  
+  // Explicitly remove payment-related items (in case localStorage.clear() fails)
+  localStorage.removeItem("sample_paid");
+  localStorage.removeItem("customer_profile");
+  localStorage.removeItem("address_updated_at");
 
   // HARD redirect (cannot be overridden, prevents back button)
   window.location.replace('https://apparels.impromptuindian.com/login.html');

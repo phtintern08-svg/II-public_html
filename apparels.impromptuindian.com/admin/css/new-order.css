@@ -178,7 +178,6 @@ body {
 }
 
 .summary-card:hover .summary-icon {
-    transform: scale(1.1) rotate(5deg);
     box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
@@ -625,6 +624,16 @@ table tbody td:first-child {
     padding: 1rem;
     background: rgba(2, 6, 23, 0.85);
     backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 .modal.hidden {
@@ -654,6 +663,18 @@ table tbody td:first-child {
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .modal-content.modal-large {

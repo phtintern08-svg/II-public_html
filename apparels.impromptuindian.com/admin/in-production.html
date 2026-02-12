@@ -19,62 +19,157 @@
         <div id="sidebar-container"></div>
         <script src="js/sidebar.js"></script>
 
-        <main class="flex-1 overflow-y-auto p-8">
-            <div class="reveal mb-8 flex items-start justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold">In Production</h1>
-                    <p class="text-gray-400 mt-1">Monitor vendor progress and intervene if needed</p>
+        <main class="flex-1 overflow-y-auto p-4 pt-20 md:p-8 md:pt-8">
+            <div class="reveal mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div class="w-full md:w-auto">
+                    <h1 class="text-2xl md:text-3xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
+                        <i data-lucide="factory" class="w-6 h-6 md:w-7 md:h-7 text-[#FFCC00]"></i>
+                        In Production
+                    </h1>
+                    <p class="text-gray-400 text-sm md:text-base">Monitor vendor progress and intervene if needed</p>
                 </div>
-                <div class="flex gap-4">
-                    <a href="orders.html" class="flex items-center gap-2">
-                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                    <a href="orders.html"
+                        class="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-800/50 text-gray-300 rounded-xl transition-all border border-white/10 hover:border-blue-500/50 hover:bg-gray-800 hover:text-white w-full md:w-auto">
+                        <i data-lucide="arrow-left" class="w-4 h-4 text-blue-400"></i>
                         <span class="text-sm font-semibold tracking-wide uppercase">Back to Orders</span>
                     </a>
-                    <button class="btn-refresh" id="refreshBtn" onclick="refreshProduction()">
+                    <button class="btn-refresh w-full md:w-auto" id="refreshBtn" onclick="refreshProduction()">
                         <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
-                        <span>Refresh</span>
+                        <span>Sync Data</span>
                     </button>
                 </div>
             </div>
 
-            <div class="reveal filters-bar mb-6" style="transition-delay: 100ms;">
-                <div class="filter-select-wrapper">
-                    <i data-lucide="filter" class="filter-select-icon"></i>
-                    <select id="stage-filter" class="filter-select" onchange="filterProduction()">
-                        <option value="all">All Stages</option>
-                        <option value="assigned">Assigned</option>
-                        <option value="accepted">Accepted</option>
-                        <option value="material">Material Prep</option>
-                        <option value="print">Printing</option>
-                        <option value="quality">Quality Check</option>
-                        <option value="packed">Packed & Ready</option>
-                    </select>
+            <!-- Summary Statistics Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8 reveal" style="transition-delay: 100ms;">
+                <div class="summary-card summary-card-primary">
+                    <div class="summary-icon summary-icon-primary">
+                        <i data-lucide="package" class="w-5 h-5 md:w-6 md:h-6"></i>
+                    </div>
+                    <div class="summary-content">
+                        <p class="summary-label">Total Orders</p>
+                        <p class="summary-value" id="total-production-count">
+                            <span class="summary-number">0</span>
+                        </p>
+                    </div>
+                    <div class="summary-glow"></div>
                 </div>
-                <div class="search-input-wrapper">
-                    <i data-lucide="search" class="w-4 h-4"></i>
-                    <input type="text" id="search-prod" class="search-input" placeholder="Search order ID..."
-                        oninput="filterProduction()" autocomplete="off" />
+                <div class="summary-card summary-card-warning">
+                    <div class="summary-icon summary-icon-warning">
+                        <i data-lucide="clock" class="w-5 h-5 md:w-6 md:h-6"></i>
+                    </div>
+                    <div class="summary-content">
+                        <p class="summary-label">In Progress</p>
+                        <p class="summary-value" id="in-progress-count">
+                            <span class="summary-number">0</span>
+                        </p>
+                    </div>
+                    <div class="summary-glow"></div>
+                </div>
+                <div class="summary-card summary-card-success">
+                    <div class="summary-icon summary-icon-success">
+                        <i data-lucide="check-circle" class="w-5 h-5 md:w-6 md:h-6"></i>
+                    </div>
+                    <div class="summary-content">
+                        <p class="summary-label">Near Completion</p>
+                        <p class="summary-value" id="near-completion-count">
+                            <span class="summary-number">0</span>
+                        </p>
+                    </div>
+                    <div class="summary-glow"></div>
+                </div>
+                <div class="summary-card summary-card-danger">
+                    <div class="summary-icon summary-icon-danger">
+                        <i data-lucide="alert-triangle" class="w-5 h-5 md:w-6 md:h-6"></i>
+                    </div>
+                    <div class="summary-content">
+                        <p class="summary-label">At Risk</p>
+                        <p class="summary-value" id="at-risk-count">
+                            <span class="summary-number">0</span>
+                        </p>
+                    </div>
+                    <div class="summary-glow"></div>
                 </div>
             </div>
 
-            <div class="reveal card" style="transition-delay: 200ms;">
+            <div class="reveal filters-bar mb-6" style="transition-delay: 200ms;">
+                <div class="search-input-wrapper">
+                    <i data-lucide="search" class="w-4 h-4 search-icon"></i>
+                    <input type="text" id="search-prod" class="search-input" placeholder="Search by Order ID or Vendor name... (Ctrl+K)"
+                        oninput="filterProduction()" autocomplete="off" />
+                    <button class="search-clear hidden" id="search-clear-btn" onclick="clearSearch()" title="Clear search">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <div class="flex gap-3">
+                    <div class="filter-select-wrapper">
+                        <i data-lucide="filter" class="filter-select-icon"></i>
+                        <select id="stage-filter" class="filter-select" onchange="filterProduction()">
+                            <option value="all">All Stages</option>
+                            <option value="assigned">Assigned</option>
+                            <option value="accepted">Accepted</option>
+                            <option value="material">Material Prep</option>
+                            <option value="print">Printing</option>
+                            <option value="quality">Quality Check</option>
+                            <option value="packed">Packed & Ready</option>
+                        </select>
+                    </div>
+                    <button class="filter-reset-btn" id="filter-reset-btn" onclick="resetFilters()" title="Reset filters">
+                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                        <span class="hidden md:inline">Reset</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="reveal card" style="transition-delay: 300ms;">
                 <div class="card-header">
-                    <h3 class="card-title">Production Orders</h3>
+                    <div class="flex items-center justify-between">
+                        <h3 class="card-title">
+                            <i data-lucide="factory" class="w-5 h-5 inline mr-2"></i>
+                            Production Orders
+                        </h3>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-gray-400" id="production-count-display">0 orders</span>
+                            <div class="loading-spinner hidden" id="table-loading">
+                                <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="table-container">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Order ID</th>
-                                    <th>Vendor</th>
-                                    <th>Current Stage</th>
-                                    <th>Deadline</th>
-                                    <th>Progress</th>
-                                    <th class="text-right">Actions</th>
+                                    <th class="flex items-center gap-2 rounded-tl-xl">
+                                        <i data-lucide="hash" class="w-3.5 h-3.5"></i> Order ID
+                                    </th>
+                                    <th>
+                                        <i data-lucide="building" class="w-3.5 h-3.5 inline mr-1"></i> Vendor
+                                    </th>
+                                    <th>
+                                        <i data-lucide="activity" class="w-3.5 h-3.5 inline mr-1"></i> Current Stage
+                                    </th>
+                                    <th>
+                                        <i data-lucide="calendar" class="w-3.5 h-3.5 inline mr-1"></i> Deadline
+                                    </th>
+                                    <th>
+                                        <i data-lucide="trending-up" class="w-3.5 h-3.5 inline mr-1"></i> Progress
+                                    </th>
+                                    <th class="text-right rounded-tr-xl">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="production-table"></tbody>
+                            <tbody id="production-table">
+                                <tr>
+                                    <td colspan="6" class="text-center py-12">
+                                        <div class="flex flex-col items-center gap-3">
+                                            <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-blue-400"></i>
+                                            <p class="text-gray-400">Loading production orders...</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>

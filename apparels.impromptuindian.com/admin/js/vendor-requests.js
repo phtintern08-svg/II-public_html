@@ -20,6 +20,7 @@ function showToast(msg) {
 }
 
 let requests = [];
+let filteredRequests = [];
 let currentVendorId = null;
 
 // Normalize status values for UI consistency
@@ -29,7 +30,70 @@ function normalizeStatus(status) {
   return status;
 }
 
+// Animate number from 0 to target
+function animateNumber(element, target, duration = 1000) {
+  if (!element) return;
+  const start = 0;
+  const startTime = performance.now();
+  
+  function update(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+    const current = Math.floor(start + (target - start) * easeOutQuart);
+    
+    element.textContent = current.toLocaleString();
+    
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    } else {
+      element.textContent = target.toLocaleString();
+    }
+  }
+  
+  requestAnimationFrame(update);
+}
+
+// Calculate and update summary statistics
+function calculateSummary() {
+  const total = requests.length;
+  const pending = requests.filter(r => normalizeStatus(r.status) === 'pending').length;
+  const approved = requests.filter(r => normalizeStatus(r.status) === 'approved').length;
+  const rejected = requests.filter(r => normalizeStatus(r.status) === 'rejected').length;
+  
+  // Animate numbers
+  const totalEl = document.querySelector('#total-requests-count .summary-number');
+  const pendingEl = document.querySelector('#pending-requests-count .summary-number');
+  const approvedEl = document.querySelector('#approved-requests-count .summary-number');
+  const rejectedEl = document.querySelector('#rejected-requests-count .summary-number');
+  
+  if (totalEl) animateNumber(totalEl, total);
+  if (pendingEl) animateNumber(pendingEl, pending);
+  if (approvedEl) animateNumber(approvedEl, approved);
+  if (rejectedEl) animateNumber(rejectedEl, rejected);
+}
+
 async function fetchRequests() {
+  const tbody = document.getElementById('requests-table');
+  const loadingSpinner = document.getElementById('table-loading');
+  
+  // Show loading state
+  if (tbody) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="text-center py-12">
+          <div class="flex flex-col items-center gap-3">
+            <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-blue-400"></i>
+            <p class="text-gray-400">Loading vendor requests...</p>
+          </div>
+        </td>
+      </tr>
+    `;
+    if (window.lucide) lucide.createIcons();
+  }
+  
+  if (loadingSpinner) loadingSpinner.classList.remove('hidden');
+  
   try {
     const response = await ImpromptuIndianApi.fetch('/api/admin/vendor-requests', {
       credentials: 'include'  // Use cookie-based authentication
@@ -54,23 +118,106 @@ async function fetchRequests() {
     }));
     
     console.log('Fetched requests:', requests);
-    renderRequests();
+    calculateSummary();
+    filterRequests();
   } catch (e) {
     console.error(e);
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="text-center py-12">
+            <div class="flex flex-col items-center gap-3">
+              <i data-lucide="alert-circle" class="w-8 h-8 text-red-400"></i>
+              <p class="text-gray-400">Failed to load vendor requests</p>
+              <button onclick="fetchRequests()" class="btn-secondary mt-2">
+                <i data-lucide="refresh-ccw" class="w-4 h-4"></i> Retry
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+      if (window.lucide) lucide.createIcons();
+    }
     showToast('Error loading requests');
+  } finally {
+    if (loadingSpinner) loadingSpinner.classList.add('hidden');
   }
+}
+
+// Refresh requests
+function refreshRequests() {
+  const refreshBtn = document.getElementById('refreshBtn');
+  if (refreshBtn) {
+    const icon = refreshBtn.querySelector('i[data-lucide]');
+    if (icon) {
+      icon.style.animation = 'spin 1s linear infinite';
+    }
+  }
+  fetchRequests().finally(() => {
+    if (refreshBtn) {
+      const icon = refreshBtn.querySelector('i[data-lucide]');
+      if (icon) {
+        icon.style.animation = '';
+      }
+    }
+  });
 }
 
 function renderRequests() {
   const tbody = document.getElementById('requests-table');
+  const countDisplay = document.getElementById('requests-count-display');
+  
+  if (!tbody) return;
+  
   tbody.innerHTML = '';
 
-  if (requests.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">No pending requests</td></tr>';
+  if (filteredRequests.length === 0) {
+    const searchTerm = document.getElementById('search-vendor')?.value || '';
+    const statusFilter = document.getElementById('status-filter')?.value || 'all';
+    
+    let emptyMessage = '';
+    let emptyIcon = 'inbox';
+    
+    if (requests.length === 0) {
+      emptyMessage = 'No vendor requests found';
+      emptyIcon = 'inbox';
+    } else if (searchTerm || statusFilter !== 'all') {
+      emptyMessage = 'No requests match your filters';
+      emptyIcon = 'search-x';
+    } else {
+      emptyMessage = 'No vendor requests found';
+      emptyIcon = 'inbox';
+    }
+    
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="text-center py-16">
+          <div class="flex flex-col items-center gap-4">
+            <div class="w-16 h-16 rounded-full bg-gray-800/50 flex items-center justify-center">
+              <i data-lucide="${emptyIcon}" class="w-8 h-8 text-gray-500"></i>
+            </div>
+            <div class="text-center">
+              <p class="text-gray-400 font-medium mb-1">${emptyMessage}</p>
+              ${requests.length === 0 ? '' : '<p class="text-gray-500 text-sm">Try adjusting your search or filters</p>'}
+            </div>
+            ${requests.length === 0 ? '' : `
+              <button onclick="resetFilters()" class="btn-secondary">
+                <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Clear Filters
+              </button>
+            `}
+          </div>
+        </td>
+      </tr>
+    `;
+    if (window.lucide) lucide.createIcons();
+    
+    if (countDisplay) {
+      countDisplay.textContent = '0 requests';
+    }
     return;
   }
 
-  requests.forEach(r => {
+  filteredRequests.forEach(r => {
     // Check if documents exist
     const hasDocs = r.documents && Object.keys(r.documents).length > 0;
     const status = normalizeStatus(r.status);
@@ -79,48 +226,85 @@ function renderRequests() {
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${r.name || 'Unknown'}</td>
+      <td>
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white text-xs font-bold">
+            ${(r.name || 'U').charAt(0).toUpperCase()}
+          </div>
+          <span class="font-semibold">${r.name || 'Unknown'}</span>
+        </div>
+      </td>
       <td>${r.businessType || 'N/A'}</td>
       <td>${r.submitted || 'N/A'}</td>
       <td><span class="doc-status ${statusClass}">${statusDisplay}</span></td>
       <td class="text-right">
-        <button class="btn-primary" onclick="openVendorModal(${r.id})"><i data-lucide="eye" class="w-4 h-4"></i></button>
+        <button class="btn-primary" onclick="openVendorModal(${r.id})" title="View Details">
+          <i data-lucide="eye" class="w-4 h-4"></i>
+          <span class="hidden sm:inline ml-1">View</span>
+        </button>
       </td>
     `;
     tbody.appendChild(tr);
   });
+  
   if (window.lucide) lucide.createIcons();
+  
+  if (countDisplay) {
+    const count = filteredRequests.length;
+    const total = requests.length;
+    countDisplay.textContent = `${count} ${count === 1 ? 'request' : 'requests'}${count !== total ? ` of ${total}` : ''}`;
+  }
 }
 
 function filterRequests() {
-  const status = document.getElementById('status-filter').value;
-  const term = document.getElementById('search-vendor').value.toLowerCase();
-  const filtered = requests.filter(r => {
+  const status = document.getElementById('status-filter')?.value || 'all';
+  const searchInput = document.getElementById('search-vendor');
+  const term = searchInput?.value.toLowerCase().trim() || '';
+  const clearBtn = document.getElementById('search-clear-btn');
+  
+  // Show/hide clear button
+  if (clearBtn) {
+    if (term) {
+      clearBtn.classList.remove('hidden');
+    } else {
+      clearBtn.classList.add('hidden');
+    }
+  }
+  
+  filteredRequests = requests.filter(r => {
     const normalizedStatus = normalizeStatus(r.status);
     const matchStatus = status === 'all' || normalizedStatus === status;
     // Safe access to prevent crashes
     const matchTerm = 
       (r.name || '').toLowerCase().includes(term) || 
-      (r.businessType || '').toLowerCase().includes(term);
+      (r.businessType || '').toLowerCase().includes(term) ||
+      (r.contact?.email || '').toLowerCase().includes(term) ||
+      (r.contact?.phone || '').includes(term);
     return matchStatus && matchTerm;
   });
-  const tbody = document.getElementById('requests-table');
-  tbody.innerHTML = '';
-  filtered.forEach(r => {
-    const status = normalizeStatus(r.status);
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${r.name || 'Unknown'}</td>
-      <td>${r.businessType || 'N/A'}</td>
-      <td>${r.submitted || 'N/A'}</td>
-      <td><span class="doc-status ${status}">${status}</span></td>
-      <td class="text-right">
-        <button class="btn-primary" onclick="openVendorModal(${r.id})"><i data-lucide="eye" class="w-4 h-4"></i></button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-  if (window.lucide) lucide.createIcons();
+  
+  renderRequests();
+}
+
+function clearSearch() {
+  const searchInput = document.getElementById('search-vendor');
+  if (searchInput) {
+    searchInput.value = '';
+    filterRequests();
+    searchInput.focus();
+  }
+}
+
+function resetFilters() {
+  const searchInput = document.getElementById('search-vendor');
+  const statusFilter = document.getElementById('status-filter');
+  
+  if (searchInput) searchInput.value = '';
+  if (statusFilter) statusFilter.value = 'all';
+  
+  filterRequests();
+  
+  if (searchInput) searchInput.focus();
 }
 
 function openVendorModal(id) {
@@ -561,8 +745,79 @@ function closePreviewModal() {
   if (m) m.remove();
 }
 
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  // Ctrl+K or Cmd+K to focus search
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    const searchInput = document.getElementById('search-vendor');
+    if (searchInput) {
+      searchInput.focus();
+      searchInput.select();
+    }
+  }
+  
+  // Escape to close modal
+  if (e.key === 'Escape') {
+    const modal = document.getElementById('vendor-modal');
+    if (modal && !modal.classList.contains('hidden')) {
+      closeVendorModal();
+    }
+    const previewModal = document.getElementById('previewModal');
+    if (previewModal) {
+      closePreviewModal();
+    }
+  }
+});
+
+// Reveal animations on scroll
+function onScroll() {
+  document.querySelectorAll('.reveal').forEach(el => {
+    const top = el.getBoundingClientRect().top;
+    if (top < window.innerHeight - 100) {
+      el.classList.add('show');
+    }
+  });
+}
+
+// Initialize on page load
 window.addEventListener('DOMContentLoaded', () => {
-  fetchRequests();
+  // Initialize Lucide icons
+  if (window.lucide) {
+    lucide.createIcons();
+  }
+  
+  // Trigger reveal animations
   onScroll();
   window.addEventListener('scroll', onScroll);
+  
+  // Initial reveal for elements in viewport
+  setTimeout(() => {
+    document.querySelectorAll('.reveal').forEach(el => {
+      const top = el.getBoundingClientRect().top;
+      if (top < window.innerHeight) {
+        el.classList.add('show');
+      }
+    });
+  }, 100);
+  
+  // Fetch requests
+  fetchRequests();
+  
+  // Add search input event listeners
+  const searchInput = document.getElementById('search-vendor');
+  if (searchInput) {
+    searchInput.addEventListener('input', filterRequests);
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        clearSearch();
+      }
+    });
+  }
+  
+  // Add status filter event listener
+  const statusFilter = document.getElementById('status-filter');
+  if (statusFilter) {
+    statusFilter.addEventListener('change', filterRequests);
+  }
 });

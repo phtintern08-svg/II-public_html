@@ -139,16 +139,72 @@ async function fetchOrders() {
 
 let currentOrderId = null;
 
+// Animate number counting up
+function animateNumber(element, target, duration = 1000) {
+  if (!element) return;
+  const start = 0;
+  const increment = target / (duration / 16);
+  let current = start;
+  
+  const timer = setInterval(() => {
+    current += increment;
+    if (current >= target) {
+      current = target;
+      clearInterval(timer);
+    }
+    element.textContent = Math.floor(current);
+  }, 16);
+}
+
+// Animate currency value
+function animateCurrency(element, target, duration = 1000) {
+  if (!element) return;
+  const start = 0;
+  const increment = target / (duration / 16);
+  let current = start;
+  
+  const timer = setInterval(() => {
+    current += increment;
+    if (current >= target) {
+      current = target;
+      clearInterval(timer);
+    }
+    element.textContent = `₹${Math.floor(current).toLocaleString()}`;
+  }, 16);
+}
+
 function calculateSummary() {
   const total = orders.length;
   const unassigned = orders.filter(o => o.status === 'unassigned').length;
   const escrow = orders.reduce((sum, o) => sum + o.amount, 0);
   const urgent = orders.filter(o => o.urgent).length;
 
-  document.getElementById('total-orders').textContent = total;
-  document.getElementById('unassigned-orders').textContent = unassigned;
-  document.getElementById('escrow-amount').textContent = `₹${escrow.toLocaleString()}`;
-  document.getElementById('urgent-orders').textContent = urgent;
+  const totalEl = document.getElementById('total-orders');
+  const unassignedEl = document.getElementById('unassigned-orders');
+  const escrowEl = document.getElementById('escrow-amount');
+  const urgentEl = document.getElementById('urgent-orders');
+
+  if (totalEl) {
+    const numberEl = totalEl.querySelector('.summary-number');
+    if (numberEl) animateNumber(numberEl, total);
+  }
+  if (unassignedEl) {
+    const numberEl = unassignedEl.querySelector('.summary-number');
+    if (numberEl) animateNumber(numberEl, unassigned);
+  }
+  if (escrowEl) {
+    const numberEl = escrowEl.querySelector('.summary-number');
+    if (numberEl) {
+      numberEl.textContent = `₹${escrow.toLocaleString()}`;
+    } else {
+      // If no .summary-number, update the parent element
+      escrowEl.textContent = `₹${escrow.toLocaleString()}`;
+    }
+  }
+  if (urgentEl) {
+    const numberEl = urgentEl.querySelector('.summary-number');
+    if (numberEl) animateNumber(numberEl, urgent);
+  }
 }
 
 function renderOrders(ordersToRender = orders) {
@@ -161,13 +217,26 @@ function renderOrders(ordersToRender = orders) {
 
   // Handle empty state
   if (!ordersToRender || ordersToRender.length === 0) {
+    const hasFilters = document.getElementById('status-filter')?.value !== 'all' || 
+                      document.getElementById('search-order')?.value.trim() !== '';
+    
     const emptyState = `
       <tr>
-        <td colspan="8" class="text-center py-12 text-gray-400">
-          <div class="flex flex-col items-center gap-3">
-            <i data-lucide="package-open" class="w-12 h-12 opacity-50"></i>
-            <p class="text-lg font-medium">No orders found</p>
-            <p class="text-sm text-gray-500">Try adjusting your filters or search terms</p>
+        <td colspan="8" class="text-center py-16 text-gray-400">
+          <div class="flex flex-col items-center gap-4">
+            <div class="w-20 h-20 rounded-full bg-gray-800/50 flex items-center justify-center">
+              <i data-lucide="package-open" class="w-10 h-10 opacity-50"></i>
+            </div>
+            <div class="text-center">
+              <p class="text-xl font-semibold text-gray-300 mb-2">${hasFilters ? 'No matching orders' : 'No new orders'}</p>
+              <p class="text-sm text-gray-500">${hasFilters ? 'Try adjusting your filters or search terms' : 'Orders paid by customers will appear here'}</p>
+            </div>
+            ${hasFilters ? `
+              <button onclick="resetFilters()" class="mt-2 px-4 py-2 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 rounded-lg text-sm font-medium transition-colors border border-blue-500/20">
+                <i data-lucide="rotate-ccw" class="w-4 h-4 inline mr-2"></i>
+                Reset Filters
+              </button>
+            ` : ''}
           </div>
         </td>
       </tr>`;
@@ -175,10 +244,20 @@ function renderOrders(ordersToRender = orders) {
     if (tbody) tbody.innerHTML = emptyState;
     if (mobileContainer) {
       mobileContainer.innerHTML = `
-        <div class="text-center py-12 text-gray-400 flex flex-col items-center gap-3">
-          <i data-lucide="package-open" class="w-12 h-12 opacity-50"></i>
-          <p class="text-lg font-medium">No orders found</p>
-          <p class="text-sm text-gray-500">Try adjusting your filters or search terms</p>
+        <div class="text-center py-16 text-gray-400 flex flex-col items-center gap-4">
+          <div class="w-20 h-20 rounded-full bg-gray-800/50 flex items-center justify-center">
+            <i data-lucide="package-open" class="w-10 h-10 opacity-50"></i>
+          </div>
+          <div class="text-center">
+            <p class="text-xl font-semibold text-gray-300 mb-2">${hasFilters ? 'No matching orders' : 'No new orders'}</p>
+            <p class="text-sm text-gray-500">${hasFilters ? 'Try adjusting your filters or search terms' : 'Orders paid by customers will appear here'}</p>
+          </div>
+          ${hasFilters ? `
+            <button onclick="resetFilters()" class="mt-2 px-4 py-2 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 rounded-lg text-sm font-medium transition-colors border border-blue-500/20">
+              <i data-lucide="rotate-ccw" class="w-4 h-4 inline mr-2"></i>
+              Reset Filters
+            </button>
+          ` : ''}
         </div>`;
     }
     if (window.lucide) lucide.createIcons();
@@ -517,6 +596,29 @@ function onScroll() {
   });
 }
 
+// Keyboard shortcuts
+function setupKeyboardShortcuts() {
+  document.addEventListener('keydown', (e) => {
+    // Ctrl/Cmd + K to focus search
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      const searchInput = document.getElementById('search-order');
+      if (searchInput) {
+        searchInput.focus();
+        searchInput.select();
+      }
+    }
+    
+    // Escape to close modal
+    if (e.key === 'Escape') {
+      const modal = document.getElementById('order-modal');
+      if (modal && !modal.classList.contains('hidden')) {
+        closeOrderModal();
+      }
+    }
+  });
+}
+
 window.addEventListener('DOMContentLoaded', async () => {
   // Show all reveal elements immediately (they're already in view on page load)
   requestAnimationFrame(() => {
@@ -524,6 +626,9 @@ window.addEventListener('DOMContentLoaded', async () => {
       el.classList.add('show');
     });
   });
+
+  // Set up keyboard shortcuts
+  setupKeyboardShortcuts();
 
   // Set up search input event listeners
   const searchInput = document.getElementById('search-order');
