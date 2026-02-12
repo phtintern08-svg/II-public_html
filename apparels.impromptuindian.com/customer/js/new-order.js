@@ -110,11 +110,13 @@ function initDropdowns() {
 
           // Trigger estimate check when any relevant dropdown changes
           if (['product-type', 'fabric-type', 'sample-size'].includes(wrapper.dataset.name)) {
+            clearEstimateUI(); // Clear UI immediately before fetching new estimate
             checkEstimate();
           }
 
           // Trigger MODAL estimate check (for old modal)
           if (wrapper.dataset.name === 'modal-sample-size') {
+            clearEstimateUI(); // Clear UI immediately before fetching new estimate
             checkModalEstimate();
           }
         });
@@ -286,9 +288,66 @@ const NECK_TYPE_MAP = {
 ---------------------------*/
 
 /* ---------------------------
+   Request Guard - Prevent Stale Responses
+---------------------------*/
+let currentEstimateRequestId = 0;
+let currentModalEstimateRequestId = 0;
+let currentGatewayEstimateRequestId = 0;
+
+/* ---------------------------
+   Clear UI Immediately on Selection Change
+---------------------------*/
+function clearEstimateUI() {
+  const displayEl = document.getElementById("estimatedPriceDisplay");
+  const sampleCostDisplay = document.getElementById("sampleCostDisplay");
+  const sampleCostInput = document.getElementById("sampleCostInput");
+  const samplePaymentCard = document.getElementById("samplePaymentCard");
+  const containerEl = document.getElementById("estimatedCostContainer");
+  const gatewaySample = document.getElementById("gatewaySampleCost");
+  const gatewayTotal = document.getElementById("gatewayTotalPayable");
+  const gatewayEstTotal = document.getElementById("gatewayEstTotalCost");
+  const modalCostDisplay = document.getElementById("modalCostDisplay");
+  const modalPayBtn = document.getElementById("modalPayBtn");
+  const placeOrderBtn = document.getElementById("placeOrderBtn");
+
+  // Clear main estimate
+  if (displayEl) displayEl.textContent = "--";
+  if (sampleCostDisplay) sampleCostDisplay.textContent = "--";
+  if (sampleCostInput) sampleCostInput.value = "";
+  if (samplePaymentCard) samplePaymentCard.classList.add("hidden");
+  if (containerEl) {
+    containerEl.classList.add("border-gray-700");
+    containerEl.classList.remove("border-[#FFCC00]");
+  }
+
+  // Clear gateway estimate
+  if (gatewaySample) gatewaySample.textContent = "--";
+  if (gatewayTotal) gatewayTotal.textContent = "--";
+  if (gatewayEstTotal) gatewayEstTotal.textContent = "--";
+  document.querySelectorAll('.pay-amount-display').forEach(el => el.textContent = '--');
+  if (document.getElementById("paymentModal")) {
+    document.getElementById("paymentModal").dataset.currentCost = "0";
+  }
+
+  // Clear modal estimate
+  if (modalCostDisplay) modalCostDisplay.textContent = "--";
+  if (modalPayBtn) modalPayBtn.dataset.cost = "0";
+
+  // Disable pay buttons
+  if (placeOrderBtn) placeOrderBtn.disabled = true;
+  if (modalPayBtn) modalPayBtn.disabled = true;
+  const payButtons = document.querySelectorAll('[id*="pay"], [id*="Pay"], .pay-button');
+  payButtons.forEach(btn => {
+    if (btn) btn.disabled = true;
+  });
+}
+
+/* ---------------------------
    Check Price Estimate (MAIN & MODAL)
 ---------------------------*/
 async function checkEstimate() {
+  const requestId = ++currentEstimateRequestId;
+  
   const productType = document.querySelector('.custom-select[data-name="product-type"] select').value;
   const fabric = document.querySelector('.custom-select[data-name="fabric-type"] select').value;
   const sampleSize = document.querySelector('.custom-select[data-name="sample-size"] select')?.value;
@@ -301,9 +360,9 @@ async function checkEstimate() {
   const sampleCostInput = document.getElementById("sampleCostInput");
   const samplePaymentCard = document.getElementById("samplePaymentCard");
 
-
   if (!displayEl && !sampleCostDisplay) return;
 
+  // Clear UI immediately
   if (displayEl) {
     if (!productType || !selectedCategory || !sampleSize) {
       displayEl.textContent = "--";
@@ -321,6 +380,12 @@ async function checkEstimate() {
 
   try {
     const cost = await fetchEstimate(productType, selectedCategory, selectedNeckType, fabric, sampleSize);
+
+    // Ignore stale responses
+    if (requestId !== currentEstimateRequestId) {
+      console.log("Ignoring stale estimate response (requestId:", requestId, "current:", currentEstimateRequestId, ")");
+      return;
+    }
 
     if (cost > 0) {
       if (displayEl) displayEl.textContent = `₹${cost}`;
@@ -343,12 +408,19 @@ async function checkEstimate() {
       }
     }
   } catch (error) {
+    // Ignore errors from stale requests
+    if (requestId !== currentEstimateRequestId) {
+      console.log("Ignoring error from stale estimate request");
+      return;
+    }
     console.error("Error fetching estimate:", error);
     if (displayEl) displayEl.textContent = "Error";
   }
 }
 
 async function checkModalEstimate() {
+  const requestId = ++currentModalEstimateRequestId;
+  
   const productType = document.querySelector('.custom-select[data-name="product-type"] select').value;
   const fabric = document.querySelector('.custom-select[data-name="fabric-type"] select').value;
 
@@ -356,6 +428,7 @@ async function checkModalEstimate() {
   const modalSampleSize = document.querySelector('.custom-select[data-name="modal-sample-size"] select')?.value;
 
   const modalCostDisplay = document.getElementById("modalCostDisplay");
+  const modalPayBtn = document.getElementById("modalPayBtn");
 
   if (!modalCostDisplay) return;
 
@@ -369,23 +442,52 @@ async function checkModalEstimate() {
   if (!productType || !selectedCategory || !modalSampleSize) {
     console.warn("checkModalEstimate - Missing required fields, showing --");
     modalCostDisplay.textContent = "--";
+    if (modalPayBtn) {
+      modalPayBtn.dataset.cost = "0";
+      modalPayBtn.disabled = true;
+    }
     return;
   }
 
+  // Clear UI immediately
   modalCostDisplay.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-[#FFCC00]"></i>';
+  if (modalPayBtn) modalPayBtn.disabled = true;
   lucide.createIcons();
 
   try {
     const cost = await fetchEstimate(productType, selectedCategory, selectedNeckType, fabric, modalSampleSize);
+    
+    // Ignore stale responses
+    if (requestId !== currentModalEstimateRequestId) {
+      console.log("Ignoring stale modal estimate response (requestId:", requestId, "current:", currentModalEstimateRequestId, ")");
+      return;
+    }
+    
     if (cost > 0) {
-      modalCostDisplay.textContent = `?${cost}`;
+      modalCostDisplay.textContent = `₹${cost}`;
       // Store it for payment
-      document.getElementById("modalPayBtn").dataset.cost = cost;
+      if (modalPayBtn) {
+        modalPayBtn.dataset.cost = cost;
+        modalPayBtn.disabled = false;
+      }
     } else {
       modalCostDisplay.textContent = "N/A";
+      if (modalPayBtn) {
+        modalPayBtn.dataset.cost = "0";
+        modalPayBtn.disabled = true;
+      }
     }
   } catch (e) {
+    // Ignore errors from stale requests
+    if (requestId !== currentModalEstimateRequestId) {
+      console.log("Ignoring error from stale modal estimate request");
+      return;
+    }
     modalCostDisplay.textContent = "Error";
+    if (modalPayBtn) {
+      modalPayBtn.dataset.cost = "0";
+      modalPayBtn.disabled = true;
+    }
   }
 }
 
@@ -477,6 +579,7 @@ function selectCategory(cardEl, label) {
   cardEl.classList.add("selected");
   selectedCategory = label;
 
+  clearEstimateUI(); // Clear UI immediately before fetching new estimate
   renderNeckTypes(label);
   checkEstimate();
 }
@@ -521,6 +624,7 @@ function selectNeckType(cardEl, label) {
 
   cardEl.classList.add("selected");
   selectedNeckType = label;
+  clearEstimateUI(); // Clear UI immediately before fetching new estimate
   checkEstimate();
 }
 
@@ -1910,6 +2014,8 @@ window.switchPaymentTab = function (method) {
 };
 
 async function checkGatewayEstimate() {
+  const requestId = ++currentGatewayEstimateRequestId;
+  
   const productType = document.querySelector('.custom-select[data-name="product-type"] select').value;
   const fabric = document.querySelector('.custom-select[data-name="fabric-type"] select').value;
   const modalSampleSize = document.querySelector('.custom-select[data-name="modal-sample-size"] select')?.value;
@@ -1917,6 +2023,8 @@ async function checkGatewayEstimate() {
   const gatewaySample = document.getElementById("gatewaySampleCost");
   const gatewayTotal = document.getElementById("gatewayTotalPayable");
   const gatewayEstTotal = document.getElementById("gatewayEstTotalCost");
+  const paymentModal = document.getElementById("paymentModal");
+  const placeOrderBtn = document.getElementById("placeOrderBtn");
 
   if (!gatewayTotal) return;
 
@@ -1930,15 +2038,32 @@ async function checkGatewayEstimate() {
   if (!productType || !selectedCategory || !modalSampleSize) {
     console.warn("checkGatewayEstimate - Missing required fields, showing --");
     gatewayTotal.textContent = "--";
+    if (gatewaySample) gatewaySample.textContent = "--";
+    if (gatewayEstTotal) gatewayEstTotal.textContent = "--";
     document.querySelectorAll('.pay-amount-display').forEach(el => el.textContent = '--');
+    if (paymentModal) paymentModal.dataset.currentCost = "0";
+    if (placeOrderBtn) placeOrderBtn.disabled = true;
     return;
   }
 
+  // Clear UI immediately
   gatewayTotal.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-[#FFCC00]"></i>';
+  if (gatewaySample) gatewaySample.textContent = "--";
+  if (gatewayEstTotal) gatewayEstTotal.textContent = "--";
+  document.querySelectorAll('.pay-amount-display').forEach(el => el.textContent = '--');
+  if (paymentModal) paymentModal.dataset.currentCost = "0";
+  if (placeOrderBtn) placeOrderBtn.disabled = true;
   lucide.createIcons();
 
   try {
     const cost = await fetchEstimate(productType, selectedCategory, selectedNeckType, fabric, modalSampleSize);
+    
+    // Ignore stale responses
+    if (requestId !== currentGatewayEstimateRequestId) {
+      console.log("Ignoring stale gateway estimate response (requestId:", requestId, "current:", currentGatewayEstimateRequestId, ")");
+      return;
+    }
+    
     const displayCost = cost > 0 ? `₹${cost}` : "N/A";
 
     if (gatewaySample) gatewaySample.textContent = displayCost;
@@ -1946,10 +2071,25 @@ async function checkGatewayEstimate() {
     if (gatewayEstTotal) gatewayEstTotal.textContent = cost > 0 ? `Approx. ₹${cost * (document.getElementById("totalQuantity").value || 50)}` : "--";
 
     document.querySelectorAll('.pay-amount-display').forEach(el => el.textContent = displayCost);
-    document.getElementById("paymentModal").dataset.currentCost = cost > 0 ? cost : 0;
+    if (paymentModal) paymentModal.dataset.currentCost = cost > 0 ? cost : 0;
+    
+    // Enable pay button only if we have a valid cost
+    if (placeOrderBtn && cost > 0) {
+      placeOrderBtn.disabled = false;
+    }
 
   } catch (e) {
+    // Ignore errors from stale requests
+    if (requestId !== currentGatewayEstimateRequestId) {
+      console.log("Ignoring error from stale gateway estimate request");
+      return;
+    }
     gatewayTotal.textContent = "Error";
+    if (gatewaySample) gatewaySample.textContent = "Error";
+    if (gatewayEstTotal) gatewayEstTotal.textContent = "Error";
+    document.querySelectorAll('.pay-amount-display').forEach(el => el.textContent = 'Error');
+    if (paymentModal) paymentModal.dataset.currentCost = "0";
+    if (placeOrderBtn) placeOrderBtn.disabled = true;
   }
 }
 
@@ -2187,6 +2327,7 @@ function initPlaceOrder() {
       // Call estimate after a small delay to ensure DOM is ready
       setTimeout(() => {
         if (typeof checkGatewayEstimate === 'function') {
+          clearEstimateUI(); // Clear UI immediately before fetching new estimate
           checkGatewayEstimate();
         }
       }, 100);
