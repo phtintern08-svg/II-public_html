@@ -345,7 +345,15 @@ async function checkModalEstimate() {
 
   if (!modalCostDisplay) return;
 
+  // Debug logging
+  console.log("checkModalEstimate - SelectedCategory:", selectedCategory);
+  console.log("checkModalEstimate - SelectedNeckType:", selectedNeckType);
+  console.log("checkModalEstimate - ProductType:", productType);
+  console.log("checkModalEstimate - Fabric:", fabric);
+  console.log("checkModalEstimate - ModalSampleSize:", modalSampleSize);
+
   if (!productType || !selectedCategory || !modalSampleSize) {
+    console.warn("checkModalEstimate - Missing required fields, showing --");
     modalCostDisplay.textContent = "--";
     return;
   }
@@ -369,13 +377,17 @@ async function checkModalEstimate() {
 
 // Helper to fetch estimate
 async function fetchEstimate(product, category, neck, fabric, size) {
+  // Don't send default values - send empty string/null to match NULL in DB
   const payload = {
     product_type: product,
     category: category,
-    neck_type: neck || "Standard",
-    fabric: fabric || "Cotton",
+    neck_type: neck || null,  // Send null instead of "Standard" to match NULL in DB
+    fabric: fabric || null,  // Send null instead of "Cotton" to match NULL in DB
     size: size
   };
+
+  // Debug logging
+  console.log("Estimate Payload:", payload);
 
   try {
     const resp = await window.ImpromptuIndianApi.fetch("/api/estimate-price", {
@@ -384,10 +396,23 @@ async function fetchEstimate(product, category, neck, fabric, size) {
       body: JSON.stringify(payload)
     });
 
-    if (!resp.ok) return 0;
+    console.log("Estimate Response Status:", resp.status);
+    
+    if (!resp.ok) {
+      const text = await resp.text();
+      console.error("Estimate API Error Response:", text);
+      return 0;
+    }
 
     const data = await resp.json().catch(() => null);
-    return data?.estimated_price > 0 ? data.estimated_price : 0;
+    console.log("Estimate Response Data:", data);
+    
+    if (data && data.estimated_price && data.estimated_price > 0) {
+      return data.estimated_price;
+    }
+    
+    console.warn("No valid price in response:", data);
+    return 0;
   } catch (error) {
     console.error("Estimate API error:", error);
     return 0;
@@ -1874,7 +1899,15 @@ async function checkGatewayEstimate() {
 
   if (!gatewayTotal) return;
 
+  // Debug logging
+  console.log("checkGatewayEstimate - SelectedCategory:", selectedCategory);
+  console.log("checkGatewayEstimate - SelectedNeckType:", selectedNeckType);
+  console.log("checkGatewayEstimate - ProductType:", productType);
+  console.log("checkGatewayEstimate - Fabric:", fabric);
+  console.log("checkGatewayEstimate - ModalSampleSize:", modalSampleSize);
+
   if (!productType || !selectedCategory || !modalSampleSize) {
+    console.warn("checkGatewayEstimate - Missing required fields, showing --");
     gatewayTotal.textContent = "--";
     document.querySelectorAll('.pay-amount-display').forEach(el => el.textContent = '--');
     return;
@@ -2094,6 +2127,15 @@ function initPlaceOrder() {
 
     /* 6. PAYMENT CHECK */
     if (!isSamplePaid) {
+      // Debug: Ensure selectedCategory and selectedNeckType are set
+      console.log("Opening payment modal - SelectedCategory:", selectedCategory);
+      console.log("Opening payment modal - SelectedNeckType:", selectedNeckType);
+      
+      if (!selectedCategory) {
+        showAlert("Missing Selection", "Please select a product category before proceeding to payment.", "error");
+        return;
+      }
+
       // OPEN GATEWAY
       const paymentModal = document.getElementById("paymentModal");
       paymentModal.classList.remove("hidden");
@@ -2117,11 +2159,17 @@ function initPlaceOrder() {
             if (sel) sel.value = mainSampleSize;
             const disp = modalSelectWrapper.querySelector('.trigger .value');
             if (disp) disp.textContent = mainSampleSize;
-            // Use checkGatewayEstimate for payment gateway modal
-            if (typeof checkGatewayEstimate === 'function') checkGatewayEstimate();
           }
         }
       }
+      
+      // Call estimate after a small delay to ensure DOM is ready
+      setTimeout(() => {
+        if (typeof checkGatewayEstimate === 'function') {
+          checkGatewayEstimate();
+        }
+      }, 100);
+      
       return;
     }
 
@@ -2295,4 +2343,5 @@ if (document.readyState === 'loading') {
 } else {
   // DOM already ready
   initNewOrderPage();
+}
 }
