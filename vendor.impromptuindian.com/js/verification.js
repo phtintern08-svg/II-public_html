@@ -3,6 +3,117 @@ console.log('Vendor Verification JS v5 loaded');
 lucide.createIcons();
 
 /* ---------------------------
+   VALIDATION RULES
+---------------------------*/
+const VALIDATION_RULES = {
+    pan_number: {
+        pattern: /^[A-Z0-9]{10}$/,
+        validate: (value) => {
+            const cleaned = value.replace(/\s/g, '').toUpperCase();
+            return /^[A-Z0-9]{10}$/.test(cleaned);
+        },
+        format: (value) => {
+            // Remove spaces and convert to uppercase
+            return value.replace(/\s/g, '').toUpperCase().slice(0, 10);
+        },
+        message: 'PAN must be exactly 10 alphanumeric characters (A-Z, 0-9)'
+    },
+    aadhar_number: {
+        pattern: /^\d{12}$/,
+        validate: (value) => {
+            const cleaned = value.replace(/\s/g, '');
+            return /^\d{12}$/.test(cleaned);
+        },
+        format: (value) => {
+            // Remove spaces and keep only digits
+            return value.replace(/\D/g, '').slice(0, 12);
+        },
+        message: 'Aadhar must be exactly 12 digits'
+    },
+    bank_account_number: {
+        pattern: /^\d+$/,
+        validate: (value) => {
+            const cleaned = value.replace(/\s/g, '');
+            return /^\d+$/.test(cleaned) && cleaned.length > 0;
+        },
+        format: (value) => {
+            // Remove spaces and keep only digits
+            return value.replace(/\D/g, '');
+        },
+        message: 'Account number must contain only numbers'
+    },
+    bank_holder_name: {
+        pattern: /^[A-Za-z\s]+$/,
+        validate: (value) => {
+            return /^[A-Za-z\s]+$/.test(value.trim()) && value.trim().length > 0;
+        },
+        format: (value) => {
+            // Keep only alphabets and spaces
+            return value.replace(/[^A-Za-z\s]/g, '');
+        },
+        message: 'Account holder name must contain only alphabets'
+    },
+    bank_branch: {
+        pattern: /^[A-Za-z\s]+$/,
+        validate: (value) => {
+            return /^[A-Za-z\s]+$/.test(value.trim()) && value.trim().length > 0;
+        },
+        format: (value) => {
+            // Keep only alphabets and spaces
+            return value.replace(/[^A-Za-z\s]/g, '');
+        },
+        message: 'Branch name must contain only alphabets'
+    },
+    ifsc_code: {
+        pattern: /^[A-Z0-9]+$/,
+        validate: (value) => {
+            const cleaned = value.replace(/\s/g, '').toUpperCase();
+            return /^[A-Z0-9]+$/.test(cleaned) && cleaned.length > 0;
+        },
+        format: (value) => {
+            // Remove spaces and convert to uppercase, keep only alphanumeric
+            return value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+        },
+        message: 'IFSC must contain only uppercase letters and numbers'
+    },
+    gst_number: {
+        pattern: /^[A-Z0-9]{15}$/,
+        validate: (value) => {
+            const cleaned = value.replace(/\s/g, '').toUpperCase();
+            return /^[A-Z0-9]{15}$/.test(cleaned);
+        },
+        format: (value) => {
+            // Remove spaces and convert to uppercase
+            return value.replace(/\s/g, '').toUpperCase().slice(0, 15);
+        },
+        message: 'GST must be exactly 15 alphanumeric characters (A-Z, 0-9)'
+    }
+};
+
+// Validation function to apply to inputs
+function validateField(fieldName, value) {
+    const rule = VALIDATION_RULES[fieldName];
+    if (!rule) return { valid: true, message: '' };
+    
+    const isValid = rule.validate(value);
+    return {
+        valid: isValid,
+        message: isValid ? '' : rule.message
+    };
+}
+
+// Format field value as user types
+function formatFieldValue(fieldName, value) {
+    const rule = VALIDATION_RULES[fieldName];
+    if (!rule || !rule.format) return value;
+    return rule.format(value);
+}
+
+// Expose validation functions to global scope for inline handlers
+window.validateField = validateField;
+window.formatFieldValue = formatFieldValue;
+
+/* ---------------------------
    DOCUMENT TYPES
 ---------------------------*/
 const REQUIRED_DOCUMENTS = [
@@ -69,18 +180,30 @@ function renderDocumentsGrid() {
                 const displayStyle = shouldHide ? 'display: none !important;' : 'display: block !important;';
                 const disabled = !canUpload ? 'disabled' : '';
 
+                // Get validation rule for this field
+                const validationRule = VALIDATION_RULES[field.name];
+                const maxLength = field.name === 'pan_number' ? 10 : 
+                                 field.name === 'aadhar_number' ? 12 : 
+                                 field.name === 'gst_number' ? 15 :
+                                 field.name === 'ifsc_code' ? 11 : '';
+                const inputPattern = validationRule ? validationRule.pattern.source : '';
+                
                 return `
                     <div class="${colSpan}" style="${displayStyle}">
                         <label class="text-xs text-gray-400 block mb-1 uppercase tracking-wider">${field.placeholder}</label>
                         <input type="text" 
                                id="input-${docType.id}-${field.name}" 
-                               class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                               class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors validation-input"
                                style="${displayStyle}"
                                placeholder="${field.placeholder}"
                                value="${val}"
-                               oninput="window.updateExtraField('${docType.id}', '${field.name}', this.value)"
+                               ${maxLength ? `maxlength="${maxLength}"` : ''}
+                               ${inputPattern ? `pattern="${inputPattern}"` : ''}
+                               oninput="window.handleFieldInput('${docType.id}', '${field.name}', this)"
+                               onblur="window.validateFieldInput('${docType.id}', '${field.name}', this)"
                                ${disabled}
                         >
+                        <span id="error-${docType.id}-${field.name}" class="text-red-400 text-xs mt-1 hidden block"></span>
                     </div>
                 `;
             }).join('');
@@ -173,6 +296,7 @@ async function submitVerification() {
 
     // Validate Extra Fields
     let missingExtras = [];
+    let invalidFields = [];
     let extraData = {};
 
     REQUIRED_DOCUMENTS.forEach(doc => {
@@ -180,21 +304,26 @@ async function submitVerification() {
             doc.extraFields.forEach(field => {
                 const inputId = `input-${doc.id}-${field.name}`;
                 const el = document.getElementById(inputId);
+                let val = '';
+                
                 if (el) {
-                    const val = el.value.trim();
-                    if (val) {
-                        extraData[field.name] = val;
-                    } else if (documents[doc.id] && documents[doc.id][field.name]) {
-                        // Fallback to state if input empty (e.g. if hidden but value present in state)
-                        extraData[field.name] = documents[doc.id][field.name];
-                    } else {
-                        // Only mark missing if absolutely no data
-                        missingExtras.push(`${doc.label}: ${field.placeholder}`);
-                    }
+                    val = el.value.trim();
                 } else if (documents[doc.id] && documents[doc.id][field.name]) {
-                    // Fallback to state if element completely missing/hidden (though we fixed hiding, just in case)
-                    extraData[field.name] = documents[doc.id][field.name];
+                    // Fallback to state if input empty (e.g. if hidden but value present in state)
+                    val = documents[doc.id][field.name];
+                }
+                
+                if (val) {
+                    // Validate the value
+                    const validation = window.validateField(field.name, val);
+                    if (!validation.valid) {
+                        invalidFields.push(`${doc.label}: ${field.placeholder} - ${validation.message}`);
+                    } else {
+                        // Format the value before storing
+                        extraData[field.name] = window.formatFieldValue(field.name, val);
+                    }
                 } else {
+                    // Only mark missing if absolutely no data
                     missingExtras.push(`${doc.label}: ${field.placeholder}`);
                 }
             });
@@ -203,6 +332,11 @@ async function submitVerification() {
 
     if (missingExtras.length > 0) {
         showToast(`Please fill in details for: ${missingExtras.join(', ')}`, 'error');
+        return;
+    }
+    
+    if (invalidFields.length > 0) {
+        showToast(`Invalid format: ${invalidFields.join('; ')}`, 'error');
         return;
     }
 
@@ -798,6 +932,7 @@ function openUploadModal(docId) {
 
     // Validate manual fields if any
     let missingFields = [];
+    let invalidFields = [];
     if (docDef && docDef.extraFields) {
         docDef.extraFields.forEach(field => {
             const inputId = `input-${docId}-${field.name}`;
@@ -813,12 +948,23 @@ function openUploadModal(docId) {
 
             if (!val) {
                 missingFields.push(field.placeholder);
+            } else {
+                // Validate the value
+                const validation = window.validateField(field.name, val);
+                if (!validation.valid) {
+                    invalidFields.push(`${field.placeholder}: ${validation.message}`);
+                }
             }
         });
     }
 
     if (missingFields.length > 0) {
         showToast(`Please enter ${missingFields.join(', ')} before uploading`, 'error');
+        return;
+    }
+    
+    if (invalidFields.length > 0) {
+        showToast(`Invalid format: ${invalidFields.join('; ')}`, 'error');
         return;
     }
 
@@ -915,6 +1061,56 @@ window.updateExtraField = function (docId, fieldName, value) {
     documents[docId][fieldName] = value;
 };
 
+// Handle field input with formatting
+window.handleFieldInput = function (docId, fieldName, inputElement) {
+    const originalValue = inputElement.value;
+    const formattedValue = window.formatFieldValue(fieldName, originalValue);
+    
+    // Update input value if formatting changed it
+    if (formattedValue !== originalValue) {
+        inputElement.value = formattedValue;
+    }
+    
+    // Update state
+    window.updateExtraField(docId, fieldName, formattedValue);
+    
+    // Clear error on input
+    const errorElement = document.getElementById(`error-${docId}-${fieldName}`);
+    if (errorElement) {
+        errorElement.classList.add('hidden');
+        errorElement.textContent = '';
+    }
+    
+    // Update border color
+    inputElement.classList.remove('border-red-500');
+    inputElement.classList.add('border-gray-700');
+};
+
+// Validate field on blur
+window.validateFieldInput = function (docId, fieldName, inputElement) {
+    const value = inputElement.value.trim();
+    const validation = window.validateField(fieldName, value);
+    const errorElement = document.getElementById(`error-${docId}-${fieldName}`);
+    
+    if (!validation.valid && value.length > 0) {
+        // Show error
+        if (errorElement) {
+            errorElement.textContent = validation.message;
+            errorElement.classList.remove('hidden');
+        }
+        inputElement.classList.remove('border-gray-700');
+        inputElement.classList.add('border-red-500');
+    } else {
+        // Clear error
+        if (errorElement) {
+            errorElement.classList.add('hidden');
+            errorElement.textContent = '';
+        }
+        inputElement.classList.remove('border-red-500');
+        inputElement.classList.add('border-gray-700');
+    }
+};
+
 /* ---------------------------
    CONFIRM UPLOAD
 ---------------------------*/
@@ -941,7 +1137,9 @@ async function confirmUpload() {
                 val = documents[currentDocumentId][field.name];
             }
             if (val) {
-                formData.append(field.name, val);
+                // Format the value before sending
+                const formattedVal = window.formatFieldValue(field.name, val);
+                formData.append(field.name, formattedVal);
             }
         });
     }

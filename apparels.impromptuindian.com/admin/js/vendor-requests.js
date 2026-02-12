@@ -174,15 +174,37 @@ function openVendorModal(id) {
       if (key === 'gst' && doc.gst_number) extraInfo = `<p class="text-[10px] text-gray-400 mt-0.5">GST: ${doc.gst_number}</p>`;
       if (key === 'bank') {
         if (doc.bank_account_number) extraInfo += `<p class="text-[10px] text-gray-400 mt-0.5">Acc: ${doc.bank_account_number}</p>`;
+        if (doc.bank_holder_name) extraInfo += `<p class="text-[10px] text-gray-400 mt-0.5">Holder: ${doc.bank_holder_name}</p>`;
+        if (doc.bank_branch) extraInfo += `<p class="text-[10px] text-gray-400 mt-0.5">Branch: ${doc.bank_branch}</p>`;
         if (doc.ifsc_code) extraInfo += `<p class="text-[10px] text-gray-400 mt-0.5">IFSC: ${doc.ifsc_code}</p>`;
       }
 
       let statusBadge = '';
-      if (doc.status === 'approved') statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-green-500/10 text-green-400 border border-green-500/20">Verified</span>';
-      else if (doc.status === 'rejected') statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-red-500/10 text-red-400 border border-red-500/20">Rejected</span>';
-      else statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">Updated</span>';
+      // Check if document was resubmitted after rejection
+      const isResubmitted = doc.resubmitted === true || (doc.status === 'rejected' && doc.fileName && doc.uploadedDate);
+      if (doc.status === 'approved') {
+        statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-green-500/10 text-green-400 border border-green-500/20">Verified</span>';
+      } else if (doc.status === 'rejected') {
+        if (isResubmitted) {
+          statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-orange-500/10 text-orange-400 border border-orange-500/20">Rejected - Resubmitted</span>';
+          // Show previous rejection reason if available
+          if (doc.previousRejectionReason) {
+            extraInfo += `<p class="text-[10px] text-orange-400/70 mt-0.5 italic">Previous: ${doc.previousRejectionReason}</p>`;
+          }
+        } else {
+          statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-red-500/10 text-red-400 border border-red-500/20">Rejected</span>';
+          // Show rejection reason if available
+          if (doc.adminRemarks) {
+            extraInfo += `<p class="text-[10px] text-red-400/70 mt-0.5 italic">Reason: ${doc.adminRemarks}</p>`;
+          }
+        }
+      } else {
+        statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">Updated</span>';
+      }
 
       const isApproved = doc.status === 'approved';
+      const isResubmittedRejected = doc.status === 'rejected' && isResubmitted;
+      // Allow checkbox interaction for resubmitted rejected documents
       const containerClass = isApproved ? 'opacity-50 border-green-500/20' : 'hover:bg-gray-800 border-gray-700/50';
       const checkboxDisabled = isApproved ? 'disabled' : '';
       const checkboxClass = isApproved ? 'cursor-not-allowed opacity-50 bg-green-900 border-green-700' : 'cursor-pointer bg-gray-700 hover:border-red-500';

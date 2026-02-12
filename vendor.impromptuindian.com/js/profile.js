@@ -265,112 +265,426 @@ async function saveLocation() {
     }
 }
 
-// Map Logic
+/* ------------------------------------------------
+   USE CURRENT LOCATION  MAPMYINDIA (MAPPLS)
+--------------------------------------------------*/
+
+const useCurrentLocationBtn = document.getElementById("useCurrentLocationBtn");
 let map = null;
 let marker = null;
+let mapplsLoadingPromise = null;
 
-function initMapEvents() {
-    const useCurrentLocationBtn = document.getElementById('useCurrentLocationBtn');
-    const confirmLocationBtn = document.getElementById('confirmLocationBtn');
-    const mapModal = document.getElementById('mapModal');
+// Load Mappls SDK dynamically (DEFINED BEFORE USE to avoid order dependency issues)
+// CRITICAL: Creates script dynamically instead of reusing existing tag (browser edge case fix)
+async function loadMapplsSDK() {
+  if (window.mappls && window.mappls.Map) {
+    console.log("Mappls SDK already loaded");
+    return;
+  }
 
-    useCurrentLocationBtn.onclick = () => {
-        mapModal.classList.remove('hidden');
-        if (!navigator.geolocation) {
-            showToast('Geolocation not supported', 'error');
-            return;
-        }
+  if (mapplsLoadingPromise) return mapplsLoadingPromise;
 
-        navigator.geolocation.getCurrentPosition(pos => {
-            const lat = pos.coords.latitude;
-            const lng = pos.coords.longitude;
-            setupMap(lat, lng);
-        }, err => {
-            // Fallback to Bangalore
-            setupMap(12.9716, 77.5946);
-        }, { enableHighAccuracy: true });
-    };
+  mapplsLoadingPromise = (async () => {
+    try {
+      const res = await window.ImpromptuIndianApi.fetch("/api/config", {
+        credentials: "include"
+      });
 
-    confirmLocationBtn.onclick = async () => {
-        if (!marker) return;
-        const pos = marker.getPosition();
-        const lat = pos.lat || pos[0];
-        const lng = pos.lng || pos[1];
+      if (!res.ok) throw new Error("Failed to load config");
 
-        confirmLocationBtn.innerHTML = '<i class="w-4 h-4 animate-spin mr-2"></i> Resolving...';
-        confirmLocationBtn.disabled = true;
+      const config = await res.json();
+      const apiKey = config?.mappls?.apiKey;
+      if (!apiKey) throw new Error("Mappls API key missing");
 
-        try {
-            const res = await ImpromptuIndianApi.fetch(`/api/reverse-geocode?lat=${lat}&lng=${lng}`);
-            const data = await res.json();
+      // ✅ CSS - Element must exist in HTML
+      // CRITICAL: URL must include /api/ segment: /advancedmaps/api/${apiKey}/map_sdk.css
+      const css = document.getElementById("mappls-css");
+      if (!css) {
+        throw new Error('Mappls CSS element (id="mappls-css") not found in HTML. Add <link id="mappls-css" rel="stylesheet" /> to <head>');
+      }
+      css.href = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk.css`;
 
-            if (data && !data.error) {
-                const addr = data.results && data.results[0] ? data.results[0] : data;
+      // ✅ JS - CREATE SCRIPT DYNAMICALLY (DO NOT REUSE EXISTING TAG)
+      // CRITICAL: JavaScript SDK URL must include mandatory query parameters for initialization
+      // Without layer=vector&v=3.0, SDK loads but window.mappls remains undefined
+      await new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk?layer=vector&v=3.0`;
+        script.async = true;
+        script.onload = resolve;
+        script.onerror = () => reject(new Error("Mappls SDK failed to load (404 – invalid URL or key not whitelisted)"));
+        document.head.appendChild(script);
+      });
 
-                // Mappls structure helper
-                const getComp = (k) => addr[k] || '';
+      if (!window.mappls) {
+        throw new Error("Mappls loaded but mappls is undefined");
+      }
 
-                const area = getComp('subLocality') || getComp('locality') || getComp('street') || '';
-                const house = getComp('houseNumber') || getComp('house_number') || '';
+      // Validate that required plugins are loaded
+      if (!window.mappls.Map) {
+        throw new Error("Mappls Map plugin not loaded");
+      }
 
-                document.getElementById('fldFullAddress').value = `${house ? house + ', ' : ''}${area}`;
-                document.getElementById('fldCity').value = getComp('city') || getComp('district') || '';
-                document.getElementById('fldState').value = getComp('state') || '';
-                document.getElementById('fldPincode').value = getComp('pincode') || '';
+      // Note: Search plugins can be added later if needed via ?plugins=search,autosuggest
+      // For now, we load base SDK first to ensure it works
+      console.log("✅ Mappls SDK loaded successfully");
+    } catch (err) {
+      console.error('Mappls SDK load error:', err);
+      mapplsLoadingPromise = null; // Reset on error so it can be retried
+      throw err;
+    }
+  })();
 
-                document.getElementById('coordDisplay').textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-                window.currentCoords = { lat, lon: lng };
-
-                mapModal.classList.add('hidden');
-                showToast('Location pinned!');
-            }
-        } catch (e) {
-            showToast('Reverse geocode failed', 'error');
-        } finally {
-            confirmLocationBtn.innerHTML = 'Confirm Location';
-            confirmLocationBtn.disabled = false;
-        }
-    };
-
-    // Search logic
-    const mapSearchBtn = document.getElementById('mapSearchBtn');
-    const mapSearchInput = document.getElementById('mapSearchInput');
-
-    mapSearchBtn.onclick = () => {
-        const query = mapSearchInput.value.trim();
-        if (!query || !mappls) return;
-
-        mappls.search({ query }, (data) => {
-            if (data && data.length > 0) {
-                const res = data[0];
-                const lat = parseFloat(res.latitude || res.lat);
-                const lng = parseFloat(res.longitude || res.lng);
-                map.setCenter([lat, lng]);
-                marker.setPosition({ lat, lng });
-            }
-        });
-    };
+  return mapplsLoadingPromise;
 }
 
-function setupMap(lat, lng) {
-    if (typeof mappls === 'undefined') return;
+// Bind map search event listeners once (outside click handler to prevent reassignment)
+const mapSearchBtn = document.getElementById("mapSearchBtn");
+const mapSearchInput = document.getElementById("mapSearchInput");
 
-    if (!map) {
-        map = new mappls.Map("mapContainer", { center: [lat, lng], zoom: 15 });
-        marker = new mappls.Marker({ map, position: { lat, lng }, draggable: true });
-    } else {
-        map.setCenter([lat, lng]);
-        marker.setPosition({ lat, lng });
+if (mapSearchBtn && !mapSearchBtn.dataset.bound) {
+  mapSearchBtn.dataset.bound = "1";
+  const performMapSearch = () => {
+    const query = mapSearchInput ? mapSearchInput.value.trim() : "";
+    if (!query) return;
+
+    const oldText = mapSearchBtn.innerText;
+    mapSearchBtn.innerText = "...";
+    mapSearchBtn.disabled = true;
+
+    // ? USE CLIENT-SIDE SDK SEARCH
+    // This runs from the browser using the whitelisted domain, bypassing backend 412 blocks.
+    const searchOptions = {
+      query: query
+    };
+
+    try {
+      // Check if search plugin is available before using it
+      if (typeof mappls.search !== 'function') {
+        throw new Error("Mappls search plugin not loaded. Please refresh the page.");
+      }
+
+      // Try calling as function first (common in v3.0 updates)
+      mappls.search(searchOptions, (data) => {
+        mapSearchBtn.innerText = oldText;
+        mapSearchBtn.disabled = false;
+
+        if (data && data.length > 0) {
+          const result = data[0];
+          const newLat = parseFloat(result.latitude || result.lat);
+          const newLng = parseFloat(result.longitude || result.lng);
+
+          // eLoc is precise unique ID for a place
+          const eLoc = result.eLoc;
+
+          if (!isNaN(newLat) && !isNaN(newLng) && map && marker) {
+            map.setCenter([newLat, newLng]);
+            marker.setPosition({ lat: newLat, lng: newLng });
+            map.setZoom(17); // Close zoom for confirmed search
+          } else if (eLoc) {
+            // Fallback: If only eLoc is returned (sometimes happens)
+            // We might need to resolve eLoc, but usually SDK returns lat/lng
+            console.warn("Received eLoc only:", eLoc);
+          }
+        } else {
+          // Try Autosuggest if Search fails (sometimes different results)
+          // Check if autosuggest plugin is available
+          if (typeof mappls.autoSuggest === 'function') {
+            new mappls.autoSuggest({ query: query }, (autoData) => {
+            if (autoData && autoData.length > 0) {
+              const autoRes = autoData[0];
+              const aLat = parseFloat(autoRes.latitude || autoRes.lat);
+              const aLng = parseFloat(autoRes.longitude || autoRes.lng);
+              if (!isNaN(aLat) && map && marker) {
+                map.setCenter([aLat, aLng]);
+                marker.setPosition({ lat: aLat, lng: aLng });
+                map.setZoom(17);
+                return;
+              }
+            }
+            showToast("Location not found. Try a broader area name.", "error");
+            });
+          } else {
+            showToast("Location not found. Try a broader area name.", "error");
+          }
+        }
+      });
+    } catch (e) {
+      console.error("SDK Search Error", e);
+      mapSearchBtn.innerText = oldText;
+      mapSearchBtn.disabled = false;
+      showToast("Search service is unavailable.", "error");
     }
+  };
+  
+  mapSearchBtn.onclick = performMapSearch;
+  if (mapSearchInput) {
+    mapSearchInput.onkeypress = (e) => {
+      if (e.key === 'Enter') performMapSearch();
+    };
+  }
+}
 
-    // Force resize to handle modal animation timing
-    setTimeout(() => {
-        if (map && map.resize) map.resize();
-    }, 300);
+function initMapEvents() {
+  if (useCurrentLocationBtn) {
+    useCurrentLocationBtn.addEventListener("click", async () => {
+      const btnHTML = useCurrentLocationBtn.innerHTML;
+      useCurrentLocationBtn.innerHTML =
+        '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Getting Location...';
+      useCurrentLocationBtn.disabled = true;
+      lucide.createIcons();
 
-    setTimeout(() => {
-        if (map && map.resize) map.resize();
-    }, 800);
+      try {
+        if (!navigator.geolocation) {
+          throw new Error("Geolocation not supported");
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            let lat, lng;
+            if (pos.coords) {
+              lat = pos.coords.latitude;
+              lng = pos.coords.longitude;
+              // Debugging Location Accuracy
+              console.log(`GPS Success: Lat ${lat}, Lng ${lng}, Acc ${pos.coords.accuracy}m`);
+            } else if (Array.isArray(pos)) {
+              [lat, lng] = pos;
+            }
+
+            const mapModal = document.getElementById("mapModal");
+            mapModal.classList.remove("hidden");
+            const activeModal = mapModal.querySelector('.active-modal');
+            if (activeModal) {
+              setTimeout(() => {
+                activeModal.classList.add('show');
+              }, 10);
+            }
+
+            // Initialize map AFTER modal is visible (use requestAnimationFrame for proper rendering)
+            requestAnimationFrame(async () => {
+              try {
+                // Load SDK if not already loaded
+                await loadMapplsSDK();
+
+                if (typeof mappls === 'undefined' || !mappls.Map) {
+                  throw new Error("Mappls SDK not loaded");
+                }
+
+                // CRITICAL: Set container height before map creation (Mappls needs non-zero dimensions)
+                const container = document.getElementById("mapContainer");
+                if (container) {
+                  container.style.height = "100%";
+                  container.style.minHeight = "420px";
+                }
+
+                // Smart Zoom based on Accuracy
+                // If accuracy is poor (>500m), set zoom to 16
+                // If good, zoom in tight
+                const zoomLevel = (pos.coords.accuracy > 500) ? 16 : 18;
+
+                if (!map) {
+                  map = new mappls.Map("mapContainer", {
+                    center: [lat, lng],
+                    zoom: zoomLevel
+                  });
+
+                  marker = new mappls.Marker({
+                    map: map,
+                    position: { lat: lat, lng: lng },
+                    draggable: true
+                  });
+
+                  // Add accuracy circle
+                  const accuracy = pos.coords ? pos.coords.accuracy : 50;
+                  new mappls.Circle({
+                    map: map,
+                    center: [lat, lng],
+                    radius: accuracy, // meters
+                    fillColor: "#3b82f6",
+                    fillOpacity: 0.15,
+                    strokeOpacity: 0.3,
+                  });
+
+                  console.log('Map initialized correctly');
+
+                  // Force resize to handle modal animation timing
+                  setTimeout(() => {
+                    if (map && map.resize) map.resize();
+                  }, 300);
+
+                  setTimeout(() => {
+                    if (map && map.resize) map.resize();
+                  }, 800);
+
+                } else {
+                  // Map already exists - update position and resize
+                  map.setCenter([lat, lng]);
+                  marker.setPosition({ lat: lat, lng: lng });
+                  map.setZoom(zoomLevel);
+                  // Resize map to handle container size changes
+                  if (map.resize) {
+                    requestAnimationFrame(() => map.resize());
+                  }
+                }
+              } catch (err) {
+                console.error("Map initialization error:", err);
+                showToast("Map service failed to load. Please try again later.", "error");
+                useCurrentLocationBtn.innerHTML = btnHTML;
+                useCurrentLocationBtn.disabled = false;
+                return;
+              }
+            });
+
+            // Reset button
+            useCurrentLocationBtn.innerHTML = btnHTML;
+            useCurrentLocationBtn.disabled = false;
+            lucide.createIcons();
+
+          },
+
+          (err) => {
+            console.error("GPS Error", err);
+
+            // Even if GPS fails/denied, OPEN THE MAP ANYWAY so they can search
+            // Default to Bangalore center
+            let lat = 12.9716;
+            let lng = 77.5946;
+
+            const mapModal = document.getElementById("mapModal");
+            mapModal.classList.remove("hidden");
+            const activeModal = mapModal.querySelector('.active-modal');
+            if (activeModal) {
+              setTimeout(() => {
+                activeModal.classList.add('show');
+              }, 10);
+            }
+
+            // Initialize map AFTER modal is visible (use requestAnimationFrame for proper rendering)
+            requestAnimationFrame(async () => {
+              try {
+                // Load SDK if not already loaded
+                await loadMapplsSDK();
+
+                if (typeof mappls === 'undefined' || !mappls.Map) {
+                  throw new Error("Mappls SDK not loaded");
+                }
+
+                // CRITICAL: Set container height before map creation (Mappls needs non-zero dimensions)
+                const container = document.getElementById("mapContainer");
+                if (container) {
+                  container.style.height = "100%";
+                  container.style.minHeight = "420px";
+                }
+
+                if (!map) {
+                  map = new mappls.Map("mapContainer", { center: [lat, lng], zoom: 12 });
+                  marker = new mappls.Marker({ map: map, position: { lat: lat, lng: lng }, draggable: true });
+                  console.log('Map initialized correctly');
+
+                  // Force resize to handle modal animation timing
+                  setTimeout(() => {
+                    if (map && map.resize) map.resize();
+                  }, 300);
+
+                  setTimeout(() => {
+                    if (map && map.resize) map.resize();
+                  }, 800);
+                } else {
+                  // Map already exists - update position and resize
+                  map.setCenter([lat, lng]);
+                  marker.setPosition({ lat: lat, lng: lng });
+                  map.setZoom(12);
+                  // Resize map to handle container size changes
+                  if (map.resize) {
+                    requestAnimationFrame(() => map.resize());
+                  }
+                }
+              } catch (err) {
+                console.error("Map initialization error:", err);
+                showToast("Map service failed to load. Please try again later.", "error");
+              }
+            });
+
+            useCurrentLocationBtn.innerHTML = btnHTML;
+            useCurrentLocationBtn.disabled = false;
+            lucide.createIcons();
+          },
+          // Aggressive GPS Options
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        );
+
+        /* -------------------------------
+           CONFIRM LOCATION ? REVERSE GEOCODE -> SAVE
+        ------------------------------- */
+        const confirmBtn = document.getElementById("confirmLocationBtn");
+        if (confirmBtn && !confirmBtn.dataset.bound) {
+          confirmBtn.dataset.bound = "1";
+          confirmBtn.addEventListener("click", async () => {
+          if (!marker) return;
+
+          const btn = document.getElementById("confirmLocationBtn");
+          const oldHTML = btn.innerHTML;
+          btn.innerHTML =
+            '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Processing...';
+          btn.disabled = true;
+          lucide.createIcons();
+
+          try {
+            const pos = marker.getPosition(); // Returns { lat, lng } or similar object
+            // Mappls SDK docs say getPosition() returns object with lat, lng properties
+            const lat = pos.lat || pos[0];
+            const lng = pos.lng || pos[1];
+
+            // Use MapmyIndia Reverse Geocoding via LocationService
+            if (typeof LocationService === "undefined") {
+              throw new Error("LocationService not available");
+            }
+            const locService = new LocationService();
+            const addressData = await locService.reverseGeocodeMappls(lat, lng);
+
+            // Populate form fields with reverse geocoded data
+            const area = addressData.area || addressData.street || addressData.subLocality || addressData.locality || '';
+            const house = addressData.houseNumber || addressData.house_number || '';
+
+            document.getElementById('fldFullAddress').value = `${house ? house + ', ' : ''}${area}`;
+            document.getElementById('fldCity').value = addressData.city || addressData.district || '';
+            document.getElementById('fldState').value = addressData.state || '';
+            document.getElementById('fldPincode').value = addressData.pincode || '';
+
+            document.getElementById('coordDisplay').textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+            window.currentCoords = { lat, lon: lng };
+
+            // Close modal
+            const mapModal = document.getElementById("mapModal");
+            if (mapModal) {
+              const activeModal = mapModal.querySelector('.active-modal');
+              if (activeModal) {
+                activeModal.classList.remove('show');
+                setTimeout(() => mapModal.classList.add('hidden'), 300);
+              }
+            }
+
+            showToast('Location pinned successfully!');
+
+          } catch (err) {
+            console.error(err);
+            showToast("Unable to fetch address details.", "error");
+          } finally {
+            btn.innerHTML = oldHTML;
+            btn.disabled = false;
+            lucide.createIcons();
+          }
+          });
+        }
+
+      } catch (error) {
+        console.error(error);
+        showToast("An unexpected error occurred.", "error");
+        useCurrentLocationBtn.innerHTML = btnHTML;
+        useCurrentLocationBtn.disabled = false;
+      }
+    });
+  }
 }
 
 // Toast helper
@@ -444,7 +758,6 @@ async function changePassword() {
 // Init
 document.addEventListener('DOMContentLoaded', () => {
     loadVendorProfile();
-    initMapEvents();
 
     // Reveal On Scroll
     const reveal = () => {
@@ -458,25 +771,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // ✅ FIX: Use saveLocation directly - no aliasing needed
     document.getElementById('saveLocationBtn').onclick = saveLocation;
     
-    // Load Mappls configuration
-    loadMapplsConfig();
-    
-    // Modal animation helper
-    const useCurrentLocationBtn = document.getElementById('useCurrentLocationBtn');
-    if (useCurrentLocationBtn) {
-        useCurrentLocationBtn.addEventListener('click', () => {
-            const modal = document.getElementById('mapModal');
-            if (modal) {
-                modal.classList.remove('hidden');
-                setTimeout(() => {
-                    const activeModal = modal.querySelector('.active-modal');
-                    if (activeModal) {
-                        activeModal.classList.add('show');
-                    }
-                }, 10);
-            }
-        });
-    }
+    // Initialize map events (includes SDK loading on demand)
+    initMapEvents();
     
     // Close map modal helper
     function closeMapModal() {
@@ -492,40 +788,3 @@ document.addEventListener('DOMContentLoaded', () => {
     window.closeMapModal = closeMapModal;
 });
 
-// Load Mappls API key from backend and inject into SDK URLs
-async function loadMapplsConfig() {
-    try {
-        // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
-        const response = await fetch('/api/config', {
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (response.ok) {
-            const config = await response.json();
-            const apiKey = config?.mappls?.apiKey || '';
-            
-            if (apiKey) {
-                // Update CSS link
-                const cssLink = document.getElementById('mappls-css');
-                if (cssLink) {
-                    cssLink.href = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk_plugins/v3.0/styles/mappls.css`;
-                }
-                
-                // Load script
-                const script = document.getElementById('mappls-script');
-                if (script) {
-                    script.src = `https://apis.mappls.com/advancedmaps/api/${apiKey}/map_sdk?v=3.0&layer=vector&libraries=services`;
-                    script.onload = () => console.log('Mappls SDK loaded');
-                    script.onerror = () => console.error('Mappls SDK failed to load');
-                }
-            } else {
-                console.warn('Mappls API key not configured');
-            }
-        }
-    } catch (error) {
-        console.error('Failed to load map configuration:', error);
-    }
-}

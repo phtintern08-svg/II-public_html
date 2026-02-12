@@ -2133,6 +2133,32 @@ function initPlaceOrder() {
     const modalSampleSize = document.querySelector('.custom-select[data-name="modal-sample-size"] select')?.value;
     const finalSampleSize = modalSampleSize || mainSampleSize || "M"; // fallback
 
+    // Fetch final_price from product_catalog based on exact combination
+    let finalPriceFromCatalog = null;
+    try {
+      const priceResponse = await window.ImpromptuIndianApi.fetch("/api/estimate-price", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          product_type: product,
+          category: selectedCategory,
+          neck_type: selectedNeckType || "",
+          fabric: fabric || "Cotton",
+          size: finalSampleSize
+        })
+      });
+
+      if (priceResponse.ok) {
+        const priceData = await priceResponse.json();
+        if (priceData.estimated_price && priceData.estimated_price > 0) {
+          finalPriceFromCatalog = priceData.estimated_price;
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching final price from catalog:", error);
+      // Continue with order submission even if price fetch fails
+    }
+
     // Cost Retrieval
     const estimatedCostEl = document.getElementById("estimatedPriceDisplay");
     // Try gateway cost first, then modal, then main
@@ -2158,6 +2184,7 @@ function initPlaceOrder() {
       print_type: printType,
       quantity: total,
       price_per_piece: pricePerPiece,
+      final_price_from_catalog: finalPriceFromCatalog, // Add final price from catalog
       sample_size: finalSampleSize,
       estimated_cost: finalEstCost,
       delivery_date: dateText.textContent,
