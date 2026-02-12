@@ -149,7 +149,7 @@ function initDropdowns() {
 ---------------------------*/
 const FABRIC_MAP = {
   "T-Shirt": ["Cotton", "Polyester", "Dry Fit", "Pique Cotton"],
-  "Hoodie": ["Cotton", "Fleece"],
+  "Hoodie": ["Fleece"],  // Only Fleece exists in DB for Hoodie
   "Sweatshirt": ["Cotton", "Fleece"],
   "Jacket": ["Polyester", "Fleece", "Nylon"],
   "Cap": ["Cotton", "Polyester"],

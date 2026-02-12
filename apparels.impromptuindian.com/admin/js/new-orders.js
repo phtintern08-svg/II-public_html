@@ -40,6 +40,36 @@ async function fetchApprovedVendors() {
 }
 
 async function fetchOrders() {
+  const tableLoading = document.getElementById('table-loading');
+  const tbody = document.getElementById('orders-table');
+  const mobileContainer = document.getElementById('orders-mobile');
+  
+  // Show loading state
+  if (tableLoading) tableLoading.classList.remove('hidden');
+  if (tbody) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" class="text-center py-12">
+          <div class="flex flex-col items-center gap-3">
+            <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-blue-400"></i>
+            <p class="text-gray-400">Loading orders...</p>
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+  if (mobileContainer) {
+    mobileContainer.innerHTML = `
+      <div class="text-center py-12">
+        <div class="flex flex-col items-center gap-3">
+          <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-blue-400"></i>
+          <p class="text-gray-400">Loading orders...</p>
+        </div>
+      </div>
+    `;
+  }
+  if (window.lucide) lucide.createIcons();
+  
   try {
     const token = localStorage.getItem('token');
     const response = await ImpromptuIndianApi.fetch('/api/orders/', {
@@ -72,9 +102,38 @@ async function fetchOrders() {
 
     filterOrders();
     calculateSummary();
+    
+    // Hide loading state
+    if (tableLoading) tableLoading.classList.add('hidden');
   } catch (e) {
     console.error('Failed to fetch orders', e);
     showToast('Failed to load orders', 'error');
+    
+    // Hide loading state and show error
+    if (tableLoading) tableLoading.classList.add('hidden');
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="8" class="text-center py-12">
+            <div class="flex flex-col items-center gap-3">
+              <i data-lucide="alert-circle" class="w-8 h-8 text-red-400"></i>
+              <p class="text-gray-400">Failed to load orders. Please try again.</p>
+            </div>
+          </td>
+        </tr>
+      `;
+    }
+    if (mobileContainer) {
+      mobileContainer.innerHTML = `
+        <div class="text-center py-12">
+          <div class="flex flex-col items-center gap-3">
+            <i data-lucide="alert-circle" class="w-8 h-8 text-red-400"></i>
+            <p class="text-gray-400">Failed to load orders. Please try again.</p>
+          </div>
+        </div>
+      `;
+    }
+    if (window.lucide) lucide.createIcons();
   }
 }
 
@@ -105,9 +164,10 @@ function renderOrders(ordersToRender = orders) {
     const emptyState = `
       <tr>
         <td colspan="8" class="text-center py-12 text-gray-400">
-          <div class="flex flex-col items-center gap-2">
-            <i data-lucide="package-open" class="w-10 h-10 opacity-50"></i>
-            <p>No orders found</p>
+          <div class="flex flex-col items-center gap-3">
+            <i data-lucide="package-open" class="w-12 h-12 opacity-50"></i>
+            <p class="text-lg font-medium">No orders found</p>
+            <p class="text-sm text-gray-500">Try adjusting your filters or search terms</p>
           </div>
         </td>
       </tr>`;
@@ -115,9 +175,10 @@ function renderOrders(ordersToRender = orders) {
     if (tbody) tbody.innerHTML = emptyState;
     if (mobileContainer) {
       mobileContainer.innerHTML = `
-        <div class="text-center py-12 text-gray-400 flex flex-col items-center gap-2">
-          <i data-lucide="package-open" class="w-10 h-10 opacity-50"></i>
-          <p>No orders found</p>
+        <div class="text-center py-12 text-gray-400 flex flex-col items-center gap-3">
+          <i data-lucide="package-open" class="w-12 h-12 opacity-50"></i>
+          <p class="text-lg font-medium">No orders found</p>
+          <p class="text-sm text-gray-500">Try adjusting your filters or search terms</p>
         </div>`;
     }
     if (window.lucide) lucide.createIcons();
@@ -226,13 +287,50 @@ function renderOrders(ordersToRender = orders) {
 
 function filterOrders() {
   const status = document.getElementById('status-filter').value;
-  const term = document.getElementById('search-order').value.toLowerCase();
+  const searchInput = document.getElementById('search-order');
+  const term = searchInput.value.toLowerCase();
+  const clearBtn = document.getElementById('search-clear-btn');
+  
+  // Show/hide clear button
+  if (term && clearBtn) {
+    clearBtn.classList.remove('hidden');
+  } else if (clearBtn) {
+    clearBtn.classList.add('hidden');
+  }
+  
   const filtered = orders.filter(o => {
     const matchStatus = status === 'all' || o.status === status;
     const matchTerm = o.id.toString().includes(term) || o.customer.toLowerCase().includes(term);
     return matchStatus && matchTerm;
   });
+  
+  // Update order count display
+  const countDisplay = document.getElementById('orders-count-display');
+  if (countDisplay) {
+    const count = filtered.length;
+    countDisplay.textContent = `${count} ${count === 1 ? 'order' : 'orders'}`;
+  }
+  
   renderOrders(filtered);
+}
+
+function clearSearch() {
+  const searchInput = document.getElementById('search-order');
+  if (searchInput) {
+    searchInput.value = '';
+    filterOrders();
+    searchInput.focus();
+  }
+}
+
+function resetFilters() {
+  const searchInput = document.getElementById('search-order');
+  const statusFilter = document.getElementById('status-filter');
+  
+  if (searchInput) searchInput.value = '';
+  if (statusFilter) statusFilter.value = 'unassigned';
+  
+  filterOrders();
 }
 
 async function openOrderModal(id) {
@@ -383,9 +481,30 @@ function rejectOrder() {
 }
 
 async function refreshOrders() {
-  await fetchApprovedVendors();
-  await fetchOrders();
-  showToast('Data refreshed successfully', 'success');
+  const refreshBtn = document.getElementById('refreshBtn');
+  const originalHTML = refreshBtn ? refreshBtn.innerHTML : '';
+  
+  // Show loading state on button
+  if (refreshBtn) {
+    refreshBtn.disabled = true;
+    refreshBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Syncing...</span>';
+    if (window.lucide) lucide.createIcons();
+  }
+  
+  try {
+    await fetchApprovedVendors();
+    await fetchOrders();
+    showToast('Data refreshed successfully', 'success');
+  } catch (error) {
+    showToast('Failed to refresh data', 'error');
+  } finally {
+    // Restore button
+    if (refreshBtn) {
+      refreshBtn.disabled = false;
+      refreshBtn.innerHTML = originalHTML;
+      if (window.lucide) lucide.createIcons();
+    }
+  }
 }
 
 // Reveal on scroll
@@ -405,6 +524,22 @@ window.addEventListener('DOMContentLoaded', async () => {
       el.classList.add('show');
     });
   });
+
+  // Set up search input event listeners
+  const searchInput = document.getElementById('search-order');
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      filterOrders();
+    });
+    
+    // Handle Enter key
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        filterOrders();
+      }
+    });
+  }
 
   try {
     await fetchApprovedVendors();
