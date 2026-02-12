@@ -377,13 +377,13 @@ async function checkModalEstimate() {
 
 // Helper to fetch estimate
 async function fetchEstimate(product, category, neck, fabric, size) {
-  // Don't send default values - send empty string/null to match NULL in DB
+  // Normalize all values: trim strings, convert empty to null, no defaults
   const payload = {
-    product_type: product,
-    category: category,
-    neck_type: neck || null,  // Send null instead of "Standard" to match NULL in DB
-    fabric: fabric || null,  // Send null instead of "Cotton" to match NULL in DB
-    size: size
+    product_type: product ? product.trim() : null,
+    category: category ? category.trim() : null,
+    neck_type: neck ? neck.trim() : null,  // No defaults - only what user selected
+    fabric: fabric ? fabric.trim() : null,  // No defaults - only what user selected
+    size: size ? size.trim() : null
   };
 
   // Debug logging
@@ -2182,18 +2182,23 @@ function initPlaceOrder() {
     const finalSampleSize = modalSampleSize || mainSampleSize || "M"; // fallback
 
     // Fetch final_price from product_catalog based on exact combination
+    // Use normalized values (same as fetchEstimate) - no defaults, trim everything
     let finalPriceFromCatalog = null;
     try {
+      const pricePayload = {
+        product_type: product ? product.trim() : null,
+        category: selectedCategory ? selectedCategory.trim() : null,
+        neck_type: selectedNeckType ? selectedNeckType.trim() : null,  // No defaults
+        fabric: fabric ? fabric.trim() : null,  // No defaults
+        size: finalSampleSize ? finalSampleSize.trim() : null
+      };
+      
+      console.log("Place Order - Price Payload:", pricePayload);
+      
       const priceResponse = await window.ImpromptuIndianApi.fetch("/api/estimate-price", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          product_type: product,
-          category: selectedCategory,
-          neck_type: selectedNeckType || "",
-          fabric: fabric || "Cotton",
-          size: finalSampleSize
-        })
+        body: JSON.stringify(pricePayload)
       });
 
       if (priceResponse.ok) {
@@ -2343,5 +2348,4 @@ if (document.readyState === 'loading') {
 } else {
   // DOM already ready
   initNewOrderPage();
-}
 }
