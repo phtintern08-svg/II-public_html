@@ -7,7 +7,8 @@
     <title>Rider Requests – ImpromptuIndian Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="css/vendor-requests.css" /> <!-- Reuse vendor requests CSS -->
+    <link rel="stylesheet" href="css/admin-global.css" />
+    <link rel="stylesheet" href="css/rider-requests.css" />
     <link rel="shortcut icon" href="../images/favicon.ico" type="image/x-icon">
     <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
 </head>
@@ -16,31 +17,114 @@
     <div class="flex h-screen overflow-hidden">
         <div id="sidebar-container"></div>
         <script src="js/sidebar.js"></script>
-        <main class="flex-1 overflow-y-auto p-8">
-            <div class="reveal mb-8 flex items-start justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold">Rider Requests</h1>
-                    <p class="text-gray-400 mt-1">Review and verify new rider applications</p>
+        <main class="flex-1 overflow-y-auto p-4 pt-20 md:p-8 md:pt-8">
+            <div class="reveal mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div class="w-full md:w-auto">
+                    <h1 class="text-2xl md:text-3xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
+                        <i data-lucide="bike" class="w-6 h-6 md:w-7 md:h-7 text-blue-400"></i>
+                        Rider Requests
+                    </h1>
+                    <p class="text-gray-400 text-sm md:text-base">Review and verify new rider applications</p>
                 </div>
-                <a href="riders.html"
-                    class="flex items-center gap-2 px-4 py-2 bg-[#1273EB] hover:bg-[#1273EB] text-gray-300 rounded-lg transition-colors border border-gray-700">
-                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Back
-                </a>
+                <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                    <a href="riders.html"
+                        class="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-800/50 text-gray-300 rounded-xl transition-all border border-white/10 hover:border-blue-500/50 hover:bg-gray-800 hover:text-white w-full md:w-auto">
+                        <i data-lucide="arrow-left" class="w-4 h-4 text-blue-400"></i>
+                        <span class="text-sm font-semibold tracking-wide uppercase">Back to Riders</span>
+                    </a>
+                    <button class="btn-refresh w-full md:w-auto" id="refreshBtn" onclick="refreshRiderRequests()">
+                        <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
+                        <span>Sync Data</span>
+                    </button>
+                </div>
             </div>
 
-            <div class="reveal filters-bar mb-6" style="transition-delay: 100ms;">
+            <!-- Summary Statistics Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8 reveal" style="transition-delay: 100ms;">
+                <div class="summary-card summary-card-warning">
+                    <div class="summary-icon summary-icon-warning">
+                        <i data-lucide="clock" class="w-5 h-5 md:w-6 md:h-6"></i>
+                    </div>
+                    <div class="summary-content">
+                        <p class="summary-label">Pending</p>
+                        <p class="summary-value" id="pending-requests-count">
+                            <span class="summary-number">0</span>
+                        </p>
+                    </div>
+                    <div class="summary-glow"></div>
+                </div>
+                <div class="summary-card summary-card-info">
+                    <div class="summary-icon summary-icon-info">
+                        <i data-lucide="eye" class="w-5 h-5 md:w-6 md:h-6"></i>
+                    </div>
+                    <div class="summary-content">
+                        <p class="summary-label">Under Review</p>
+                        <p class="summary-value" id="under-review-count">
+                            <span class="summary-number">0</span>
+                        </p>
+                    </div>
+                    <div class="summary-glow"></div>
+                </div>
+                <div class="summary-card summary-card-primary">
+                    <div class="summary-icon summary-icon-primary">
+                        <i data-lucide="users" class="w-5 h-5 md:w-6 md:h-6"></i>
+                    </div>
+                    <div class="summary-content">
+                        <p class="summary-label">Total Requests</p>
+                        <p class="summary-value" id="total-requests-count">
+                            <span class="summary-number">0</span>
+                        </p>
+                    </div>
+                    <div class="summary-glow"></div>
+                </div>
+                <div class="summary-card summary-card-success">
+                    <div class="summary-icon summary-icon-success">
+                        <i data-lucide="calendar" class="w-5 h-5 md:w-6 md:h-6"></i>
+                    </div>
+                    <div class="summary-content">
+                        <p class="summary-label">This Month</p>
+                        <p class="summary-value" id="monthly-requests-count">
+                            <span class="summary-number">0</span>
+                        </p>
+                    </div>
+                    <div class="summary-glow"></div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="reveal filters-bar mb-6" style="transition-delay: 200ms;">
+                <div class="search-input-wrapper">
+                    <i data-lucide="search" class="w-4 h-4 search-icon"></i>
+                    <input type="text" id="search-rider" class="search-input" placeholder="Search by rider name or email... (Ctrl+K)"
+                        oninput="filterRequests()" autocomplete="off" />
+                    <button class="search-clear hidden" id="search-clear-btn" onclick="clearSearch()" title="Clear search">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
                 <select id="status-filter" class="filter-select" onchange="filterRequests()">
                     <option value="pending" selected>Pending</option>
                     <option value="all">All</option>
                     <option value="under-review">Under Review</option>
                 </select>
-                <input type="text" id="search-rider" class="search-input" placeholder="Search rider..."
-                    oninput="filterRequests()" />
+                <button class="filter-reset-btn" id="filter-reset-btn" onclick="resetFilters()" title="Reset filters">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                    <span class="hidden md:inline">Reset</span>
+                </button>
             </div>
 
-            <div class="reveal card" style="transition-delay: 200ms;">
+            <!-- Rider Requests Table -->
+            <div class="reveal card" style="transition-delay: 300ms;">
                 <div class="card-header">
-                    <h3 class="card-title">Pending Applications</h3>
+                    <h3 class="card-title flex items-center gap-2">
+                        <i data-lucide="table" class="w-5 h-5"></i>
+                        Pending Applications
+                    </h3>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-gray-400" id="requests-count-display">0 requests</span>
+                        <div class="loading-spinner hidden" id="table-loading">
+                            <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="table-container">

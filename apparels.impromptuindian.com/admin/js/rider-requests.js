@@ -12,73 +12,285 @@ function showToast(msg) {
 }
 
 let riderRequests = [];
+let filteredRiderRequests = [];
 let currentRiderId = null;
 
+// Animate number from 0 to target
+function animateNumber(element, target, duration = 1000) {
+    if (!element) return;
+    const start = 0;
+    const startTime = performance.now();
+    
+    function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+        const current = Math.floor(start + (target - start) * easeOutQuart);
+        
+        element.textContent = current.toLocaleString();
+        
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        } else {
+            element.textContent = target.toLocaleString();
+        }
+    }
+    
+    requestAnimationFrame(update);
+}
+
+// Calculate and update summary statistics
+function calculateSummary() {
+    const total = riderRequests.length;
+    const pending = riderRequests.filter(r => (r.status || '').toLowerCase() === 'pending').length;
+    const underReview = riderRequests.filter(r => (r.status || '').toLowerCase() === 'under-review').length;
+    
+    // Calculate requests submitted this month
+    const now = new Date();
+    const thisMonth = riderRequests.filter(r => {
+        if (!r.submitted) return false;
+        try {
+            const submittedDate = new Date(r.submitted);
+            return submittedDate.getMonth() === now.getMonth() && submittedDate.getFullYear() === now.getFullYear();
+        } catch (e) {
+            return false;
+        }
+    }).length;
+    
+    // Animate numbers
+    const totalEl = document.querySelector('#total-requests-count .summary-number');
+    const pendingEl = document.querySelector('#pending-requests-count .summary-number');
+    const underReviewEl = document.querySelector('#under-review-count .summary-number');
+    const monthlyEl = document.querySelector('#monthly-requests-count .summary-number');
+    
+    if (totalEl) animateNumber(totalEl, total);
+    if (pendingEl) animateNumber(pendingEl, pending);
+    if (underReviewEl) animateNumber(underReviewEl, underReview);
+    if (monthlyEl) animateNumber(monthlyEl, thisMonth);
+}
+
 async function fetchRiderRequests() {
+    const tbody = document.getElementById('requests-table');
+    const loadingSpinner = document.getElementById('table-loading');
+    
+    // Show loading state
+    if (tbody) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center py-16">
+                    <div class="flex flex-col items-center gap-4">
+                        <div class="w-16 h-16 rounded-full bg-gray-800/50 flex items-center justify-center">
+                            <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-blue-400"></i>
+                        </div>
+                        <p class="text-gray-400">Loading rider requests...</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        if (window.lucide) lucide.createIcons();
+    }
+    
+    if (loadingSpinner) loadingSpinner.classList.remove('hidden');
+    
     try {
-        const token = localStorage.getItem('token');
-        const response = await ImpromptuIndianApi.fetch('/api/admin/riders?status=pending', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+        const response = await ImpromptuIndianApi.fetch('/api/admin/rider-requests', {
+            credentials: 'include'
         });
         if (!response.ok) throw new Error('Failed to fetch rider requests');
 
         const data = await response.json();
-        const all = data.riders || data;
-        // The endpoint returns pending, under-review, and rejected.
-        // We might want to filter or just show all in the table and let frontend filter handle it.
-        riderRequests = all;
+        const all = data.riders || data || [];
+        riderRequests = Array.isArray(all) ? all : [];
+        
+        calculateSummary();
         filterRequests();
     } catch (e) {
         console.error('Error loading rider requests', e);
+        if (tbody) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center py-16">
+                        <div class="flex flex-col items-center gap-4">
+                            <div class="w-16 h-16 rounded-full bg-gray-800/50 flex items-center justify-center">
+                                <i data-lucide="alert-circle" class="w-8 h-8 text-red-400"></i>
+                            </div>
+                            <p class="text-gray-400">Failed to load rider requests</p>
+                            <button onclick="fetchRiderRequests()" class="btn-secondary mt-2">
+                                <i data-lucide="refresh-ccw" class="w-4 h-4"></i> Retry
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            if (window.lucide) lucide.createIcons();
+        }
         if (window.showAlert) window.showAlert('Error', 'Failed to load rider requests', 'error');
+    } finally {
+        if (loadingSpinner) loadingSpinner.classList.add('hidden');
     }
+}
+
+// Refresh rider requests
+function refreshRiderRequests() {
+    const refreshBtn = document.getElementById('refreshBtn');
+    if (refreshBtn) {
+        const icon = refreshBtn.querySelector('i[data-lucide]');
+        if (icon) {
+            icon.style.animation = 'spin 1s linear infinite';
+        }
+    }
+    fetchRiderRequests().finally(() => {
+        if (refreshBtn) {
+            const icon = refreshBtn.querySelector('i[data-lucide]');
+            if (icon) {
+                icon.style.animation = '';
+            }
+        }
+    });
 }
 
 function renderRequests(data) {
     const tbody = document.getElementById('requests-table');
+    const countDisplay = document.getElementById('requests-count-display');
+    
+    if (!tbody) return;
+    
     tbody.innerHTML = '';
 
     if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-gray-500">No rider requests found</td></tr>';
+        const searchTerm = document.getElementById('search-rider')?.value || '';
+        const statusFilter = document.getElementById('status-filter')?.value || 'pending';
+        
+        let emptyMessage = '';
+        let emptyIcon = 'bike';
+        
+        if (riderRequests.length === 0) {
+            emptyMessage = 'No rider requests found';
+            emptyIcon = 'bike';
+        } else if (searchTerm || statusFilter !== 'all') {
+            emptyMessage = 'No requests match your filters';
+            emptyIcon = 'search-x';
+        } else {
+            emptyMessage = 'No rider requests found';
+            emptyIcon = 'bike';
+        }
+        
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center py-16">
+                    <div class="flex flex-col items-center gap-4">
+                        <div class="w-16 h-16 rounded-full bg-gray-800/50 flex items-center justify-center">
+                            <i data-lucide="${emptyIcon}" class="w-8 h-8 text-gray-500"></i>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-gray-400 font-medium mb-1">${emptyMessage}</p>
+                            ${riderRequests.length === 0 ? '' : '<p class="text-gray-500 text-sm">Try adjusting your filters</p>'}
+                        </div>
+                        ${riderRequests.length === 0 ? '' : `
+                            <button onclick="resetFilters()" class="btn-secondary">
+                                <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Clear Filters
+                            </button>
+                        `}
+                    </div>
+                </td>
+            </tr>
+        `;
+        if (window.lucide) lucide.createIcons();
+        
+        if (countDisplay) {
+            countDisplay.textContent = '0 requests';
+        }
         return;
     }
 
-    data.forEach(r => {
+    data.forEach((r, index) => {
         // Status badge styling
-        let statusClass = 'bg-yellow-500/20 text-yellow-400';
-        if (r.status === 'rejected') statusClass = 'bg-red-500/20 text-red-400';
-        if (r.status === 'under-review') statusClass = 'bg-blue-500/20 text-blue-400';
+        const status = (r.status || '').toLowerCase();
+        let statusClass = 'status-pending';
+        if (status === 'rejected') statusClass = 'status-rejected';
+        if (status === 'under-review') statusClass = 'status-under-review';
 
         const tr = document.createElement('tr');
+        tr.className = 'reveal';
         tr.innerHTML = `
             <td>
-                <div class="font-medium">${r.name}</div>
+                <div class="font-medium">${r.name || 'Unknown'}</div>
                 <div class="text-xs text-gray-400">${r.email || ''}</div>
             </td>
-            <td>${r.vehicleType}</td>
-            <td>${r.submitted}</td>
-            <td><span class="px-2 py-1 rounded text-xs ${statusClass}">${r.status}</span></td>
+            <td>${r.vehicleType || 'N/A'}</td>
+            <td>${r.submitted || 'N/A'}</td>
+            <td><span class="${statusClass}">${(r.status || 'pending').charAt(0).toUpperCase() + (r.status || 'pending').slice(1).replace('_', ' ')}</span></td>
             <td class="text-right">
-                <button class="btn-primary" onclick="openRiderModal(${r.id})">Review</button>
+                <button class="btn-primary" onclick="openRiderModal(${r.id})" title="Review Application">
+                    <i data-lucide="eye" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline ml-1">Review</span>
+                </button>
             </td>
         `;
         tbody.appendChild(tr);
     });
+    
+    if (window.lucide) lucide.createIcons();
+    
+    // Trigger reveal animations
+    setTimeout(() => {
+        document.querySelectorAll('tbody tr.reveal').forEach((el, index) => {
+            setTimeout(() => {
+                el.classList.add('show');
+            }, index * 30);
+        });
+    }, 100);
+    
+    if (countDisplay) {
+        const count = data.length;
+        const total = riderRequests.length;
+        countDisplay.textContent = `${count} ${count === 1 ? 'request' : 'requests'}${count !== total ? ` of ${total}` : ''}`;
+    }
 }
 
 function filterRequests() {
-    const status = document.getElementById('status-filter').value;
-    const search = document.getElementById('search-rider').value.toLowerCase();
+    const status = document.getElementById('status-filter')?.value || 'pending';
+    const search = document.getElementById('search-rider')?.value.toLowerCase().trim() || '';
+    const clearBtn = document.getElementById('search-clear-btn');
+    
+    // Show/hide clear button
+    if (clearBtn) {
+        if (search) {
+            clearBtn.classList.remove('hidden');
+        } else {
+            clearBtn.classList.add('hidden');
+        }
+    }
 
-    const filtered = riderRequests.filter(r => {
-        const matchesStatus = status === 'all' || r.status === status;
-        const matchesSearch = r.name.toLowerCase().includes(search) || (r.email && r.email.toLowerCase().includes(search));
+    filteredRiderRequests = riderRequests.filter(r => {
+        const matchesStatus = status === 'all' || (r.status || '').toLowerCase() === status.toLowerCase();
+        const matchesSearch = 
+            (r.name || '').toLowerCase().includes(search) || 
+            (r.email || '').toLowerCase().includes(search) ||
+            (r.vehicleType || '').toLowerCase().includes(search);
         return matchesStatus && matchesSearch;
     });
 
-    renderRequests(filtered);
+    renderRequests(filteredRiderRequests);
+}
+
+function clearSearch() {
+    const searchInput = document.getElementById('search-rider');
+    if (searchInput) {
+        searchInput.value = '';
+        filterRequests();
+        searchInput.focus();
+    }
+}
+
+function resetFilters() {
+    const searchInput = document.getElementById('search-rider');
+    const statusFilter = document.getElementById('status-filter');
+    
+    if (searchInput) searchInput.value = '';
+    if (statusFilter) statusFilter.value = 'pending';
+    
+    filterRequests();
 }
 
 function openRiderModal(id) {
@@ -602,11 +814,42 @@ async function deleteRiderRequest() {
     }
 }
 
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+    // Ctrl+K or Cmd+K to focus search
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.getElementById('search-rider');
+        if (searchInput) {
+            searchInput.focus();
+            searchInput.select();
+        }
+    }
+    
+    // Escape to close modal
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('rider-modal');
+        if (modal && !modal.classList.contains('hidden')) {
+            closeRiderModal();
+        }
+        const previewModal = document.getElementById('previewModal');
+        if (previewModal) {
+            closePreviewModal();
+        }
+        const rejectionModal = document.getElementById('rejectionModal');
+        if (rejectionModal) {
+            closeRejectionModal();
+        }
+    }
+});
+
 // Reveal animation on scroll
 function onScroll() {
     document.querySelectorAll('.reveal').forEach(el => {
         const top = el.getBoundingClientRect().top;
-        if (top < window.innerHeight - 50) el.classList.add('active');
+        if (top < window.innerHeight - 100) {
+            el.classList.add('show');
+        }
     });
 }
 
@@ -621,9 +864,10 @@ async function rejectSpecificDocument(docType) {
     }
 
     try {
-        const response = await ImpromptuIndianApi.fetch(`/admin/rider-requests/${currentRiderId}/document/${docType}/status`, {
+        const response = await ImpromptuIndianApi.fetch(`/api/admin/rider-requests/${currentRiderId}/document/${docType}/status`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({ status: 'rejected', reason: reason })
         });
 
@@ -640,9 +884,38 @@ async function rejectSpecificDocument(docType) {
     }
 }
 
-window.addEventListener('scroll', onScroll);
-
-document.addEventListener('DOMContentLoaded', () => {
+// Initialize on page load
+window.addEventListener('DOMContentLoaded', () => {
+    // Initialize Lucide icons
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+    
+    // Trigger reveal animations
+    onScroll();
+    window.addEventListener('scroll', onScroll);
+    
+    // Initial reveal for elements in viewport
+    setTimeout(() => {
+        document.querySelectorAll('.reveal').forEach(el => {
+            const top = el.getBoundingClientRect().top;
+            if (top < window.innerHeight) {
+                el.classList.add('show');
+            }
+        });
+    }, 100);
+    
+    // Fetch rider requests
     fetchRiderRequests();
-    setTimeout(onScroll, 100); // Trigger initial reveal
+    
+    // Add search input event listeners
+    const searchInput = document.getElementById('search-rider');
+    if (searchInput) {
+        searchInput.addEventListener('input', filterRequests);
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                clearSearch();
+            }
+        });
+    }
 });

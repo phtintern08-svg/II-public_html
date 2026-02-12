@@ -341,7 +341,6 @@ function clearEstimateUI() {
   const gatewayEstTotal = document.getElementById("gatewayEstTotalCost");
   const modalCostDisplay = document.getElementById("modalCostDisplay");
   const modalPayBtn = document.getElementById("modalPayBtn");
-  const placeOrderBtn = document.getElementById("placeOrderBtn");
 
   // Clear main estimate
   if (displayEl) displayEl.textContent = "--";
@@ -366,8 +365,7 @@ function clearEstimateUI() {
   if (modalCostDisplay) modalCostDisplay.textContent = "--";
   if (modalPayBtn) modalPayBtn.dataset.cost = "0";
 
-  // Disable pay buttons
-  if (placeOrderBtn) placeOrderBtn.disabled = true;
+  // Disable modal pay button (Place Order button validation is handled in handlePlaceOrder)
   if (modalPayBtn) modalPayBtn.disabled = true;
   const payButtons = document.querySelectorAll('[id*="pay"], [id*="Pay"], .pay-button');
   payButtons.forEach(btn => {
@@ -2057,7 +2055,6 @@ async function checkGatewayEstimate() {
   const gatewayTotal = document.getElementById("gatewayTotalPayable");
   const gatewayEstTotal = document.getElementById("gatewayEstTotalCost");
   const paymentModal = document.getElementById("paymentModal");
-  const placeOrderBtn = document.getElementById("placeOrderBtn");
 
   if (!gatewayTotal) return;
 
@@ -2075,7 +2072,6 @@ async function checkGatewayEstimate() {
     if (gatewayEstTotal) gatewayEstTotal.textContent = "--";
     document.querySelectorAll('.pay-amount-display').forEach(el => el.textContent = '--');
     if (paymentModal) paymentModal.dataset.currentCost = "0";
-    if (placeOrderBtn) placeOrderBtn.disabled = true;
     return;
   }
 
@@ -2085,7 +2081,6 @@ async function checkGatewayEstimate() {
   if (gatewayEstTotal) gatewayEstTotal.textContent = "--";
   document.querySelectorAll('.pay-amount-display').forEach(el => el.textContent = '--');
   if (paymentModal) paymentModal.dataset.currentCost = "0";
-  if (placeOrderBtn) placeOrderBtn.disabled = true;
   lucide.createIcons();
 
   try {
@@ -2105,11 +2100,6 @@ async function checkGatewayEstimate() {
 
     document.querySelectorAll('.pay-amount-display').forEach(el => el.textContent = displayCost);
     if (paymentModal) paymentModal.dataset.currentCost = cost > 0 ? cost : 0;
-    
-    // Enable pay button only if we have a valid cost
-    if (placeOrderBtn && cost > 0) {
-      placeOrderBtn.disabled = false;
-    }
 
   } catch (e) {
     // Ignore errors from stale requests
@@ -2122,7 +2112,6 @@ async function checkGatewayEstimate() {
     if (gatewayEstTotal) gatewayEstTotal.textContent = "Error";
     document.querySelectorAll('.pay-amount-display').forEach(el => el.textContent = 'Error');
     if (paymentModal) paymentModal.dataset.currentCost = "0";
-    if (placeOrderBtn) placeOrderBtn.disabled = true;
   }
 }
 
