@@ -73,6 +73,20 @@ function initDropdowns() {
           if (wrapper.dataset.name === "product-type") {
             const key = selectedText.trim();
 
+            // 🔥 CRITICAL: Reset fabric selection when product changes
+            // This prevents sending wrong fabric (e.g., Cotton for Hoodie when it should be Fleece)
+            const fabricWrapper = document.querySelector('.custom-select[data-name="fabric-type"]');
+            if (fabricWrapper) {
+              const fabricSelect = fabricWrapper.querySelector('select');
+              const fabricDisplay = fabricWrapper.querySelector('.value');
+              if (fabricSelect) {
+                fabricSelect.value = "";
+                if (fabricDisplay) fabricDisplay.textContent = "Select a fabric";
+              }
+              // Clear any selected option in custom UI
+              fabricWrapper.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+            }
+
             // Update dependent UI
             renderCategories(key);
             renderFabrics(key);
@@ -379,13 +393,19 @@ async function checkModalEstimate() {
 async function fetchEstimate(product, category, neck, fabric, size) {
   // Normalize all values: trim strings, convert empty to "None" (string) to match DB
   // DB stores "None" as string, not SQL NULL
+  // Only include fabric if it's actually selected (not empty)
   const payload = {
     product_type: product ? product.trim() : null,
     category: category ? category.trim() : null,
     neck_type: neck ? neck.trim() : "None",  // DB uses "None" string, not NULL
-    fabric: fabric ? fabric.trim() : null,  // Fabric may be NULL or have value
+    fabric: (fabric && fabric.trim()) ? fabric.trim() : null,  // Only send if actually selected
     size: size ? size.trim() : null
   };
+  
+  // Remove fabric from payload if it's empty/null to allow backend to match any fabric
+  if (!payload.fabric) {
+    delete payload.fabric;
+  }
 
   // Debug logging
   console.log("Estimate Payload:", payload);
@@ -2190,9 +2210,14 @@ function initPlaceOrder() {
         product_type: product ? product.trim() : null,
         category: selectedCategory ? selectedCategory.trim() : null,
         neck_type: selectedNeckType ? selectedNeckType.trim() : "None",  // DB uses "None" string, not NULL
-        fabric: fabric ? fabric.trim() : null,  // Fabric may be NULL or have value
+        fabric: (fabric && fabric.trim()) ? fabric.trim() : null,  // Only send if actually selected
         size: finalSampleSize ? finalSampleSize.trim() : null
       };
+      
+      // Remove fabric from payload if it's empty/null to allow backend to match any fabric
+      if (!pricePayload.fabric) {
+        delete pricePayload.fabric;
+      }
       
       console.log("Place Order - Price Payload:", pricePayload);
       
@@ -2230,16 +2255,16 @@ function initPlaceOrder() {
     const numericCost = storedCost ? parseFloat(storedCost) : 0.0;
 
     const payload = {
-      product_type: product,
-      category: selectedCategory,
-      neck_type: selectedNeckType || "",
-      color: color,
-      fabric: fabric,
-      print_type: printType,
+      product_type: product ? product.trim() : null,
+      category: selectedCategory ? selectedCategory.trim() : null,
+      neck_type: selectedNeckType ? selectedNeckType.trim() : null,
+      color: color ? color.trim() : null,
+      fabric: (fabric && fabric.trim()) ? fabric.trim() : null,  // Normalize fabric - only send if selected
+      print_type: printType ? printType.trim() : null,
       quantity: total,
       price_per_piece: pricePerPiece,
       final_price_from_catalog: finalPriceFromCatalog, // Add final price from catalog
-      sample_size: finalSampleSize,
+      sample_size: finalSampleSize ? finalSampleSize.trim() : null,
       estimated_cost: finalEstCost,
       delivery_date: dateText.textContent,
       address_line1: `${house} ${area}`,

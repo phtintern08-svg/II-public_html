@@ -62,16 +62,39 @@ async function loadUserProfile() {
             if (data.bio) localStorage.setItem('bio', data.bio);
             if (data.avatar_url) localStorage.setItem('avatar_url', data.avatar_url);
 
-            // Update avatar initial
+            // Update avatar initial and image
             const avatarInitial = document.getElementById('avatarInitial');
-            if (avatarInitial && data.username) {
-                avatarInitial.textContent = data.username.charAt(0).toUpperCase();
+            const avatarImage = document.getElementById('avatarImage');
+            const avatarContainer = document.getElementById('avatarContainer');
+            
+            if (data.avatar_url) {
+                if (avatarImage) {
+                    avatarImage.src = data.avatar_url;
+                    avatarImage.classList.remove('hidden');
+                }
+                if (avatarInitial) {
+                    avatarInitial.classList.add('hidden');
+                }
+            } else {
+                if (avatarInitial && data.username) {
+                    avatarInitial.textContent = data.username.charAt(0).toUpperCase();
+                    avatarInitial.classList.remove('hidden');
+                }
+                if (avatarImage) {
+                    avatarImage.classList.add('hidden');
+                }
             }
             
             // Show account verified badge if email is verified
             if (data.is_email_verified) {
                 const badge = document.getElementById('accountVerifiedBadge');
                 if (badge) badge.classList.remove('hidden');
+            }
+            
+            // Load bio
+            const bioTextarea = document.getElementById('profileBio');
+            if (bioTextarea && data.bio) {
+                bioTextarea.value = data.bio || '';
             }
 
             // Update display name and email in header
@@ -213,6 +236,221 @@ async function saveProfileChanges() {
         showAlert('Connection Error', 'Failed to connect to server', 'error');
     }
     */
+}
+
+// Upload profile picture
+async function uploadProfilePicture(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+        showAlert('Error', 'Please select an image file', 'error');
+        return;
+    }
+    
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+        showAlert('Error', 'Image size must be less than 5MB', 'error');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+        const response = await window.ImpromptuIndianApi.fetch('/api/customer/profile/avatar', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json().catch(() => null);
+        if (!result) {
+            console.warn('Failed to parse response');
+            return;
+        }
+        
+        if (response.ok) {
+            // Update avatar display
+            const avatarImage = document.getElementById('avatarImage');
+            const avatarInitial = document.getElementById('avatarInitial');
+            
+            if (avatarImage && result.avatar_url) {
+                avatarImage.src = result.avatar_url;
+                avatarImage.classList.remove('hidden');
+            }
+            if (avatarInitial) {
+                avatarInitial.classList.add('hidden');
+            }
+            
+            // Update localStorage
+            const profile = JSON.parse(localStorage.getItem('customer_profile') || '{}');
+            profile.avatar_url = result.avatar_url;
+            localStorage.setItem('customer_profile', JSON.stringify(profile));
+            localStorage.setItem('avatar_url', result.avatar_url);
+            
+            showAlert('Success', 'Profile picture updated successfully!', 'success');
+        } else {
+            showAlert('Error', result.error || 'Failed to upload profile picture', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('Connection Error', 'Failed to connect to server', 'error');
+    }
+}
+
+// Save bio
+async function saveBio() {
+    const bioTextarea = document.getElementById('profileBio');
+    if (!bioTextarea) return;
+    
+    const bio = bioTextarea.value.trim();
+    
+    try {
+        const response = await window.ImpromptuIndianApi.fetch('/api/customer/profile', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                bio: bio
+            })
+        });
+        
+        const result = await response.json().catch(() => null);
+        if (!result) {
+            console.warn('Failed to parse response');
+            return;
+        }
+        
+        if (response.ok) {
+            // Update localStorage
+            const profile = JSON.parse(localStorage.getItem('customer_profile') || '{}');
+            profile.bio = bio;
+            localStorage.setItem('customer_profile', JSON.stringify(profile));
+            localStorage.setItem('bio', bio);
+            
+            showAlert('Success', 'Bio updated successfully!', 'success');
+        } else {
+            showAlert('Error', result.error || 'Failed to update bio', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('Connection Error', 'Failed to connect to server', 'error');
+    }
+}
+
+// Load order statistics
+async function loadOrderStats() {
+    try {
+        const response = await window.ImpromptuIndianApi.fetch('/api/customer/order-stats', {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const stats = await response.json().catch(() => null);
+            if (!stats) {
+                console.warn('Failed to parse order stats');
+                return;
+            }
+            
+            // Update UI
+            const totalEl = document.getElementById('totalOrdersCount');
+            const pendingEl = document.getElementById('pendingOrdersCount');
+            const completedEl = document.getElementById('completedOrdersCount');
+            const inProgressEl = document.getElementById('inProgressOrdersCount');
+            
+            if (totalEl) totalEl.textContent = stats.total || 0;
+            if (pendingEl) pendingEl.textContent = stats.pending || 0;
+            if (completedEl) completedEl.textContent = stats.completed || 0;
+            if (inProgressEl) inProgressEl.textContent = stats.in_progress || 0;
+        }
+    } catch (error) {
+        console.error('Error loading order stats:', error);
+    }
+}
+
+// Load recent orders
+async function loadRecentOrders() {
+    try {
+        const response = await window.ImpromptuIndianApi.fetch('/api/customer/orders', {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const container = document.getElementById('recentOrdersContainer');
+        if (!container) return;
+        
+        if (response.ok) {
+            const data = await response.json().catch(() => null);
+            if (!data) {
+                container.innerHTML = '<div class="text-center py-4 text-gray-500 text-sm">Failed to load orders</div>';
+                return;
+            }
+            
+            const orders = data.orders || [];
+            
+            if (orders.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4 text-gray-500 text-sm">
+                        <i data-lucide="package" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+                        <p>No orders yet</p>
+                        <button onclick="window.location.href='new-order.html'" 
+                            class="mt-3 px-4 py-2 bg-[#1273EB] hover:bg-[#0e5ac0] text-white text-sm rounded-lg transition-colors">
+                            Create Your First Order
+                        </button>
+                    </div>
+                `;
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+            
+            // Show first 3-5 orders
+            const recentOrders = orders.slice(0, 5);
+            container.innerHTML = recentOrders.map(order => {
+                const date = order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A';
+                const status = order.status || 'pending';
+                const amount = order.total_amount ? `₹${parseFloat(order.total_amount).toFixed(2)}` : 'N/A';
+                
+                // Status color mapping
+                let statusColor = 'text-gray-400';
+                if (status.includes('completed') || status === 'delivered') {
+                    statusColor = 'text-green-400';
+                } else if (status.includes('pending') || status.includes('awaiting')) {
+                    statusColor = 'text-yellow-400';
+                } else if (status.includes('in_production') || status.includes('dispatched')) {
+                    statusColor = 'text-blue-400';
+                }
+                
+                return `
+                    <div class="p-3 bg-[#0d1117] rounded-lg border border-gray-700 hover:border-[#1273EB]/50 transition-colors cursor-pointer"
+                         onclick="window.location.href='orders.html'">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-sm font-medium text-white">Order #${order.id}</span>
+                            <span class="text-xs font-semibold ${statusColor}">${status.replace(/_/g, ' ').toUpperCase()}</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-gray-400">
+                            <span>${date}</span>
+                            <span class="font-medium">${amount}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            if (window.lucide) lucide.createIcons();
+        } else {
+            container.innerHTML = '<div class="text-center py-4 text-gray-500 text-sm">Failed to load orders</div>';
+        }
+    } catch (error) {
+        console.error('Error loading recent orders:', error);
+        const container = document.getElementById('recentOrdersContainer');
+        if (container) {
+            container.innerHTML = '<div class="text-center py-4 text-gray-500 text-sm">Error loading orders</div>';
+        }
+    }
 }
 
 // Change password
@@ -1386,6 +1624,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Load profile data from database
     loadUserProfile();
+    
+    // Load order statistics
+    loadOrderStats();
+    
+    // Load recent orders
+    loadRecentOrders();
     
     // Initialize address management
     initAddressEvents();

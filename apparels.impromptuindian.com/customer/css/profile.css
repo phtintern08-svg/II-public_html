@@ -30,13 +30,156 @@
     }
 }
 
+/* Enhanced animations */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Professional card enhancements */
+.bg-gradient-to-br {
+    background-size: 200% 200%;
+    animation: gradientShift 10s ease infinite;
+}
+
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Enhanced shadows */
+.shadow-xl {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+}
+
+.shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+}
+
+/* Hover effects */
+.hover\:shadow-xl:hover {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+/* Profile picture upload button */
+#avatarContainer {
+    transition: all 0.3s ease;
+}
+
+#avatarContainer:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 25px rgba(18, 115, 235, 0.3);
+}
+
+/* Order statistics cards */
+[id$="OrdersCount"] {
+    animation: countUp 0.8s ease-out;
+}
+
+@keyframes countUp {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Smooth transitions for all interactive elements */
+button, a, input, textarea, select {
+    transition: all 0.2s ease;
+}
+
+/* Enhanced input focus states */
+input:focus, textarea:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 204, 0, 0.2);
+}
+
+/* Loading spinner animation */
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Recent orders card hover */
+#recentOrdersContainer > div {
+    transition: all 0.2s ease;
+}
+
+#recentOrdersContainer > div:hover {
+    transform: translateX(4px);
+    border-color: #1273EB;
+}
+
+/* Bio textarea styling */
+#profileBio {
+    min-height: 80px;
+    line-height: 1.6;
+}
+
+#profileBio:focus {
+    border-color: #FFCC00;
+    box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.1);
+}
+
 /* Professional Profile Page Enhancements */
 .addr-pill {
-    @apply px-4 py-2 rounded-lg bg-[#0d1117] border border-gray-700 text-gray-300 hover:bg-[#1a1f2e] hover:border-[#1273EB] transition-colors font-medium;
+    @apply px-4 py-2 rounded-lg bg-[#0d1117] border border-gray-700 text-gray-300 hover:bg-[#1a1f2e] hover:border-[#1273EB] transition-all font-medium;
+    transition: all 0.2s ease;
+}
+
+.addr-pill:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(18, 115, 235, 0.2);
 }
 
 .addr-pill.active {
     @apply bg-[#1273EB] border-[#1273EB] text-white;
+    box-shadow: 0 4px 12px rgba(18, 115, 235, 0.3);
 }
 
 /* Mobile responsive address pills */
@@ -48,7 +191,12 @@
 
 /* Input field enhancements */
 .blk-input {
-    @apply w-full px-4 py-3 rounded-lg bg-[#0d1117] border border-gray-700 text-white placeholder-gray-500 focus:border-[#FFCC00] focus:outline-none transition-colors;
+    @apply w-full px-4 py-3 rounded-lg bg-[#0d1117] border border-gray-700 text-white placeholder-gray-500 focus:border-[#FFCC00] focus:outline-none transition-all;
+}
+
+.blk-input:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 204, 0, 0.15);
 }
 
 /* Mobile responsive input fields */
@@ -59,29 +207,63 @@
 }
 
 /* Card hover effects */
-.bg-\[#111827\] {
+.bg-\[#111827\], .bg-gradient-to-br {
     transition: all 0.3s ease;
 }
 
-.bg-\[#111827\]:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+.bg-\[#111827\]:hover, .bg-gradient-to-br:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
 }
 
 /* Button enhancements */
 button[class*="bg-\[#1273EB\]"] {
     transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
 }
 
 button[class*="bg-\[#1273EB\]"]:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(18, 115, 235, 0.4);
+}
+
+button[class*="bg-\[#1273EB\]"]:active {
+    transform: translateY(0);
 }
 
 button[class*="bg-\[#FFCC00\]"] {
     transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
 }
 
 button[class*="bg-\[#FFCC00\]"]:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 204, 0, 0.4);
+}
+
+button[class*="bg-\[#FFCC00\]"]:active {
+    transform: translateY(0);
+}
+
+/* Ripple effect on button click */
+button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+button:active::after {
+    width: 300px;
+    height: 300px;
 }
 
 /* Mobile specific adjustments */
@@ -103,4 +285,77 @@ button[class*="bg-\[#FFCC00\]"]:hover {
     .lg\:col-span-2 {
         grid-column: span 2 / span 2;
     }
+}
+
+/* Profile picture upload button styling */
+.relative.group:hover button {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* Order statistics card animations */
+[id$="OrdersCount"] {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+}
+
+/* Smooth number counting animation */
+@keyframes numberCount {
+    from {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Enhanced scrollbar for better UX */
+.no-scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.no-scrollbar::-webkit-scrollbar-track {
+    background: #0d1117;
+    border-radius: 4px;
+}
+
+.no-scrollbar::-webkit-scrollbar-thumb {
+    background: #1273EB;
+    border-radius: 4px;
+}
+
+.no-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #0e5ac0;
+}
+
+/* Loading state improvements */
+.loading-state {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Enhanced focus visible for accessibility */
+*:focus-visible {
+    outline: 2px solid #FFCC00;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Smooth page transitions */
+main {
+    animation: fadeIn 0.5s ease-in;
+}
+
+/* Professional gradient overlays */
+.bg-gradient-to-br::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(18, 115, 235, 0.05) 0%, rgba(255, 204, 0, 0.05) 100%);
+    pointer-events: none;
+    border-radius: inherit;
 }

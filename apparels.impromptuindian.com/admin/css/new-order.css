@@ -54,6 +54,7 @@ body {
 .btn-refresh {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
     background: #2563eb;
@@ -778,35 +779,8 @@ table tbody td:first-child {
 
     /* Page Layout & Spacing */
 
-
-    /* Header Section */
-    .reveal.mb-8 {
-        flex-direction: column;
-        gap: 1rem;
-        align-items: flex-start;
-        margin-bottom: 1.5rem !important;
-    }
-
-    .reveal.mb-8>div:first-child {
-        width: 100%;
-    }
-
-    .reveal.mb-8>div:last-child {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .reveal.mb-8 a,
-    .btn-refresh {
-        width: 100%;
-        justify-content: center;
-        padding: 0.875rem 1rem;
-    }
-
+    /* Header - Handled by Tailwind classes in HTML */
     .reveal.mb-8 h1 {
-        font-size: 1.5rem;
         line-height: 1.3;
     }
 
