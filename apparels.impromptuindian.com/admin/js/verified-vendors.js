@@ -19,15 +19,14 @@ let currentVendorId = null;
 
 async function fetchVendors() {
   try {
-    const token = localStorage.getItem('token');
-    const response = await ImpromptuIndianApi.fetch('/api/admin/vendors?status=verified', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+    // Use dedicated verified-vendors endpoint which returns properly formatted data
+    const response = await ImpromptuIndianApi.fetch('/api/admin/verified-vendors', {
+      credentials: 'include'  // Use cookie-based auth (HttpOnly JWT)
     });
     if (!response.ok) throw new Error('Failed to fetch verified vendors');
     const data = await response.json();
-    vendors = data.vendors || data;
+    // The endpoint returns an array directly, not wrapped in {vendors: [...]}
+    vendors = Array.isArray(data) ? data : (data.vendors || []);
     renderVendors();
   } catch (e) {
     console.error(e);
