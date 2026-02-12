@@ -74,7 +74,8 @@
                 <div class="search-input-wrapper">
                     <i data-lucide="search" class="w-4 h-4"></i>
                     <input type="text" id="search-order" class="search-input"
-                        placeholder="Quick search by Order ID or Customer name..." oninput="filterOrders()" autocomplete="off" />
+                        placeholder="Quick search by Order ID or Customer name..." oninput="filterOrders()"
+                        autocomplete="off" />
                 </div>
 
                 <div class="flex gap-3">
@@ -90,7 +91,8 @@
                     <h3 class="card-title">Escrow Orders</h3>
                 </div>
                 <div class="card-body">
-                    <div class="table-container">
+                    <!-- Desktop Table View -->
+                    <div class="table-container hidden md:block">
                         <table>
                             <thead>
                                 <tr>
@@ -107,6 +109,11 @@
                             </thead>
                             <tbody id="orders-table"></tbody>
                         </table>
+                    </div>
+
+                    <!-- Mobile Card View -->
+                    <div class="md:hidden space-y-4 p-4" id="orders-mobile">
+                        <!-- Cards injected by JS -->
                     </div>
                 </div>
             </div>

@@ -94,45 +94,133 @@ function calculateSummary() {
 
 function renderOrders(ordersToRender = orders) {
   const tbody = document.getElementById('orders-table');
-  tbody.innerHTML = '';
+  const mobileContainer = document.getElementById('orders-mobile');
+
+  // Clear both containers
+  if (tbody) tbody.innerHTML = '';
+  if (mobileContainer) mobileContainer.innerHTML = '';
+
+  // Handle empty state
+  if (!ordersToRender || ordersToRender.length === 0) {
+    const emptyState = `
+      <tr>
+        <td colspan="8" class="text-center py-12 text-gray-400">
+          <div class="flex flex-col items-center gap-2">
+            <i data-lucide="package-open" class="w-10 h-10 opacity-50"></i>
+            <p>No orders found</p>
+          </div>
+        </td>
+      </tr>`;
+
+    if (tbody) tbody.innerHTML = emptyState;
+    if (mobileContainer) {
+      mobileContainer.innerHTML = `
+        <div class="text-center py-12 text-gray-400 flex flex-col items-center gap-2">
+          <i data-lucide="package-open" class="w-10 h-10 opacity-50"></i>
+          <p>No orders found</p>
+        </div>`;
+    }
+    if (window.lucide) lucide.createIcons();
+    return;
+  }
+
   ordersToRender.forEach(o => {
-    const tr = document.createElement('tr');
-    tr.className = 'hover:bg-white/5 transition-colors duration-200';
-    tr.innerHTML = `
-      <td class="px-4 py-4 font-mono text-sm text-[#1273EB]" data-label="Order ID">#${o.id}</td>
-      <td class="px-4 py-4" data-label="Customer">
-        <div class="flex flex-col">
-          <span class="font-semibold text-gray-100">${o.customer}</span>
-          <span class="text-xs text-gray-500 font-medium truncate max-w-[150px]">${o.address}</span>
+    // 1. DESKTOP TABLE ROW
+    if (tbody) {
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-white/5 transition-colors duration-200';
+      tr.innerHTML = `
+        <td class="px-4 py-4 font-mono text-sm text-[#1273EB]" data-label="Order ID">#${o.id}</td>
+        <td class="px-4 py-4" data-label="Customer">
+          <div class="flex flex-col">
+            <span class="font-semibold text-gray-100">${o.customer}</span>
+            <span class="text-xs text-gray-500 font-medium truncate max-w-[150px]">${o.address}</span>
+          </div>
+        </td>
+        <td class="px-4 py-4" data-label="Apparel Type">
+          <span class="px-2 py-1 rounded-md bg-blue-500/10 text-blue-400 text-xs font-bold uppercase tracking-wider">${o.type}</span>
+        </td>
+        <td class="px-4 py-4" data-label="Qty">
+          <div class="flex items-center gap-1.5">
+            <span class="font-bold text-gray-200">${o.qty}</span>
+            <span class="text-xs text-gray-500">pcs</span>
+          </div>
+        </td>
+        <td class="px-4 py-4 font-bold text-yellow-400" data-label="Amount">₹${o.amount > 0 ? o.amount.toLocaleString() : '—'}</td>
+        <td class="px-4 py-4" data-label="Deadline">
+          <div class="flex items-center gap-2 text-xs font-medium text-gray-400">
+            <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-400"></i>
+            ${o.deadline}
+          </div>
+        </td>
+        <td class="px-4 py-4" data-label="Status">
+          <span class="status-${o.status} shadow-sm">${o.status}</span>
+        </td>
+        <td class="px-4 py-4 text-right" data-label="Actions">
+          <button class="p-2 rounded-lg bg-blue-600/10 hover:bg-blue-600 transition-all text-blue-400 hover:text-white" onclick="openOrderModal(${o.id})">
+            <i data-lucide="external-link" class="w-4 h-4"></i>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    // 2. MOBILE CARD
+    if (mobileContainer) {
+      const card = document.createElement('div');
+      card.className = 'mobile-order-card';
+      card.innerHTML = `
+        <!-- Header: Order ID & Status -->
+        <div class="mobile-card-header">
+          <span class="mobile-card-id">#${o.id}</span>
+          <span class="status-${o.status} text-[10px] uppercase font-bold tracking-wide">${o.status}</span>
         </div>
-      </td>
-      <td class="px-4 py-4" data-label="Apparel Type">
-        <span class="px-2 py-1 rounded-md bg-blue-500/10 text-blue-400 text-xs font-bold uppercase tracking-wider">${o.type}</span>
-      </td>
-      <td class="px-4 py-4" data-label="Qty">
-        <div class="flex items-center gap-1.5">
-          <span class="font-bold text-gray-200">${o.qty}</span>
-          <span class="text-xs text-gray-500">pcs</span>
+
+        <!-- Customer Info -->
+        <div class="mobile-card-body">
+          <h3 class="mobile-card-customer">${o.customer}</h3>
+          <p class="mobile-card-address">${o.address}</p>
         </div>
-      </td>
-      <td class="px-4 py-4 font-bold text-yellow-400" data-label="Amount">₹${o.amount > 0 ? o.amount.toLocaleString() : '—'}</td>
-      <td class="px-4 py-4" data-label="Deadline">
-        <div class="flex items-center gap-2 text-xs font-medium text-gray-400">
-          <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-400"></i>
-          ${o.deadline}
+
+        <!-- Apparel Type -->
+        <div class="mobile-card-body">
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-400 uppercase tracking-wide">Apparel</span>
+            <span class="px-2 py-1 rounded-md bg-blue-500/10 text-blue-400 text-xs font-bold uppercase">${o.type}</span>
+          </div>
         </div>
-      </td>
-      <td class="px-4 py-4" data-label="Status">
-        <span class="status-${o.status} shadow-sm">${o.status}</span>
-      </td>
-      <td class="px-4 py-4 text-right" data-label="Actions">
-        <button class="p-2 rounded-lg bg-blue-600/10 hover:bg-blue-600 transition-all text-blue-400 hover:text-white" onclick="openOrderModal(${o.id})">
+
+        <!-- Metrics Grid -->
+        <div class="mobile-card-grid">
+          <div class="mobile-card-metric">
+            <span class="mobile-card-metric-label">Quantity</span>
+            <span class="mobile-card-metric-value">${o.qty} pcs</span>
+          </div>
+          <div class="mobile-card-metric">
+            <span class="mobile-card-metric-label">Amount</span>
+            <span class="mobile-card-metric-value text-yellow-400">₹${o.amount > 0 ? o.amount.toLocaleString() : '—'}</span>
+          </div>
+        </div>
+
+        <!-- Deadline -->
+        <div class="mobile-card-deadline">
+          <span class="text-xs text-gray-400 uppercase tracking-wide">Deadline</span>
+          <span class="text-sm font-medium text-gray-300 flex items-center gap-1">
+            <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-400"></i>
+            ${o.deadline}
+          </span>
+        </div>
+
+        <!-- Action Button -->
+        <button class="mobile-card-action" onclick="openOrderModal(${o.id})">
+          View Details
           <i data-lucide="external-link" class="w-4 h-4"></i>
         </button>
-      </td>
-    `;
-    tbody.appendChild(tr);
+      `;
+      mobileContainer.appendChild(card);
+    }
   });
+
   if (window.lucide) lucide.createIcons();
 }
 
