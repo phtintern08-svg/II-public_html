@@ -377,12 +377,13 @@ async function checkModalEstimate() {
 
 // Helper to fetch estimate
 async function fetchEstimate(product, category, neck, fabric, size) {
-  // Normalize all values: trim strings, convert empty to null, no defaults
+  // Normalize all values: trim strings, convert empty to "None" (string) to match DB
+  // DB stores "None" as string, not SQL NULL
   const payload = {
     product_type: product ? product.trim() : null,
     category: category ? category.trim() : null,
-    neck_type: neck ? neck.trim() : null,  // No defaults - only what user selected
-    fabric: fabric ? fabric.trim() : null,  // No defaults - only what user selected
+    neck_type: neck ? neck.trim() : "None",  // DB uses "None" string, not NULL
+    fabric: fabric ? fabric.trim() : null,  // Fabric may be NULL or have value
     size: size ? size.trim() : null
   };
 
@@ -2188,8 +2189,8 @@ function initPlaceOrder() {
       const pricePayload = {
         product_type: product ? product.trim() : null,
         category: selectedCategory ? selectedCategory.trim() : null,
-        neck_type: selectedNeckType ? selectedNeckType.trim() : null,  // No defaults
-        fabric: fabric ? fabric.trim() : null,  // No defaults
+        neck_type: selectedNeckType ? selectedNeckType.trim() : "None",  // DB uses "None" string, not NULL
+        fabric: fabric ? fabric.trim() : null,  // Fabric may be NULL or have value
         size: finalSampleSize ? finalSampleSize.trim() : null
       };
       

@@ -777,13 +777,7 @@ table tbody td:first-child {
 @media (max-width: 768px) {
 
     /* Page Layout & Spacing */
-    main.flex-1 {
-        padding: 1rem !important;
-    }
 
-    main.p-8 {
-        padding: 1rem !important;
-    }
 
     /* Header Section */
     .reveal.mb-8 {
