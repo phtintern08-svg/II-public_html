@@ -2356,7 +2356,15 @@ async function processGatewayPayment(btnId) {
 
     showAlert("Payment Successful", successMsg, "success");
 
-    // Close modal and proceed to place order
+    // 🔥 CRITICAL: Create order immediately after successful payment
+    // This is the correct production flow: Payment → Order Creation → Database
+    console.log("✅ Payment successful - creating order in database", {
+      transactionId: paymentResult.transactionId,
+      amount: amount,
+      state: currentOrderState
+    });
+
+    // Close modal
     await new Promise(r => setTimeout(r, 1500));
     document.getElementById("paymentModal").classList.add("hidden");
 
@@ -2368,17 +2376,13 @@ async function processGatewayPayment(btnId) {
     btn.classList.add("text-black");
     btn.disabled = false;
 
-    // Auto-trigger place order - CRITICAL: Verify payment state before clicking
-    console.log("Payment successful, triggering place order. isSamplePaid:", isSamplePaid, "transactionId:", currentTransactionId);
-    const placeOrderBtn = document.getElementById("placeOrderBtn");
-    if (placeOrderBtn) {
-      // Small delay to ensure modal is closed and state is ready
-      setTimeout(() => {
-        console.log("Auto-clicking Place Order button");
-        placeOrderBtn.click();
-      }, 200);
-    } else {
-      console.error("Place Order button not found!");
+    // 🔥 CRITICAL: Create order directly after payment (no need to click Place Order button)
+    try {
+      await createOrderAfterPayment(paymentResult, amount);
+    } catch (orderError) {
+      console.error("❌ Order creation failed after payment:", orderError);
+      showAlert("Order Creation Failed", orderError.message || "Payment succeeded but order creation failed. Please contact support with transaction ID: " + paymentResult.transactionId, "error");
+      // Payment succeeded but order failed - user should contact support
     }
 
   } catch (error) {
@@ -2657,6 +2661,117 @@ function initPlaceOrder() {
 
   if (desktopBtn) desktopBtn.addEventListener("click", handlePlaceOrder);
   if (mobileBtn) mobileBtn.addEventListener("click", handlePlaceOrder);
+}
+
+/**
+ * Create order after successful payment
+ * This is called immediately after payment succeeds to create the order in the database
+ */
+async function createOrderAfterPayment(paymentResult, amount) {
+  console.log("🔥 Creating order after payment success", {
+    transactionId: paymentResult.transactionId,
+    paymentMethod: paymentResult.method,
+    amount: amount,
+    state: currentOrderState
+  });
+
+  // 🔥 CRITICAL: Validate state before creating order
+  if (
+    !currentOrderState.productType ||
+    !currentOrderState.category ||
+    !currentOrderState.neckType ||
+    !currentOrderState.fabric ||
+    !currentOrderState.size ||
+    currentOrderState.sampleCost === null ||
+    currentOrderState.sampleCost <= 0
+  ) {
+    const error = "Invalid order state - cannot create order. Please complete product configuration.";
+    console.error("❌", error, currentOrderState);
+    throw new Error(error);
+  }
+
+  // Get address details from form
+  const house = document.getElementById("fldHouse")?.value.trim() || "";
+  const area = document.getElementById("fldArea")?.value.trim() || "";
+  const city = document.getElementById("fldCity")?.value.trim() || "";
+  const state = document.getElementById("fldState")?.value.trim() || "";
+  const pincode = document.getElementById("fldPincode")?.value.trim() || "";
+  const landmark = document.getElementById("fldLandmark")?.value.trim() || "";
+  const country = document.getElementById("fldCountry")?.value.trim() || "India";
+  const dateText = document.getElementById("dateText")?.textContent || "";
+
+  // Validate required address fields
+  if (!house || !area || !city || !state || !pincode) {
+    const error = "Missing required address fields. Please fill in all address details.";
+    console.error("❌", error);
+    throw new Error(error);
+  }
+
+  // Build order payload
+  const orderPayload = {
+    product_type: currentOrderState.productType.trim(),
+    category: currentOrderState.category.trim(),
+    neck_type: currentOrderState.neckType.trim(),
+    fabric: currentOrderState.fabric.trim(),
+    sample_size: currentOrderState.size.trim(),
+    sample_cost: currentOrderState.sampleCost,
+    quantity: 1, // Sample order
+    price_per_piece: currentOrderState.sampleCost, // For sample, price_per_piece = sample_cost
+    
+    // Address details
+    address_line1: `${house} ${area}`.trim(),
+    address_line2: landmark || null,
+    city: city,
+    state: state,
+    pincode: pincode,
+    country: country,
+    delivery_date: dateText || null,
+    
+    // Payment details
+    transaction_id: paymentResult.transactionId,
+    payment_method: paymentResult.method,
+    payment_details: JSON.stringify(paymentResult)
+  };
+
+  console.log("📦 Order payload built:", {
+    keys: Object.keys(orderPayload),
+    hasTransactionId: !!orderPayload.transaction_id,
+    sampleCost: orderPayload.sample_cost,
+    productType: orderPayload.product_type
+  });
+
+  // Get authentication token
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error("Authentication required. Please log in again.");
+  }
+
+  // Create order via API
+  const response = await window.ImpromptuIndianApi.fetch("/api/orders/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
+    body: JSON.stringify(orderPayload)
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: "Order creation failed" }));
+    console.error("❌ Order creation failed:", errorData);
+    throw new Error(errorData.error || `Order creation failed: ${response.status} ${response.statusText}`);
+  }
+
+  const orderData = await response.json();
+  console.log("✅ Order created successfully:", orderData);
+
+  // Show success message and redirect
+  showAlert("Order Placed Successfully", `Your order has been placed successfully! Order ID: ${orderData.order_id || 'N/A'}`, "success");
+  
+  // Redirect to orders page after a short delay
+  setTimeout(() => {
+    window.location.href = "/customer/orders.html";
+  }, 2000);
 }
 
 async function submitOrder(payload) {
