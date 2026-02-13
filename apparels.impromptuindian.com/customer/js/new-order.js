@@ -83,8 +83,14 @@ function initDropdowns() {
             // This prevents sending wrong category/neck/fabric (e.g., Regular Fit for Hoodie when it should be Pullover Hoodie)
             
             // Reset state variables
-            selectedCategory = "";
-            selectedNeckType = "";
+            // 🔥 CRITICAL: Reset currentOrderState when product type changes (prevent ghost state)
+            // Single source of truth - no separate selectedCategory/selectedNeckType variables
+            currentOrderState.category = null;
+            currentOrderState.neckType = null;
+            currentOrderState.fabric = null;
+            currentOrderState.sampleCost = null;  // Clear estimate result
+            currentOrderState.estimateFound = false;  // Clear estimate flag
+            console.log("🔄 Product type changed - cleared category, neckType, fabric, and estimate from state");
             
             // Reset fabric selection
             const fabricWrapper = document.querySelector('.custom-select[data-name="fabric-type"]');
@@ -128,6 +134,19 @@ function initDropdowns() {
 
           // Trigger estimate check when any relevant dropdown changes
           if (['product-type', 'fabric-type', 'sample-size'].includes(wrapper.dataset.name)) {
+            // 🔥 CRITICAL: Update state IMMEDIATELY when dropdown changes (before estimate)
+            const selectedValue = native.value;
+            if (wrapper.dataset.name === 'product-type') {
+              currentOrderState.productType = selectedValue || null;
+              console.log("💾 Product type changed - state updated:", { productType: selectedValue, state: currentOrderState });
+            } else if (wrapper.dataset.name === 'fabric-type') {
+              currentOrderState.fabric = selectedValue || null;
+              console.log("💾 Fabric changed - state updated:", { fabric: selectedValue, state: currentOrderState });
+            } else if (wrapper.dataset.name === 'sample-size') {
+              currentOrderState.size = selectedValue || null;
+              console.log("💾 Sample size changed - state updated:", { size: selectedValue, state: currentOrderState });
+            }
+            
             clearEstimateUI(); // Clear UI immediately before fetching new estimate
             checkEstimate();
           }
@@ -246,8 +265,7 @@ const CATEGORY_MAP = {
   ],
 };
 
-let selectedCategory = "";
-let selectedNeckType = "";
+// 🔥 REMOVED: selectedCategory and selectedNeckType - using only currentOrderState as single source of truth
 
 /* ---------------------------
    NECK TYPE MAPS
@@ -327,9 +345,11 @@ let currentOrderState = {
    Reset Order State - Clear All Stale Data
 ---------------------------*/
 function resetOrderState() {
-  // Reset selection variables
-  selectedCategory = "";
-  selectedNeckType = "";
+  // 🔥 DEBUG: Log when state is reset (helps diagnose duplicate initialization)
+  console.warn("⚠️ RESET ORDER STATE CALLED - This should only happen on page load");
+  
+  // Reset selection state (single source of truth - currentOrderState)
+  // No separate selectedCategory/selectedNeckType variables needed
 
   // Reset request IDs to prevent stale responses
   currentEstimateRequestId = 0;
@@ -435,35 +455,42 @@ async function checkEstimate() {
 
   if (!displayEl && !sampleCostDisplay) return;
 
+  // 🔥 CRITICAL: Update selection state IMMEDIATELY (before validation)
+  // Single source of truth - use currentOrderState, not separate variables
+  currentOrderState.productType = productType || null;
+  currentOrderState.category = currentOrderState.category || null;  // Preserve if already set
+  currentOrderState.neckType = currentOrderState.neckType || null;  // Preserve if already set
+  currentOrderState.fabric = fabric || null;
+  currentOrderState.size = sampleSize || null;
+
   // Clear UI immediately
   if (displayEl) {
-    if (!productType || !selectedCategory || !selectedNeckType || !fabric || !sampleSize) {
+    if (!currentOrderState.productType || !currentOrderState.category || !currentOrderState.neckType || !currentOrderState.fabric || !currentOrderState.size) {
       displayEl.textContent = "--";
     } else {
       displayEl.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-[#FFCC00]"></i>';
     }
   }
 
-  // 🔥 CRITICAL: Validate ALL required fields (neckType and fabric are required for exact matching)
-  if (!productType || !selectedCategory || !selectedNeckType || !fabric || !sampleSize) {
+  // 🔥 CRITICAL: Validate ALL required fields using currentOrderState (single source of truth)
+  if (!currentOrderState.productType || !currentOrderState.category || !currentOrderState.neckType || !currentOrderState.fabric || !currentOrderState.size) {
     if (samplePaymentCard) samplePaymentCard.classList.add("hidden");
-    // Clear state if required fields missing
-    currentOrderState.productType = null;
-    currentOrderState.category = null;
-    currentOrderState.neckType = null;
-    currentOrderState.fabric = null;
-    currentOrderState.size = null;
+    // DO NOT clear selection state - preserve selections even if estimate can't run yet
+    // Only clear sampleCost (estimate result) - selections are preserved
     currentOrderState.sampleCost = null;
+    currentOrderState.estimateFound = false;
+    console.log("⚠️ Estimate validation failed - selections preserved, estimate blocked:", {
+      productType: !!currentOrderState.productType,
+      category: !!currentOrderState.category,
+      neckType: !!currentOrderState.neckType,
+      fabric: !!currentOrderState.fabric,
+      size: !!currentOrderState.size,
+      state: currentOrderState
+    });
     return;
   }
 
-  // 🔥 CRITICAL: Update selection state IMMEDIATELY (before estimate call)
-  // This ensures state is always valid even if estimate fails
-  currentOrderState.productType = productType;
-  currentOrderState.category = selectedCategory;
-  currentOrderState.neckType = selectedNeckType;
-  currentOrderState.fabric = fabric;
-  currentOrderState.size = sampleSize;
+  // State is already updated above - no need to update again here
   
   console.log("💾 Order state updated (before estimate):", {
     productType: currentOrderState.productType,
@@ -476,7 +503,14 @@ async function checkEstimate() {
   lucide.createIcons();
 
   try {
-    const estimateResult = await fetchEstimate(productType, selectedCategory, selectedNeckType, fabric, sampleSize);
+    // Use currentOrderState as single source of truth
+    const estimateResult = await fetchEstimate(
+      currentOrderState.productType,
+      currentOrderState.category,
+      currentOrderState.neckType,
+      currentOrderState.fabric,
+      currentOrderState.size
+    );
 
     // Ignore stale responses
     if (requestId !== currentEstimateRequestId) {
@@ -638,7 +672,10 @@ function renderCategories(product) {
 function selectCategory(cardEl, label) {
   document.querySelectorAll(".category-card").forEach((c) => c.classList.remove("selected"));
   cardEl.classList.add("selected");
-  selectedCategory = label;
+  
+  // 🔥 CRITICAL: Update state IMMEDIATELY when selection is made (single source of truth)
+  currentOrderState.category = label;
+  console.log("💾 Category selected - state updated:", { category: label, state: currentOrderState });
 
   clearEstimateUI(); // Clear UI immediately before fetching new estimate
   renderNeckTypes(label);
@@ -684,7 +721,11 @@ function selectNeckType(cardEl, label) {
   );
 
   cardEl.classList.add("selected");
-  selectedNeckType = label;
+  
+  // 🔥 CRITICAL: Update state IMMEDIATELY when selection is made (single source of truth)
+  currentOrderState.neckType = label;
+  console.log("💾 Neck type selected - state updated:", { neckType: label, state: currentOrderState });
+
   clearEstimateUI(); // Clear UI immediately before fetching new estimate
   checkEstimate();
 }
@@ -2280,8 +2321,8 @@ function initPlaceOrder() {
     const fabric = document.querySelector('.custom-select[data-name="fabric-type"] select').value;
     const printType = document.querySelector('.custom-select[data-name="print-type"] select').value;
 
-    if (!product || !selectedCategory) {
-      console.warn("❌ Missing product details:", { product, selectedCategory });
+    if (!product || !currentOrderState.category) {
+      console.warn("❌ Missing product details:", { product, category: currentOrderState.category });
       showAlert("Missing Details", "Please select a product type and category.", "error");
       return;
     }
@@ -2304,6 +2345,18 @@ function initPlaceOrder() {
     /* 6. PAYMENT CHECK */
     if (!isSamplePaid) {
       // 🔥 CRITICAL: Validate state BEFORE opening modal (prevents visual glitch)
+      // Add detailed logging to diagnose state issues
+      console.log("🔍 Validating order state before payment:", {
+        productType: currentOrderState.productType,
+        category: currentOrderState.category,
+        neckType: currentOrderState.neckType,
+        fabric: currentOrderState.fabric,
+        size: currentOrderState.size,
+        sampleCost: currentOrderState.sampleCost,
+        estimateFound: currentOrderState.estimateFound,
+        fullState: currentOrderState
+      });
+      
       if (
         !currentOrderState.productType ||
         !currentOrderState.category ||
@@ -2321,15 +2374,13 @@ function initPlaceOrder() {
         return;
       }
 
-      // Debug: Ensure selectedCategory and selectedNeckType are set
+      // Debug: Log state before opening payment modal
       console.log("💳 Payment not completed - Opening payment modal", {
-        selectedCategory: selectedCategory,
-        selectedNeckType: selectedNeckType,
         isSamplePaid: isSamplePaid,
         state: currentOrderState
       });
       
-      if (!selectedCategory) {
+      if (!currentOrderState.category) {
         console.warn("❌ Missing category - cannot proceed to payment");
         showAlert("Missing Selection", "Please select a product category before proceeding to payment.", "error");
         return;
@@ -2431,8 +2482,8 @@ function initPlaceOrder() {
 
     const payload = {
       product_type: product ? product.trim() : null,
-      category: selectedCategory ? selectedCategory.trim() : null,
-      neck_type: selectedNeckType ? selectedNeckType.trim() : null,
+      category: currentOrderState.category ? currentOrderState.category.trim() : null,
+      neck_type: currentOrderState.neckType ? currentOrderState.neckType.trim() : null,
       color: color ? color.trim() : null,
       fabric: (fabric && fabric.trim()) ? fabric.trim() : null,  // Normalize fabric - only send if selected
       print_type: printType ? printType.trim() : null,
@@ -2622,10 +2673,18 @@ function initNewOrderPage() {
   // This prevents loading SDK on every page load
 }
 
-// Initialize when DOM is ready (defer ensures DOM is ready, but this is extra safety)
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initNewOrderPage);
+// 🔥 CRITICAL: Guard against duplicate initialization (prevents state reset after user configures product)
+// If script is loaded twice, injected, or hot-reloaded, this prevents wiping user's selections
+if (window.__newOrderInitialized) {
+  console.warn("⚠️ New Order already initialized - skipping duplicate init to prevent state reset");
 } else {
-  // DOM already ready
-  initNewOrderPage();
+  window.__newOrderInitialized = true;
+  
+  // Initialize when DOM is ready (defer ensures DOM is ready, but this is extra safety)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initNewOrderPage);
+  } else {
+    // DOM already ready
+    initNewOrderPage();
+  }
 }
