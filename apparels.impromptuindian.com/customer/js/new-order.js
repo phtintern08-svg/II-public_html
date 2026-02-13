@@ -703,9 +703,20 @@ async function fetchEstimate(product, category, neck, fabric, size) {
   });
 
   try {
+    // 🔥 CRITICAL: Add Authorization header - ImpromptuIndianApi.fetch does NOT auto-inject token
+    // Backend route requires @login_required and @role_required(['customer'])
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.warn("⚠️ No token found - estimate request will fail authentication");
+      return { price: 0, found: false };
+    }
+    
     const resp = await window.ImpromptuIndianApi.fetch("/api/estimate-price", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`  // 🔥 FIX: Required for authentication
+      },
       body: JSON.stringify(payload)
     });
 
