@@ -438,12 +438,17 @@ function clearEstimateUI() {
   if (modalCostDisplay) modalCostDisplay.textContent = "--";
   if (modalPayBtn) modalPayBtn.dataset.cost = "0";
 
-  // Disable modal pay button (Place Order button validation is handled in handlePlaceOrder)
+  // 🔥 CRITICAL: Only disable modal pay button explicitly - DO NOT use wildcard selectors
+  // Wildcard selectors like [id*="pay"] match ALL buttons with "pay" in ID (btnPayCard, btnPayUpi, etc.)
+  // This causes payment buttons to be permanently disabled
+  // Only disable the specific modal pay button if it exists
   if (modalPayBtn) modalPayBtn.disabled = true;
-  const payButtons = document.querySelectorAll('[id*="pay"], [id*="Pay"], .pay-button');
-  payButtons.forEach(btn => {
-    if (btn) btn.disabled = true;
-  });
+  
+  // 🔥 REMOVED: Dangerous wildcard selector that disables ALL payment buttons
+  // const payButtons = document.querySelectorAll('[id*="pay"], [id*="Pay"], .pay-button');
+  // payButtons.forEach(btn => {
+  //   if (btn) btn.disabled = true;
+  // });
 }
 
 /* ---------------------------
@@ -2256,7 +2261,34 @@ window.switchPaymentTab = function (method) {
 // checkGatewayEstimate() removed - price is computed before modal opens, modal size is locked
 
 async function processGatewayPayment(btnId) {
+  // 🔥 DEBUG: Log function entry to confirm click handler is working
+  console.log("🔥 processGatewayPayment called", {
+    btnId: btnId,
+    timestamp: new Date().toISOString(),
+    buttonElement: document.getElementById(btnId),
+    buttonDisabled: document.getElementById(btnId)?.disabled
+  });
+  
   const btn = document.getElementById(btnId);
+  
+  if (!btn) {
+    console.error("❌ Payment button not found:", btnId);
+    showAlert("Error", "Payment button not found. Please refresh the page.", "error");
+    return;
+  }
+  
+  // Check if button is disabled
+  if (btn.disabled) {
+    console.warn("⚠️ Payment button is disabled:", {
+      btnId: btnId,
+      disabled: btn.disabled,
+      button: btn,
+      className: btn.className,
+      id: btn.id
+    });
+    showAlert("Button Disabled", "Payment button is currently disabled. Please wait for price estimate to complete.", "warning");
+    return;
+  }
   
   // 🔥 Use state as source of truth ONLY (no DOM fallback - prevents stale price)
   const cost = currentOrderState.sampleCost;
@@ -2406,11 +2438,76 @@ async function processGatewayPayment(btnId) {
   }
 }
 
-// Bind Buttons (delegate)
-document.addEventListener('click', (e) => {
-  if (e.target.closest('#btnPayCard')) { e.preventDefault(); processGatewayPayment('btnPayCard'); }
-  if (e.target.closest('#btnPayUpi')) { e.preventDefault(); processGatewayPayment('btnPayUpi'); }
-});
+/* ---------------------------
+   Initialize Payment Buttons (Direct Binding)
+---------------------------*/
+function initPaymentButtons() {
+  // 🔥 DEBUG: Confirm function is being called
+  console.log("🔵 Payment button initialization started");
+  
+  // 🔥 CRITICAL: Use direct binding instead of event delegation
+  // Direct binding is more reliable and easier to debug
+  // Event delegation can fail if buttons are disabled or inside iframes
+  
+  const payCardBtn = document.getElementById("btnPayCard");
+  const payUpiBtn = document.getElementById("btnPayUpi");
+  
+  // Debug: Check if buttons exist
+  console.log("🔍 Payment buttons check:", {
+    payCardBtn: payCardBtn ? "found" : "NOT FOUND",
+    payUpiBtn: payUpiBtn ? "found" : "NOT FOUND",
+    payCardDisabled: payCardBtn?.disabled,
+    payUpiDisabled: payUpiBtn?.disabled
+  });
+  
+  if (payCardBtn) {
+    payCardBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      console.log("💳 Pay Card button clicked directly", {
+        button: payCardBtn,
+        disabled: payCardBtn.disabled,
+        id: payCardBtn.id
+      });
+      
+      // Check if button is disabled
+      if (payCardBtn.disabled) {
+        console.warn("⚠️ Pay Card button is disabled - click ignored");
+        showAlert("Button Disabled", "Payment button is currently disabled. Please wait for price estimate.", "warning");
+        return;
+      }
+      
+      processGatewayPayment("btnPayCard");
+    });
+    console.log("✅ Pay Card button listener attached");
+  } else {
+    console.error("❌ btnPayCard button not found in DOM");
+  }
+  
+  if (payUpiBtn) {
+    payUpiBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      console.log("📱 Pay UPI button clicked directly", {
+        button: payUpiBtn,
+        disabled: payUpiBtn.disabled,
+        id: payUpiBtn.id
+      });
+      
+      // Check if button is disabled
+      if (payUpiBtn.disabled) {
+        console.warn("⚠️ Pay UPI button is disabled - click ignored");
+        showAlert("Button Disabled", "Payment button is currently disabled. Please wait for price estimate.", "warning");
+        return;
+      }
+      
+      processGatewayPayment("btnPayUpi");
+    });
+    console.log("✅ Pay UPI button listener attached");
+  } else {
+    console.error("❌ btnPayUpi button not found in DOM");
+  }
+  
+  console.log("🔵 Payment button initialization completed");
+}
 
 /* Old processModalPayment listener removed/replaced */
 
@@ -2919,6 +3016,7 @@ function initNewOrderPage() {
   // Note: Location functionality is handled inline in initAddress() via useCurrentLocationBtn
   initFileUpload();
   initPlaceOrder();
+  initPaymentButtons(); // 🔥 CRITICAL: Initialize payment buttons with direct binding
 
   // Initialize cart badge
   try {
