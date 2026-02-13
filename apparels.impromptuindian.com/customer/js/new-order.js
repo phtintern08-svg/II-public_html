@@ -458,12 +458,24 @@ async function checkEstimate() {
   if (!displayEl && !sampleCostDisplay) return;
 
   // 🔥 CRITICAL: Update selection state IMMEDIATELY (before validation)
-  // Single source of truth - use currentOrderState, not separate variables
+  // Single source of truth - use currentOrderState
+  // Category and neckType come from card selections (stored in currentOrderState), not DOM dropdowns
+  // ProductType, fabric, and size come from DOM dropdowns
   currentOrderState.productType = productType || null;
-  currentOrderState.category = currentOrderState.category || null;  // Preserve if already set
-  currentOrderState.neckType = currentOrderState.neckType || null;  // Preserve if already set
+  // Category and neckType are set by selectCategory() and selectNeckType() - preserve if already set
+  // Don't read from DOM because they're card selections, not dropdowns
   currentOrderState.fabric = fabric || null;
   currentOrderState.size = sampleSize || null;
+  
+  // 🔥 DEBUG: Log state before validation to diagnose why estimate might not run
+  console.log("🔍 checkEstimate() state check:", {
+    productType: currentOrderState.productType,
+    category: currentOrderState.category,
+    neckType: currentOrderState.neckType,
+    fabric: currentOrderState.fabric,
+    size: currentOrderState.size,
+    allFieldsPresent: !!(currentOrderState.productType && currentOrderState.category && currentOrderState.neckType && currentOrderState.fabric && currentOrderState.size)
+  });
 
   // Clear UI immediately
   if (displayEl) {
@@ -475,22 +487,33 @@ async function checkEstimate() {
   }
 
   // 🔥 CRITICAL: Validate ALL required fields using currentOrderState (single source of truth)
-  if (!currentOrderState.productType || !currentOrderState.category || !currentOrderState.neckType || !currentOrderState.fabric || !currentOrderState.size) {
+  // NOTE: quantity is NOT required for estimate (backend doesn't need it)
+  const allFieldsPresent = !!(currentOrderState.productType && 
+                               currentOrderState.category && 
+                               currentOrderState.neckType && 
+                               currentOrderState.fabric && 
+                               currentOrderState.size);
+  
+  if (!allFieldsPresent) {
     if (samplePaymentCard) samplePaymentCard.classList.add("hidden");
     // DO NOT clear selection state - preserve selections even if estimate can't run yet
     // Only clear sampleCost (estimate result) - selections are preserved
     currentOrderState.sampleCost = null;
     currentOrderState.estimateFound = false;
-    console.log("⚠️ Estimate validation failed - selections preserved, estimate blocked:", {
+    console.log("⚠️ Estimate validation failed - missing required fields:", {
       productType: !!currentOrderState.productType,
       category: !!currentOrderState.category,
       neckType: !!currentOrderState.neckType,
       fabric: !!currentOrderState.fabric,
       size: !!currentOrderState.size,
+      allFieldsPresent: allFieldsPresent,
       state: currentOrderState
     });
     return;
   }
+  
+  // 🔥 DEBUG: All fields present - estimate should proceed
+  console.log("✅ All required fields present - proceeding with estimate API call");
 
   // State is already updated above - no need to update again here
   
@@ -505,6 +528,15 @@ async function checkEstimate() {
   lucide.createIcons();
 
   try {
+    // 🔥 DEBUG: Log before API call to confirm it's being made
+    console.log("🚀 Calling /api/estimate-price with:", {
+      product_type: currentOrderState.productType,
+      category: currentOrderState.category,
+      neck_type: currentOrderState.neckType,
+      fabric: currentOrderState.fabric,
+      size: currentOrderState.size
+    });
+    
     // Use currentOrderState as single source of truth
     const estimateResult = await fetchEstimate(
       currentOrderState.productType,
@@ -513,6 +545,8 @@ async function checkEstimate() {
       currentOrderState.fabric,
       currentOrderState.size
     );
+    
+    console.log("📥 Estimate API response received:", estimateResult);
 
     // 🔥 REMOVED: Stale response guard - latest response always applies (prevents race conditions)
     const cost = estimateResult.price || 0;
@@ -677,7 +711,12 @@ function selectCategory(cardEl, label) {
 
   clearEstimateUI(); // Clear UI immediately before fetching new estimate
   renderNeckTypes(label);
-  checkEstimate();
+  
+  // 🔥 CRITICAL: Call checkEstimate after a small delay to ensure state is fully updated
+  // This prevents race conditions where estimate runs before neckType options are rendered
+  setTimeout(() => {
+    checkEstimate();
+  }, 100);
 }
 
 /* ---------------------------
@@ -725,6 +764,8 @@ function selectNeckType(cardEl, label) {
   console.log("💾 Neck type selected - state updated:", { neckType: label, state: currentOrderState });
 
   clearEstimateUI(); // Clear UI immediately before fetching new estimate
+  
+  // 🔥 CRITICAL: Call checkEstimate immediately - all required fields should now be set
   checkEstimate();
 }
 
