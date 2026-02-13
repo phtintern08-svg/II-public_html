@@ -108,7 +108,8 @@ function initDropdowns() {
             // Clear category and neck type UI
             const categoryContainer = document.getElementById("categoryContainer");
             if (categoryContainer) categoryContainer.innerHTML = "";
-            const neckContainer = document.getElementById("neckContainer");
+            // 🔥 FIX: Use correct container ID - must match #neckTypeContainer (not #neckContainer)
+            const neckContainer = document.getElementById("neckTypeContainer");
             if (neckContainer) neckContainer.innerHTML = "";
 
             // Update dependent UI
@@ -136,6 +137,11 @@ function initDropdowns() {
           if (['product-type', 'fabric-type', 'sample-size'].includes(wrapper.dataset.name)) {
             // 🔥 CRITICAL: Update state IMMEDIATELY when dropdown changes (before estimate)
             const selectedValue = native.value;
+            console.log("🔄 Dropdown changed - triggering estimate:", {
+              dropdownName: wrapper.dataset.name,
+              selectedValue: selectedValue
+            });
+            
             if (wrapper.dataset.name === 'product-type') {
               currentOrderState.productType = selectedValue || null;
               console.log("💾 Product type changed - state updated:", { productType: selectedValue, state: currentOrderState });
@@ -149,6 +155,9 @@ function initDropdowns() {
             
             clearEstimateUI(); // Clear UI immediately before fetching new estimate
             checkEstimate();
+          } else {
+            // 🔥 DEBUG: Log when dropdown changes but doesn't trigger estimate
+            console.log("ℹ️ Dropdown changed but not triggering estimate:", wrapper.dataset.name);
           }
 
           // Modal sample size is now locked - no change listener needed
@@ -467,24 +476,36 @@ async function checkEstimate() {
   currentOrderState.fabric = fabric || null;
   currentOrderState.size = sampleSize || null;
   
-  // 🔥 FIX: ALWAYS read category and neckType from DOM (not just when null)
-  // This ensures state always matches UI, even after product type changes
-  const categoryCard = document.querySelector(".category-card.selected");
+  // 🔥 FIX: ALWAYS read category and neckType from DOM (ensures state matches UI)
+  // This prevents state/UI mismatch when product type changes and resets state
+  // 🔥 CRITICAL: Use STRICT selectors only - no fallbacks that can match wrong cards
+  // Category must come from category container, neckType must come from neckType container
+  const categoryCard = document.querySelector("#categoryContainer .category-card.selected");
   if (categoryCard) {
     const categoryLabel = categoryCard.querySelector(".category-label");
-    if (categoryLabel && categoryLabel.textContent) {
-      currentOrderState.category = categoryLabel.textContent;
+    if (categoryLabel && categoryLabel.textContent && categoryLabel.textContent.trim()) {
+      currentOrderState.category = categoryLabel.textContent.trim();
       console.log("🔄 Category synced from DOM:", currentOrderState.category);
+    } else {
+      console.warn("⚠️ Category card found but label is empty:", categoryCard);
     }
+  } else {
+    console.warn("⚠️ No selected category card found in #categoryContainer");
   }
   
+  // 🔥 CRITICAL: Use STRICT selector - neckType must ONLY come from neckTypeContainer
+  // NO fallback - fallback can match category cards and cause wrong value
   const neckCard = document.querySelector("#neckTypeContainer .category-card.selected");
   if (neckCard) {
     const neckLabel = neckCard.querySelector(".category-label");
-    if (neckLabel && neckLabel.textContent) {
-      currentOrderState.neckType = neckLabel.textContent;
+    if (neckLabel && neckLabel.textContent && neckLabel.textContent.trim()) {
+      currentOrderState.neckType = neckLabel.textContent.trim();
       console.log("🔄 NeckType synced from DOM:", currentOrderState.neckType);
+    } else {
+      console.warn("⚠️ NeckType card found but label is empty:", neckCard);
     }
+  } else {
+    console.warn("⚠️ No selected neckType card found in #neckTypeContainer");
   }
   
   // 🔥 DEBUG: Log state before validation to diagnose why estimate might not run
