@@ -440,6 +440,9 @@ function clearEstimateUI() {
    Check Price Estimate (MAIN & MODAL)
 ---------------------------*/
 async function checkEstimate() {
+  // 🔥 DEBUG: Log function entry to confirm it's being called
+  console.log("🔵 checkEstimate() CALLED - starting estimate check");
+  
   // 🔥 REMOVED: Stale request guard - estimate requests are cheap, latest response should always update state
   // This prevents race conditions where valid responses get discarded during rapid selections
   
@@ -464,27 +467,23 @@ async function checkEstimate() {
   currentOrderState.fabric = fabric || null;
   currentOrderState.size = sampleSize || null;
   
-  // 🔥 FIX: Read category and neckType from DOM if state is null (syncs with UI after product change)
-  // This prevents state from being stale when UI shows selections but state was reset
-  if (!currentOrderState.category) {
-    const categoryCard = document.querySelector(".category-card.selected");
-    if (categoryCard) {
-      const categoryLabel = categoryCard.querySelector(".category-label");
-      if (categoryLabel) {
-        currentOrderState.category = categoryLabel.textContent;
-        console.log("🔄 Synced category from DOM:", currentOrderState.category);
-      }
+  // 🔥 FIX: ALWAYS read category and neckType from DOM (not just when null)
+  // This ensures state always matches UI, even after product type changes
+  const categoryCard = document.querySelector(".category-card.selected");
+  if (categoryCard) {
+    const categoryLabel = categoryCard.querySelector(".category-label");
+    if (categoryLabel && categoryLabel.textContent) {
+      currentOrderState.category = categoryLabel.textContent;
+      console.log("🔄 Category synced from DOM:", currentOrderState.category);
     }
   }
   
-  if (!currentOrderState.neckType) {
-    const neckCard = document.querySelector("#neckTypeContainer .category-card.selected");
-    if (neckCard) {
-      const neckLabel = neckCard.querySelector(".category-label");
-      if (neckLabel) {
-        currentOrderState.neckType = neckLabel.textContent;
-        console.log("🔄 Synced neckType from DOM:", currentOrderState.neckType);
-      }
+  const neckCard = document.querySelector("#neckTypeContainer .category-card.selected");
+  if (neckCard) {
+    const neckLabel = neckCard.querySelector(".category-label");
+    if (neckLabel && neckLabel.textContent) {
+      currentOrderState.neckType = neckLabel.textContent;
+      console.log("🔄 NeckType synced from DOM:", currentOrderState.neckType);
     }
   }
   
@@ -573,8 +572,11 @@ async function checkEstimate() {
     const cost = estimateResult.price || 0;
     const found = estimateResult.found === true;
 
-    // Only sampleCost depends on estimate result
+    // 🔥 CRITICAL: Always apply price if it exists (cost > 0), regardless of found flag
+    // The found flag is informational (exact match vs fallback), but price > 0 means payment is allowed
+    // Backend will validate final price when order is created anyway
     if (cost > 0) {
+      console.log("💰 Valid price received - applying to state:", { cost, found });
       // Show price in UI (for informational purposes)
       if (displayEl) displayEl.textContent = `₹${cost}`;
 
