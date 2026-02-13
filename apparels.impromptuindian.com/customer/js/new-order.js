@@ -455,20 +455,6 @@ async function checkEstimate() {
   // 🔥 REMOVED: Stale request guard - estimate requests are cheap, latest response should always update state
   // This prevents race conditions where valid responses get discarded during rapid selections
   
-  const productType = document.querySelector('.custom-select[data-name="product-type"] select')?.value;
-  const fabric = document.querySelector('.custom-select[data-name="fabric-type"] select')?.value;
-  const sampleSize = document.querySelector('.custom-select[data-name="sample-size"] select')?.value;
-  
-  // 🔥 DEBUG: Log what we read from DOM to diagnose selector issues
-  console.log("🔍 DOM VALUES READ:", {
-    productType: productType,
-    fabric: fabric,
-    sampleSize: sampleSize,
-    productTypeSelector: document.querySelector('.custom-select[data-name="product-type"] select') ? 'found' : 'NOT FOUND',
-    fabricSelector: document.querySelector('.custom-select[data-name="fabric-type"] select') ? 'found' : 'NOT FOUND',
-    sizeSelector: document.querySelector('.custom-select[data-name="sample-size"] select') ? 'found' : 'NOT FOUND'
-  });
-
   const displayEl = document.getElementById("estimatedPriceDisplay");
   const containerEl = document.getElementById("estimatedCostContainer");
 
@@ -479,95 +465,75 @@ async function checkEstimate() {
 
   if (!displayEl && !sampleCostDisplay) return;
 
-  // 🔥 CRITICAL: Sync state with DOM to prevent state/UI mismatch
-  // When product type changes, state is reset but UI cards remain selected
-  // Read from DOM (selected cards) if state is null to keep them in sync
-  currentOrderState.productType = productType || null;
-  currentOrderState.fabric = fabric || null;
-  currentOrderState.size = sampleSize || null;
+  // 🔥 CRITICAL: Use STATE as single source of truth - DO NOT re-read from DOM
+  // Custom dropdowns don't have real <select> elements, so .value returns empty string
+  // State is updated correctly when user selects, so use state directly
+  // Only sync category/neckType from DOM if state is null (for edge cases after product change)
   
-  // 🔥 FIX: ALWAYS read category and neckType from DOM (ensures state matches UI)
-  // This prevents state/UI mismatch when product type changes and resets state
-  // 🔥 CRITICAL: Use STRICT selectors only - no fallbacks that can match wrong cards
-  // Category must come from category container, neckType must come from neckType container
-  const categoryCard = document.querySelector("#categoryContainer .category-card.selected");
-  if (categoryCard) {
-    const categoryLabel = categoryCard.querySelector(".category-label");
-    if (categoryLabel && categoryLabel.textContent && categoryLabel.textContent.trim()) {
-      currentOrderState.category = categoryLabel.textContent.trim();
-      console.log("🔄 Category synced from DOM:", currentOrderState.category);
-    } else {
-      console.warn("⚠️ Category card found but label is empty:", categoryCard);
+  // Sync category from DOM if state is null (handles product type change edge case)
+  if (!currentOrderState.category) {
+    const categoryCard = document.querySelector("#categoryContainer .category-card.selected");
+    if (categoryCard) {
+      const categoryLabel = categoryCard.querySelector(".category-label");
+      if (categoryLabel && categoryLabel.textContent && categoryLabel.textContent.trim()) {
+        currentOrderState.category = categoryLabel.textContent.trim();
+        console.log("🔄 Category synced from DOM:", currentOrderState.category);
+      }
     }
-  } else {
-    console.warn("⚠️ No selected category card found in #categoryContainer");
   }
   
-  // 🔥 CRITICAL: Use STRICT selector - neckType must ONLY come from neckTypeContainer
-  // NO fallback - fallback can match category cards and cause wrong value
-  const neckCard = document.querySelector("#neckTypeContainer .category-card.selected");
-  if (neckCard) {
-    const neckLabel = neckCard.querySelector(".category-label");
-    if (neckLabel && neckLabel.textContent && neckLabel.textContent.trim()) {
-      currentOrderState.neckType = neckLabel.textContent.trim();
-      console.log("🔄 NeckType synced from DOM:", currentOrderState.neckType);
-    } else {
-      console.warn("⚠️ NeckType card found but label is empty:", neckCard);
+  // Sync neckType from DOM if state is null (handles product type change edge case)
+  if (!currentOrderState.neckType) {
+    const neckCard = document.querySelector("#neckTypeContainer .category-card.selected");
+    if (neckCard) {
+      const neckLabel = neckCard.querySelector(".category-label");
+      if (neckLabel && neckLabel.textContent && neckLabel.textContent.trim()) {
+        currentOrderState.neckType = neckLabel.textContent.trim();
+        console.log("🔄 NeckType synced from DOM:", currentOrderState.neckType);
+      }
     }
-  } else {
-    console.warn("⚠️ No selected neckType card found in #neckTypeContainer");
   }
   
-  // 🔥 DEBUG: Log state before validation to diagnose why estimate might not run
-  console.log("🔍 checkEstimate() state check:", {
-    productType: currentOrderState.productType,
-    category: currentOrderState.category,
-    neckType: currentOrderState.neckType,
-    fabric: currentOrderState.fabric,
-    size: currentOrderState.size,
-    allFieldsPresent: !!(currentOrderState.productType && currentOrderState.category && currentOrderState.neckType && currentOrderState.fabric && currentOrderState.size)
+  // 🔥 CRITICAL: Extract values from state (not DOM) - state is the source of truth
+  const {
+    productType,
+    category,
+    neckType,
+    fabric,
+    size
+  } = currentOrderState;
+  
+  // 🔥 DEBUG: Log state values being used (from state, not DOM)
+  console.log("🔍 Using state values (not DOM):", {
+    productType: productType,
+    category: category,
+    neckType: neckType,
+    fabric: fabric,
+    size: size
   });
 
-  // Clear UI immediately
+  // Clear UI immediately (using state values, not DOM)
   if (displayEl) {
-    if (!currentOrderState.productType || !currentOrderState.category || !currentOrderState.neckType || !currentOrderState.fabric || !currentOrderState.size) {
+    if (!productType || !category || !neckType || !fabric || !size) {
       displayEl.textContent = "--";
     } else {
       displayEl.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-[#FFCC00]"></i>';
     }
   }
 
-  // 🔥 CRITICAL: Validate ALL required fields using currentOrderState (single source of truth)
+  // 🔥 CRITICAL: Validate ALL required fields using state values (not DOM)
   // NOTE: quantity is NOT required for estimate (backend doesn't need it)
+  // Using destructured values from state above (not re-reading from DOM)
   
-  // 🔥 DEBUG: Log exact field values before validation to diagnose why estimate isn't running
-  console.log("🔍 CHECK FIELDS BEFORE VALIDATION:", {
-    productType: currentOrderState.productType,
-    category: currentOrderState.category,
-    neckType: currentOrderState.neckType,
-    fabric: currentOrderState.fabric,
-    size: currentOrderState.size,
-    productTypeType: typeof currentOrderState.productType,
-    categoryType: typeof currentOrderState.category,
-    neckTypeType: typeof currentOrderState.neckType,
-    fabricType: typeof currentOrderState.fabric,
-    sizeType: typeof currentOrderState.size,
-    fullState: JSON.parse(JSON.stringify(currentOrderState))  // Deep copy to see exact values
-  });
-  
-  const allFieldsPresent = !!(currentOrderState.productType && 
-                               currentOrderState.category && 
-                               currentOrderState.neckType && 
-                               currentOrderState.fabric && 
-                               currentOrderState.size);
+  const allFieldsPresent = !!(productType && category && neckType && fabric && size);
   
   console.log("🔍 VALIDATION RESULT:", {
     allFieldsPresent: allFieldsPresent,
-    productTypeTruthy: !!currentOrderState.productType,
-    categoryTruthy: !!currentOrderState.category,
-    neckTypeTruthy: !!currentOrderState.neckType,
-    fabricTruthy: !!currentOrderState.fabric,
-    sizeTruthy: !!currentOrderState.size
+    productType: productType,
+    category: category,
+    neckType: neckType,
+    fabric: fabric,
+    size: size
   });
   
   if (!allFieldsPresent) {
@@ -577,13 +543,12 @@ async function checkEstimate() {
     currentOrderState.sampleCost = null;
     currentOrderState.estimateFound = false;
     console.error("❌ Estimate validation FAILED - missing required fields:", {
-      productType: currentOrderState.productType,
-      category: currentOrderState.category,
-      neckType: currentOrderState.neckType,
-      fabric: currentOrderState.fabric,
-      size: currentOrderState.size,
-      allFieldsPresent: allFieldsPresent,
-      state: currentOrderState
+      productType: productType,
+      category: category,
+      neckType: neckType,
+      fabric: fabric,
+      size: size,
+      allFieldsPresent: allFieldsPresent
     });
     return;
   }
@@ -591,35 +556,26 @@ async function checkEstimate() {
   // 🔥 DEBUG: All fields present - estimate should proceed
   console.log("✅ All required fields present - proceeding with estimate API call");
 
-  // State is already updated above - no need to update again here
-  
-  console.log("💾 Order state updated (before estimate):", {
-    productType: currentOrderState.productType,
-    category: currentOrderState.category,
-    neckType: currentOrderState.neckType,
-    fabric: currentOrderState.fabric,
-    size: currentOrderState.size
-  });
-
   lucide.createIcons();
 
   try {
     // 🔥 DEBUG: Log before API call to confirm it's being made
     console.log("🚀 Calling /api/estimate-price with:", {
-      product_type: currentOrderState.productType,
-      category: currentOrderState.category,
-      neck_type: currentOrderState.neckType,
-      fabric: currentOrderState.fabric,
-      size: currentOrderState.size
+      product_type: productType,
+      category: category,
+      neck_type: neckType,
+      fabric: fabric,
+      size: size
     });
     
-    // Use currentOrderState as single source of truth
+    // 🔥 CRITICAL: Use state values (destructured above) - NOT DOM, NOT currentOrderState.property
+    // State is the single source of truth, already extracted at the top of function
     const estimateResult = await fetchEstimate(
-      currentOrderState.productType,
-      currentOrderState.category,
-      currentOrderState.neckType,
-      currentOrderState.fabric,
-      currentOrderState.size
+      productType,
+      category,
+      neckType,
+      fabric,
+      size
     );
     
     console.log("📥 Estimate API response received:", estimateResult);
