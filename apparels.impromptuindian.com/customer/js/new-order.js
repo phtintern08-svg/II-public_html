@@ -114,11 +114,7 @@ function initDropdowns() {
             checkEstimate();
           }
 
-          // Trigger MODAL estimate check (for old modal)
-          if (wrapper.dataset.name === 'modal-sample-size') {
-            clearEstimateUI(); // Clear UI immediately before fetching new estimate
-            checkModalEstimate();
-          }
+          // Modal sample size is now locked - no change listener needed
         });
 
         panel.appendChild(optEl);
@@ -295,6 +291,20 @@ let currentModalEstimateRequestId = 0;
 let currentGatewayEstimateRequestId = 0;
 
 /* ---------------------------
+   Order State - Source of Truth (Not DOM)
+---------------------------*/
+let currentOrderState = {
+  size: null,
+  sampleCost: null,
+  productType: null,
+  category: null,
+  neckType: null,
+  fabric: null,
+  pricePerPiece: null,
+  quantity: null
+};
+
+/* ---------------------------
    Reset Order State - Clear All Stale Data
 ---------------------------*/
 function resetOrderState() {
@@ -311,6 +321,18 @@ function resetOrderState() {
   isSamplePaid = false;
   currentTransactionId = null;
   window.paymentDetails = null;
+
+  // Reset order state
+  currentOrderState = {
+    size: null,
+    sampleCost: null,
+    productType: null,
+    category: null,
+    neckType: null,
+    fabric: null,
+    pricePerPiece: null,
+    quantity: null
+  };
 
   // Clear payment-related localStorage
   localStorage.removeItem("sample_paid");
@@ -430,6 +452,16 @@ async function checkEstimate() {
         containerEl.classList.remove("border-gray-700");
         containerEl.classList.add("border-[#FFCC00]");
       }
+
+      // 🔥 CRITICAL: Store in state (source of truth, not DOM)
+      currentOrderState.size = sampleSize;
+      currentOrderState.sampleCost = cost;
+      currentOrderState.productType = productType;
+      currentOrderState.category = selectedCategory;
+      currentOrderState.neckType = selectedNeckType;
+      currentOrderState.fabric = fabric;
+      
+      console.log("💾 Order state updated:", currentOrderState);
     } else {
       if (displayEl) displayEl.textContent = "N/A";
       if (samplePaymentCard) samplePaymentCard.classList.add("hidden");
@@ -437,6 +469,9 @@ async function checkEstimate() {
         containerEl.classList.add("border-gray-700");
         containerEl.classList.remove("border-[#FFCC00]");
       }
+      
+      // Clear state if estimate failed
+      currentOrderState.sampleCost = null;
     }
   } catch (error) {
     // Ignore errors from stale requests
@@ -449,78 +484,7 @@ async function checkEstimate() {
   }
 }
 
-async function checkModalEstimate() {
-  const requestId = ++currentModalEstimateRequestId;
-  
-  const productType = document.querySelector('.custom-select[data-name="product-type"] select').value;
-  const fabric = document.querySelector('.custom-select[data-name="fabric-type"] select').value;
-
-  // Use the modal's sample size
-  const modalSampleSize = document.querySelector('.custom-select[data-name="modal-sample-size"] select')?.value;
-
-  const modalCostDisplay = document.getElementById("modalCostDisplay");
-  const modalPayBtn = document.getElementById("modalPayBtn");
-
-  if (!modalCostDisplay) return;
-
-  // Debug logging
-  console.log("checkModalEstimate - SelectedCategory:", selectedCategory);
-  console.log("checkModalEstimate - SelectedNeckType:", selectedNeckType);
-  console.log("checkModalEstimate - ProductType:", productType);
-  console.log("checkModalEstimate - Fabric:", fabric);
-  console.log("checkModalEstimate - ModalSampleSize:", modalSampleSize);
-
-  if (!productType || !selectedCategory || !modalSampleSize) {
-    console.warn("checkModalEstimate - Missing required fields, showing --");
-    modalCostDisplay.textContent = "--";
-    if (modalPayBtn) {
-      modalPayBtn.dataset.cost = "0";
-      modalPayBtn.disabled = true;
-    }
-    return;
-  }
-
-  // Clear UI immediately
-  modalCostDisplay.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-[#FFCC00]"></i>';
-  if (modalPayBtn) modalPayBtn.disabled = true;
-  lucide.createIcons();
-
-  try {
-    const cost = await fetchEstimate(productType, selectedCategory, selectedNeckType, fabric, modalSampleSize);
-    
-    // Ignore stale responses
-    if (requestId !== currentModalEstimateRequestId) {
-      console.log("Ignoring stale modal estimate response (requestId:", requestId, "current:", currentModalEstimateRequestId, ")");
-      return;
-    }
-    
-    if (cost > 0) {
-      modalCostDisplay.textContent = `₹${cost}`;
-      // Store it for payment
-      if (modalPayBtn) {
-        modalPayBtn.dataset.cost = cost;
-        modalPayBtn.disabled = false;
-      }
-    } else {
-      modalCostDisplay.textContent = "N/A";
-      if (modalPayBtn) {
-        modalPayBtn.dataset.cost = "0";
-        modalPayBtn.disabled = true;
-      }
-    }
-  } catch (e) {
-    // Ignore errors from stale requests
-    if (requestId !== currentModalEstimateRequestId) {
-      console.log("Ignoring error from stale modal estimate request");
-      return;
-    }
-    modalCostDisplay.textContent = "Error";
-    if (modalPayBtn) {
-      modalPayBtn.dataset.cost = "0";
-      modalPayBtn.disabled = true;
-    }
-  }
-}
+// checkModalEstimate() removed - modal size is now locked, price is computed before modal opens
 
 // Helper to fetch estimate
 async function fetchEstimate(product, category, neck, fabric, size) {
@@ -2044,93 +2008,28 @@ window.switchPaymentTab = function (method) {
   if (v) v.classList.remove('hidden');
 };
 
-async function checkGatewayEstimate() {
-  const requestId = ++currentGatewayEstimateRequestId;
-  
-  const productType = document.querySelector('.custom-select[data-name="product-type"] select').value;
-  const fabric = document.querySelector('.custom-select[data-name="fabric-type"] select').value;
-  const modalSampleSize = document.querySelector('.custom-select[data-name="modal-sample-size"] select')?.value;
-
-  const gatewaySample = document.getElementById("gatewaySampleCost");
-  const gatewayTotal = document.getElementById("gatewayTotalPayable");
-  const gatewayEstTotal = document.getElementById("gatewayEstTotalCost");
-  const paymentModal = document.getElementById("paymentModal");
-
-  if (!gatewayTotal) return;
-
-  // Debug logging
-  console.log("checkGatewayEstimate - SelectedCategory:", selectedCategory);
-  console.log("checkGatewayEstimate - SelectedNeckType:", selectedNeckType);
-  console.log("checkGatewayEstimate - ProductType:", productType);
-  console.log("checkGatewayEstimate - Fabric:", fabric);
-  console.log("checkGatewayEstimate - ModalSampleSize:", modalSampleSize);
-
-  if (!productType || !selectedCategory || !modalSampleSize) {
-    console.warn("checkGatewayEstimate - Missing required fields:", {
-      productType,
-      selectedCategory,
-      modalSampleSize,
-      "modalSelectValue": document.querySelector('.custom-select[data-name="modal-sample-size"] select')?.value
-    });
-    gatewayTotal.textContent = "--";
-    if (gatewaySample) gatewaySample.textContent = "--";
-    if (gatewayEstTotal) gatewayEstTotal.textContent = "--";
-    document.querySelectorAll('.pay-amount-display').forEach(el => el.textContent = '--');
-    if (paymentModal) paymentModal.dataset.currentCost = "0";
-    return;
-  }
-
-  // Clear UI immediately
-  gatewayTotal.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-[#FFCC00]"></i>';
-  if (gatewaySample) gatewaySample.textContent = "--";
-  if (gatewayEstTotal) gatewayEstTotal.textContent = "--";
-  document.querySelectorAll('.pay-amount-display').forEach(el => el.textContent = '--');
-  if (paymentModal) paymentModal.dataset.currentCost = "0";
-  lucide.createIcons();
-
-  try {
-    const cost = await fetchEstimate(productType, selectedCategory, selectedNeckType, fabric, modalSampleSize);
-    
-    // Ignore stale responses
-    if (requestId !== currentGatewayEstimateRequestId) {
-      console.log("Ignoring stale gateway estimate response (requestId:", requestId, "current:", currentGatewayEstimateRequestId, ")");
-      return;
-    }
-    
-    const displayCost = cost > 0 ? `₹${cost}` : "N/A";
-
-    if (gatewaySample) gatewaySample.textContent = displayCost;
-    gatewayTotal.textContent = displayCost;
-    if (gatewayEstTotal) gatewayEstTotal.textContent = cost > 0 ? `Approx. ₹${cost * (document.getElementById("totalQuantity").value || 50)}` : "--";
-
-    document.querySelectorAll('.pay-amount-display').forEach(el => el.textContent = displayCost);
-    if (paymentModal) {
-      paymentModal.dataset.currentCost = cost > 0 ? cost : 0;
-      console.log("Gateway estimate complete - cost:", cost, "dataset.currentCost:", paymentModal.dataset.currentCost);
-    }
-
-  } catch (e) {
-    // Ignore errors from stale requests
-    if (requestId !== currentGatewayEstimateRequestId) {
-      console.log("Ignoring error from stale gateway estimate request");
-      return;
-    }
-    gatewayTotal.textContent = "Error";
-    if (gatewaySample) gatewaySample.textContent = "Error";
-    if (gatewayEstTotal) gatewayEstTotal.textContent = "Error";
-    document.querySelectorAll('.pay-amount-display').forEach(el => el.textContent = 'Error');
-    if (paymentModal) paymentModal.dataset.currentCost = "0";
-  }
-}
+// checkGatewayEstimate() removed - price is computed before modal opens, modal size is locked
 
 async function processGatewayPayment(btnId) {
   const btn = document.getElementById(btnId);
-  const cost = document.getElementById("paymentModal").dataset.currentCost;
+  
+  // 🔥 Use state as source of truth (not DOM)
+  const cost = currentOrderState.sampleCost || parseFloat(document.getElementById("paymentModal")?.dataset.currentCost || 0);
 
   if (!cost || cost == 0) {
-    showAlert("Error", "Please select a size to calculate cost.", "error");
+    console.error("❌ Invalid cost for payment:", {
+      stateCost: currentOrderState.sampleCost,
+      datasetCost: document.getElementById("paymentModal")?.dataset.currentCost
+    });
+    showAlert("Error", "Sample cost not available. Please ensure you have selected a product and size, then wait for price estimate.", "error");
     return;
   }
+  
+  console.log("💳 Processing payment with cost from state:", {
+    cost: cost,
+    stateCost: currentOrderState.sampleCost,
+    size: currentOrderState.size
+  });
 
   // Initialize payment gateway
   const gateway = new FakePaymentGateway();
@@ -2351,51 +2250,54 @@ function initPlaceOrder() {
         return;
       }
 
-      // OPEN GATEWAY
+      // OPEN PAYMENT MODAL
       const paymentModal = document.getElementById("paymentModal");
       paymentModal.classList.remove("hidden");
 
-      // Sync Size - CRITICAL: Must set native select value for estimate to work
-      const mainSampleSize = document.querySelector('.custom-select[data-name="sample-size"] select')?.value;
-      if (mainSampleSize) {
-        // Trigger sync for gateway dropdown
-        const modalSelectWrapper = document.querySelector('.custom-select[data-name="modal-sample-size"]');
-        if (modalSelectWrapper) {
-          const modalNative = modalSelectWrapper.querySelector('select');
-          const modalOptions = modalSelectWrapper.querySelectorAll('.option');
-          let found = false;
-          
-          // First, try to click the matching option (updates custom UI)
-          modalOptions.forEach(opt => {
-            if (opt.dataset.value === mainSampleSize) {
-              opt.click();
-              found = true;
-            }
-          });
-          
-          // CRITICAL: Always set native select value (estimate reads from this)
-          if (modalNative) {
-            modalNative.value = mainSampleSize;
-            console.log("Synced modal sample size:", mainSampleSize, "Native select value:", modalNative.value);
-          }
-          
-          // Update display if option click didn't work
-          if (!found) {
-            const disp = modalSelectWrapper.querySelector('.trigger .value');
-            if (disp) disp.textContent = mainSampleSize;
-          }
-        }
+      // Display locked sample size from state (source of truth, not DOM)
+      const modalSizeDisplay = document.getElementById("modalSampleSizeDisplay");
+      if (modalSizeDisplay) {
+        modalSizeDisplay.textContent = currentOrderState.size || "-";
+        console.log("🔒 Locked sample size in payment modal:", currentOrderState.size);
       } else {
-        console.warn("No main sample size found to sync to modal");
+        console.warn("⚠️ modalSampleSizeDisplay element not found");
+      }
+
+      // Use already-computed price from state (source of truth, not DOM)
+      const gatewaySample = document.getElementById("gatewaySampleCost");
+      const gatewayTotal = document.getElementById("gatewayTotalPayable");
+      
+      // Get price from state (already computed and stored)
+      let displayCost = "--";
+      let numericCost = currentOrderState.sampleCost || 0;
+      
+      if (numericCost > 0) {
+        displayCost = `₹${numericCost}`;
       }
       
-      // Call estimate after a small delay to ensure DOM is ready
-      setTimeout(() => {
-        if (typeof checkGatewayEstimate === 'function') {
-          clearEstimateUI(); // Clear UI immediately before fetching new estimate
-          checkGatewayEstimate();
-        }
-      }, 100);
+      // Update payment modal displays
+      if (gatewaySample) gatewaySample.textContent = displayCost;
+      if (gatewayTotal) gatewayTotal.textContent = displayCost;
+      document.querySelectorAll('.pay-amount-display').forEach(el => el.textContent = displayCost);
+      
+      // Store cost for payment processing (backup to state)
+      if (paymentModal) {
+        paymentModal.dataset.currentCost = numericCost;
+        console.log("💰 Payment modal price set from state:", {
+          displayCost: displayCost,
+          numericCost: numericCost,
+          stateCost: currentOrderState.sampleCost,
+          datasetCost: paymentModal.dataset.currentCost
+        });
+      }
+      
+      // Validate state before allowing payment
+      if (!currentOrderState.size || !currentOrderState.sampleCost || currentOrderState.sampleCost <= 0) {
+        console.error("❌ Invalid order state - cannot proceed to payment:", currentOrderState);
+        showAlert("Configuration Error", "Please select a product and size, then wait for price estimate before proceeding to payment.", "error");
+        paymentModal.classList.add("hidden");
+        return;
+      }
       
       return;
     }
@@ -2408,10 +2310,8 @@ function initPlaceOrder() {
     /* 7. BUILD PAYLOAD */
     const dateText = document.getElementById("dateText");
 
-    // Sample Size
-    const mainSampleSize = document.querySelector('.custom-select[data-name="sample-size"] select')?.value;
-    const modalSampleSize = document.querySelector('.custom-select[data-name="modal-sample-size"] select')?.value;
-    const finalSampleSize = modalSampleSize || mainSampleSize || "M"; // fallback
+    // Sample Size (from state - source of truth, not DOM)
+    const finalSampleSize = currentOrderState.size || "M"; // fallback
 
     // Fetch final_price from product_catalog based on exact combination
     // Use normalized values (same as fetchEstimate) - no defaults, trim everything
@@ -2449,21 +2349,25 @@ function initPlaceOrder() {
       // Continue with order submission even if price fetch fails
     }
 
-    // Cost Retrieval
-    const estimatedCostEl = document.getElementById("estimatedPriceDisplay");
-    // Try gateway cost first, then modal, then main
-    const gatewayTotal = document.getElementById("gatewayTotalPayable");
-    const modalCostEl = document.getElementById("modalCostDisplay");
-
-    let finalEstCost = estimatedCostEl?.textContent;
-    if (finalEstCost === "--" || finalEstCost === "N/A" || !finalEstCost) {
-      if (gatewayTotal && gatewayTotal.textContent !== "--") finalEstCost = gatewayTotal.textContent;
-      else if (modalCostEl) finalEstCost = modalCostEl.textContent;
+    // Cost Retrieval (from state - source of truth, not DOM)
+    let numericCost = currentOrderState.sampleCost || 0.0;
+    
+    // Validate state before submission
+    if (!currentOrderState.size || !currentOrderState.sampleCost || currentOrderState.sampleCost <= 0) {
+      console.error("❌ Invalid order state for submission:", currentOrderState);
+      showAlert("Configuration Error", "Please select a product and size, then wait for price estimate before placing order.", "error");
+      btns.forEach(btn => {
+        btn.textContent = btn.dataset.oldText || "Place Order";
+        btn.disabled = false;
+      });
+      return;
     }
-
-    // Actual numeric cost for backend
-    const storedCost = document.getElementById("paymentModal").dataset.currentCost;
-    const numericCost = storedCost ? parseFloat(storedCost) : 0.0;
+    
+    console.log("💵 Final sample cost for order (from state):", {
+      stateCost: currentOrderState.sampleCost,
+      stateSize: currentOrderState.size,
+      numericCost: numericCost
+    });
 
     const payload = {
       product_type: product ? product.trim() : null,

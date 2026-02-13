@@ -450,24 +450,9 @@
 
             <div class="flex justify-between items-center mb-2">
               <span class="text-gray-400 text-sm">Sample Size</span>
-              <!-- Sample Size Selection Inside Gateway -->
-              <div class="custom-select w-24 h-8" data-name="modal-sample-size">
-                <select class="blk-input _native-hidden" id="modalSampleSizeSelect">
-                  <option value="">Size</option>
-                  <option>S</option>
-                  <option>M</option>
-                  <option>L</option>
-                  <option>XL</option>
-                  <option>XXL</option>
-                </select>
-                <div class="trigger bg-gray-900 border-gray-600 py-1 text-xs">
-                  <span class="value">Size</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <path d="M6 9l6 6 6-6" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"
-                      stroke-linejoin="round" />
-                  </svg>
-                </div>
-                <div class="panel hidden bg-gray-900 border-gray-600 text-xs"></div>
+              <!-- Locked Sample Size Display (from main form) -->
+              <div id="modalSampleSizeDisplay" class="px-3 py-1 bg-gray-900 border border-gray-600 rounded text-xs text-white font-medium">
+                -
               </div>
             </div>
 
