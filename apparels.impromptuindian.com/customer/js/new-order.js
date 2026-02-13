@@ -135,11 +135,12 @@ function initDropdowns() {
 
           // Trigger estimate check when any relevant dropdown changes
           if (['product-type', 'fabric-type', 'sample-size'].includes(wrapper.dataset.name)) {
-            // 🔥 CRITICAL: Update state IMMEDIATELY when dropdown changes (before estimate)
-            const selectedValue = native.value;
+            // 🔥 CRITICAL: Use selectedValue from opt.value || opt.text (already captured above)
+            // DO NOT use native.value - it may be empty or out of sync with custom dropdown
+            // selectedValue was already set on line 69: const selectedValue = opt.value || opt.text;
             console.log("🔄 Dropdown changed - triggering estimate:", {
               dropdownName: wrapper.dataset.name,
-              selectedValue: selectedValue
+              selectedValue: selectedValue  // Use value from clicked option, not native.value
             });
             
             if (wrapper.dataset.name === 'product-type') {
@@ -454,7 +455,7 @@ async function checkEstimate() {
   
   // 🔥 REMOVED: Stale request guard - estimate requests are cheap, latest response should always update state
   // This prevents race conditions where valid responses get discarded during rapid selections
-  
+
   const displayEl = document.getElementById("estimatedPriceDisplay");
   const containerEl = document.getElementById("estimatedCostContainer");
 
@@ -463,7 +464,12 @@ async function checkEstimate() {
   const sampleCostInput = document.getElementById("sampleCostInput");
   const samplePaymentCard = document.getElementById("samplePaymentCard");
 
-  if (!displayEl && !sampleCostDisplay) return;
+  // 🔥 DEBUG: Check if display elements exist (should not block estimate, but log for debugging)
+  if (!displayEl && !sampleCostDisplay) {
+    console.warn("⚠️ No display elements found, but continuing with estimate check");
+    // Don't return early - estimate should work even without display elements
+    // return;  // REMOVED: Don't block estimate if display elements are missing
+  }
 
   // 🔥 CRITICAL: Use STATE as single source of truth - DO NOT re-read from DOM
   // Custom dropdowns don't have real <select> elements, so .value returns empty string
@@ -503,13 +509,24 @@ async function checkEstimate() {
     size
   } = currentOrderState;
   
-  // 🔥 DEBUG: Log state values being used (from state, not DOM)
+  // 🔥 DEBUG: Log state values being used (from state, not DOM) with detailed type checking
   console.log("🔍 Using state values (not DOM):", {
     productType: productType,
     category: category,
     neckType: neckType,
     fabric: fabric,
-    size: size
+    size: size,
+    productTypeType: typeof productType,
+    categoryType: typeof category,
+    neckTypeType: typeof neckType,
+    fabricType: typeof fabric,
+    sizeType: typeof size,
+    productTypeTruthy: !!productType,
+    categoryTruthy: !!category,
+    neckTypeTruthy: !!neckType,
+    fabricTruthy: !!fabric,
+    sizeTruthy: !!size,
+    fullState: JSON.parse(JSON.stringify(currentOrderState))  // Deep copy to see exact state
   });
 
   // Clear UI immediately (using state values, not DOM)
@@ -524,11 +541,24 @@ async function checkEstimate() {
   // 🔥 CRITICAL: Validate ALL required fields using state values (not DOM)
   // NOTE: quantity is NOT required for estimate (backend doesn't need it)
   // Using destructured values from state above (not re-reading from DOM)
+  // 🔥 IMPORTANT: Check for empty strings, null, undefined - all are invalid
+  // Only non-empty strings are valid values
   
-  const allFieldsPresent = !!(productType && category && neckType && fabric && size);
+  const productTypeValid = productType && typeof productType === 'string' && productType.trim().length > 0;
+  const categoryValid = category && typeof category === 'string' && category.trim().length > 0;
+  const neckTypeValid = neckType && typeof neckType === 'string' && neckType.trim().length > 0;
+  const fabricValid = fabric && typeof fabric === 'string' && fabric.trim().length > 0;
+  const sizeValid = size && typeof size === 'string' && size.trim().length > 0;
   
-  console.log("🔍 VALIDATION RESULT:", {
+  const allFieldsPresent = productTypeValid && categoryValid && neckTypeValid && fabricValid && sizeValid;
+  
+  console.log("🔍 VALIDATION RESULT (with strict checks):", {
     allFieldsPresent: allFieldsPresent,
+    productTypeValid: productTypeValid,
+    categoryValid: categoryValid,
+    neckTypeValid: neckTypeValid,
+    fabricValid: fabricValid,
+    sizeValid: sizeValid,
     productType: productType,
     category: category,
     neckType: neckType,
@@ -542,12 +572,12 @@ async function checkEstimate() {
     // Only clear sampleCost (estimate result) - selections are preserved
     currentOrderState.sampleCost = null;
     currentOrderState.estimateFound = false;
-    console.error("❌ Estimate validation FAILED - missing required fields:", {
-      productType: productType,
-      category: category,
-      neckType: neckType,
-      fabric: fabric,
-      size: size,
+    console.error("❌ Estimate validation FAILED - missing or invalid required fields:", {
+      productType: { value: productType, valid: productTypeValid, type: typeof productType },
+      category: { value: category, valid: categoryValid, type: typeof category },
+      neckType: { value: neckType, valid: neckTypeValid, type: typeof neckType },
+      fabric: { value: fabric, valid: fabricValid, type: typeof fabric },
+      size: { value: size, valid: sizeValid, type: typeof size },
       allFieldsPresent: allFieldsPresent
     });
     return;
@@ -616,7 +646,7 @@ async function checkEstimate() {
       
       if (found) {
         console.log("✅ Exact match found - payment allowed");
-      } else {
+    } else {
         // Relaxed estimate - still allow payment, but show informational message
         console.log("ℹ️ Estimate based on relaxed matching - price available, payment allowed");
         if (displayEl) {
@@ -773,7 +803,7 @@ function renderCategories(product) {
 function selectCategory(cardEl, label) {
   document.querySelectorAll(".category-card").forEach((c) => c.classList.remove("selected"));
   cardEl.classList.add("selected");
-  
+
   // 🔥 CRITICAL: Update state IMMEDIATELY when selection is made (single source of truth)
   currentOrderState.category = label;
   console.log("💾 Category selected - state updated:", { category: label, state: currentOrderState });
@@ -784,7 +814,7 @@ function selectCategory(cardEl, label) {
   // 🔥 CRITICAL: Call checkEstimate after a small delay to ensure state is fully updated
   // This prevents race conditions where estimate runs before neckType options are rendered
   setTimeout(() => {
-    checkEstimate();
+  checkEstimate();
   }, 100);
 }
 
@@ -2424,10 +2454,15 @@ function initPlaceOrder() {
     }
 
     /* 3. PRODUCT DETAILS */
-    const product = document.querySelector('.custom-select[data-name="product-type"] select').value;
-    const color = document.querySelector('.custom-select[data-name="color"] select').value;
-    const fabric = document.querySelector('.custom-select[data-name="fabric-type"] select').value;
-    const printType = document.querySelector('.custom-select[data-name="print-type"] select').value;
+    // 🔥 CRITICAL: Use state as source of truth - DO NOT read from DOM
+    // Custom dropdowns don't have reliable .value, so use state instead
+    const product = currentOrderState.productType;
+    const fabric = currentOrderState.fabric;
+    // Color and printType may not be in state - read from DOM only if needed (for bulk orders)
+    const colorEl = document.querySelector('.custom-select[data-name="color"] select');
+    const color = colorEl ? colorEl.value : null;
+    const printTypeEl = document.querySelector('.custom-select[data-name="print-type"] select');
+    const printType = printTypeEl ? printTypeEl.value : null;
 
     if (!product || !currentOrderState.category) {
       console.warn("❌ Missing product details:", { product, category: currentOrderState.category });
@@ -2787,12 +2822,12 @@ if (window.__newOrderInitialized) {
   console.warn("⚠️ New Order already initialized - skipping duplicate init to prevent state reset");
 } else {
   window.__newOrderInitialized = true;
-  
-  // Initialize when DOM is ready (defer ensures DOM is ready, but this is extra safety)
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initNewOrderPage);
-  } else {
-    // DOM already ready
-    initNewOrderPage();
+
+// Initialize when DOM is ready (defer ensures DOM is ready, but this is extra safety)
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initNewOrderPage);
+} else {
+  // DOM already ready
+  initNewOrderPage();
   }
 }
