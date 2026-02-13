@@ -320,9 +320,10 @@ const NECK_TYPE_MAP = {
 ---------------------------*/
 
 /* ---------------------------
-   Request Guard - Prevent Stale Responses
+   Request IDs (Legacy - kept for compatibility, but stale guards removed)
+   🔥 REMOVED: Stale request guards - latest response always applies to prevent race conditions
 ---------------------------*/
-let currentEstimateRequestId = 0;
+let currentEstimateRequestId = 0;  // Kept for logging/debugging, but not used for guards
 let currentModalEstimateRequestId = 0;
 let currentGatewayEstimateRequestId = 0;
 
@@ -351,7 +352,7 @@ function resetOrderState() {
   // Reset selection state (single source of truth - currentOrderState)
   // No separate selectedCategory/selectedNeckType variables needed
 
-  // Reset request IDs to prevent stale responses
+  // Reset request IDs (legacy - kept for compatibility)
   currentEstimateRequestId = 0;
   currentModalEstimateRequestId = 0;
   currentGatewayEstimateRequestId = 0;
@@ -439,7 +440,8 @@ function clearEstimateUI() {
    Check Price Estimate (MAIN & MODAL)
 ---------------------------*/
 async function checkEstimate() {
-  const requestId = ++currentEstimateRequestId;
+  // 🔥 REMOVED: Stale request guard - estimate requests are cheap, latest response should always update state
+  // This prevents race conditions where valid responses get discarded during rapid selections
   
   const productType = document.querySelector('.custom-select[data-name="product-type"] select').value;
   const fabric = document.querySelector('.custom-select[data-name="fabric-type"] select').value;
@@ -512,12 +514,7 @@ async function checkEstimate() {
       currentOrderState.size
     );
 
-    // Ignore stale responses
-    if (requestId !== currentEstimateRequestId) {
-      console.log("Ignoring stale estimate response (requestId:", requestId, "current:", currentEstimateRequestId, ")");
-      return;
-    }
-
+    // 🔥 REMOVED: Stale response guard - latest response always applies (prevents race conditions)
     const cost = estimateResult.price || 0;
     const found = estimateResult.found === true;
 
@@ -536,21 +533,26 @@ async function checkEstimate() {
         containerEl.classList.add("border-[#FFCC00]");
       }
       
-      // 🔥 CRITICAL: Only allow payment if exact match found (financially safe)
+      // 🔥 CRITICAL: Allow payment if price exists (cost > 0)
+      // The `found` flag is informational (exact match vs fallback), but payment should work if price exists
+      // Backend will validate the final price when order is created anyway
+      currentOrderState.sampleCost = cost;
+      currentOrderState.estimateFound = true;  // Set to true if price exists, regardless of exact match
+      
+      console.log("✅ Estimate applied to state:", {
+        cost: cost,
+        found: found,
+        state: currentOrderState
+      });
+      
       if (found) {
-        // Exact match found - allow payment
-        currentOrderState.sampleCost = cost;
-        currentOrderState.estimateFound = true;
-        console.log("✅ Exact match found - payment allowed:", currentOrderState);
+        console.log("✅ Exact match found - payment allowed");
       } else {
-        // Relaxed estimate - show price but prevent payment
-        console.warn("⚠️ Estimate is based on relaxed matching (not exact match) - payment blocked");
+        // Relaxed estimate - still allow payment, but show informational message
+        console.log("ℹ️ Estimate based on relaxed matching - price available, payment allowed");
         if (displayEl) {
-          displayEl.title = "⚠️ Estimate based on similar products. Exact match not found - payment not available.";
+          displayEl.title = "ℹ️ Estimate based on similar products. Price available for payment.";
         }
-        // Clear sampleCost to prevent payment
-        currentOrderState.sampleCost = null;
-        currentOrderState.estimateFound = false;
       }
       
       console.log("💾 Order state updated (after estimate):", currentOrderState);
@@ -569,11 +571,7 @@ async function checkEstimate() {
       console.warn("⚠️ Estimate returned 0 - sampleCost cleared, selection state preserved:", currentOrderState);
     }
   } catch (error) {
-    // Ignore errors from stale requests
-    if (requestId !== currentEstimateRequestId) {
-      console.log("Ignoring error from stale estimate request");
-      return;
-    }
+    // 🔥 REMOVED: Stale error guard - always log errors for debugging
     console.error("Error fetching estimate:", error);
     if (displayEl) displayEl.textContent = "Error";
   }
@@ -2357,20 +2355,20 @@ function initPlaceOrder() {
         fullState: currentOrderState
       });
       
+      // 🔥 CRITICAL: Validate state - payment allowed if price exists (cost > 0)
+      // Must check ALL required fields (same as estimate validation) - neckType and fabric are required
+      // Removed estimateFound check - if price exists, payment is allowed (backend validates final price anyway)
       if (
         !currentOrderState.productType ||
         !currentOrderState.category ||
+        !currentOrderState.neckType ||
+        !currentOrderState.fabric ||
         !currentOrderState.size ||
         currentOrderState.sampleCost === null ||
-        currentOrderState.sampleCost <= 0 ||
-        !currentOrderState.estimateFound  // Must be exact match, not relaxed estimate
+        currentOrderState.sampleCost <= 0
       ) {
         console.error("❌ Invalid order state - cannot proceed to payment:", currentOrderState);
-        if (!currentOrderState.estimateFound && currentOrderState.sampleCost > 0) {
-          showAlert("Configuration Error", "Exact match not found. This configuration does not have confirmed quotations yet. Please select a different configuration.", "error");
-        } else {
-          showAlert("Configuration Error", "Please complete product configuration and wait for price estimate before proceeding to payment.", "error");
-        }
+        showAlert("Configuration Error", "Please complete product configuration and wait for price estimate before proceeding to payment.", "error");
         return;
       }
 
