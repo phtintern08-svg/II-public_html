@@ -18,6 +18,12 @@ function closeAllPanels(except) {
    Custom dropdowns
 ---------------------------*/
 function initDropdowns() {
+  // 🔥 CRITICAL: Prevent duplicate event listeners (guard against multiple calls)
+  if (window.__dropdownsInitialized) {
+    return;  // Already initialized, skip
+  }
+  window.__dropdownsInitialized = true;
+  
   // Global click handler to close dropdowns when clicking outside
   // Include .trigger to handle SVG path clicks properly
   // Exclude calendar to prevent conflicts
@@ -73,8 +79,14 @@ function initDropdowns() {
           if (wrapper.dataset.name === "product-type") {
             const key = selectedText.trim();
 
-            // 🔥 CRITICAL: Reset fabric selection when product changes
-            // This prevents sending wrong fabric (e.g., Cotton for Hoodie when it should be Fleece)
+            // 🔥 CRITICAL: Reset ALL dependent selections when product changes
+            // This prevents sending wrong category/neck/fabric (e.g., Regular Fit for Hoodie when it should be Pullover Hoodie)
+            
+            // Reset state variables
+            selectedCategory = "";
+            selectedNeckType = "";
+            
+            // Reset fabric selection
             const fabricWrapper = document.querySelector('.custom-select[data-name="fabric-type"]');
             if (fabricWrapper) {
               const fabricSelect = fabricWrapper.querySelector('select');
@@ -86,6 +98,12 @@ function initDropdowns() {
               // Clear any selected option in custom UI
               fabricWrapper.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
             }
+            
+            // Clear category and neck type UI
+            const categoryContainer = document.getElementById("categoryContainer");
+            if (categoryContainer) categoryContainer.innerHTML = "";
+            const neckContainer = document.getElementById("neckContainer");
+            if (neckContainer) neckContainer.innerHTML = "";
 
             // Update dependent UI
             renderCategories(key);
@@ -301,7 +319,8 @@ let currentOrderState = {
   neckType: null,
   fabric: null,
   pricePerPiece: null,
-  quantity: null
+  quantity: null,
+  estimateFound: false  // Flag indicating if estimate is from exact match
 };
 
 /* ---------------------------
@@ -331,7 +350,8 @@ function resetOrderState() {
     neckType: null,
     fabric: null,
     pricePerPiece: null,
-    quantity: null
+    quantity: null,
+    estimateFound: false
   };
 
   // Clear payment-related localStorage
@@ -417,22 +437,46 @@ async function checkEstimate() {
 
   // Clear UI immediately
   if (displayEl) {
-    if (!productType || !selectedCategory || !sampleSize) {
+    if (!productType || !selectedCategory || !selectedNeckType || !fabric || !sampleSize) {
       displayEl.textContent = "--";
     } else {
       displayEl.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-[#FFCC00]"></i>';
     }
   }
 
-  if (!productType || !selectedCategory || !sampleSize) {
+  // 🔥 CRITICAL: Validate ALL required fields (neckType and fabric are required for exact matching)
+  if (!productType || !selectedCategory || !selectedNeckType || !fabric || !sampleSize) {
     if (samplePaymentCard) samplePaymentCard.classList.add("hidden");
+    // Clear state if required fields missing
+    currentOrderState.productType = null;
+    currentOrderState.category = null;
+    currentOrderState.neckType = null;
+    currentOrderState.fabric = null;
+    currentOrderState.size = null;
+    currentOrderState.sampleCost = null;
     return;
   }
+
+  // 🔥 CRITICAL: Update selection state IMMEDIATELY (before estimate call)
+  // This ensures state is always valid even if estimate fails
+  currentOrderState.productType = productType;
+  currentOrderState.category = selectedCategory;
+  currentOrderState.neckType = selectedNeckType;
+  currentOrderState.fabric = fabric;
+  currentOrderState.size = sampleSize;
+  
+  console.log("💾 Order state updated (before estimate):", {
+    productType: currentOrderState.productType,
+    category: currentOrderState.category,
+    neckType: currentOrderState.neckType,
+    fabric: currentOrderState.fabric,
+    size: currentOrderState.size
+  });
 
   lucide.createIcons();
 
   try {
-    const cost = await fetchEstimate(productType, selectedCategory, selectedNeckType, fabric, sampleSize);
+    const estimateResult = await fetchEstimate(productType, selectedCategory, selectedNeckType, fabric, sampleSize);
 
     // Ignore stale responses
     if (requestId !== currentEstimateRequestId) {
@@ -440,7 +484,12 @@ async function checkEstimate() {
       return;
     }
 
+    const cost = estimateResult.price || 0;
+    const found = estimateResult.found === true;
+
+    // Only sampleCost depends on estimate result
     if (cost > 0) {
+      // Show price in UI (for informational purposes)
       if (displayEl) displayEl.textContent = `₹${cost}`;
 
       // Update sidebar
@@ -452,17 +501,30 @@ async function checkEstimate() {
         containerEl.classList.remove("border-gray-700");
         containerEl.classList.add("border-[#FFCC00]");
       }
-
-      // 🔥 CRITICAL: Store in state (source of truth, not DOM)
-      currentOrderState.size = sampleSize;
-      currentOrderState.sampleCost = cost;
-      currentOrderState.productType = productType;
-      currentOrderState.category = selectedCategory;
-      currentOrderState.neckType = selectedNeckType;
-      currentOrderState.fabric = fabric;
       
-      console.log("💾 Order state updated:", currentOrderState);
+      // 🔥 CRITICAL: Only allow payment if exact match found (financially safe)
+      if (found) {
+        // Exact match found - allow payment
+        currentOrderState.sampleCost = cost;
+        currentOrderState.estimateFound = true;
+        console.log("✅ Exact match found - payment allowed:", currentOrderState);
+      } else {
+        // Relaxed estimate - show price but prevent payment
+        console.warn("⚠️ Estimate is based on relaxed matching (not exact match) - payment blocked");
+        if (displayEl) {
+          displayEl.title = "⚠️ Estimate based on similar products. Exact match not found - payment not available.";
+        }
+        // Clear sampleCost to prevent payment
+        currentOrderState.sampleCost = null;
+        currentOrderState.estimateFound = false;
+      }
+      
+      console.log("💾 Order state updated (after estimate):", currentOrderState);
     } else {
+      // Estimate failed - clear only sampleCost, keep selection state
+      currentOrderState.sampleCost = null;
+      currentOrderState.estimateFound = false;
+      
       if (displayEl) displayEl.textContent = "N/A";
       if (samplePaymentCard) samplePaymentCard.classList.add("hidden");
       if (containerEl) {
@@ -470,8 +532,7 @@ async function checkEstimate() {
         containerEl.classList.remove("border-[#FFCC00]");
       }
       
-      // Clear state if estimate failed
-      currentOrderState.sampleCost = null;
+      console.warn("⚠️ Estimate returned 0 - sampleCost cleared, selection state preserved:", currentOrderState);
     }
   } catch (error) {
     // Ignore errors from stale requests
@@ -488,20 +549,21 @@ async function checkEstimate() {
 
 // Helper to fetch estimate
 async function fetchEstimate(product, category, neck, fabric, size) {
-  // Normalize all values: trim strings, convert empty to "None" (string) to match DB
-  // DB stores "None" as string, not SQL NULL
-  // Only include fabric if it's actually selected (not empty)
+  // Normalize values to match backend expectations:
+  // - Text fields: lowercase
+  // - Size: uppercase
+  // - neck_type: "none" (lowercase) if empty
+  // - fabric: only include if actually selected (not empty/null/"None")
   const payload = {
-    product_type: product ? product.trim() : null,
-    category: category ? category.trim() : null,
-    neck_type: neck ? neck.trim() : "None",  // DB uses "None" string, not NULL
-    fabric: (fabric && fabric.trim()) ? fabric.trim() : null,  // Only send if actually selected
-    size: size ? size.trim() : null
+    product_type: product ? product.trim().toLowerCase() : null,
+    category: category ? category.trim().toLowerCase() : null,
+    neck_type: neck && neck.trim() ? neck.trim().toLowerCase() : "none",  // lowercase "none" to match backend
+    size: size ? size.trim().toUpperCase() : null  // uppercase for size
   };
   
-  // Remove fabric from payload if it's empty/null to allow backend to match any fabric
-  if (!payload.fabric) {
-    delete payload.fabric;
+  // Fabric is now required - always include it (validation ensures it's not empty)
+  if (fabric && fabric.trim()) {
+    payload.fabric = fabric.trim().toLowerCase();
   }
 
   // Debug logging
@@ -519,21 +581,25 @@ async function fetchEstimate(product, category, neck, fabric, size) {
     if (!resp.ok) {
       const text = await resp.text();
       console.error("Estimate API Error Response:", text);
-      return 0;
+      return { price: 0, found: false };  // Always return consistent structure
     }
 
     const data = await resp.json().catch(() => null);
     console.log("Estimate Response Data:", data);
     
     if (data && typeof data.estimated_price === "number") {
-      return data.estimated_price;
+      // Return object with price and found flag
+      return {
+        price: data.estimated_price,
+        found: data.found === true  // Only true if exact match found
+      };
     }
     
     console.warn("No valid price in response:", data);
-    return 0;
+    return { price: 0, found: false };
   } catch (error) {
     console.error("Estimate API error:", error);
-    return 0;
+    return { price: 0, found: false };  // Always return consistent structure
   }
 }
 
@@ -2013,13 +2079,13 @@ window.switchPaymentTab = function (method) {
 async function processGatewayPayment(btnId) {
   const btn = document.getElementById(btnId);
   
-  // 🔥 Use state as source of truth (not DOM)
-  const cost = currentOrderState.sampleCost || parseFloat(document.getElementById("paymentModal")?.dataset.currentCost || 0);
-
-  if (!cost || cost == 0) {
-    console.error("❌ Invalid cost for payment:", {
+  // 🔥 Use state as source of truth ONLY (no DOM fallback - prevents stale price)
+  const cost = currentOrderState.sampleCost;
+  
+  if (!cost || cost <= 0) {
+    console.error("❌ Invalid cost for payment - state is source of truth:", {
       stateCost: currentOrderState.sampleCost,
-      datasetCost: document.getElementById("paymentModal")?.dataset.currentCost
+      state: currentOrderState
     });
     showAlert("Error", "Sample cost not available. Please ensure you have selected a product and size, then wait for price estimate.", "error");
     return;
@@ -2237,11 +2303,30 @@ function initPlaceOrder() {
 
     /* 6. PAYMENT CHECK */
     if (!isSamplePaid) {
+      // 🔥 CRITICAL: Validate state BEFORE opening modal (prevents visual glitch)
+      if (
+        !currentOrderState.productType ||
+        !currentOrderState.category ||
+        !currentOrderState.size ||
+        currentOrderState.sampleCost === null ||
+        currentOrderState.sampleCost <= 0 ||
+        !currentOrderState.estimateFound  // Must be exact match, not relaxed estimate
+      ) {
+        console.error("❌ Invalid order state - cannot proceed to payment:", currentOrderState);
+        if (!currentOrderState.estimateFound && currentOrderState.sampleCost > 0) {
+          showAlert("Configuration Error", "Exact match not found. This configuration does not have confirmed quotations yet. Please select a different configuration.", "error");
+        } else {
+          showAlert("Configuration Error", "Please complete product configuration and wait for price estimate before proceeding to payment.", "error");
+        }
+        return;
+      }
+
       // Debug: Ensure selectedCategory and selectedNeckType are set
       console.log("💳 Payment not completed - Opening payment modal", {
         selectedCategory: selectedCategory,
         selectedNeckType: selectedNeckType,
-        isSamplePaid: isSamplePaid
+        isSamplePaid: isSamplePaid,
+        state: currentOrderState
       });
       
       if (!selectedCategory) {
@@ -2250,7 +2335,7 @@ function initPlaceOrder() {
         return;
       }
 
-      // OPEN PAYMENT MODAL
+      // OPEN PAYMENT MODAL (validation passed)
       const paymentModal = document.getElementById("paymentModal");
       paymentModal.classList.remove("hidden");
 
@@ -2291,14 +2376,7 @@ function initPlaceOrder() {
         });
       }
       
-      // Validate state before allowing payment
-      if (!currentOrderState.size || !currentOrderState.sampleCost || currentOrderState.sampleCost <= 0) {
-        console.error("❌ Invalid order state - cannot proceed to payment:", currentOrderState);
-        showAlert("Configuration Error", "Please select a product and size, then wait for price estimate before proceeding to payment.", "error");
-        paymentModal.classList.add("hidden");
-        return;
-      }
-      
+      // Validation already done before modal opened - no need to repeat
       return;
     }
 
@@ -2311,51 +2389,33 @@ function initPlaceOrder() {
     const dateText = document.getElementById("dateText");
 
     // Sample Size (from state - source of truth, not DOM)
-    const finalSampleSize = currentOrderState.size || "M"; // fallback
-
-    // Fetch final_price from product_catalog based on exact combination
-    // Use normalized values (same as fetchEstimate) - no defaults, trim everything
-    let finalPriceFromCatalog = null;
-    try {
-      const pricePayload = {
-        product_type: product ? product.trim() : null,
-        category: selectedCategory ? selectedCategory.trim() : null,
-        neck_type: selectedNeckType ? selectedNeckType.trim() : "None",  // DB uses "None" string, not NULL
-        fabric: (fabric && fabric.trim()) ? fabric.trim() : null,  // Only send if actually selected
-        size: finalSampleSize ? finalSampleSize.trim() : null
-      };
-      
-      // Remove fabric from payload if it's empty/null to allow backend to match any fabric
-      if (!pricePayload.fabric) {
-        delete pricePayload.fabric;
-      }
-      
-      console.log("Place Order - Price Payload:", pricePayload);
-      
-      const priceResponse = await window.ImpromptuIndianApi.fetch("/api/estimate-price", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(pricePayload)
+    // NO FALLBACK - if size is null, order must fail (silent defaults are production killers)
+    const finalSampleSize = currentOrderState.size;
+    
+    if (!finalSampleSize) {
+      console.error("❌ Sample size is required - cannot proceed with order");
+      showAlert("Configuration Error", "Please select a sample size before placing order.", "error");
+      btns.forEach(btn => {
+        btn.textContent = btn.dataset.oldText || "Place Order";
+        btn.disabled = false;
       });
-
-      if (priceResponse.ok) {
-        const priceData = await priceResponse.json();
-        if (priceData.estimated_price && priceData.estimated_price > 0) {
-          finalPriceFromCatalog = priceData.estimated_price;
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching final price from catalog:", error);
-      // Continue with order submission even if price fetch fails
+      return;
     }
 
     // Cost Retrieval (from state - source of truth, not DOM)
+    // Backend will validate price again anyway - no need for redundant estimate call
     let numericCost = currentOrderState.sampleCost || 0.0;
     
-    // Validate state before submission
-    if (!currentOrderState.size || !currentOrderState.sampleCost || currentOrderState.sampleCost <= 0) {
+    // Validate state before submission (explicit checks)
+    if (
+      !currentOrderState.productType ||
+      !currentOrderState.category ||
+      !currentOrderState.size ||
+      currentOrderState.sampleCost === null ||
+      currentOrderState.sampleCost <= 0
+    ) {
       console.error("❌ Invalid order state for submission:", currentOrderState);
-      showAlert("Configuration Error", "Please select a product and size, then wait for price estimate before placing order.", "error");
+      showAlert("Configuration Error", "Please complete product configuration and wait for price estimate before placing order.", "error");
       btns.forEach(btn => {
         btn.textContent = btn.dataset.oldText || "Place Order";
         btn.disabled = false;
