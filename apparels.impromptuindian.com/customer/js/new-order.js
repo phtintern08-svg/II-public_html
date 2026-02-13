@@ -2066,7 +2066,12 @@ async function checkGatewayEstimate() {
   console.log("checkGatewayEstimate - ModalSampleSize:", modalSampleSize);
 
   if (!productType || !selectedCategory || !modalSampleSize) {
-    console.warn("checkGatewayEstimate - Missing required fields, showing --");
+    console.warn("checkGatewayEstimate - Missing required fields:", {
+      productType,
+      selectedCategory,
+      modalSampleSize,
+      "modalSelectValue": document.querySelector('.custom-select[data-name="modal-sample-size"] select')?.value
+    });
     gatewayTotal.textContent = "--";
     if (gatewaySample) gatewaySample.textContent = "--";
     if (gatewayEstTotal) gatewayEstTotal.textContent = "--";
@@ -2099,7 +2104,10 @@ async function checkGatewayEstimate() {
     if (gatewayEstTotal) gatewayEstTotal.textContent = cost > 0 ? `Approx. ₹${cost * (document.getElementById("totalQuantity").value || 50)}` : "--";
 
     document.querySelectorAll('.pay-amount-display').forEach(el => el.textContent = displayCost);
-    if (paymentModal) paymentModal.dataset.currentCost = cost > 0 ? cost : 0;
+    if (paymentModal) {
+      paymentModal.dataset.currentCost = cost > 0 ? cost : 0;
+      console.log("Gateway estimate complete - cost:", cost, "dataset.currentCost:", paymentModal.dataset.currentCost);
+    }
 
   } catch (e) {
     // Ignore errors from stale requests
@@ -2216,8 +2224,18 @@ async function processGatewayPayment(btnId) {
     btn.classList.add("text-black");
     btn.disabled = false;
 
-    // Auto-trigger place order
-    document.getElementById("placeOrderBtn").click();
+    // Auto-trigger place order - CRITICAL: Verify payment state before clicking
+    console.log("Payment successful, triggering place order. isSamplePaid:", isSamplePaid, "transactionId:", currentTransactionId);
+    const placeOrderBtn = document.getElementById("placeOrderBtn");
+    if (placeOrderBtn) {
+      // Small delay to ensure modal is closed and state is ready
+      setTimeout(() => {
+        console.log("Auto-clicking Place Order button");
+        placeOrderBtn.click();
+      }, 200);
+    } else {
+      console.error("Place Order button not found!");
+    }
 
   } catch (error) {
     console.error('Payment error:', error);
@@ -2259,6 +2277,12 @@ function initPlaceOrder() {
   const mobileBtn = document.getElementById("placeOrderBtnMobile");
 
   const handlePlaceOrder = async () => {
+    console.log("🎯 handlePlaceOrder called", {
+      timestamp: new Date().toISOString(),
+      isSamplePaid: isSamplePaid,
+      currentTransactionId: currentTransactionId
+    });
+
     /* 1. QUANTITY VALIDATION */
     const sum = window.computeSizeSum();
     const totalQuantityEl = document.getElementById("totalQuantity");
@@ -2266,10 +2290,12 @@ function initPlaceOrder() {
     const total = Math.floor(Number(rawTotal));
 
     if (!Number.isFinite(total) || total < 10 || total > 300) {
+      console.warn("❌ Quantity validation failed:", { total, sum });
       showAlert("Invalid Quantity", "Total quantity must be between 10 and 300.", "error");
       return;
     }
     if (sum !== total) {
+      console.warn("❌ Quantity mismatch:", { sum, total });
       showAlert("Quantity Mismatch", "Sizes total must match the Total Quantity.", "error");
       return;
     }
@@ -2290,6 +2316,7 @@ function initPlaceOrder() {
     const printType = document.querySelector('.custom-select[data-name="print-type"] select').value;
 
     if (!product || !selectedCategory) {
+      console.warn("❌ Missing product details:", { product, selectedCategory });
       showAlert("Missing Details", "Please select a product type and category.", "error");
       return;
     }
@@ -2304,6 +2331,7 @@ function initPlaceOrder() {
     const country = document.getElementById("fldCountry").value.trim();
 
     if (!house || !area || !city || !state || !pincode) {
+      console.warn("❌ Missing address fields:", { house: !!house, area: !!area, city: !!city, state: !!state, pincode: !!pincode });
       showAlert("Missing Address", "Please fill in all required address fields.", "error");
       return;
     }
@@ -2311,10 +2339,14 @@ function initPlaceOrder() {
     /* 6. PAYMENT CHECK */
     if (!isSamplePaid) {
       // Debug: Ensure selectedCategory and selectedNeckType are set
-      console.log("Opening payment modal - SelectedCategory:", selectedCategory);
-      console.log("Opening payment modal - SelectedNeckType:", selectedNeckType);
+      console.log("💳 Payment not completed - Opening payment modal", {
+        selectedCategory: selectedCategory,
+        selectedNeckType: selectedNeckType,
+        isSamplePaid: isSamplePaid
+      });
       
       if (!selectedCategory) {
+        console.warn("❌ Missing category - cannot proceed to payment");
         showAlert("Missing Selection", "Please select a product category before proceeding to payment.", "error");
         return;
       }
@@ -2323,27 +2355,38 @@ function initPlaceOrder() {
       const paymentModal = document.getElementById("paymentModal");
       paymentModal.classList.remove("hidden");
 
-      // Sync Size
+      // Sync Size - CRITICAL: Must set native select value for estimate to work
       const mainSampleSize = document.querySelector('.custom-select[data-name="sample-size"] select')?.value;
       if (mainSampleSize) {
         // Trigger sync for gateway dropdown
         const modalSelectWrapper = document.querySelector('.custom-select[data-name="modal-sample-size"]');
         if (modalSelectWrapper) {
+          const modalNative = modalSelectWrapper.querySelector('select');
           const modalOptions = modalSelectWrapper.querySelectorAll('.option');
           let found = false;
+          
+          // First, try to click the matching option (updates custom UI)
           modalOptions.forEach(opt => {
             if (opt.dataset.value === mainSampleSize) {
               opt.click();
               found = true;
             }
           });
+          
+          // CRITICAL: Always set native select value (estimate reads from this)
+          if (modalNative) {
+            modalNative.value = mainSampleSize;
+            console.log("Synced modal sample size:", mainSampleSize, "Native select value:", modalNative.value);
+          }
+          
+          // Update display if option click didn't work
           if (!found) {
-            const sel = modalSelectWrapper.querySelector('select');
-            if (sel) sel.value = mainSampleSize;
             const disp = modalSelectWrapper.querySelector('.trigger .value');
             if (disp) disp.textContent = mainSampleSize;
           }
         }
+      } else {
+        console.warn("No main sample size found to sync to modal");
       }
       
       // Call estimate after a small delay to ensure DOM is ready
@@ -2356,6 +2399,11 @@ function initPlaceOrder() {
       
       return;
     }
+
+    console.log("✅ Payment check passed - proceeding to build payload", {
+      isSamplePaid: isSamplePaid,
+      currentTransactionId: currentTransactionId
+    });
 
     /* 7. BUILD PAYLOAD */
     const dateText = document.getElementById("dateText");
@@ -2426,9 +2474,7 @@ function initPlaceOrder() {
       print_type: printType ? printType.trim() : null,
       quantity: total,
       price_per_piece: pricePerPiece,
-      final_price_from_catalog: finalPriceFromCatalog, // Add final price from catalog
       sample_size: finalSampleSize ? finalSampleSize.trim() : null,
-      estimated_cost: finalEstCost,
       delivery_date: dateText.textContent,
       address_line1: `${house} ${area}`,
       address_line2: landmark,
@@ -2443,6 +2489,11 @@ function initPlaceOrder() {
     };
 
     /* 8. SUBMIT ORDER */
+    console.log("📦 Payload built - calling submitOrder()", {
+      payloadKeys: Object.keys(payload),
+      hasTransactionId: !!payload.transaction_id,
+      sampleCost: payload.sample_cost
+    });
     submitOrder(payload);
   };
 
@@ -2451,10 +2502,24 @@ function initPlaceOrder() {
 }
 
 async function submitOrder(payload) {
+  // CRITICAL DEBUG: Verify function is being called
+  console.log("🔥 SUBMIT ORDER CALLED", {
+    timestamp: new Date().toISOString(),
+    payload: payload,
+    isSamplePaid: isSamplePaid,
+    currentTransactionId: currentTransactionId
+  });
+
   const btns = [
     document.getElementById("placeOrderBtn"),
     document.getElementById("placeOrderBtnMobile")
   ].filter(b => b);
+
+  if (btns.length === 0) {
+    console.error("❌ Place Order buttons not found!");
+    showAlert("Error", "Place Order button not found. Please refresh the page.", "error");
+    return;
+  }
 
   // Update UI state
   btns.forEach(btn => {
@@ -2465,12 +2530,53 @@ async function submitOrder(payload) {
 
   try {
     const token = localStorage.getItem('token');
-    const res = await window.ImpromptuIndianApi.fetch("/api/orders/", {
+    if (!token) {
+      console.error("No token found in localStorage");
+      showAlert("Authentication Error", "Please log in to place an order.", "error");
+      btns.forEach(btn => {
+        btn.textContent = btn.dataset.oldText || "Place Order";
+        btn.disabled = false;
+      });
+      return;
+    }
+
+    console.log("🚀 Submitting order to /api/orders/", {
+      payload: payload,
+      hasToken: !!token,
+      tokenLength: token ? token.length : 0,
+      url: "/api/orders/",
+      method: "POST"
+    });
+
+    // CRITICAL: Verify fetch wrapper exists
+    if (!window.ImpromptuIndianApi || typeof window.ImpromptuIndianApi.fetch !== 'function') {
+      console.error("❌ ImpromptuIndianApi.fetch is not available!");
+      throw new Error("API wrapper not available. Please refresh the page.");
+    }
+
+    const fetchOptions = {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
       },
       body: JSON.stringify(payload)
+    };
+
+    console.log("📤 Fetch options:", {
+      url: "/api/orders/",
+      method: fetchOptions.method,
+      hasAuthHeader: !!fetchOptions.headers.Authorization,
+      payloadSize: JSON.stringify(payload).length
+    });
+
+    const res = await window.ImpromptuIndianApi.fetch("/api/orders/", fetchOptions);
+
+    console.log("📥 Order submission response received:", {
+      status: res.status,
+      statusText: res.statusText,
+      ok: res.ok,
+      headers: Object.fromEntries(res.headers.entries())
     });
 
     const result = await res.json();
@@ -2494,8 +2600,26 @@ async function submitOrder(payload) {
       });
     }
   } catch (err) {
-    console.error(err);
-    showAlert("Connection Error", "Could not connect to server.", "error");
+    // CRITICAL: Log full error details
+    console.error("❌ Order submission error:", {
+      error: err,
+      message: err.message,
+      stack: err.stack,
+      name: err.name,
+      timestamp: new Date().toISOString()
+    });
+
+    // Check for specific error types
+    if (err.message && err.message.includes("CORS")) {
+      console.error("🚨 CORS ERROR DETECTED - Check backend CORS configuration");
+      showAlert("CORS Error", "Cross-origin request blocked. Please contact support.", "error");
+    } else if (err.message && err.message.includes("NetworkError") || err.message.includes("Failed to fetch")) {
+      console.error("🚨 NETWORK ERROR - Request never reached server");
+      showAlert("Network Error", "Could not connect to server. Please check your internet connection.", "error");
+    } else {
+      showAlert("Connection Error", err.message || "Could not connect to server.", "error");
+    }
+
     // Reset UI
     btns.forEach(btn => {
       btn.textContent = btn.dataset.oldText || "Place Order";
