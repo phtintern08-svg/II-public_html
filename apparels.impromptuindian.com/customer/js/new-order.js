@@ -659,25 +659,48 @@ async function checkEstimate() {
 
 // Helper to fetch estimate
 async function fetchEstimate(product, category, neck, fabric, size) {
+  // 🔥 CRITICAL: Guard against missing required fields (backend requires: product_type, category, size)
+  // This prevents 400 errors from backend validation
+  // Backend only requires these 3 fields - neck and fabric are optional
+  if (!product || !category || !size) {
+    console.warn("⚠️ Estimate blocked - missing required fields:", {
+      product: !!product,
+      category: !!category,
+      size: !!size,
+      neck: !!neck,
+      fabric: !!fabric
+    });
+    return { price: 0, found: false };
+  }
+  
   // Normalize values to match backend expectations:
   // - Text fields: lowercase
   // - Size: uppercase
   // - neck_type: "none" (lowercase) if empty
   // - fabric: only include if actually selected (not empty/null/"None")
+  // 🔥 CRITICAL: Normalize values and ensure no empty strings are sent (empty strings become null)
+  // Backend expects: lowercase for text fields, uppercase for size, "none" for empty neck_type
   const payload = {
-    product_type: product ? product.trim().toLowerCase() : null,
-    category: category ? category.trim().toLowerCase() : null,
-    neck_type: neck && neck.trim() ? neck.trim().toLowerCase() : "none",  // lowercase "none" to match backend
-    size: size ? size.trim().toUpperCase() : null  // uppercase for size
+    product_type: (product && product.trim()) ? product.trim().toLowerCase() : null,
+    category: (category && category.trim()) ? category.trim().toLowerCase() : null,
+    neck_type: (neck && neck.trim()) ? neck.trim().toLowerCase() : "none",  // lowercase "none" to match backend
+    size: (size && size.trim()) ? size.trim().toUpperCase() : null  // uppercase for size
   };
   
-  // Fabric is now required - always include it (validation ensures it's not empty)
+  // Fabric is optional - only include if actually selected
   if (fabric && fabric.trim()) {
     payload.fabric = fabric.trim().toLowerCase();
   }
 
-  // Debug logging
+  // 🔥 DEBUG: Log payload to diagnose 400 errors
   console.log("Estimate Payload:", payload);
+  console.log("Payload validation:", {
+    hasProductType: !!payload.product_type,
+    hasCategory: !!payload.category,
+    hasNeckType: !!payload.neck_type,
+    hasSize: !!payload.size,
+    hasFabric: !!payload.fabric
+  });
 
   try {
     const resp = await window.ImpromptuIndianApi.fetch("/api/estimate-price", {
