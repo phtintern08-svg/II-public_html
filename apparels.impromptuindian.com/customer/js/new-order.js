@@ -2804,31 +2804,38 @@ async function createOrderAfterPayment(paymentResult, amount) {
     throw new Error(error);
   }
 
-  // Build order payload
+  // Build order payload - MUST match OrderSchema exactly
+  // Schema requires: product_type, category, quantity, price_per_piece, address_line1, city, state, pincode
+  // Schema allows: neck_type, color, fabric, print_type, delivery_date, address_line2, country, transaction_id, sample_cost, sample_size
   const orderPayload = {
+    // Required fields
     product_type: currentOrderState.productType.trim(),
     category: currentOrderState.category.trim(),
-    neck_type: currentOrderState.neckType.trim(),
-    fabric: currentOrderState.fabric.trim(),
-    sample_size: currentOrderState.size.trim(),
-    sample_cost: currentOrderState.sampleCost,
-    quantity: 1, // Sample order
-    price_per_piece: currentOrderState.sampleCost, // For sample, price_per_piece = sample_cost
-    
-    // Address details
+    quantity: 1, // Sample order - schema allows min=1, so this is valid
+    price_per_piece: currentOrderState.sampleCost, // Required - for sample, price_per_piece = sample_cost
     address_line1: `${house} ${area}`.trim(),
-    address_line2: landmark || null,
     city: city,
     state: state,
     pincode: pincode,
-    country: country,
-    delivery_date: dateText || null,
     
-    // Payment details
-    transaction_id: paymentResult.transactionId,
-    payment_method: paymentResult.method,
-    payment_details: JSON.stringify(paymentResult)
+    // Optional fields (from schema)
+    neck_type: currentOrderState.neckType ? currentOrderState.neckType.trim() : null,
+    fabric: currentOrderState.fabric ? currentOrderState.fabric.trim() : null,
+    sample_size: currentOrderState.size ? currentOrderState.size.trim() : null,
+    sample_cost: currentOrderState.sampleCost, // Optional but we include it
+    address_line2: landmark || null,
+    country: country || "India",
+    transaction_id: paymentResult.transactionId, // Optional but required for payment tracking
+    
+    // 🔥 CRITICAL: delivery_date must be null or valid ISO DateTime string
+    // Schema expects DateTime or None - if dateText is empty or invalid format, send null
+    // Backend will parse it if provided, but null is safer for sample orders
+    delivery_date: null  // Sample orders don't need delivery date - backend can set it later
   };
+  
+  // 🔥 REMOVED: payment_method and payment_details are NOT in OrderSchema
+  // These will be stored in the Payment record, not the Order record
+  // Backend creates Payment record separately using transaction_id
 
   console.log("📦 Order payload built:", {
     keys: Object.keys(orderPayload),
@@ -2844,7 +2851,9 @@ async function createOrderAfterPayment(paymentResult, amount) {
   }
 
   // Create order via API
-  const response = await window.ImpromptuIndianApi.fetch("/api/orders/", {
+  // 🔥 CRITICAL: Use /api/orders (orders blueprint) - NOT /api/customer/orders (customer blueprint only has GET)
+  // Backend: orders_routes.bp registered with url_prefix="/api/orders", POST route at @bp.route('/', methods=['POST'])
+  const response = await window.ImpromptuIndianApi.fetch("/api/orders", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -2855,8 +2864,22 @@ async function createOrderAfterPayment(paymentResult, amount) {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ error: "Order creation failed" }));
-    console.error("❌ Order creation failed:", errorData);
-    throw new Error(errorData.error || `Order creation failed: ${response.status} ${response.statusText}`);
+    console.error("❌ Order creation failed:", {
+      status: response.status,
+      statusText: response.statusText,
+      error: errorData,
+      payload: orderPayload  // Log payload for debugging
+    });
+    
+    // Show detailed error message to user
+    let errorMessage = errorData.error || `Order creation failed: ${response.status}`;
+    if (errorData.details) {
+      // If validation errors, show them
+      errorMessage += "\n\nValidation errors:\n" + JSON.stringify(errorData.details, null, 2);
+      console.error("Validation details:", errorData.details);
+    }
+    
+    throw new Error(errorMessage);
   }
 
   const orderData = await response.json();
@@ -2910,11 +2933,11 @@ async function submitOrder(payload) {
       return;
     }
 
-    console.log("🚀 Submitting order to /api/orders/", {
+    console.log("🚀 Submitting order to /api/orders", {
       payload: payload,
       hasToken: !!token,
       tokenLength: token ? token.length : 0,
-      url: "/api/orders/",
+      url: "/api/orders",
       method: "POST"
     });
 
@@ -2934,13 +2957,15 @@ async function submitOrder(payload) {
     };
 
     console.log("📤 Fetch options:", {
-      url: "/api/orders/",
+      url: "/api/orders",
       method: fetchOptions.method,
       hasAuthHeader: !!fetchOptions.headers.Authorization,
       payloadSize: JSON.stringify(payload).length
     });
 
-    const res = await window.ImpromptuIndianApi.fetch("/api/orders/", fetchOptions);
+    // 🔥 CRITICAL: Use /api/orders (orders blueprint) - NOT /api/customer/orders (customer blueprint only has GET)
+    // Backend: orders_routes.bp registered with url_prefix="/api/orders", POST route at @bp.route('/', methods=['POST'])
+    const res = await window.ImpromptuIndianApi.fetch("/api/orders", fetchOptions);
 
     console.log("📥 Order submission response received:", {
       status: res.status,
