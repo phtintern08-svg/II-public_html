@@ -455,9 +455,19 @@ async function checkEstimate() {
   // 🔥 REMOVED: Stale request guard - estimate requests are cheap, latest response should always update state
   // This prevents race conditions where valid responses get discarded during rapid selections
   
-  const productType = document.querySelector('.custom-select[data-name="product-type"] select').value;
-  const fabric = document.querySelector('.custom-select[data-name="fabric-type"] select').value;
+  const productType = document.querySelector('.custom-select[data-name="product-type"] select')?.value;
+  const fabric = document.querySelector('.custom-select[data-name="fabric-type"] select')?.value;
   const sampleSize = document.querySelector('.custom-select[data-name="sample-size"] select')?.value;
+  
+  // 🔥 DEBUG: Log what we read from DOM to diagnose selector issues
+  console.log("🔍 DOM VALUES READ:", {
+    productType: productType,
+    fabric: fabric,
+    sampleSize: sampleSize,
+    productTypeSelector: document.querySelector('.custom-select[data-name="product-type"] select') ? 'found' : 'NOT FOUND',
+    fabricSelector: document.querySelector('.custom-select[data-name="fabric-type"] select') ? 'found' : 'NOT FOUND',
+    sizeSelector: document.querySelector('.custom-select[data-name="sample-size"] select') ? 'found' : 'NOT FOUND'
+  });
 
   const displayEl = document.getElementById("estimatedPriceDisplay");
   const containerEl = document.getElementById("estimatedCostContainer");
@@ -529,11 +539,36 @@ async function checkEstimate() {
 
   // 🔥 CRITICAL: Validate ALL required fields using currentOrderState (single source of truth)
   // NOTE: quantity is NOT required for estimate (backend doesn't need it)
+  
+  // 🔥 DEBUG: Log exact field values before validation to diagnose why estimate isn't running
+  console.log("🔍 CHECK FIELDS BEFORE VALIDATION:", {
+    productType: currentOrderState.productType,
+    category: currentOrderState.category,
+    neckType: currentOrderState.neckType,
+    fabric: currentOrderState.fabric,
+    size: currentOrderState.size,
+    productTypeType: typeof currentOrderState.productType,
+    categoryType: typeof currentOrderState.category,
+    neckTypeType: typeof currentOrderState.neckType,
+    fabricType: typeof currentOrderState.fabric,
+    sizeType: typeof currentOrderState.size,
+    fullState: JSON.parse(JSON.stringify(currentOrderState))  // Deep copy to see exact values
+  });
+  
   const allFieldsPresent = !!(currentOrderState.productType && 
                                currentOrderState.category && 
                                currentOrderState.neckType && 
                                currentOrderState.fabric && 
                                currentOrderState.size);
+  
+  console.log("🔍 VALIDATION RESULT:", {
+    allFieldsPresent: allFieldsPresent,
+    productTypeTruthy: !!currentOrderState.productType,
+    categoryTruthy: !!currentOrderState.category,
+    neckTypeTruthy: !!currentOrderState.neckType,
+    fabricTruthy: !!currentOrderState.fabric,
+    sizeTruthy: !!currentOrderState.size
+  });
   
   if (!allFieldsPresent) {
     if (samplePaymentCard) samplePaymentCard.classList.add("hidden");
@@ -541,12 +576,12 @@ async function checkEstimate() {
     // Only clear sampleCost (estimate result) - selections are preserved
     currentOrderState.sampleCost = null;
     currentOrderState.estimateFound = false;
-    console.log("⚠️ Estimate validation failed - missing required fields:", {
-      productType: !!currentOrderState.productType,
-      category: !!currentOrderState.category,
-      neckType: !!currentOrderState.neckType,
-      fabric: !!currentOrderState.fabric,
-      size: !!currentOrderState.size,
+    console.error("❌ Estimate validation FAILED - missing required fields:", {
+      productType: currentOrderState.productType,
+      category: currentOrderState.category,
+      neckType: currentOrderState.neckType,
+      fabric: currentOrderState.fabric,
+      size: currentOrderState.size,
       allFieldsPresent: allFieldsPresent,
       state: currentOrderState
     });
