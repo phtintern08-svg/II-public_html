@@ -457,15 +457,36 @@ async function checkEstimate() {
 
   if (!displayEl && !sampleCostDisplay) return;
 
-  // 🔥 CRITICAL: Update selection state IMMEDIATELY (before validation)
-  // Single source of truth - use currentOrderState
-  // Category and neckType come from card selections (stored in currentOrderState), not DOM dropdowns
-  // ProductType, fabric, and size come from DOM dropdowns
+  // 🔥 CRITICAL: Sync state with DOM to prevent state/UI mismatch
+  // When product type changes, state is reset but UI cards remain selected
+  // Read from DOM (selected cards) if state is null to keep them in sync
   currentOrderState.productType = productType || null;
-  // Category and neckType are set by selectCategory() and selectNeckType() - preserve if already set
-  // Don't read from DOM because they're card selections, not dropdowns
   currentOrderState.fabric = fabric || null;
   currentOrderState.size = sampleSize || null;
+  
+  // 🔥 FIX: Read category and neckType from DOM if state is null (syncs with UI after product change)
+  // This prevents state from being stale when UI shows selections but state was reset
+  if (!currentOrderState.category) {
+    const categoryCard = document.querySelector(".category-card.selected");
+    if (categoryCard) {
+      const categoryLabel = categoryCard.querySelector(".category-label");
+      if (categoryLabel) {
+        currentOrderState.category = categoryLabel.textContent;
+        console.log("🔄 Synced category from DOM:", currentOrderState.category);
+      }
+    }
+  }
+  
+  if (!currentOrderState.neckType) {
+    const neckCard = document.querySelector("#neckTypeContainer .category-card.selected");
+    if (neckCard) {
+      const neckLabel = neckCard.querySelector(".category-label");
+      if (neckLabel) {
+        currentOrderState.neckType = neckLabel.textContent;
+        console.log("🔄 Synced neckType from DOM:", currentOrderState.neckType);
+      }
+    }
+  }
   
   // 🔥 DEBUG: Log state before validation to diagnose why estimate might not run
   console.log("🔍 checkEstimate() state check:", {
