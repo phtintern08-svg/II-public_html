@@ -562,15 +562,38 @@ async function assignVendor() {
     return;
   }
 
+  // 🔥 SECURITY: Get token and include in Authorization header
+  const token = localStorage.getItem('token');
+  if (!token) {
+    showToast('Authentication required. Please log in again.', 'error');
+    setTimeout(() => {
+      window.location.href = '/login.html';
+    }, 1500);
+    return;
+  }
+
   try {
     const response = await ImpromptuIndianApi.fetch('/api/admin/assign-vendor', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`  // 🔥 FIX: Include Authorization header
+      },
       body: JSON.stringify({
         order_id: currentOrderId,
         vendor_id: parseInt(vendorId)
       })
     });
+    
+    // 🔥 SECURITY: Handle authentication/authorization errors
+    if (response.status === 401 || response.status === 403) {
+      console.warn('Unauthorized access to assign-vendor API');
+      showToast('Access denied. Please log in as admin.', 'error');
+      setTimeout(() => {
+        window.location.href = '/login.html';
+      }, 1500);
+      return;
+    }
 
     if (!response.ok) {
       const err = await response.json();

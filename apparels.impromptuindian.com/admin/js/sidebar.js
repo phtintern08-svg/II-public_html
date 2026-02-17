@@ -25,9 +25,20 @@
         baseUrl: base,
         buildUrl,
         fetch: (path, options = {}) => {
+          // 🔥 SECURITY: Automatically inject Authorization header if token exists
+          // This prevents missing token errors across all admin API calls
+          const token = localStorage.getItem('token');
+          
+          // Merge headers - ensure Authorization is included if token exists
+          const headers = {
+            ...(options.headers || {}),
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          };
+          
           // Include credentials to send cookies (REQUIRED for subdomain SSO)
           return fetch(buildUrl(path), {
             ...options,
+            headers,
             credentials: 'include'
           });
         },
