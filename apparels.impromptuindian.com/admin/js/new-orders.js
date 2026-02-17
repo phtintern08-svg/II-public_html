@@ -21,6 +21,9 @@ function showToast(msg, type = 'info') {
 let orders = [];
 let approvedVendors = [];
 
+// 🔍 DEBUG: Expose approvedVendors globally for console debugging
+window.approvedVendors = approvedVendors;
+
 async function fetchApprovedVendors() {
   try {
     // 🔥 FIX: Token is automatically injected by ImpromptuIndianApi.fetch() wrapper
@@ -35,11 +38,41 @@ async function fetchApprovedVendors() {
     }
 
     const data = await response.json();
-    approvedVendors = data.vendors || data;
-    console.log('Approved vendors fetched:', approvedVendors);
+    // 🔍 DEBUG: Log raw API response
+    console.log("Vendor API raw response:", data);
+    console.log("Response status:", response.status);
+    console.log("Response OK:", response.ok);
+    
+    // Handle different response structures
+    approvedVendors = data.vendors || (Array.isArray(data) ? data : []);
+    
+    // 🔍 DEBUG: Update global reference for console debugging
+    window.approvedVendors = approvedVendors;
+    
+    // 🔍 DEBUG: Log parsed vendors
+    console.log('Approved vendors parsed:', approvedVendors);
+    console.log('Approved vendors count:', approvedVendors.length);
+    
+    // 🔍 DEBUG: Log first vendor structure if exists
+    if (approvedVendors.length > 0) {
+      console.log('First vendor structure:', approvedVendors[0]);
+      console.log('First vendor business_name:', approvedVendors[0].business_name);
+      console.log('First vendor keys:', Object.keys(approvedVendors[0]));
+    } else {
+      console.warn('⚠️ No verified vendors found! Check:');
+      console.warn('1. Are there vendors with verification_status = "verified" in the database?');
+      console.warn('2. Is the API endpoint /api/admin/vendors?status=verified returning data?');
+      console.warn('3. Check Network tab for the API response');
+    }
   } catch (e) {
     console.error('Failed to fetch approved vendors', e);
+    console.error('Error details:', {
+      message: e.message,
+      stack: e.stack,
+      name: e.name
+    });
     showToast('Failed to load vendors', 'error');
+    approvedVendors = []; // Ensure it's an empty array on error
   }
 }
 
@@ -305,7 +338,7 @@ function renderOrders(ordersToRender = orders) {
           <span class="status-${o.status} shadow-sm">${o.status}</span>
         </td>
         <td data-label="Actions" class="text-center">
-          <button class="p-2 rounded-lg bg-blue-600/10 hover:bg-blue-600 transition-all text-blue-400 hover:text-white" onclick="openOrderModal(${o.id})">
+          <button class="w-9 h-9 flex items-center justify-center rounded-lg bg-blue-600/10 hover:bg-blue-600 transition-all text-blue-400 hover:text-white" onclick="openOrderModal(${o.id})">
             <i data-lucide="external-link" class="w-4 h-4"></i>
           </button>
         </td>
@@ -493,7 +526,15 @@ async function openOrderModal(id) {
               <label class="block mb-2 text-xs font-bold text-gray-500 uppercase tracking-tighter">Choose Vendor</label>
               <select id="vendor-select" class="w-full p-3 bg-gray-900 border border-white/10 rounded-xl text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none">
                 <option value="">Select an approved vendor...</option>
-                ${approvedVendors.map(v => `<option value="${v.id}">${v.business_name}</option>`).join('')}
+                ${
+                  approvedVendors.length === 0
+                    ? '<option disabled>No verified vendors found</option>'
+                    : approvedVendors.map(v =>
+                        `<option value="${v.id}">
+                           ${v.business_name || v.username || v.name || `Vendor #${v.id}`}
+                         </option>`
+                      ).join('')
+                }
               </select>
             </div>
             
