@@ -534,9 +534,16 @@ async function checkEstimate() {
     fullState: JSON.parse(JSON.stringify(currentOrderState))  // Deep copy to see exact state
   });
 
+  // 🔥 CRITICAL: Determine if neckType is required based on product type
+  // Products like Hoodie and Sweatshirt don't have neck types
+  const productsWithoutNeck = ["Hoodie", "Sweatshirt"];
+  const isNeckRequired = productType && !productsWithoutNeck.includes(productType);
+
   // Clear UI immediately (using state values, not DOM)
   if (displayEl) {
-    if (!productType || !category || !neckType || !fabric || !size) {
+    // Only require neckType if the product type requires it
+    const hasRequiredFields = productType && category && fabric && size && (isNeckRequired ? neckType : true);
+    if (!hasRequiredFields) {
       displayEl.textContent = "--";
     } else {
       displayEl.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-[#FFCC00]"></i>';
@@ -548,10 +555,14 @@ async function checkEstimate() {
   // Using destructured values from state above (not re-reading from DOM)
   // 🔥 IMPORTANT: Check for empty strings, null, undefined - all are invalid
   // Only non-empty strings are valid values
+  // 🔥 FIX: neckType is only required for products that have neck types (not Hoodie/Sweatshirt)
   
   const productTypeValid = productType && typeof productType === 'string' && productType.trim().length > 0;
   const categoryValid = category && typeof category === 'string' && category.trim().length > 0;
-  const neckTypeValid = neckType && typeof neckType === 'string' && neckType.trim().length > 0;
+  // neckType is only required if the product type requires it
+  const neckTypeValid = isNeckRequired 
+    ? (neckType && typeof neckType === 'string' && neckType.trim().length > 0)
+    : true;  // Products without neck types don't need neckType validation
   const fabricValid = fabric && typeof fabric === 'string' && fabric.trim().length > 0;
   const sizeValid = size && typeof size === 'string' && size.trim().length > 0;
   
@@ -562,6 +573,7 @@ async function checkEstimate() {
     productTypeValid: productTypeValid,
     categoryValid: categoryValid,
     neckTypeValid: neckTypeValid,
+    isNeckRequired: isNeckRequired,  // 🔥 DEBUG: Show if neckType is required for this product
     fabricValid: fabricValid,
     sizeValid: sizeValid,
     productType: productType,
@@ -580,7 +592,7 @@ async function checkEstimate() {
     console.error("❌ Estimate validation FAILED - missing or invalid required fields:", {
       productType: { value: productType, valid: productTypeValid, type: typeof productType },
       category: { value: category, valid: categoryValid, type: typeof category },
-      neckType: { value: neckType, valid: neckTypeValid, type: typeof neckType },
+      neckType: { value: neckType, valid: neckTypeValid, required: isNeckRequired, type: typeof neckType },  // 🔥 DEBUG: Show if neckType is required
       fabric: { value: fabric, valid: fabricValid, type: typeof fabric },
       size: { value: size, valid: sizeValid, type: typeof size },
       allFieldsPresent: allFieldsPresent
@@ -2445,6 +2457,12 @@ function initPaymentButtons() {
   // 🔥 DEBUG: Confirm function is being called
   console.log("🔵 Payment button initialization started");
   
+  // 🔥 CRITICAL: Prevent duplicate bindings - check if already initialized
+  if (window.__paymentButtonsInitialized) {
+    console.log("⚠️ Payment buttons already initialized, skipping duplicate binding");
+    return;
+  }
+  
   // 🔥 CRITICAL: Use direct binding instead of event delegation
   // Direct binding is more reliable and easier to debug
   // Event delegation can fail if buttons are disabled or inside iframes
@@ -2457,8 +2475,21 @@ function initPaymentButtons() {
     payCardBtn: payCardBtn ? "found" : "NOT FOUND",
     payUpiBtn: payUpiBtn ? "found" : "NOT FOUND",
     payCardDisabled: payCardBtn?.disabled,
-    payUpiDisabled: payUpiBtn?.disabled
+    payUpiDisabled: payUpiBtn?.disabled,
+    buttonsExist: !!(payCardBtn && payUpiBtn)
   });
+  
+  // 🔥 CRITICAL: If buttons don't exist, log warning but don't fail silently
+  if (!payCardBtn || !payUpiBtn) {
+    console.error("❌ Payment buttons NOT FOUND in DOM at initialization time:", {
+      payCardBtn: payCardBtn ? "found" : "NOT FOUND",
+      payUpiBtn: payUpiBtn ? "found" : "NOT FOUND",
+      modalExists: !!document.getElementById("paymentModal"),
+      suggestion: "Buttons may be in hidden modal. Will retry when modal opens."
+    });
+    // Don't set flag - allow retry when modal opens
+    return;
+  }
   
   if (payCardBtn) {
     payCardBtn.addEventListener("click", (e) => {
@@ -2506,6 +2537,8 @@ function initPaymentButtons() {
     console.error("❌ btnPayUpi button not found in DOM");
   }
   
+  // Mark as initialized to prevent duplicate bindings
+  window.__paymentButtonsInitialized = true;
   console.log("🔵 Payment button initialization completed");
 }
 
@@ -2602,12 +2635,16 @@ function initPlaceOrder() {
       });
       
       // 🔥 CRITICAL: Validate state - payment allowed if price exists (cost > 0)
-      // Must check ALL required fields (same as estimate validation) - neckType and fabric are required
+      // Must check ALL required fields (same as estimate validation) - neckType is conditional
       // Removed estimateFound check - if price exists, payment is allowed (backend validates final price anyway)
+      // 🔥 FIX: neckType is only required for products that have neck types (not Hoodie/Sweatshirt)
+      const productsWithoutNeck = ["Hoodie", "Sweatshirt"];
+      const isNeckRequired = currentOrderState.productType && !productsWithoutNeck.includes(currentOrderState.productType);
+      
       if (
         !currentOrderState.productType ||
         !currentOrderState.category ||
-        !currentOrderState.neckType ||
+        (isNeckRequired && !currentOrderState.neckType) ||
         !currentOrderState.fabric ||
         !currentOrderState.size ||
         currentOrderState.sampleCost === null ||
@@ -2633,6 +2670,12 @@ function initPlaceOrder() {
       // OPEN PAYMENT MODAL (validation passed)
       const paymentModal = document.getElementById("paymentModal");
       paymentModal.classList.remove("hidden");
+
+      // 🔥 CRITICAL: Initialize payment buttons AFTER modal is opened
+      // This guarantees buttons exist in DOM before binding event listeners
+      // Modal might be hidden initially, so buttons may not exist at page load
+      console.log("🔵 Initializing payment buttons after modal open");
+      initPaymentButtons();
 
       // Display locked sample size from state (source of truth, not DOM)
       const modalSizeDisplay = document.getElementById("modalSampleSizeDisplay");
@@ -3041,7 +3084,9 @@ function initNewOrderPage() {
   // Note: Location functionality is handled inline in initAddress() via useCurrentLocationBtn
   initFileUpload();
   initPlaceOrder();
-  initPaymentButtons(); // 🔥 CRITICAL: Initialize payment buttons with direct binding
+  // 🔥 REMOVED: initPaymentButtons() from here - buttons may not exist if modal is hidden
+  // Payment buttons are now initialized when modal opens (guarantees buttons exist in DOM)
+  // See handlePlaceOrder() -> paymentModal.classList.remove("hidden") -> initPaymentButtons()
 
   // Initialize cart badge
   try {
