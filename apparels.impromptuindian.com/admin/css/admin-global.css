@@ -1097,7 +1097,7 @@ tr:hover {
     /* Admin Sidebar - Match Customer Sidebar Mobile Styles */
     .sidebar {
         width: 100% !important;
-        max-width: 280px !important;
+        max-width: 240px !important;
     }
 }
 

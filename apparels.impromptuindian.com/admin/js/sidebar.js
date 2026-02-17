@@ -29,7 +29,7 @@
           // This prevents missing token errors across all admin API calls
           // 🔥 FIX: Read token once and reuse it (prevents duplicate localStorage reads)
           let token = localStorage.getItem('token');
-          
+
           // 🔥 CRITICAL FIX: Validate token before sending
           // localStorage stores values as strings, so null/undefined become "null"/"undefined"
           // A valid JWT is always 200+ characters, so reject anything too short
@@ -44,13 +44,13 @@
               });
             }
           }
-          
+
           // Merge headers - ensure Authorization is included if token exists
           const headers = {
             ...(options.headers || {}),
             ...(token ? { 'Authorization': `Bearer ${token}` } : {})
           };
-          
+
           // 🔥 FIX: Use pure JWT header authentication - remove cookie-based auth
           // Mixing JWT header + HttpOnly cookies causes inconsistent authentication
           // Backend should ONLY check Authorization header, not cookies
@@ -59,7 +59,7 @@
             headers
             // 🔥 REMOVED: credentials: 'include' - causes cookie/JWT conflict
           });
-          
+
           // 🔥 GLOBAL 401 HANDLING: Centralize authentication error handling
           // This prevents inconsistent auth checks across different files
           // 🔥 PRODUCTION-SAFE: Only clear auth if user was actually authenticated
@@ -74,7 +74,7 @@
               method: options.method || 'GET',
               timestamp: new Date().toISOString()
             });
-            
+
             // Only act if:
             // 1. User actually had a token (was authenticated)
             // 2. This is NOT a logout endpoint (prevents weird loops)
@@ -83,19 +83,19 @@
                 path: path,
                 hadToken: !!token
               });
-              
+
               // Clear all auth-related localStorage
               localStorage.removeItem('token');
               localStorage.removeItem('role');
               localStorage.removeItem('user_id');
-              
+
               // 🔥 FIX: More robust login page check - handles /login, /login/, /auth/login.html, etc.
               // Only redirect if not already on login page
               // Use replace() instead of href to prevent back button issues
-              const isLoginPage = window.location.pathname.endsWith('login.html') || 
-                                  window.location.pathname.endsWith('login') ||
-                                  window.location.href.includes('login');
-              
+              const isLoginPage = window.location.pathname.endsWith('login.html') ||
+                window.location.pathname.endsWith('login') ||
+                window.location.href.includes('login');
+
               if (!isLoginPage) {
                 window.location.replace('/login.html');
               }
@@ -107,11 +107,11 @@
                 isLogoutEndpoint: path.includes('/api/logout')
               });
             }
-            
+
             // Return response anyway so caller can handle it if needed
             return response;
           }
-          
+
           return response;
         },
       };
@@ -121,7 +121,7 @@
   const ImpromptuIndianApi = window.ImpromptuIndianApi;
 
   const sidebarHTML = `
-  <aside class="sidebar bg-[#1273EB] flex flex-col justify-between h-screen fixed md:relative z-50 transition-all duration-300 -translate-x-full md:translate-x-0 w-[265px] shrink-0">
+  <aside class="sidebar bg-[#1273EB] flex flex-col justify-between h-screen fixed md:relative z-50 transition-all duration-300 -translate-x-full md:translate-x-0 w-[240px] shrink-0">
     <div class="p-5 flex items-center gap-3 text-xl font-bold">
       <i data-lucide="shirt" class="w-6 h-6 text-[#FFCC00]"></i>
       <a href="home.html">

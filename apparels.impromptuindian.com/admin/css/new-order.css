@@ -488,6 +488,7 @@ body {
     overflow-x: auto;
     border-radius: 0 0 0.875rem 0.875rem;
     width: 100%;
+    padding: 0;
 }
 
 table {
@@ -496,6 +497,10 @@ table {
     table-layout: fixed;
     min-width: 100%;
     border-spacing: 0;
+}
+
+table thead tr {
+    width: 100%;
 }
 
 table thead th {
@@ -596,6 +601,17 @@ table tbody td {
     font-size: 0.875rem;
     color: #cbd5e1;
     vertical-align: middle;
+}
+
+/* Remove extra side padding for first and last columns to achieve edge-to-edge alignment */
+table th:first-child,
+table td:first-child {
+    padding-left: 1rem;
+}
+
+table th:last-child,
+table td:last-child {
+    padding-right: 1rem;
 }
 
 /* Order ID column - special styling (alignment handled by unified rules above) */
