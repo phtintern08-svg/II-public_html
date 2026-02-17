@@ -487,11 +487,14 @@ body {
 .table-container {
     overflow-x: auto;
     border-radius: 0 0 0.875rem 0.875rem;
+    width: 100%;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: auto;
+    min-width: 100%;
 }
 
 table thead th {
@@ -511,67 +514,71 @@ table thead th {
 /* Order ID column - left aligned */
 table thead th:first-child {
     text-align: left;
-    width: 100px;
-    min-width: 100px;
+    width: 8%;
+    min-width: 80px;
 }
 
 /* Customer column - left aligned */
 table thead th:nth-child(2) {
     text-align: left;
-    min-width: 200px;
+    width: 20%;
+    min-width: 180px;
 }
 
 /* Apparel Type column - left aligned */
 table thead th:nth-child(3) {
     text-align: left;
-    width: 140px;
-    min-width: 140px;
+    width: 12%;
+    min-width: 120px;
 }
 
 /* Qty column - center aligned */
 table thead th:nth-child(4) {
     text-align: center;
-    width: 100px;
-    min-width: 100px;
+    width: 8%;
+    min-width: 80px;
 }
 
 /* Amount column - right aligned */
 table thead th:nth-child(5) {
     text-align: right;
-    width: 120px;
-    min-width: 120px;
+    width: 10%;
+    min-width: 100px;
 }
 
 /* Deadline column - left aligned */
 table thead th:nth-child(6) {
     text-align: left;
-    width: 150px;
-    min-width: 150px;
+    width: 15%;
+    min-width: 140px;
 }
 
 /* Status column - left aligned */
 table thead th:nth-child(7) {
     text-align: left;
-    width: 130px;
-    min-width: 130px;
+    width: 12%;
+    min-width: 120px;
 }
 
 /* Actions column - right aligned */
 table thead th:last-child {
     text-align: right;
-    width: 100px;
-    min-width: 100px;
+    width: 10%;
+    min-width: 90px;
 }
 
-table thead th.flex {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+/* Remove flex from first header to fix alignment */
+table thead th:first-child.flex {
+    display: table-cell;
 }
 
 table thead th i {
     color: #64748b;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 0.25rem;
 }
+
 
 table tbody tr {
     border-bottom: 1px solid rgba(148, 163, 184, 0.08);

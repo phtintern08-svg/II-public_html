@@ -1259,24 +1259,14 @@
     scroll-behavior: smooth;
 }
 
-/* Add subtle fade effect at bottom to indicate more content */
-.info-card .info-card-body {
-    position: relative;
+/* Remove extra space from activity logs container */
+.info-card .info-card-body.p-0 {
+    padding: 0 !important;
+    overflow: hidden;
 }
 
-.info-card .info-card-body::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 30px;
-    background: linear-gradient(to bottom, transparent, rgba(30, 41, 59, 0.8));
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.info-card .info-card-body:hover::after {
-    opacity: 1;
+/* Ensure table fits perfectly in container */
+.info-card .info-card-body.p-0 .overflow-x-auto {
+    margin: 0;
+    border-radius: 0;
 }

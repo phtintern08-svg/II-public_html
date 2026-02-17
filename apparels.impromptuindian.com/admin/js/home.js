@@ -303,20 +303,58 @@ async function fetchActivityLogs() {
                 // Format action with icon based on action type
                 let actionIcon = 'activity';
                 let actionColor = 'text-blue-400';
+                let userTypeBadge = '';
+                let userTypeColor = 'bg-gray-600';
                 
+                // Set icon and color based on action type
                 if (activity.action_type === 'order_status_change') {
                     actionIcon = 'package';
                     actionColor = 'text-purple-400';
-                } else if (activity.action_type === 'verification') {
-                    actionIcon = 'user-check';
-                    if (activity.action.includes('Approved')) {
-                        actionColor = 'text-green-400';
-                    } else if (activity.action.includes('Rejected')) {
-                        actionColor = 'text-red-400';
-                    }
-                } else if (activity.action_type === 'admin_action') {
-                    actionIcon = 'settings';
+                } else if (activity.action_type === 'order_creation') {
+                    actionIcon = 'shopping-cart';
+                    actionColor = 'text-green-400';
+                } else if (activity.action_type === 'quotation_submission') {
+                    actionIcon = 'file-text';
+                    actionColor = 'text-blue-400';
+                } else if (activity.action_type === 'payment') {
+                    actionIcon = 'dollar-sign';
                     actionColor = 'text-yellow-400';
+                } else if (activity.action_type === 'delivery_update') {
+                    actionIcon = 'truck';
+                    actionColor = 'text-cyan-400';
+                } else if (activity.action_type === 'support_thread' || activity.action_type === 'support_comment') {
+                    actionIcon = 'message-circle';
+                    actionColor = 'text-indigo-400';
+                } else if (activity.action_type === 'verification' || activity.action_type === 'admin_action') {
+                    actionIcon = 'user-check';
+                    if (activity.action && activity.action.includes('Approved')) {
+                        actionColor = 'text-green-400';
+                    } else if (activity.action && activity.action.includes('Rejected')) {
+                        actionColor = 'text-red-400';
+                    } else {
+                        actionColor = 'text-yellow-400';
+                    }
+                }
+                
+                // Set user type badge color
+                if (activity.user_type === 'admin') {
+                    userTypeColor = 'bg-red-600';
+                    userTypeBadge = 'ADMIN';
+                } else if (activity.user_type === 'vendor') {
+                    userTypeColor = 'bg-blue-600';
+                    userTypeBadge = 'VENDOR';
+                } else if (activity.user_type === 'customer') {
+                    userTypeColor = 'bg-green-600';
+                    userTypeBadge = 'CUSTOMER';
+                } else if (activity.user_type === 'rider') {
+                    userTypeColor = 'bg-cyan-600';
+                    userTypeBadge = 'RIDER';
+                } else if (activity.user_type === 'support') {
+                    userTypeColor = 'bg-purple-600';
+                    userTypeBadge = 'SUPPORT';
+                } else if (activity.user_type === 'system') {
+                    userTypeColor = 'bg-gray-600';
+                    userTypeBadge = 'SYSTEM';
                 }
 
                 return `
@@ -324,7 +362,10 @@ async function fetchActivityLogs() {
                         <td class="px-3 sm:px-6 py-3 sm:py-4">
                             <div class="flex items-center gap-2">
                                 <i data-lucide="${actionIcon}" class="w-4 h-4 ${actionColor}"></i>
-                                <span class="font-medium text-white">${activity.user_name || 'Admin'}</span>
+                                <div class="flex flex-col">
+                                    <span class="font-medium text-white">${activity.user_name || 'Unknown'}</span>
+                                    ${userTypeBadge ? `<span class="text-[10px] ${userTypeColor} text-white px-1.5 py-0.5 rounded uppercase font-bold tracking-wide mt-0.5 inline-block w-fit">${userTypeBadge}</span>` : ''}
+                                </div>
                             </div>
                         </td>
                         <td class="px-3 sm:px-6 py-3 sm:py-4">
