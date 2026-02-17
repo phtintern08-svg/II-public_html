@@ -24,18 +24,39 @@ let approvedVendors = [];
 async function fetchApprovedVendors() {
   try {
     const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token');
+    }
+    
     const response = await ImpromptuIndianApi.fetch('/api/admin/vendors?status=verified', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
-    if (!response.ok) throw new Error('Failed to fetch vendors');
+    
+    // 🔥 SECURITY: Handle authentication/authorization errors
+    if (response.status === 401 || response.status === 403) {
+      console.warn('Unauthorized access to admin vendors API');
+      showToast('Access denied. Please log in as admin.', 'error');
+      setTimeout(() => {
+        window.location.href = '/login.html';
+      }, 1500);
+      return;
+    }
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch vendors: ${response.status}`);
+    }
+    
     const data = await response.json();
     approvedVendors = data.vendors || data;
     console.log('Approved vendors fetched:', approvedVendors);
   } catch (e) {
     console.error('Failed to fetch approved vendors', e);
-    showToast('Failed to load vendors', 'error');
+    // Only show toast if it's not an auth error (already handled above)
+    if (!e.message || (!e.message.includes('401') && !e.message.includes('403'))) {
+      showToast('Failed to load vendors', 'error');
+    }
   }
 }
 
@@ -72,12 +93,32 @@ async function fetchOrders() {
   
   try {
     const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token');
+    }
+    
     const response = await ImpromptuIndianApi.fetch('/api/orders/', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
-    if (!response.ok) throw new Error('Network response was not ok');
+    
+    // 🔥 SECURITY: Handle authentication/authorization errors
+    if (response.status === 401 || response.status === 403) {
+      console.warn('Unauthorized access to orders API');
+      showToast('Access denied. Please log in as admin.', 'error');
+      setTimeout(() => {
+        window.location.href = '/login.html';
+      }, 1500);
+      // Hide loading state
+      if (tableLoading) tableLoading.classList.add('hidden');
+      return;
+    }
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch orders: ${response.status}`);
+    }
+    
     const responseData = await response.json();
     const data = responseData.orders || responseData;
 
@@ -107,7 +148,12 @@ async function fetchOrders() {
     if (tableLoading) tableLoading.classList.add('hidden');
   } catch (e) {
     console.error('Failed to fetch orders', e);
-    showToast('Failed to load orders', 'error');
+    // Only show toast if it's not an auth error (already handled above)
+    if (!e.message || (!e.message.includes('401') && !e.message.includes('403'))) {
+      showToast('Failed to load orders', 'error');
+    }
+    // Hide loading state on error
+    if (tableLoading) tableLoading.classList.add('hidden');
     
     // Hide loading state and show error
     if (tableLoading) tableLoading.classList.add('hidden');
@@ -620,6 +666,29 @@ function setupKeyboardShortcuts() {
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
+  // 🔥 SECURITY: Role guard - prevent non-admin users from accessing admin APIs
+  const role = localStorage.getItem('role');
+  const token = localStorage.getItem('token');
+  
+  if (role !== 'admin') {
+    console.warn('Unauthorized access to admin page - redirecting to login');
+    showToast('Access denied. Admin privileges required.', 'error');
+    // Redirect to login page after a short delay
+    setTimeout(() => {
+      window.location.href = '/login.html';
+    }, 1500);
+    return;
+  }
+  
+  if (!token) {
+    console.warn('No authentication token found - redirecting to login');
+    showToast('Please log in to continue', 'error');
+    setTimeout(() => {
+      window.location.href = '/login.html';
+    }, 1500);
+    return;
+  }
+
   // Show all reveal elements immediately (they're already in view on page load)
   requestAnimationFrame(() => {
     document.querySelectorAll('.reveal').forEach(el => {
@@ -652,6 +721,13 @@ window.addEventListener('DOMContentLoaded', async () => {
     calculateSummary();
   } catch (error) {
     console.error('Error initializing page:', error);
+    // If API call fails with 401/403, redirect to login
+    if (error.message && (error.message.includes('401') || error.message.includes('403'))) {
+      showToast('Session expired. Please log in again.', 'error');
+      setTimeout(() => {
+        window.location.href = '/login.html';
+      }, 1500);
+    }
   }
 
   // Also set up scroll listener for any elements that come into view later
