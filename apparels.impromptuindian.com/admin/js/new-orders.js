@@ -523,7 +523,7 @@ async function openOrderModal(id) {
           
           <div class="space-y-4">
             <div>
-              <label class="block mb-2 text-xs font-bold text-gray-500 uppercase tracking-tighter">Choose Vendor</label>
+              <label class="block mb-2 text-xs font-bold text-gray-500 uppercase tracking-tighter">Choose Vendor <span class="text-red-400">*</span></label>
               <select id="vendor-select" class="w-full p-3 bg-gray-900 border border-white/10 rounded-xl text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none">
                 <option value="">Select an approved vendor...</option>
                 ${
@@ -539,6 +539,15 @@ async function openOrderModal(id) {
             </div>
             
             <div>
+              <label class="block mb-2 text-xs font-bold text-gray-500 uppercase tracking-tighter">Quotation Price (per piece) <span class="text-red-400">*</span></label>
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₹</span>
+                <input type="number" id="quotation-price" step="0.01" min="0" class="w-full pl-8 pr-3 py-3 bg-gray-900 border border-white/10 rounded-xl text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none" placeholder="Enter price per piece" required>
+              </div>
+              <p class="text-xs text-gray-500 mt-1">Total for ${order.qty} pieces: <span id="quotation-total" class="text-yellow-400 font-semibold">₹0</span></p>
+            </div>
+            
+            <div>
               <label class="block mb-2 text-xs font-bold text-gray-500 uppercase tracking-tighter">Internal Operations Notes</label>
               <textarea id="admin-notes" class="w-full p-3 bg-gray-900 border border-white/10 text-white text-sm rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none" rows="3" placeholder="Add specific instructions for this order..."></textarea>
             </div>
@@ -551,6 +560,17 @@ async function openOrderModal(id) {
   document.getElementById('modal-title').textContent = `Order #${order.id} - ${order.customer}`;
   document.getElementById('order-modal').classList.remove('hidden');
   if (window.lucide) lucide.createIcons();
+  
+  // Calculate total quotation when price changes
+  const quotationInput = document.getElementById('quotation-price');
+  const quotationTotal = document.getElementById('quotation-total');
+  if (quotationInput && quotationTotal) {
+    quotationInput.addEventListener('input', () => {
+      const price = parseFloat(quotationInput.value) || 0;
+      const total = price * order.qty;
+      quotationTotal.textContent = `₹${total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    });
+  }
 }
 
 function closeOrderModal() {
@@ -560,22 +580,31 @@ function closeOrderModal() {
 
 async function assignVendor() {
   const vendorId = document.getElementById('vendor-select')?.value;
+  const quotationPrice = document.getElementById('quotation-price')?.value;
+  
+  // Validation
   if (!vendorId) {
     showToast('Please select a vendor', 'warning');
     return;
   }
+  
+  if (!quotationPrice || parseFloat(quotationPrice) <= 0) {
+    showToast('Please enter a valid quotation price per piece', 'warning');
+    return;
+  }
 
   try {
-    // 🔥 FIX: Token is automatically injected by ImpromptuIndianApi.fetch() wrapper
-    // No need for manual token check or Authorization header - wrapper handles it
-    const response = await ImpromptuIndianApi.fetch('/api/admin/assign-vendor', {
-      method: 'POST',
+    // 🔥 FIX: Use correct endpoint - PUT /api/admin/orders/{order_id}/assign
+    // Order ID goes in URL, not in body
+    const response = await ImpromptuIndianApi.fetch(`/api/admin/orders/${currentOrderId}/assign`, {
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        order_id: currentOrderId,
-        vendor_id: parseInt(vendorId)
+        vendor_id: parseInt(vendorId),
+        quotation_price_per_piece: parseFloat(quotationPrice),
+        sample_cost: 500.0  // Default sample cost
       })
     });
 

@@ -532,22 +532,10 @@ table thead th {
     white-space: nowrap;
 }
 
-/* Flex container for header icon + text content */
-.th-content {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-}
-
 /* Column alignment - only specify non-default alignments */
 table th:nth-child(4),
 table td:nth-child(4) {
-    text-align: center;
-    /* Qty */
-}
-
-table th:nth-child(4) .th-content {
-    justify-content: center; /* Center flex content in header */
+    text-align: center; /* Qty */
 }
 
 table th:nth-child(5),
@@ -556,20 +544,16 @@ table td:nth-child(5) {
     font-variant-numeric: tabular-nums;
 }
 
-table th:nth-child(5) .th-content {
-    justify-content: flex-end; /* Right align flex content in header */
+table th:nth-child(7),
+table td:nth-child(7),
+table th:last-child,
+table td:last-child {
+    text-align: center; /* Status and Actions */
 }
 
 table th:last-child,
 table td:last-child {
-    text-align: center;
-    /* Actions */
-    width: 70px;
-    /* Lock Actions column width - tightened */
-}
-
-table th:last-child .th-content {
-    justify-content: center; /* Center flex content in header */
+    width: 70px; /* Lock Actions column width - tightened */
 }
 
 /* Center Status column */
@@ -587,7 +571,9 @@ table th:nth-child(6) {
 
 table thead th i {
     color: #64748b;
-    flex-shrink: 0;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 0.25rem;
 }
 
 table thead th .th-content i {
