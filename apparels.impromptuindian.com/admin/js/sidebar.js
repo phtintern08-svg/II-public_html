@@ -24,7 +24,7 @@
       return {
         baseUrl: base,
         buildUrl,
-        fetch: (path, options = {}) => {
+        fetch: async (path, options = {}) => {
           // 🔥 SECURITY: Automatically inject Authorization header if token exists
           // This prevents missing token errors across all admin API calls
           const token = localStorage.getItem('token');
@@ -36,11 +36,28 @@
           };
           
           // Include credentials to send cookies (REQUIRED for subdomain SSO)
-          return fetch(buildUrl(path), {
+          const response = await fetch(buildUrl(path), {
             ...options,
             headers,
             credentials: 'include'
           });
+          
+          // 🔥 GLOBAL 401 HANDLING: Centralize authentication error handling
+          // This prevents inconsistent auth checks across different files
+          if (response.status === 401) {
+            console.warn('Authentication failed (401) - redirecting to login');
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            localStorage.removeItem('user_id');
+            // Only redirect if not already on login page
+            if (!window.location.pathname.includes('login.html')) {
+              window.location.href = '/login.html';
+            }
+            // Return response anyway so caller can handle it if needed
+            return response;
+          }
+          
+          return response;
         },
       };
     })();

@@ -23,26 +23,12 @@ let approvedVendors = [];
 
 async function fetchApprovedVendors() {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token');
-    }
+    // 🔥 FIX: Token is automatically injected by ImpromptuIndianApi.fetch() wrapper
+    // No need for manual token check or Authorization header - wrapper handles it
+    const response = await ImpromptuIndianApi.fetch('/api/admin/vendors?status=verified');
     
-    const response = await ImpromptuIndianApi.fetch('/api/admin/vendors?status=verified', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-    
-    // 🔥 SECURITY: Handle authentication/authorization errors
-    if (response.status === 401 || response.status === 403) {
-      console.warn('Unauthorized access to admin vendors API');
-      showToast('Access denied. Please log in as admin.', 'error');
-      setTimeout(() => {
-        window.location.href = '/login.html';
-      }, 1500);
-      return;
-    }
+    // 🔥 NOTE: 401 handling is now centralized in API wrapper (sidebar.js)
+    // If 401 occurs, wrapper automatically redirects to login
     
     if (!response.ok) {
       throw new Error(`Failed to fetch vendors: ${response.status}`);
@@ -53,10 +39,7 @@ async function fetchApprovedVendors() {
     console.log('Approved vendors fetched:', approvedVendors);
   } catch (e) {
     console.error('Failed to fetch approved vendors', e);
-    // Only show toast if it's not an auth error (already handled above)
-    if (!e.message || (!e.message.includes('401') && !e.message.includes('403'))) {
-      showToast('Failed to load vendors', 'error');
-    }
+    showToast('Failed to load vendors', 'error');
   }
 }
 
@@ -92,28 +75,12 @@ async function fetchOrders() {
   if (window.lucide) lucide.createIcons();
   
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token');
-    }
+    // 🔥 FIX: Token is automatically injected by ImpromptuIndianApi.fetch() wrapper
+    // No need for manual token check or Authorization header - wrapper handles it
+    const response = await ImpromptuIndianApi.fetch('/api/orders/');
     
-    const response = await ImpromptuIndianApi.fetch('/api/orders/', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-    
-    // 🔥 SECURITY: Handle authentication/authorization errors
-    if (response.status === 401 || response.status === 403) {
-      console.warn('Unauthorized access to orders API');
-      showToast('Access denied. Please log in as admin.', 'error');
-      setTimeout(() => {
-        window.location.href = '/login.html';
-      }, 1500);
-      // Hide loading state
-      if (tableLoading) tableLoading.classList.add('hidden');
-      return;
-    }
+    // 🔥 NOTE: 401 handling is now centralized in API wrapper (sidebar.js)
+    // If 401 occurs, wrapper automatically redirects to login
     
     if (!response.ok) {
       throw new Error(`Failed to fetch orders: ${response.status}`);
@@ -148,10 +115,7 @@ async function fetchOrders() {
     if (tableLoading) tableLoading.classList.add('hidden');
   } catch (e) {
     console.error('Failed to fetch orders', e);
-    // Only show toast if it's not an auth error (already handled above)
-    if (!e.message || (!e.message.includes('401') && !e.message.includes('403'))) {
-      showToast('Failed to load orders', 'error');
-    }
+    showToast('Failed to load orders', 'error');
     // Hide loading state on error
     if (tableLoading) tableLoading.classList.add('hidden');
     
@@ -562,22 +526,13 @@ async function assignVendor() {
     return;
   }
 
-  // 🔥 SECURITY: Get token and include in Authorization header
-  const token = localStorage.getItem('token');
-  if (!token) {
-    showToast('Authentication required. Please log in again.', 'error');
-    setTimeout(() => {
-      window.location.href = '/login.html';
-    }, 1500);
-    return;
-  }
-
   try {
+    // 🔥 FIX: Token is automatically injected by ImpromptuIndianApi.fetch() wrapper
+    // No need for manual token check or Authorization header - wrapper handles it
     const response = await ImpromptuIndianApi.fetch('/api/admin/assign-vendor', {
       method: 'POST',
       headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`  // 🔥 FIX: Include Authorization header
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         order_id: currentOrderId,
@@ -585,15 +540,8 @@ async function assignVendor() {
       })
     });
     
-    // 🔥 SECURITY: Handle authentication/authorization errors
-    if (response.status === 401 || response.status === 403) {
-      console.warn('Unauthorized access to assign-vendor API');
-      showToast('Access denied. Please log in as admin.', 'error');
-      setTimeout(() => {
-        window.location.href = '/login.html';
-      }, 1500);
-      return;
-    }
+    // 🔥 NOTE: 401 handling is now centralized in API wrapper (sidebar.js)
+    // If 401 occurs, wrapper automatically redirects to login
 
     if (!response.ok) {
       const err = await response.json();
@@ -689,9 +637,9 @@ function setupKeyboardShortcuts() {
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
-  // 🔥 SECURITY: Role guard - prevent non-admin users from accessing admin APIs
+  // 🔥 SECURITY: Role guard - prevent non-admin users from accessing admin page
+  // Note: Token check is handled by API wrapper - if token is missing, API calls will 401 and wrapper redirects
   const role = localStorage.getItem('role');
-  const token = localStorage.getItem('token');
   
   if (role !== 'admin') {
     console.warn('Unauthorized access to admin page - redirecting to login');
@@ -703,14 +651,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     return;
   }
   
-  if (!token) {
-    console.warn('No authentication token found - redirecting to login');
-    showToast('Please log in to continue', 'error');
-    setTimeout(() => {
-      window.location.href = '/login.html';
-    }, 1500);
-    return;
-  }
+  // 🔥 NOTE: Token validation is now handled by API wrapper
+  // If token is missing or invalid, API calls will return 401 and wrapper automatically redirects
 
   // Show all reveal elements immediately (they're already in view on page load)
   requestAnimationFrame(() => {
@@ -744,13 +686,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     calculateSummary();
   } catch (error) {
     console.error('Error initializing page:', error);
-    // If API call fails with 401/403, redirect to login
-    if (error.message && (error.message.includes('401') || error.message.includes('403'))) {
-      showToast('Session expired. Please log in again.', 'error');
-      setTimeout(() => {
-        window.location.href = '/login.html';
-      }, 1500);
-    }
+    // 🔥 NOTE: 401 handling is centralized in API wrapper - no need to handle here
+    // If API call fails with 401, wrapper automatically redirects to login
   }
 
   // Also set up scroll listener for any elements that come into view later

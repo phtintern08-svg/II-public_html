@@ -1,7 +1,8 @@
 // notifications.js – admin notification center (backend integration)
 
-// Use relative paths - no absolute URLs
-const API_BASE = '';
+// 🔥 FIX: Use ImpromptuIndianApi wrapper (defined in sidebar.js) for automatic token injection
+// Ensure ImpromptuIndianApi is available (loaded via sidebar.js)
+const ImpromptuIndianApi = window.ImpromptuIndianApi;
 
 function showToast(msg) {
     const toast = document.getElementById('toast');
@@ -41,7 +42,8 @@ function timeAgo(dateString) {
 
 async function fetchNotifications() {
     try {
-        const response = await fetch(`${API_BASE}/admin/notifications`);
+        // 🔥 FIX: Use ImpromptuIndianApi.fetch() instead of raw fetch() for automatic token injection
+        const response = await ImpromptuIndianApi.fetch('/api/admin/notifications');
         if (!response.ok) throw new Error('Failed to fetch notifications');
 
         const data = await response.json();
@@ -125,7 +127,8 @@ function filterNotifications() {
 
 async function markAsRead(id) {
     try {
-        const response = await fetch(`${API_BASE}/admin/notifications/${id}/read`, {
+        // 🔥 FIX: Use ImpromptuIndianApi.fetch() instead of raw fetch() for automatic token injection
+        const response = await ImpromptuIndianApi.fetch(`/api/admin/notifications/${id}/read`, {
             method: 'POST'
         });
         if (!response.ok) throw new Error('Failed to mark notification');
