@@ -26,14 +26,14 @@ async function fetchApprovedVendors() {
     // 🔥 FIX: Token is automatically injected by ImpromptuIndianApi.fetch() wrapper
     // No need for manual token check or Authorization header - wrapper handles it
     const response = await ImpromptuIndianApi.fetch('/api/admin/vendors?status=verified');
-    
+
     // 🔥 NOTE: 401 handling is now centralized in API wrapper (sidebar.js)
     // If 401 occurs, wrapper automatically redirects to login
-    
+
     if (!response.ok) {
       throw new Error(`Failed to fetch vendors: ${response.status}`);
     }
-    
+
     const data = await response.json();
     approvedVendors = data.vendors || data;
     console.log('Approved vendors fetched:', approvedVendors);
@@ -47,7 +47,7 @@ async function fetchOrders() {
   const tableLoading = document.getElementById('table-loading');
   const tbody = document.getElementById('orders-table');
   const mobileContainer = document.getElementById('orders-mobile');
-  
+
   // Show loading state
   if (tableLoading) tableLoading.classList.remove('hidden');
   if (tbody) {
@@ -73,19 +73,19 @@ async function fetchOrders() {
     `;
   }
   if (window.lucide) lucide.createIcons();
-  
+
   try {
     // 🔥 FIX: Token is automatically injected by ImpromptuIndianApi.fetch() wrapper
     // No need for manual token check or Authorization header - wrapper handles it
     const response = await ImpromptuIndianApi.fetch('/api/orders/');
-    
+
     // 🔥 NOTE: 401 handling is now centralized in API wrapper (sidebar.js)
     // If 401 occurs, wrapper automatically redirects to login
-    
+
     if (!response.ok) {
       throw new Error(`Failed to fetch orders: ${response.status}`);
     }
-    
+
     const responseData = await response.json();
     const data = responseData.orders || responseData;
 
@@ -110,7 +110,7 @@ async function fetchOrders() {
 
     filterOrders();
     calculateSummary();
-    
+
     // Hide loading state
     if (tableLoading) tableLoading.classList.add('hidden');
   } catch (e) {
@@ -118,7 +118,7 @@ async function fetchOrders() {
     showToast('Failed to load orders', 'error');
     // Hide loading state on error
     if (tableLoading) tableLoading.classList.add('hidden');
-    
+
     // Hide loading state and show error
     if (tableLoading) tableLoading.classList.add('hidden');
     if (tbody) {
@@ -155,7 +155,7 @@ function animateNumber(element, target, duration = 1000) {
   const start = 0;
   const increment = target / (duration / 16);
   let current = start;
-  
+
   const timer = setInterval(() => {
     current += increment;
     if (current >= target) {
@@ -172,7 +172,7 @@ function animateCurrency(element, target, duration = 1000) {
   const start = 0;
   const increment = target / (duration / 16);
   let current = start;
-  
+
   const timer = setInterval(() => {
     current += increment;
     if (current >= target) {
@@ -227,9 +227,9 @@ function renderOrders(ordersToRender = orders) {
 
   // Handle empty state
   if (!ordersToRender || ordersToRender.length === 0) {
-    const hasFilters = document.getElementById('status-filter')?.value !== 'all' || 
-                      document.getElementById('search-order')?.value.trim() !== '';
-    
+    const hasFilters = document.getElementById('status-filter')?.value !== 'all' ||
+      document.getElementById('search-order')?.value.trim() !== '';
+
     const emptyState = `
       <tr>
         <td colspan="8" class="text-center py-16 text-gray-400">
@@ -280,33 +280,33 @@ function renderOrders(ordersToRender = orders) {
       const tr = document.createElement('tr');
       tr.className = 'hover:bg-white/5 transition-colors duration-200';
       tr.innerHTML = `
-        <td class="px-4 py-4 font-mono text-sm text-[#1273EB]" data-label="Order ID">#${o.id}</td>
-        <td class="px-4 py-4" data-label="Customer">
+        <td class="font-mono text-sm text-[#1273EB]" data-label="Order ID">#${o.id}</td>
+        <td data-label="Customer">
           <div class="flex flex-col">
             <span class="font-semibold text-gray-100">${o.customer}</span>
             <span class="text-xs text-gray-500 font-medium truncate max-w-[150px]">${o.address}</span>
           </div>
         </td>
-        <td class="px-4 py-4" data-label="Apparel Type">
+        <td data-label="Apparel Type">
           <span class="px-2 py-1 rounded-md bg-blue-500/10 text-blue-400 text-xs font-bold uppercase tracking-wider">${o.type}</span>
         </td>
-        <td class="px-4 py-4" data-label="Qty">
+        <td data-label="Qty">
           <div class="flex items-center gap-1.5">
             <span class="font-bold text-gray-200">${o.qty}</span>
             <span class="text-xs text-gray-500">pcs</span>
           </div>
         </td>
-        <td class="px-4 py-4 font-bold text-yellow-400" data-label="Amount">₹${o.amount > 0 ? o.amount.toLocaleString() : '—'}</td>
-        <td class="px-4 py-4" data-label="Deadline">
+        <td class="font-bold text-yellow-400" data-label="Amount">₹${o.amount > 0 ? o.amount.toLocaleString() : '—'}</td>
+        <td data-label="Deadline">
           <div class="flex items-center gap-2 text-xs font-medium text-gray-400">
             <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-400"></i>
             ${o.deadline}
           </div>
         </td>
-        <td class="px-4 py-4" data-label="Status">
+        <td data-label="Status">
           <span class="status-${o.status} shadow-sm">${o.status}</span>
         </td>
-        <td class="px-4 py-4 text-right" data-label="Actions">
+        <td data-label="Actions">
           <button class="p-2 rounded-lg bg-blue-600/10 hover:bg-blue-600 transition-all text-blue-400 hover:text-white" onclick="openOrderModal(${o.id})">
             <i data-lucide="external-link" class="w-4 h-4"></i>
           </button>
@@ -379,27 +379,27 @@ function filterOrders() {
   const searchInput = document.getElementById('search-order');
   const term = searchInput.value.toLowerCase();
   const clearBtn = document.getElementById('search-clear-btn');
-  
+
   // Show/hide clear button
   if (term && clearBtn) {
     clearBtn.classList.remove('hidden');
   } else if (clearBtn) {
     clearBtn.classList.add('hidden');
   }
-  
+
   const filtered = orders.filter(o => {
     const matchStatus = status === 'all' || o.status === status;
     const matchTerm = o.id.toString().includes(term) || o.customer.toLowerCase().includes(term);
     return matchStatus && matchTerm;
   });
-  
+
   // Update order count display
   const countDisplay = document.getElementById('orders-count-display');
   if (countDisplay) {
     const count = filtered.length;
     countDisplay.textContent = `${count} ${count === 1 ? 'order' : 'orders'}`;
   }
-  
+
   renderOrders(filtered);
 }
 
@@ -415,10 +415,10 @@ function clearSearch() {
 function resetFilters() {
   const searchInput = document.getElementById('search-order');
   const statusFilter = document.getElementById('status-filter');
-  
+
   if (searchInput) searchInput.value = '';
   if (statusFilter) statusFilter.value = 'unassigned';
-  
+
   filterOrders();
 }
 
@@ -531,7 +531,7 @@ async function assignVendor() {
     // No need for manual token check or Authorization header - wrapper handles it
     const response = await ImpromptuIndianApi.fetch('/api/admin/assign-vendor', {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -539,7 +539,7 @@ async function assignVendor() {
         vendor_id: parseInt(vendorId)
       })
     });
-    
+
     // 🔥 NOTE: 401 handling is now centralized in API wrapper (sidebar.js)
     // If 401 occurs, wrapper automatically redirects to login
 
@@ -579,14 +579,14 @@ function rejectOrder() {
 async function refreshOrders() {
   const refreshBtn = document.getElementById('refreshBtn');
   const originalHTML = refreshBtn ? refreshBtn.innerHTML : '';
-  
+
   // Show loading state on button
   if (refreshBtn) {
     refreshBtn.disabled = true;
     refreshBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Syncing...</span>';
     if (window.lucide) lucide.createIcons();
   }
-  
+
   try {
     await fetchApprovedVendors();
     await fetchOrders();
@@ -625,7 +625,7 @@ function setupKeyboardShortcuts() {
         searchInput.select();
       }
     }
-    
+
     // Escape to close modal
     if (e.key === 'Escape') {
       const modal = document.getElementById('order-modal');
@@ -640,7 +640,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   // 🔥 SECURITY: Role guard - prevent non-admin users from accessing admin page
   // Note: Token check is handled by API wrapper - if token is missing, API calls will 401 and wrapper redirects
   const role = localStorage.getItem('role');
-  
+
   if (role !== 'admin') {
     console.warn('Unauthorized access to admin page - redirecting to login');
     showToast('Access denied. Admin privileges required.', 'error');
@@ -650,7 +650,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     }, 1500);
     return;
   }
-  
+
   // 🔥 NOTE: Token validation is now handled by API wrapper
   // If token is missing or invalid, API calls will return 401 and wrapper automatically redirects
 
@@ -670,7 +670,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     searchInput.addEventListener('input', () => {
       filterOrders();
     });
-    
+
     // Handle Enter key
     searchInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {

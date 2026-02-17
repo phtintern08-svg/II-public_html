@@ -235,13 +235,13 @@ window.addEventListener('DOMContentLoaded', () => {
         refreshBtnDesktop.addEventListener('click', refreshDashboard);
     }
 
-    const refreshOtpBtn = document.getElementById('refreshOtpBtn');
-    if (refreshOtpBtn) {
-        refreshOtpBtn.addEventListener('click', fetchOTPLogs);
+    const refreshActivityBtn = document.getElementById('refreshActivityBtn');
+    if (refreshActivityBtn) {
+        refreshActivityBtn.addEventListener('click', fetchActivityLogs);
     }
 
-    // Fetch OTP logs
-    fetchOTPLogs();
+    // Fetch activity logs
+    fetchActivityLogs();
 
     // Fetch system stats
     fetchSystemStats();
@@ -279,50 +279,74 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Fetch and display OTP logs
-async function fetchOTPLogs() {
-    const tbody = document.getElementById('otp-logs-table-body');
+// Fetch and display activity logs
+async function fetchActivityLogs() {
+    const tbody = document.getElementById('activity-logs-table-body');
     if (!tbody) return;
 
     try {
         const fetchFn = window.ImpromptuIndianApi ? window.ImpromptuIndianApi.fetch : fetch;
-        // 🔥 FIX: Correct API path - must include /api prefix
-        const response = await fetchFn('/api/admin/otp-logs');
+        const response = await fetchFn('/api/admin/activity-logs?limit=10');
 
         if (response.ok) {
-            const logs = await response.json();
+            const data = await response.json();
+            const activities = data.activities || [];
 
-            if (logs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center">No OTP logs found.</td></tr>';
+            if (activities.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-400">No activity logs found.</td></tr>';
                 return;
             }
 
-            // Limit to top 5 for dashboard view
-            const recentLogs = logs.slice(0, 5);
-
-            tbody.innerHTML = recentLogs.map(log => {
-                const createdDate = log.created_at ? new Date(log.created_at + 'Z').toLocaleString() : 'N/A';
-                let statusColor = 'text-blue-400';
-                if (log.status === 'verified') statusColor = 'text-green-400';
-                if (log.status === 'failed') statusColor = 'text-red-400';
+            tbody.innerHTML = activities.map(activity => {
+                const timestamp = activity.timestamp ? new Date(activity.timestamp + 'Z').toLocaleString() : 'N/A';
+                
+                // Format action with icon based on action type
+                let actionIcon = 'activity';
+                let actionColor = 'text-blue-400';
+                
+                if (activity.action_type === 'order_status_change') {
+                    actionIcon = 'package';
+                    actionColor = 'text-purple-400';
+                } else if (activity.action_type === 'verification') {
+                    actionIcon = 'user-check';
+                    if (activity.action.includes('Approved')) {
+                        actionColor = 'text-green-400';
+                    } else if (activity.action.includes('Rejected')) {
+                        actionColor = 'text-red-400';
+                    }
+                } else if (activity.action_type === 'admin_action') {
+                    actionIcon = 'settings';
+                    actionColor = 'text-yellow-400';
+                }
 
                 return `
                     <tr class="hover:bg-gray-800 transition-colors">
-                        <td class="px-6 py-4 whitespace-nowrap font-medium text-white">${log.recipient}</td>
-                        <td class="px-6 py-4 font-mono font-bold tracking-wider text-yellow-400">${log.otp_code}</td>
-                        <td class="px-6 py-4 capitalize">${log.type}</td>
-                        <td class="px-6 py-4 ${statusColor} capitalize font-semibold">${log.status}</td>
-                        <td class="px-6 py-4 text-gray-500">${createdDate}</td>
+                        <td class="px-3 sm:px-6 py-3 sm:py-4">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="${actionIcon}" class="w-4 h-4 ${actionColor}"></i>
+                                <span class="font-medium text-white">${activity.user_name || 'Admin'}</span>
+                            </div>
+                        </td>
+                        <td class="px-3 sm:px-6 py-3 sm:py-4">
+                            <span class="text-gray-300">${activity.action || 'N/A'}</span>
+                            ${activity.details ? `<div class="text-xs text-gray-500 mt-1">${activity.details}</div>` : ''}
+                        </td>
+                        <td class="px-3 sm:px-6 py-3 sm:py-4 text-gray-400 text-xs sm:text-sm">${timestamp}</td>
                     </tr>
                 `;
             }).join('');
 
+            // Re-initialize Lucide icons for the new icons
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+
         } else {
-            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-red-400">Failed to load logs.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-red-400">Failed to load activity logs.</td></tr>';
         }
     } catch (error) {
-        console.error('Error loading OTP logs:', error);
-        tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-red-400">Error loading logs.</td></tr>';
+        console.error('Error loading activity logs:', error);
+        tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-red-400">Error loading activity logs.</td></tr>';
     }
 }
 

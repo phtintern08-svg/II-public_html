@@ -348,30 +348,33 @@
                 <!-- Alerts will be dynamically inserted here -->
             </div>
 
-            <!-- Recent OTP Logs Section -->
+            <!-- Recent Activity Logs Section -->
             <div class="reveal info-card mb-6 sm:mb-8" data-delay="1550">
                 <div
                     class="info-card-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
-                    <h3 class="info-card-title">Recent OTP Logs</h3>
-                    <button class="text-xs sm:text-sm text-blue-400 hover:text-blue-300" id="refreshOtpBtn">Refresh
-                        Logs</button>
+                    <h3 class="info-card-title flex items-center gap-2">
+                        <i data-lucide="activity" class="w-5 h-5"></i>
+                        Recent Activity Logs
+                    </h3>
+                    <button class="text-xs sm:text-sm text-blue-400 hover:text-blue-300" id="refreshActivityBtn">
+                        <i data-lucide="refresh-ccw" class="w-4 h-4 inline mr-1"></i>
+                        Refresh
+                    </button>
                 </div>
                 <div class="info-card-body p-0">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs sm:text-sm text-gray-400">
                             <thead class="bg-gray-800 text-gray-200 uppercase font-medium text-xs">
                                 <tr>
-                                    <th class="px-3 sm:px-6 py-2 sm:py-3">Recipient</th>
-                                    <th class="px-3 sm:px-6 py-2 sm:py-3 hidden sm:table-cell">OTP Code</th>
-                                    <th class="px-3 sm:px-6 py-2 sm:py-3">Type</th>
-                                    <th class="px-3 sm:px-6 py-2 sm:py-3">Status</th>
-                                    <th class="px-3 sm:px-6 py-2 sm:py-3 hidden md:table-cell">Created At</th>
+                                    <th class="px-3 sm:px-6 py-2 sm:py-3">User</th>
+                                    <th class="px-3 sm:px-6 py-2 sm:py-3">Action</th>
+                                    <th class="px-3 sm:px-6 py-2 sm:py-3 hidden md:table-cell">Timestamp</th>
                                 </tr>
                             </thead>
-                            <tbody id="otp-logs-table-body" class="divide-y divide-gray-700">
-                                <!-- OTP Logs injected here -->
+                            <tbody id="activity-logs-table-body" class="divide-y divide-gray-700">
+                                <!-- Activity Logs injected here -->
                                 <tr>
-                                    <td colspan="5" class="px-6 py-4 text-center">Loading logs...</td>
+                                    <td colspan="3" class="px-6 py-4 text-center text-gray-400">Loading activity logs...</td>
                                 </tr>
                             </tbody>
                         </table>
