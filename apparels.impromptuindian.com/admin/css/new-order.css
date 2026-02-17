@@ -495,8 +495,7 @@ table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    table-layout: fixed;
-    min-width: 100%;
+    table-layout: auto;
 }
 
 table thead tr {
@@ -533,46 +532,27 @@ table thead th {
     white-space: nowrap;
 }
 
-/* Column alignment - unified rules for both th and td */
-table th:nth-child(1),
-table td:nth-child(1) {
-    text-align: left;
-}
-
-table th:nth-child(2),
-table td:nth-child(2) {
-    text-align: left;
-}
-
-table th:nth-child(3),
-table td:nth-child(3) {
-    text-align: left;
-}
-
+/* Column alignment - only specify non-default alignments */
 table th:nth-child(4),
 table td:nth-child(4) {
-    text-align: center;
+    text-align: center; /* Qty */
 }
 
 table th:nth-child(5),
 table td:nth-child(5) {
-    text-align: right;
-}
-
-table th:nth-child(6),
-table td:nth-child(6) {
-    text-align: left;
-}
-
-table th:nth-child(7),
-table td:nth-child(7) {
-    text-align: left;
-    white-space: nowrap;
+    text-align: right; /* Amount */
+    font-variant-numeric: tabular-nums;
 }
 
 table th:last-child,
 table td:last-child {
-    text-align: center;
+    text-align: center; /* Actions */
+}
+
+/* Status column - prevent wrapping */
+table th:nth-child(7),
+table td:nth-child(7) {
+    white-space: nowrap;
 }
 
 /* Fix Status column width shift */
