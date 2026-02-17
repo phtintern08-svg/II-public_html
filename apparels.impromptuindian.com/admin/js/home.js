@@ -60,19 +60,41 @@ const dashboardData = {
 async function fetchDashboardStats() {
     try {
         const response = await ImpromptuIndianApi.fetch('/api/admin/dashboard/stats');
-        if (response.ok) {
-            const stats = await response.json();
-            // Update with real data
-            document.getElementById('pending-orders').textContent = stats.pending_orders || 0;
-            document.getElementById('in-production').textContent = stats.in_production || 0;
-            document.getElementById('ready-dispatch').textContent = stats.ready_dispatch || 0;
-            document.getElementById('delivered').textContent = stats.completed_orders || 0;
-            // Update vendor counts
-            document.getElementById('vendor-pending').textContent = stats.vendor_pending || 0;
-            document.getElementById('vendor-approved').textContent = stats.total_vendors || 0;
-            // Update rider counts
-            document.getElementById('rider-active').textContent = stats.total_riders || 0;
+        
+        if (!response.ok) {
+            console.error('Failed to fetch dashboard stats:', response.status);
+            return;
         }
+        
+        const stats = await response.json();
+        
+        // Debug: Log stats to verify real-time data
+        console.log('📊 Dashboard Stats (Real-time):', stats);
+        
+        // Update time-based order counts
+        document.getElementById('orders-today').textContent = stats.today_orders || 0;
+        document.getElementById('orders-week').textContent = stats.week_orders || 0;
+        document.getElementById('orders-month').textContent = stats.month_orders || 0;
+        
+        // Update status-based order counts
+        document.getElementById('pending-orders').textContent = stats.pending_orders || 0;
+        document.getElementById('in-production').textContent = stats.in_production || 0;
+        document.getElementById('ready-dispatch').textContent = stats.ready_dispatch || 0;
+        document.getElementById('delivered').textContent = stats.completed_orders || 0;
+        document.getElementById('cancelled').textContent = stats.cancelled_orders || 0;
+        
+        // Update vendor counts
+        // Note: vendor-pending would need to be added to backend if needed
+        document.getElementById('vendor-approved').textContent = stats.total_vendors || 0;
+        
+        // Update rider counts
+        document.getElementById('rider-active').textContent = stats.total_riders || 0;
+        
+        // Trigger number animations after data loads
+        setTimeout(() => {
+            animateNumbers();
+        }, 100);
+        
     } catch (error) {
         console.error('Error fetching dashboard stats:', error);
     }
@@ -216,8 +238,8 @@ function clearAlerts() {
 
 // Initialize on page load
 window.addEventListener('DOMContentLoaded', () => {
-    populateDashboard();
-    fetchDashboardStats(); // Fetch real stats from API
+    // Fetch real stats from API (removed populateDashboard() to prevent mock data override)
+    fetchDashboardStats();
 
     // Initialize Lucide icons
     if (window.lucide) {
@@ -248,6 +270,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Auto-refresh system stats every 5 seconds
     setInterval(fetchSystemStats, 5000);
+    
+    // Auto-refresh dashboard stats every 10 seconds for real-time updates
+    setInterval(fetchDashboardStats, 10000);
 
     // Add stagger animation to cards
     const cards = document.querySelectorAll('[data-delay]');

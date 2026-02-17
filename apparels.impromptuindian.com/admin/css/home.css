@@ -265,6 +265,12 @@
     flex-direction: column;
 }
 
+/* Prevent activity logs card from stretching to match grid column height */
+.reveal.info-card {
+    height: auto !important;
+    align-self: flex-start;
+}
+
 .info-card[data-delay="800"] {
     animation-delay: 0.8s;
 }

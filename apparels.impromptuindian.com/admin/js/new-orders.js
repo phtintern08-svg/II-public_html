@@ -296,7 +296,7 @@ function renderOrders(ordersToRender = orders) {
             <span class="text-xs text-gray-500">pcs</span>
           </div>
         </td>
-        <td class="font-bold text-yellow-400 text-right whitespace-nowrap" data-label="Amount">₹${o.amount > 0 ? o.amount.toLocaleString() : '—'}</td>
+        <td class="font-bold text-yellow-400 whitespace-nowrap" data-label="Amount">₹${o.amount > 0 ? o.amount.toLocaleString() : '—'}</td>
         <td data-label="Deadline">
           <div class="flex items-center gap-2 text-xs font-medium text-gray-400">
             <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-400"></i>

@@ -495,6 +495,7 @@ table {
     border-collapse: collapse;
     table-layout: fixed;
     min-width: 100%;
+    border-spacing: 0;
 }
 
 table thead th {
@@ -511,60 +512,87 @@ table thead th {
     vertical-align: middle;
 }
 
-/* Order ID column - left aligned */
+/* Column width definitions - applied to headers */
 table thead th:first-child {
-    text-align: left;
     width: 8%;
     min-width: 80px;
 }
 
-/* Customer column - left aligned */
 table thead th:nth-child(2) {
-    text-align: left;
     width: 20%;
     min-width: 180px;
 }
 
-/* Apparel Type column - left aligned */
 table thead th:nth-child(3) {
-    text-align: left;
     width: 12%;
     min-width: 120px;
 }
 
-/* Qty column - center aligned */
 table thead th:nth-child(4) {
-    text-align: center;
     width: 8%;
     min-width: 80px;
 }
 
-/* Amount column - right aligned */
 table thead th:nth-child(5) {
-    text-align: right;
     width: 10%;
     min-width: 100px;
 }
 
-/* Deadline column - left aligned */
 table thead th:nth-child(6) {
-    text-align: left;
     width: 15%;
     min-width: 140px;
 }
 
-/* Status column - left aligned */
 table thead th:nth-child(7) {
-    text-align: left;
     width: 12%;
     min-width: 120px;
 }
 
-/* Actions column - right aligned */
 table thead th:last-child {
-    text-align: right;
     width: 10%;
     min-width: 90px;
+}
+
+/* Column alignment - unified rules for both th and td */
+table th:nth-child(1),
+table td:nth-child(1) {
+    text-align: left;
+}
+
+table th:nth-child(2),
+table td:nth-child(2) {
+    text-align: left;
+}
+
+table th:nth-child(3),
+table td:nth-child(3) {
+    text-align: left;
+}
+
+table th:nth-child(4),
+table td:nth-child(4) {
+    text-align: center;
+}
+
+table th:nth-child(5),
+table td:nth-child(5) {
+    text-align: right;
+}
+
+table th:nth-child(6),
+table td:nth-child(6) {
+    text-align: left;
+}
+
+table th:nth-child(7),
+table td:nth-child(7) {
+    text-align: left;
+    white-space: nowrap;
+}
+
+table th:last-child,
+table td:last-child {
+    text-align: right;
 }
 
 /* Remove flex from first header to fix alignment */
@@ -615,52 +643,18 @@ table tbody td {
     font-size: 0.875rem;
     color: #cbd5e1;
     vertical-align: middle;
-    text-align: left;
 }
 
-/* Order ID column - left aligned */
+/* Order ID column - special styling (alignment handled by unified rules above) */
 table tbody td:first-child {
     font-family: 'JetBrains Mono', monospace;
     font-weight: 600;
     color: #ffffff;
-    text-align: left;
 }
 
-/* Customer column - left aligned */
-table tbody td:nth-child(2) {
-    text-align: left;
-}
-
-/* Apparel Type column - left aligned */
-table tbody td:nth-child(3) {
-    text-align: left;
-}
-
-/* Qty column - center aligned */
-table tbody td:nth-child(4) {
-    text-align: center;
-}
-
-/* Amount column - right aligned */
+/* Amount column - special styling (alignment handled by unified rules above) */
 table tbody td:nth-child(5) {
-    text-align: right;
     font-weight: 600;
-}
-
-/* Deadline column - left aligned */
-table tbody td:nth-child(6) {
-    text-align: left;
-}
-
-/* Status column - left aligned */
-table tbody td:nth-child(7) {
-    text-align: left;
-    white-space: nowrap;
-}
-
-/* Actions column - right aligned */
-table tbody td:last-child {
-    text-align: right;
 }
 
 /* ========================================
