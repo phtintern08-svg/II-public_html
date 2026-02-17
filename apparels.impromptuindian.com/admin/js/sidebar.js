@@ -27,6 +27,7 @@
         fetch: async (path, options = {}) => {
           // 🔥 SECURITY: Automatically inject Authorization header if token exists
           // This prevents missing token errors across all admin API calls
+          // 🔥 FIX: Read token once and reuse it (prevents duplicate localStorage reads)
           const token = localStorage.getItem('token');
           
           // Merge headers - ensure Authorization is included if token exists
@@ -35,24 +36,63 @@
             ...(token ? { 'Authorization': `Bearer ${token}` } : {})
           };
           
-          // Include credentials to send cookies (REQUIRED for subdomain SSO)
+          // 🔥 FIX: Use pure JWT header authentication - remove cookie-based auth
+          // Mixing JWT header + HttpOnly cookies causes inconsistent authentication
+          // Backend should ONLY check Authorization header, not cookies
           const response = await fetch(buildUrl(path), {
             ...options,
-            headers,
-            credentials: 'include'
+            headers
+            // 🔥 REMOVED: credentials: 'include' - causes cookie/JWT conflict
           });
           
           // 🔥 GLOBAL 401 HANDLING: Centralize authentication error handling
           // This prevents inconsistent auth checks across different files
+          // 🔥 PRODUCTION-SAFE: Only clear auth if user was actually authenticated
+          // Prevents false logouts from temporary backend hiccups or misconfigured endpoints
           if (response.status === 401) {
-            console.warn('Authentication failed (401) - redirecting to login');
-            localStorage.removeItem('token');
-            localStorage.removeItem('role');
-            localStorage.removeItem('user_id');
-            // Only redirect if not already on login page
-            if (!window.location.pathname.includes('login.html')) {
-              window.location.href = '/login.html';
+            // 🔥 DEBUG: Log 401 details to help identify which endpoint is failing
+            console.error('401 DEBUG - Authentication failed', {
+              path: path,
+              url: buildUrl(path),
+              tokenExists: !!token,
+              tokenLength: token ? token.length : 0,
+              method: options.method || 'GET',
+              timestamp: new Date().toISOString()
+            });
+            
+            // Only act if:
+            // 1. User actually had a token (was authenticated)
+            // 2. This is NOT a logout endpoint (prevents weird loops)
+            if (token && !path.includes('/api/logout')) {
+              console.warn('Session expired (401) - clearing auth and redirecting to login', {
+                path: path,
+                hadToken: !!token
+              });
+              
+              // Clear all auth-related localStorage
+              localStorage.removeItem('token');
+              localStorage.removeItem('role');
+              localStorage.removeItem('user_id');
+              
+              // 🔥 FIX: More robust login page check - handles /login, /login/, /auth/login.html, etc.
+              // Only redirect if not already on login page
+              // Use replace() instead of href to prevent back button issues
+              const isLoginPage = window.location.pathname.endsWith('login.html') || 
+                                  window.location.pathname.endsWith('login') ||
+                                  window.location.href.includes('login');
+              
+              if (!isLoginPage) {
+                window.location.replace('/login.html');
+              }
+            } else {
+              // No token existed or logout endpoint - don't clear state unnecessarily
+              console.debug('401 received but no token present or logout endpoint - not clearing auth', {
+                path: path,
+                hadToken: !!token,
+                isLogoutEndpoint: path.includes('/api/logout')
+              });
             }
+            
             // Return response anyway so caller can handle it if needed
             return response;
           }
