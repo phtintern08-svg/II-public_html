@@ -521,6 +521,9 @@ table tbody td {
 }
 
 table thead th {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
     background: rgba(15, 23, 42, 0.4);
     border-bottom: 1px solid rgba(148, 163, 184, 0.1);
     text-align: left;
@@ -538,16 +541,28 @@ table td:nth-child(4) {
     text-align: center; /* Qty */
 }
 
+table th:nth-child(4) {
+    justify-content: center; /* Center flex content in header */
+}
+
 table th:nth-child(5),
 table td:nth-child(5) {
     text-align: right; /* Amount */
     font-variant-numeric: tabular-nums;
 }
 
+table th:nth-child(5) {
+    justify-content: flex-end; /* Right align flex content in header */
+}
+
 table th:last-child,
 table td:last-child {
     text-align: center; /* Actions */
-    width: 80px; /* Lock Actions column width */
+    width: 70px; /* Lock Actions column width - tightened */
+}
+
+table th:last-child {
+    justify-content: center; /* Center flex content in header */
 }
 
 /* Center Status column */
@@ -560,14 +575,12 @@ table td:nth-child(7) {
 /* Increase Deadline column spacing for visual balance */
 table td:nth-child(6),
 table th:nth-child(6) {
-    padding-left: 1.75rem;
+    padding-left: 1.5rem;
 }
 
 table thead th i {
     color: #64748b;
-    display: inline-block;
-    vertical-align: middle;
-    margin-right: 0.25rem;
+    flex-shrink: 0;
 }
 
 
@@ -625,7 +638,7 @@ table tbody td:nth-child(5) {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 120px; /* Fixed width for optical consistency */
+    width: 110px; /* Fixed width for optical consistency - reduced for better balance */
     height: 28px;
     padding: 0;
     border-radius: 0.5rem;
