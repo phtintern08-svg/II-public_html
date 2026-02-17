@@ -212,21 +212,34 @@ function animateNumbers() {
 }
 
 // Refresh dashboard
-function refreshDashboard() {
-    showToast('Dashboard refreshed successfully!');
+async function refreshDashboard() {
+    showToast('Refreshing dashboard...');
 
-    // Add pulse animation to all cards
-    document.querySelectorAll('.stat-card, .info-card, .finance-card').forEach(card => {
-        card.style.animation = 'none';
+    try {
+        await Promise.all([
+            fetchDashboardStats(),
+            fetchSystemStats(),
+            fetchActivityLogs()
+        ]);
+
+        showToast('Dashboard refreshed successfully!');
+
+        // Add pulse animation to all cards
+        document.querySelectorAll('.stat-card, .info-card, .finance-card').forEach(card => {
+            card.style.animation = 'none';
+            setTimeout(() => {
+                card.style.animation = '';
+            }, 10);
+        });
+
+        // Re-animate numbers after data loads
         setTimeout(() => {
-            card.style.animation = '';
-        }, 10);
-    });
-
-    // Re-animate numbers
-    setTimeout(() => {
-        animateNumbers();
-    }, 300);
+            animateNumbers();
+        }, 300);
+    } catch (error) {
+        console.error('Refresh failed:', error);
+        showToast('Failed to refresh dashboard');
+    }
 }
 
 // Clear alerts
@@ -238,9 +251,6 @@ function clearAlerts() {
 
 // Initialize on page load
 window.addEventListener('DOMContentLoaded', () => {
-    // Fetch real stats from API (removed populateDashboard() to prevent mock data override)
-    fetchDashboardStats();
-
     // Initialize Lucide icons
     if (window.lucide) {
         lucide.createIcons();
@@ -262,17 +272,10 @@ window.addEventListener('DOMContentLoaded', () => {
         refreshActivityBtn.addEventListener('click', fetchActivityLogs);
     }
 
-    // Fetch activity logs
+    // Fetch initial data on page load (no auto-refresh)
+    fetchDashboardStats();
     fetchActivityLogs();
-
-    // Fetch system stats
     fetchSystemStats();
-
-    // Auto-refresh system stats every 5 seconds
-    setInterval(fetchSystemStats, 5000);
-    
-    // Auto-refresh dashboard stats every 10 seconds for real-time updates
-    setInterval(fetchDashboardStats, 10000);
 
     // Add stagger animation to cards
     const cards = document.querySelectorAll('[data-delay]');
