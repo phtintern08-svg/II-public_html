@@ -556,28 +556,18 @@ table td:last-child {
     width: 70px; /* Lock Actions column width - tightened */
 }
 
-/* Center Status column */
+/* Status column - prevent wrapping */
 table th:nth-child(7),
 table td:nth-child(7) {
-    text-align: center;
     white-space: nowrap;
 }
 
-/* Increase Deadline column spacing for visual balance */
-table td:nth-child(6),
-table th:nth-child(6) {
-    padding-left: 1.5rem;
-}
 
 table thead th i {
     color: #64748b;
     display: inline-block;
     vertical-align: middle;
     margin-right: 0.25rem;
-}
-
-table thead th .th-content i {
-    flex-shrink: 0;
 }
 
 

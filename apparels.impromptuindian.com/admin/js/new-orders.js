@@ -593,6 +593,26 @@ async function assignVendor() {
     return;
   }
 
+  // 🔥 IMPORTANT: Show confirmation modal - vendor cannot reject after assignment
+  const order = orders.find(o => o.id === currentOrderId);
+  const selectedVendor = approvedVendors.find(v => v.id === parseInt(vendorId));
+  const vendorName = selectedVendor ? (selectedVendor.business_name || selectedVendor.username || `Vendor #${vendorId}`) : `Vendor #${vendorId}`;
+  const totalPrice = parseFloat(quotationPrice) * order.qty;
+  
+  const confirmed = confirm(
+    `⚠️ Confirm Vendor Assignment\n\n` +
+    `Order: #${currentOrderId}\n` +
+    `Vendor: ${vendorName}\n` +
+    `Price per piece: ₹${parseFloat(quotationPrice).toLocaleString('en-IN', { minimumFractionDigits: 2 })}\n` +
+    `Total (${order.qty} pieces): ₹${totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}\n\n` +
+    `Note: Vendor cannot reject this assignment. Order will be locked to this vendor.\n\n` +
+    `Proceed with assignment?`
+  );
+  
+  if (!confirmed) {
+    return; // User cancelled
+  }
+
   try {
     // 🔥 FIX: Use correct endpoint - PUT /api/admin/orders/{order_id}/assign
     // Order ID goes in URL, not in body
