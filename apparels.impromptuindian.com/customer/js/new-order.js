@@ -2816,17 +2816,26 @@ async function createOrderAfterPayment(paymentResult, amount) {
   });
 
   // 🔥 CRITICAL: Validate state before creating order
+  // 🔥 FIX: neckType is only required for products that have neck types (not Hoodie/Sweatshirt)
+  // Same conditional logic as checkEstimate() and handlePlaceOrder() for consistency
+  const productsWithoutNeck = ["Hoodie", "Sweatshirt"];
+  const isNeckRequired = currentOrderState.productType && !productsWithoutNeck.includes(currentOrderState.productType);
+  
   if (
     !currentOrderState.productType ||
     !currentOrderState.category ||
-    !currentOrderState.neckType ||
+    (isNeckRequired && !currentOrderState.neckType) ||
     !currentOrderState.fabric ||
     !currentOrderState.size ||
     currentOrderState.sampleCost === null ||
     currentOrderState.sampleCost <= 0
   ) {
     const error = "Invalid order state - cannot create order. Please complete product configuration.";
-    console.error("❌", error, currentOrderState);
+    console.error("❌", error, {
+      state: currentOrderState,
+      isNeckRequired: isNeckRequired,
+      neckTypeValid: isNeckRequired ? !!currentOrderState.neckType : true
+    });
     throw new Error(error);
   }
 
