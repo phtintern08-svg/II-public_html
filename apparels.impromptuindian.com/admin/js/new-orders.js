@@ -296,7 +296,7 @@ function renderOrders(ordersToRender = orders) {
         </td>
         <td class="font-bold text-yellow-400 whitespace-nowrap" data-label="Amount">₹${o.amount > 0 ? o.amount.toLocaleString() : '—'}</td>
         <td data-label="Deadline">
-          <div class="flex items-center gap-2 text-xs font-medium text-gray-400">
+          <div class="inline-flex items-center gap-2 text-xs font-medium text-gray-400">
             <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-400"></i>
             ${o.deadline}
           </div>
@@ -304,7 +304,7 @@ function renderOrders(ordersToRender = orders) {
         <td data-label="Status">
           <span class="status-${o.status} shadow-sm">${o.status}</span>
         </td>
-        <td data-label="Actions">
+        <td data-label="Actions" class="text-center">
           <button class="p-2 rounded-lg bg-blue-600/10 hover:bg-blue-600 transition-all text-blue-400 hover:text-white" onclick="openOrderModal(${o.id})">
             <i data-lucide="external-link" class="w-4 h-4"></i>
           </button>
