@@ -508,12 +508,59 @@ table thead th {
     vertical-align: middle;
 }
 
+/* Order ID column - left aligned */
 table thead th:first-child {
     text-align: left;
+    width: 100px;
+    min-width: 100px;
 }
 
+/* Customer column - left aligned */
+table thead th:nth-child(2) {
+    text-align: left;
+    min-width: 200px;
+}
+
+/* Apparel Type column - left aligned */
+table thead th:nth-child(3) {
+    text-align: left;
+    width: 140px;
+    min-width: 140px;
+}
+
+/* Qty column - center aligned */
+table thead th:nth-child(4) {
+    text-align: center;
+    width: 100px;
+    min-width: 100px;
+}
+
+/* Amount column - right aligned */
+table thead th:nth-child(5) {
+    text-align: right;
+    width: 120px;
+    min-width: 120px;
+}
+
+/* Deadline column - left aligned */
+table thead th:nth-child(6) {
+    text-align: left;
+    width: 150px;
+    min-width: 150px;
+}
+
+/* Status column - left aligned */
+table thead th:nth-child(7) {
+    text-align: left;
+    width: 130px;
+    min-width: 130px;
+}
+
+/* Actions column - right aligned */
 table thead th:last-child {
     text-align: right;
+    width: 100px;
+    min-width: 100px;
 }
 
 table thead th.flex {
@@ -564,6 +611,7 @@ table tbody td {
     text-align: left;
 }
 
+/* Order ID column - left aligned */
 table tbody td:first-child {
     font-family: 'JetBrains Mono', monospace;
     font-weight: 600;
@@ -571,6 +619,38 @@ table tbody td:first-child {
     text-align: left;
 }
 
+/* Customer column - left aligned */
+table tbody td:nth-child(2) {
+    text-align: left;
+}
+
+/* Apparel Type column - left aligned */
+table tbody td:nth-child(3) {
+    text-align: left;
+}
+
+/* Qty column - center aligned */
+table tbody td:nth-child(4) {
+    text-align: center;
+}
+
+/* Amount column - right aligned */
+table tbody td:nth-child(5) {
+    text-align: right;
+    font-weight: 600;
+}
+
+/* Deadline column - left aligned */
+table tbody td:nth-child(6) {
+    text-align: left;
+}
+
+/* Status column - left aligned */
+table tbody td:nth-child(7) {
+    text-align: left;
+}
+
+/* Actions column - right aligned */
 table tbody td:last-child {
     text-align: right;
 }
