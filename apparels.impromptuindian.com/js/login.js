@@ -202,6 +202,7 @@ if (loginForm) {
             }
 
             if (response.ok) {
+                // 🔥 CRITICAL: Token is REQUIRED for all roles - fail fast if missing
                 // Token is stored in HttpOnly cookie automatically (for subdomain SSO)
                 // Also store in localStorage for frontend API calls
                 // 🔥 CRITICAL: Validate token before storing (prevents "null" or "undefined" strings)
@@ -212,12 +213,26 @@ if (loginForm) {
                     result.token !== 'undefined' && 
                     result.token.length >= 20) {
                     localStorage.setItem('token', result.token);
+                    console.log('✅ Token stored successfully', {
+                        tokenLength: result.token.length,
+                        role: result.role
+                    });
                 } else {
-                    console.error('Invalid token received from server', {
+                    // 🔥 CRITICAL: Token is missing - this is a backend bug, show error and prevent login
+                    console.error('❌ CRITICAL: Invalid or missing token received from server', {
                         tokenExists: !!result.token,
                         tokenType: typeof result.token,
-                        tokenLength: result.token ? result.token.length : 0
+                        tokenLength: result.token ? result.token.length : 0,
+                        role: result.role,
+                        responseKeys: Object.keys(result || {}),
+                        fullResponse: result
                     });
+                    showAlert(
+                        'Login Error', 
+                        'Server did not return a valid authentication token. Please contact support or try again.',
+                        'error'
+                    );
+                    return; // 🔥 CRITICAL: Don't proceed without a valid token
                 }
                 
                 // Store basic user info in localStorage for UI display
@@ -313,6 +328,28 @@ if (loginForm) {
                     }
                 }
 
+                // 🔥 CRITICAL: Verify token was actually saved before redirecting
+                // This prevents race conditions where redirect happens before localStorage write completes
+                const savedToken = localStorage.getItem('token');
+                if (!savedToken || savedToken.length < 20) {
+                    console.error('❌ CRITICAL: Token was not saved correctly before redirect!', {
+                        savedToken: savedToken,
+                        savedTokenLength: savedToken ? savedToken.length : 0,
+                        originalToken: result.token ? result.token.substring(0, 20) + '...' : 'missing'
+                    });
+                    showAlert(
+                        'Login Error', 
+                        'Failed to save authentication token. Please try logging in again.',
+                        'error'
+                    );
+                    return; // Don't redirect if token wasn't saved
+                }
+                
+                console.log('✅ Token verified in localStorage before redirect', {
+                    tokenLength: savedToken.length,
+                    role: result.role
+                });
+                
                 showAlert('Success', 'Login successful!', 'success');
                 setTimeout(() => {
                     // Use redirect_url directly from backend - never construct URLs in frontend
@@ -332,6 +369,22 @@ if (loginForm) {
                         return;
                     }
                     
+                    // 🔥 CRITICAL: Final verification before redirect
+                    const finalTokenCheck = localStorage.getItem('token');
+                    if (!finalTokenCheck || finalTokenCheck.length < 20) {
+                        console.error('❌ CRITICAL: Token missing right before redirect!', {
+                            token: finalTokenCheck,
+                            tokenLength: finalTokenCheck ? finalTokenCheck.length : 0
+                        });
+                        showAlert(
+                            'Login Error', 
+                            'Authentication token was lost. Please try logging in again.',
+                            'error'
+                        );
+                        return; // Don't redirect if token is missing
+                    }
+                    
+                    console.log('✅ Redirecting to:', redirectUrl);
                     window.location.href = redirectUrl;
                 }, 1000);
             } else {
