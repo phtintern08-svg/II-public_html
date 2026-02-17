@@ -286,7 +286,8 @@ async function fetchOTPLogs() {
 
     try {
         const fetchFn = window.ImpromptuIndianApi ? window.ImpromptuIndianApi.fetch : fetch;
-        const response = await fetchFn('/admin/otp-logs');
+        // 🔥 FIX: Correct API path - must include /api prefix
+        const response = await fetchFn('/api/admin/otp-logs');
 
         if (response.ok) {
             const logs = await response.json();
@@ -329,7 +330,11 @@ async function fetchOTPLogs() {
 async function fetchSystemStats() {
     try {
         const fetchFn = window.ImpromptuIndianApi ? window.ImpromptuIndianApi.fetch : fetch;
-        const response = await fetchFn('/admin/system-stats');
+        // 🔥 FIX: This endpoint doesn't exist in backend - commenting out for now
+        // TODO: Implement /api/admin/system-stats endpoint in backend if needed
+        // For now, skip this call to prevent 404 errors
+        return; // Disable until backend endpoint is implemented
+        // const response = await fetchFn('/api/admin/system-stats');
 
         if (response.ok) {
             const stats = await response.json();

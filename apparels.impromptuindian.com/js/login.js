@@ -204,8 +204,20 @@ if (loginForm) {
             if (response.ok) {
                 // Token is stored in HttpOnly cookie automatically (for subdomain SSO)
                 // Also store in localStorage for frontend API calls
-                if (result.token) {
+                // 🔥 CRITICAL: Validate token before storing (prevents "null" or "undefined" strings)
+                if (result.token && 
+                    typeof result.token === 'string' && 
+                    result.token.trim() !== '' && 
+                    result.token !== 'null' && 
+                    result.token !== 'undefined' && 
+                    result.token.length >= 20) {
                     localStorage.setItem('token', result.token);
+                } else {
+                    console.error('Invalid token received from server', {
+                        tokenExists: !!result.token,
+                        tokenType: typeof result.token,
+                        tokenLength: result.token ? result.token.length : 0
+                    });
                 }
                 
                 // Store basic user info in localStorage for UI display

@@ -28,7 +28,22 @@
           // 🔥 SECURITY: Automatically inject Authorization header if token exists
           // This prevents missing token errors across all admin API calls
           // 🔥 FIX: Read token once and reuse it (prevents duplicate localStorage reads)
-          const token = localStorage.getItem('token');
+          let token = localStorage.getItem('token');
+          
+          // 🔥 CRITICAL FIX: Validate token before sending
+          // localStorage stores values as strings, so null/undefined become "null"/"undefined"
+          // A valid JWT is always 200+ characters, so reject anything too short
+          if (!token || token === 'null' || token === 'undefined' || token.trim() === '' || token.length < 20) {
+            token = null;
+            // Log for debugging (only in development)
+            if (token !== null) {
+              console.warn('Invalid token detected and rejected', {
+                tokenValue: token,
+                tokenLength: token ? token.length : 0,
+                path: path
+              });
+            }
+          }
           
           // Merge headers - ensure Authorization is included if token exists
           const headers = {
