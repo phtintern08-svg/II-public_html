@@ -291,7 +291,7 @@ function renderOrders(ordersToRender = orders) {
           <span class="px-2 py-1 rounded-md bg-blue-500/10 text-blue-400 text-xs font-bold uppercase tracking-wider">${o.type}</span>
         </td>
         <td data-label="Qty">
-          <div class="flex items-center justify-center gap-1.5">
+          <div class="flex items-center justify-center gap-1.5 w-full">
             <span class="font-bold text-gray-200">${o.qty}</span>
             <span class="text-xs text-gray-500">pcs</span>
           </div>

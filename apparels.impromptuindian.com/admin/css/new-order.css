@@ -493,7 +493,7 @@ body {
 table {
     width: 100%;
     border-collapse: collapse;
-    table-layout: fixed;
+    table-layout: auto;
     min-width: 100%;
     border-spacing: 0;
 }
@@ -512,45 +512,37 @@ table thead th {
     vertical-align: middle;
 }
 
-/* Column width definitions - applied to headers */
+/* Column width definitions - applied to headers (percentage only, no min-width) */
 table thead th:first-child {
     width: 8%;
-    min-width: 80px;
 }
 
 table thead th:nth-child(2) {
     width: 20%;
-    min-width: 180px;
 }
 
 table thead th:nth-child(3) {
     width: 12%;
-    min-width: 120px;
 }
 
 table thead th:nth-child(4) {
     width: 8%;
-    min-width: 80px;
 }
 
 table thead th:nth-child(5) {
     width: 10%;
-    min-width: 100px;
 }
 
 table thead th:nth-child(6) {
     width: 15%;
-    min-width: 140px;
 }
 
 table thead th:nth-child(7) {
     width: 12%;
-    min-width: 120px;
 }
 
 table thead th:last-child {
     width: 10%;
-    min-width: 90px;
 }
 
 /* Column alignment - unified rules for both th and td */
@@ -593,11 +585,6 @@ table td:nth-child(7) {
 table th:last-child,
 table td:last-child {
     text-align: right;
-}
-
-/* Remove flex from first header to fix alignment */
-table thead th:first-child.flex {
-    display: table-cell;
 }
 
 table thead th i {

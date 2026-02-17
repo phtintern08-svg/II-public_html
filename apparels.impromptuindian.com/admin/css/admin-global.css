@@ -1093,6 +1093,12 @@ tr:hover {
     main {
         padding-top: 5rem !important;
     }
+
+    /* Admin Sidebar - Match Customer Sidebar Mobile Styles */
+    .sidebar {
+        width: 100% !important;
+        max-width: 280px !important;
+    }
 }
 
 /* Ensure proper spacing on tablet */
