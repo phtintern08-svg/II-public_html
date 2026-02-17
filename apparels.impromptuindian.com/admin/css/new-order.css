@@ -493,7 +493,7 @@ body {
 table {
     width: 100%;
     border-collapse: collapse;
-    table-layout: auto;
+    table-layout: fixed;
     min-width: 100%;
 }
 
@@ -655,6 +655,7 @@ table tbody td:nth-child(6) {
 /* Status column - left aligned */
 table tbody td:nth-child(7) {
     text-align: left;
+    white-space: nowrap;
 }
 
 /* Actions column - right aligned */

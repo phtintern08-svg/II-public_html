@@ -280,7 +280,7 @@ function renderOrders(ordersToRender = orders) {
       const tr = document.createElement('tr');
       tr.className = 'hover:bg-white/5 transition-colors duration-200';
       tr.innerHTML = `
-        <td class="font-mono text-sm text-[#1273EB]" data-label="Order ID">#${o.id}</td>
+        <td class="font-mono text-sm text-[#1273EB] whitespace-nowrap" data-label="Order ID">#${o.id}</td>
         <td data-label="Customer">
           <div class="flex flex-col">
             <span class="font-semibold text-gray-100">${o.customer}</span>
@@ -291,12 +291,12 @@ function renderOrders(ordersToRender = orders) {
           <span class="px-2 py-1 rounded-md bg-blue-500/10 text-blue-400 text-xs font-bold uppercase tracking-wider">${o.type}</span>
         </td>
         <td data-label="Qty">
-          <div class="flex items-center gap-1.5">
+          <div class="flex items-center justify-center gap-1.5">
             <span class="font-bold text-gray-200">${o.qty}</span>
             <span class="text-xs text-gray-500">pcs</span>
           </div>
         </td>
-        <td class="font-bold text-yellow-400" data-label="Amount">₹${o.amount > 0 ? o.amount.toLocaleString() : '—'}</td>
+        <td class="font-bold text-yellow-400 text-right whitespace-nowrap" data-label="Amount">₹${o.amount > 0 ? o.amount.toLocaleString() : '—'}</td>
         <td data-label="Deadline">
           <div class="flex items-center gap-2 text-xs font-medium text-gray-400">
             <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-400"></i>

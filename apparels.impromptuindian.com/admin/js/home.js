@@ -395,11 +395,7 @@ async function fetchActivityLogs() {
 async function fetchSystemStats() {
     try {
         const fetchFn = window.ImpromptuIndianApi ? window.ImpromptuIndianApi.fetch : fetch;
-        // 🔥 FIX: This endpoint doesn't exist in backend - commenting out for now
-        // TODO: Implement /api/admin/system-stats endpoint in backend if needed
-        // For now, skip this call to prevent 404 errors
-        return; // Disable until backend endpoint is implemented
-        // const response = await fetchFn('/api/admin/system-stats');
+        const response = await fetchFn('/api/admin/system-stats');
 
         if (response.ok) {
             const stats = await response.json();

@@ -1087,6 +1087,7 @@
     max-height: 400px;
     overflow-y: auto;
     overflow-x: auto;
+    height: auto;
     position: relative;
 }
 
@@ -1137,7 +1138,7 @@
 }
 
 .info-card .info-card-body table tbody td {
-    padding: 0.875rem 1.5rem;
+    padding: 0.75rem 1.5rem;
     font-size: 0.875rem;
     color: #9ca3af;
     border-bottom: 1px solid rgba(55, 65, 81, 0.5);
