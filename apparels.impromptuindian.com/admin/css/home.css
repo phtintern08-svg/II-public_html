@@ -1077,3 +1077,206 @@
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+/* ========================================
+   RECENT ACTIVITY LOGS - RESPONSIVE & SCROLLABLE
+   ======================================== */
+
+/* Activity Logs Container - Desktop */
+.info-card .info-card-body .overflow-x-auto {
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: auto;
+    position: relative;
+}
+
+/* Hidden Scrollbar - Webkit (Chrome, Safari, Edge) */
+.info-card .info-card-body .overflow-x-auto::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+    background: transparent;
+}
+
+.info-card .info-card-body .overflow-x-auto::-webkit-scrollbar-thumb {
+    background: transparent;
+}
+
+.info-card .info-card-body .overflow-x-auto::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* Hidden Scrollbar - Firefox */
+.info-card .info-card-body .overflow-x-auto {
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+}
+
+/* Activity Logs Table - Base Styles */
+.info-card .info-card-body table {
+    min-width: 100%;
+    border-collapse: collapse;
+}
+
+.info-card .info-card-body table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #1f2937;
+}
+
+.info-card .info-card-body table thead th {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #e5e7eb;
+    white-space: nowrap;
+}
+
+.info-card .info-card-body table tbody td {
+    padding: 0.875rem 1.5rem;
+    font-size: 0.875rem;
+    color: #9ca3af;
+    border-bottom: 1px solid rgba(55, 65, 81, 0.5);
+}
+
+.info-card .info-card-body table tbody tr:hover {
+    background: rgba(37, 99, 235, 0.05);
+}
+
+.info-card .info-card-body table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Tablet Responsive (max-width: 1024px) */
+@media (max-width: 1024px) {
+    .info-card .info-card-body .overflow-x-auto {
+        max-height: 350px;
+    }
+
+    .info-card .info-card-body table thead th {
+        padding: 0.625rem 1.25rem;
+        font-size: 0.7rem;
+    }
+
+    .info-card .info-card-body table tbody td {
+        padding: 0.75rem 1.25rem;
+        font-size: 0.8125rem;
+    }
+}
+
+/* Mobile Responsive (max-width: 768px) */
+@media (max-width: 768px) {
+    .info-card .info-card-body .overflow-x-auto {
+        max-height: 300px;
+    }
+
+    .info-card .info-card-body table {
+        min-width: 600px;
+        /* Ensure horizontal scroll on mobile */
+    }
+
+    .info-card .info-card-body table thead th {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.65rem;
+    }
+
+    .info-card .info-card-body table tbody td {
+        padding: 0.625rem 0.75rem;
+        font-size: 0.75rem;
+    }
+
+    /* Adjust header for mobile */
+    .info-card .info-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .info-card .info-card-header button {
+        align-self: flex-end;
+    }
+}
+
+/* Small Mobile (max-width: 640px) */
+@media (max-width: 640px) {
+    .info-card .info-card-body .overflow-x-auto {
+        max-height: 250px;
+    }
+
+    .info-card .info-card-body table {
+        min-width: 550px;
+    }
+
+    .info-card .info-card-body table thead th {
+        padding: 0.5rem 0.625rem;
+        font-size: 0.625rem;
+    }
+
+    .info-card .info-card-body table tbody td {
+        padding: 0.5rem 0.625rem;
+        font-size: 0.7rem;
+    }
+}
+
+/* Extra Small Mobile (max-width: 480px) */
+@media (max-width: 480px) {
+    .info-card .info-card-body .overflow-x-auto {
+        max-height: 220px;
+    }
+
+    .info-card .info-card-body table {
+        min-width: 500px;
+    }
+
+    .info-card .info-card-body table thead th {
+        padding: 0.5rem;
+        font-size: 0.6rem;
+    }
+
+    .info-card .info-card-body table tbody td {
+        padding: 0.5rem;
+        font-size: 0.65rem;
+    }
+
+    /* Make refresh button smaller on mobile */
+    .info-card .info-card-header button {
+        font-size: 0.75rem;
+        padding: 0.375rem 0.625rem;
+    }
+
+    .info-card .info-card-header button i {
+        width: 0.875rem;
+        height: 0.875rem;
+    }
+}
+
+/* Smooth scrolling for activity logs */
+.info-card .info-card-body .overflow-x-auto {
+    scroll-behavior: smooth;
+}
+
+/* Add subtle fade effect at bottom to indicate more content */
+.info-card .info-card-body {
+    position: relative;
+}
+
+.info-card .info-card-body::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 30px;
+    background: linear-gradient(to bottom, transparent, rgba(30, 41, 59, 0.8));
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.info-card .info-card-body:hover::after {
+    opacity: 1;
+}
