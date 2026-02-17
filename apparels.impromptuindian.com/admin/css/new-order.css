@@ -503,6 +503,18 @@ table thead tr {
     width: 100%;
 }
 
+/* Force strict alignment consistency */
+table th,
+table td {
+    box-sizing: border-box;
+}
+
+/* Lock vertical alignment consistently */
+table thead th,
+table tbody td {
+    vertical-align: middle;
+}
+
 table thead th {
     padding: 1rem 1.5rem;
     background: rgba(15, 23, 42, 0.4);
@@ -514,7 +526,6 @@ table thead th {
     text-transform: uppercase;
     letter-spacing: 0.05em;
     white-space: nowrap;
-    vertical-align: middle;
 }
 
 /* Column alignment - unified rules for both th and td */
