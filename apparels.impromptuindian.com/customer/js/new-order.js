@@ -2607,6 +2607,17 @@ function initPlaceOrder() {
       showAlert("Quantity Mismatch", "Sizes total must match the Total Quantity.", "error");
       return;
     }
+    
+    // 🔥 COLLECT SIZE DISTRIBUTION for bulk orders
+    const sizeDistribution = {};
+    const qtyInputs = Array.from(document.querySelectorAll(".qty-input"));
+    qtyInputs.forEach(input => {
+      const size = input.getAttribute("data-size");
+      const qty = parseInt(input.value) || 0;
+      if (size && qty > 0) {
+        sizeDistribution[size] = qty;
+      }
+    });
 
     /* 2. PRICE VALIDATION */
     const pricePerPieceInput = document.getElementById("pricePerPiece");
@@ -2797,6 +2808,9 @@ function initPlaceOrder() {
       numericCost: numericCost
     });
 
+    // 🔥 DETERMINE IF THIS IS BULK ORDER (quantity > 1 means bulk)
+    const isBulkOrder = total > 1;
+    
     const payload = {
       product_type: product ? product.trim() : null,
       category: currentOrderState.category ? currentOrderState.category.trim() : null,
@@ -2804,7 +2818,7 @@ function initPlaceOrder() {
       color: color ? color.trim() : null,
       fabric: (fabric && fabric.trim()) ? fabric.trim() : null,  // Normalize fabric - only send if selected
       print_type: printType ? printType.trim() : null,
-      quantity: total,
+      quantity: isBulkOrder ? 1 : total,  // For bulk orders, quantity=1 (sample), bulk_quantity=total
       price_per_piece: pricePerPiece,
       sample_size: finalSampleSize ? finalSampleSize.trim() : null,
       delivery_date: selectedDeliveryISO,  // Send ISO format (YYYY-MM-DD) instead of formatted text
@@ -2817,7 +2831,13 @@ function initPlaceOrder() {
       transaction_id: currentTransactionId,
       sample_cost: numericCost,
       payment_method: window.paymentDetails?.method || 'card',
-      payment_details: JSON.stringify(window.paymentDetails || {})
+      payment_details: JSON.stringify(window.paymentDetails || {}),
+      // 🔥 BULK ORDER FIELDS: Only include if this is a bulk order
+      ...(isBulkOrder && {
+        bulk_quantity: total,
+        size_distribution: sizeDistribution,
+        is_bulk_order: true
+      })
     };
 
     /* 8. SUBMIT ORDER */
