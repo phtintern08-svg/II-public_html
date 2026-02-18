@@ -624,7 +624,7 @@ async function assignVendor() {
       body: JSON.stringify({
         vendor_id: parseInt(vendorId),
         quotation_price_per_piece: parseFloat(quotationPrice),
-        sample_cost: 500.0  // Default sample cost
+        sample_cost: order.amount  // 🔥 FIX: Use real sample cost from database, not hardcoded value
       })
     });
 
