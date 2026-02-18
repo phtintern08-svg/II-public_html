@@ -496,18 +496,11 @@ table {
     border-collapse: collapse;
 }
 
-table thead,
-table tbody,
-table tr,
-table th,
-table td {
-    width: 100%;
-}
-
 /* Force strict alignment consistency */
 table th,
 table td {
     box-sizing: border-box;
+    min-width: 0; /* Allow grid cells to shrink */
 }
 
 /* Lock vertical alignment consistently - global for all cells */
@@ -587,6 +580,7 @@ table tbody tr {
         1.2fr     /* Deadline */
         140px     /* Status */
         80px;     /* Actions */
+    column-gap: 1.5rem;   /* equal spacing between columns */
     align-items: center;
 }
 
@@ -653,10 +647,10 @@ table tbody td:nth-child(5) {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 110px;
-    /* Fixed width for optical consistency - reduced for better balance */
+    padding: 0 0.75rem;
+    min-width: 90px;
+    width: auto;
     height: 28px;
-    padding: 0;
     border-radius: 0.5rem;
     font-size: 0.7rem;
     font-weight: 600;
