@@ -493,12 +493,14 @@ body {
 
 table {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    table-layout: fixed;
+    border-collapse: collapse;
 }
 
-table thead tr {
+table thead,
+table tbody,
+table tr,
+table th,
+table td {
     width: 100%;
 }
 
@@ -572,46 +574,20 @@ table td:last-child {
     text-align: center; /* Status and Actions */
 }
 
-/* Proper column distribution - grid-driven layout */
-table th:nth-child(1),
-table td:nth-child(1) {
-    width: 10%; /* Order ID */
-}
-
-table th:nth-child(2),
-table td:nth-child(2) {
-    width: 20%; /* Customer */
-}
-
-table th:nth-child(3),
-table td:nth-child(3) {
-    width: 15%; /* Apparel */
-}
-
-table th:nth-child(4),
-table td:nth-child(4) {
-    width: 8%; /* Qty */
-}
-
-table th:nth-child(5),
-table td:nth-child(5) {
-    width: 12%; /* Amount */
-}
-
-table th:nth-child(6),
-table td:nth-child(6) {
-    width: 15%; /* Deadline */
-}
-
-table th:nth-child(7),
-table td:nth-child(7) {
-    width: 12%; /* Status */
-    white-space: nowrap;
-}
-
-table th:nth-child(8),
-table td:nth-child(8) {
-    width: 8%; /* Actions */
+/* Turn header and body rows into identical grid */
+table thead tr,
+table tbody tr {
+    display: grid;
+    grid-template-columns:
+        100px     /* Order ID */
+        1.8fr     /* Customer */
+        1.2fr     /* Apparel */
+        80px      /* Qty */
+        120px     /* Amount */
+        1.2fr     /* Deadline */
+        140px     /* Status */
+        80px;     /* Actions */
+    align-items: center;
 }
 
 
