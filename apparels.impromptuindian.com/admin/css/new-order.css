@@ -520,10 +520,10 @@ table tbody td {
     padding: 1rem 1.25rem;
 }
 
-/* Remove extra left padding from Order ID column for visual alignment */
+/* Force strict left alignment for Order ID column */
 table th:first-child,
 table td:first-child {
-    padding-left: 0.75rem;
+    text-align: left !important;
 }
 
 /* Prevent content overflow in fixed layout */
