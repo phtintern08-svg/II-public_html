@@ -2430,12 +2430,14 @@ async function processGatewayPayment(btnId) {
 
     showAlert("Payment Successful", successMsg, "success");
 
-    // 🔥 CRITICAL: Create order immediately after successful payment
-    // This is the correct production flow: Payment → Order Creation → Database
-    console.log("✅ Payment successful - creating order in database", {
+    // 🔥 FIX: Payment unlocks order creation - do NOT auto-create order here
+    // Order will be created when user clicks "Place Order" button with full bulk details
+    // This ensures bulk_quantity, size_distribution, and is_bulk_order are properly saved
+    console.log("✅ Payment successful - order creation unlocked", {
       transactionId: paymentResult.transactionId,
       amount: amount,
-      state: currentOrderState
+      isSamplePaid: isSamplePaid,
+      currentTransactionId: currentTransactionId
     });
 
     // Close modal
@@ -2450,14 +2452,13 @@ async function processGatewayPayment(btnId) {
     btn.classList.add("text-black");
     btn.disabled = false;
 
-    // 🔥 CRITICAL: Create order directly after payment (no need to click Place Order button)
-    try {
-      await createOrderAfterPayment(paymentResult, amount);
-    } catch (orderError) {
-      console.error("❌ Order creation failed after payment:", orderError);
-      showAlert("Order Creation Failed", orderError.message || "Payment succeeded but order creation failed. Please contact support with transaction ID: " + paymentResult.transactionId, "error");
-      // Payment succeeded but order failed - user should contact support
-    }
+    // 🔥 FIX: Show instruction to click "Place Order" button
+    // The order will be created with full bulk details when user clicks "Place Order"
+    showAlert(
+      "Payment Complete", 
+      "Sample payment successful! Please click 'Place Order' to complete your order with bulk details.", 
+      "success"
+    );
 
   } catch (error) {
     console.error('Payment error:', error);
@@ -2854,8 +2855,18 @@ function initPlaceOrder() {
 }
 
 /**
- * Create order after successful payment
- * This is called immediately after payment succeeds to create the order in the database
+ * @deprecated This function is NO LONGER USED
+ * 
+ * REASON: This function created orders with quantity=1 and NO bulk fields,
+ * causing bulk orders to be stored as sample-only orders in the database.
+ * 
+ * NEW FLOW: Payment unlocks order creation. User clicks "Place Order" button,
+ * which calls handlePlaceOrder() -> submitOrder() with full bulk details.
+ * 
+ * This ensures bulk_quantity, size_distribution, and is_bulk_order are
+ * properly saved to the database.
+ * 
+ * DO NOT USE THIS FUNCTION - It will corrupt bulk order data.
  */
 async function createOrderAfterPayment(paymentResult, amount) {
   console.log("🔥 Creating order after payment success", {

@@ -130,7 +130,10 @@ async function fetchOrders() {
         id: o.id,
         customer: o.customer ? o.customer.username : 'Unknown',
         type: o.product_type,
-        qty: o.quantity,
+        qty: o.quantity,  // Sample quantity (1) or total if not bulk
+        bulkQty: o.bulk_quantity || null,  // 🔥 Bulk quantity if this is a bulk order
+        isBulk: o.is_bulk_order || false,  // 🔥 Flag to identify bulk orders
+        effectiveQty: (o.is_bulk_order && o.bulk_quantity) ? o.bulk_quantity : o.quantity,  // 🔥 Effective quantity for calculations
         amount: o.sample_cost || 0,  // UPDATED: Show sample cost paid, not bulk estimate
         deadline: o.delivery_date || 'No deadline',
         // Map all pre-production statuses to 'unassigned' for the main filter
@@ -476,7 +479,11 @@ async function openOrderModal(id) {
             <div class="font-semibold text-gray-100">${order.customer}</div>
             
             <div class="text-gray-500">Quantity</div>
-            <div class="font-bold text-gray-100">${order.qty} <span class="text-xs text-gray-500 font-normal ml-1">Pieces</span></div>
+            <div class="font-bold text-gray-100">
+              ${order.isBulk && order.bulkQty ? `${order.bulkQty} (bulk)` : order.qty} 
+              <span class="text-xs text-gray-500 font-normal ml-1">Pieces</span>
+              ${order.isBulk ? '<span class="text-xs text-blue-400 ml-2">Bulk Order</span>' : ''}
+            </div>
             
             <div class="text-gray-500">Sample Paid</div>
             <div class="font-bold text-yellow-400">₹${order.amount > 0 ? order.amount.toLocaleString() : '—'}</div>
@@ -544,7 +551,7 @@ async function openOrderModal(id) {
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₹</span>
                 <input type="number" id="quotation-price" step="0.01" min="0" class="w-full pl-8 pr-3 py-3 bg-gray-900 border border-white/10 rounded-xl text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none" placeholder="Enter price per piece" required>
               </div>
-              <p class="text-xs text-gray-500 mt-1">Total for ${order.qty} pieces: <span id="quotation-total" class="text-yellow-400 font-semibold">₹0</span></p>
+              <p class="text-xs text-gray-500 mt-1">Total for ${order.effectiveQty || order.qty} pieces: <span id="quotation-total" class="text-yellow-400 font-semibold">₹0</span></p>
             </div>
             
             <div>
@@ -567,7 +574,9 @@ async function openOrderModal(id) {
   if (quotationInput && quotationTotal) {
     quotationInput.addEventListener('input', () => {
       const price = parseFloat(quotationInput.value) || 0;
-      const total = price * order.qty;
+      // 🔥 BULK ORDER FIX: Use effective quantity (bulk_quantity for bulk orders, quantity for sample)
+      const effectiveQty = order.effectiveQty || order.qty;
+      const total = price * effectiveQty;
       quotationTotal.textContent = `₹${total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     });
   }
@@ -597,14 +606,16 @@ async function assignVendor() {
   const order = orders.find(o => o.id === currentOrderId);
   const selectedVendor = approvedVendors.find(v => v.id === parseInt(vendorId));
   const vendorName = selectedVendor ? (selectedVendor.business_name || selectedVendor.username || `Vendor #${vendorId}`) : `Vendor #${vendorId}`;
-  const totalPrice = parseFloat(quotationPrice) * order.qty;
+  // 🔥 BULK ORDER FIX: Use effective quantity (bulk_quantity for bulk orders, quantity for sample)
+  const effectiveQty = order.effectiveQty || order.qty;
+  const totalPrice = parseFloat(quotationPrice) * effectiveQty;
   
   const confirmed = confirm(
     `⚠️ Confirm Vendor Assignment\n\n` +
     `Order: #${currentOrderId}\n` +
     `Vendor: ${vendorName}\n` +
     `Price per piece: ₹${parseFloat(quotationPrice).toLocaleString('en-IN', { minimumFractionDigits: 2 })}\n` +
-    `Total (${order.qty} pieces): ₹${totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}\n\n` +
+    `Total (${effectiveQty} pieces${order.isBulk ? ' bulk' : ''}): ₹${totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}\n\n` +
     `Note: Vendor cannot reject this assignment. Order will be locked to this vendor.\n\n` +
     `Proceed with assignment?`
   );
