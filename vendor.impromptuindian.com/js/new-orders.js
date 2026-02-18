@@ -275,15 +275,14 @@ async function moveToProduction() {
     if (!currentOrderId) return;
 
     try {
-        // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
-        const response = await ImpromptuIndianApi.fetch(`/api/orders/${currentOrderId}/status`, {
-            method: 'PUT',
+        // 🔥 FIX: Use correct endpoint - POST /api/vendor/orders/<id>/move-to-production
+        // Status is set to 'in_production' by backend, no acceptance stage
+        const response = await ImpromptuIndianApi.fetch(`/api/vendor/orders/${currentOrderId}/move-to-production`, {
+            method: 'POST',
             headers: { 
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                status: 'accepted_by_vendor'
-            })
+            body: JSON.stringify({})
         });
 
         if (!response.ok) {
@@ -315,61 +314,7 @@ async function moveToProduction() {
     }
 }
 
-/* ---------------------------
-   REJECT ORDER
----------------------------*/
-function rejectOrder() {
-    closeOrderModal();
-    document.getElementById('reject-modal').classList.remove('hidden');
-}
-
-function closeRejectModal() {
-    document.getElementById('reject-modal').classList.add('hidden');
-    document.body.style.overflow = 'auto';
-}
-
-async function confirmReject() {
-    if (!currentOrderId) return;
-
-    const reasonEl = document.querySelector('input[name="reject-reason"]:checked');
-    const reason = reasonEl ? reasonEl.nextElementSibling.textContent : 'Other';
-    const notes = document.getElementById('reject-notes').value;
-    const fullReason = notes ? `${reason}: ${notes}` : reason;
-
-    try {
-        // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
-        const response = await ImpromptuIndianApi.fetch(`/api/orders/${currentOrderId}/status`, {
-            method: 'PUT',
-            headers: { 
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                status: 'rejected_by_vendor',
-                remarks: fullReason
-            })
-        });
-
-        if (!response.ok) {
-            const err = await response.json();
-            throw new Error(err.error || 'Failed to reject order');
-        }
-
-        const data = await response.json();
-
-        // Remove from local list
-        newOrders = newOrders.filter(o => o.id !== currentOrderId);
-
-        closeRejectModal();
-        showToast(data.message || `Order ${currentOrderId} rejected. Admin notified.`, 'info');
-        renderOrders();
-
-        // Reset form
-        document.getElementById('reject-notes').value = '';
-    } catch (e) {
-        console.error('Error rejecting order:', e);
-        showToast(e.message || 'Error rejecting order', 'error');
-    }
-}
+// 🔥 REMOVED: Reject functionality - vendors must compulsorily produce, no rejection allowed
 
 /* ---------------------------
    TOAST NOTIFICATION

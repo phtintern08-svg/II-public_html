@@ -495,7 +495,7 @@ table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    table-layout: auto;
+    table-layout: fixed;
 }
 
 table thead tr {
@@ -518,6 +518,21 @@ table th {
 table thead th,
 table tbody td {
     padding: 1rem 1.25rem;
+}
+
+/* Prevent content overflow in fixed layout */
+table td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Allow Deadline column to wrap if needed (may have date + time) */
+table td:nth-child(6) {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    line-height: 1.4;
 }
 
 table thead th {
@@ -551,15 +566,46 @@ table td:last-child {
     text-align: center; /* Status and Actions */
 }
 
-table th:last-child,
-table td:last-child {
-    width: 70px; /* Lock Actions column width - tightened */
+/* Proper column distribution - grid-driven layout */
+table th:nth-child(1),
+table td:nth-child(1) {
+    width: 10%; /* Order ID */
 }
 
-/* Status column - prevent wrapping */
+table th:nth-child(2),
+table td:nth-child(2) {
+    width: 20%; /* Customer */
+}
+
+table th:nth-child(3),
+table td:nth-child(3) {
+    width: 15%; /* Apparel */
+}
+
+table th:nth-child(4),
+table td:nth-child(4) {
+    width: 8%; /* Qty */
+}
+
+table th:nth-child(5),
+table td:nth-child(5) {
+    width: 12%; /* Amount */
+}
+
+table th:nth-child(6),
+table td:nth-child(6) {
+    width: 15%; /* Deadline */
+}
+
 table th:nth-child(7),
 table td:nth-child(7) {
+    width: 12%; /* Status */
     white-space: nowrap;
+}
+
+table th:nth-child(8),
+table td:nth-child(8) {
+    width: 8%; /* Actions */
 }
 
 

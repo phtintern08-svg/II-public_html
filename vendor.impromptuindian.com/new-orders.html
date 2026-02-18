@@ -90,45 +90,7 @@
         </div>
     </div>
 
-    <!-- Reject Reason Modal -->
-    <div id="reject-modal" class="modal hidden">
-        <div class="modal-overlay" onclick="closeRejectModal()"></div>
-        <div class="modal-content modal-small">
-            <div class="modal-header">
-                <h2 class="modal-title">Reject Order</h2>
-                <button class="modal-close" onclick="closeRejectModal()">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p class="text-sm text-gray-400 mb-4">Please select a reason for rejecting this order:</p>
-                <div class="reject-reasons">
-                    <label class="reject-reason-item">
-                        <input type="radio" name="reject-reason" value="overload" checked>
-                        <span>Production Overload</span>
-                    </label>
-                    <label class="reject-reason-item">
-                        <input type="radio" name="reject-reason" value="unavailable">
-                        <span>Product Unavailable</span>
-                    </label>
-                    <label class="reject-reason-item">
-                        <input type="radio" name="reject-reason" value="timeline">
-                        <span>Cannot Meet Timeline</span>
-                    </label>
-                    <label class="reject-reason-item">
-                        <input type="radio" name="reject-reason" value="other">
-                        <span>Other Reason</span>
-                    </label>
-                </div>
-                <textarea id="reject-notes" class="reject-notes"
-                    placeholder="Additional notes (optional)..."></textarea>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeRejectModal()">Cancel</button>
-                <button class="btn-danger" onclick="confirmReject()">Confirm Rejection</button>
-            </div>
-        </div>
-    </div>
+    <!-- 🔥 REMOVED: Reject modal - vendors must compulsorily produce, no rejection allowed -->
 
     <!-- New Orders Script -->
     <script src="js/new-orders.js"></script>
