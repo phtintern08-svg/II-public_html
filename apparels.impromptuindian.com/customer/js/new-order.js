@@ -3,6 +3,18 @@ lucide.createIcons();
 // DO NOT redeclare ImpromptuIndianApi - sidebar.js already creates it
 // Use window.ImpromptuIndianApi directly throughout this file
 
+// 🔥 Global variable to store ISO format delivery date (YYYY-MM-DD) for backend
+// This is set by the calendar and used in order payloads
+let selectedDeliveryISO = null;
+
+// Helper function to format date as YYYY-MM-DD in local timezone (not UTC)
+function formatDateISO(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 /* -------------------------------
    Utility: close dropdowns + calendar
 --------------------------------*/
@@ -910,6 +922,10 @@ function initCalendar() {
   let viewYear = minDate.getFullYear();
   let viewMonth = minDate.getMonth();
   let selectedDate = new Date(minDate);
+  
+  // 🔥 Initialize ISO format date for backend (YYYY-MM-DD)
+  // Note: selectedDeliveryISO is declared at global scope above
+  selectedDeliveryISO = null;
 
   function formatLabel(d) {
     return d.toLocaleDateString("en-IN", {
@@ -946,7 +962,18 @@ function initCalendar() {
       } else {
         el.addEventListener("click", () => {
           selectedDate = dateObj;
+          
+          // UI display
           dateText.textContent = formatLabel(dateObj);
+          
+          // 🔥 Store ISO format for backend (YYYY-MM-DD) - use local timezone
+          selectedDeliveryISO = formatDateISO(dateObj);
+          
+          console.log("📅 Selected delivery date:", {
+            display: dateText.textContent,
+            iso: selectedDeliveryISO
+          });
+          
           calendar.classList.add("hidden");
           renderCalendar();
         });
@@ -966,6 +993,9 @@ function initCalendar() {
 
   renderCalendar();
   dateText.textContent = formatLabel(selectedDate);
+  
+  // 🔥 Initialize ISO date for default selected date - use local timezone
+  selectedDeliveryISO = formatDateISO(selectedDate);
 
   function toggleCalendar() {
     const isHidden = calendar.classList.contains("hidden");
@@ -2777,7 +2807,7 @@ function initPlaceOrder() {
       quantity: total,
       price_per_piece: pricePerPiece,
       sample_size: finalSampleSize ? finalSampleSize.trim() : null,
-      delivery_date: dateText.textContent,
+      delivery_date: selectedDeliveryISO,  // Send ISO format (YYYY-MM-DD) instead of formatted text
       address_line1: `${house} ${area}`,
       address_line2: landmark,
       city,
@@ -2879,10 +2909,9 @@ async function createOrderAfterPayment(paymentResult, amount) {
     country: country || "India",
     transaction_id: paymentResult.transactionId, // Optional but required for payment tracking
     
-    // 🔥 CRITICAL: delivery_date must be null or valid ISO DateTime string
-    // Schema expects DateTime or None - if dateText is empty or invalid format, send null
-    // Backend will parse it if provided, but null is safer for sample orders
-    delivery_date: null  // Sample orders don't need delivery date - backend can set it later
+    // 🔥 CRITICAL: delivery_date must be null or valid ISO Date string (YYYY-MM-DD)
+    // Send ISO format for proper backend parsing
+    delivery_date: selectedDeliveryISO || null  // Use ISO format if available, otherwise null
   };
   
   // 🔥 REMOVED: payment_method and payment_details are NOT in OrderSchema

@@ -536,6 +536,13 @@ table td:nth-child(6) {
     line-height: 1.4;
 }
 
+/* Allow Status column to fully display */
+table td:nth-child(7) {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: nowrap;
+}
+
 table thead th {
     background: rgba(15, 23, 42, 0.4);
     border-bottom: 1px solid rgba(148, 163, 184, 0.1);
@@ -572,15 +579,15 @@ table thead tr,
 table tbody tr {
     display: grid;
     grid-template-columns:
-        100px     /* Order ID */
-        1.8fr     /* Customer */
-        1.2fr     /* Apparel */
-        80px      /* Qty */
-        120px     /* Amount */
-        1.2fr     /* Deadline */
-        140px     /* Status */
-        80px;     /* Actions */
-    column-gap: 1.5rem;   /* equal spacing between columns */
+        90px      /* Order ID */
+        1.7fr     /* Customer */
+        1.1fr     /* Apparel */
+        70px      /* Qty */
+        110px     /* Amount */
+        1.1fr     /* Deadline */
+        120px     /* Status */
+        60px;     /* Actions */
+    column-gap: 1rem;   /* equal spacing between columns */
     align-items: center;
 }
 

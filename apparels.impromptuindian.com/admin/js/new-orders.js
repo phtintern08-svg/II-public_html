@@ -335,7 +335,7 @@ function renderOrders(ordersToRender = orders) {
           </div>
         </td>
         <td data-label="Status">
-          <span class="status-${o.status} shadow-sm">${o.status}</span>
+          <span class="status-${o.status} shadow-sm">${o.status.replace('_', ' ').toUpperCase()}</span>
         </td>
         <td data-label="Actions" class="text-center">
           <button class="w-9 h-9 flex items-center justify-center rounded-lg bg-blue-600/10 hover:bg-blue-600 transition-all text-blue-400 hover:text-white" onclick="openOrderModal(${o.id})">
@@ -354,7 +354,7 @@ function renderOrders(ordersToRender = orders) {
         <!-- Header: Order ID & Status -->
         <div class="mobile-card-header">
           <span class="mobile-card-id">#${o.id}</span>
-          <span class="status-${o.status} text-[10px] uppercase font-bold tracking-wide">${o.status}</span>
+          <span class="status-${o.status} text-[10px] uppercase font-bold tracking-wide">${o.status.replace('_', ' ').toUpperCase()}</span>
         </div>
 
         <!-- Customer Info -->
