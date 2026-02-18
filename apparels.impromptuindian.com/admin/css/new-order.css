@@ -528,6 +528,13 @@ table td {
     white-space: nowrap;
 }
 
+/* Fix Qty column truncation */
+table td:nth-child(4) {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: nowrap;
+}
+
 /* Allow Deadline column to wrap if needed (may have date + time) */
 table td:nth-child(6) {
     white-space: normal;
@@ -541,6 +548,15 @@ table td:nth-child(7) {
     overflow: visible;
     text-overflow: clip;
     white-space: nowrap;
+}
+
+/* Ensure actions column doesn't expand */
+table td:last-child {
+    padding-right: 0.75rem;
+}
+
+table td:last-child button {
+    max-width: 100%;
 }
 
 table thead th {
@@ -579,15 +595,15 @@ table thead tr,
 table tbody tr {
     display: grid;
     grid-template-columns:
-        90px      /* Order ID */
-        1.7fr     /* Customer */
-        1.1fr     /* Apparel */
-        70px      /* Qty */
-        110px     /* Amount */
-        1.1fr     /* Deadline */
-        120px     /* Status */
-        60px;     /* Actions */
-    column-gap: 1rem;   /* equal spacing between columns */
+        85px      /* Order ID */
+        1.55fr    /* Customer */
+        0.95fr    /* Apparel */
+        65px      /* Qty */
+        105px     /* Amount */
+        1fr       /* Deadline */
+        110px     /* Status */
+        55px;     /* Actions */
+    column-gap: 0.6rem;
     align-items: center;
 }
 
