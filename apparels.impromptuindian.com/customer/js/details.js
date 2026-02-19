@@ -49,8 +49,8 @@ function renderOrderDetails(order) {
     document.getElementById("sum-order-id").textContent = `#${order.id}`;
     document.getElementById("sum-date").textContent = dateStr;
 
-    // Display Sample Cost or Quotation Total
-    const totalPrice = order.quotation_total_price || order.sample_cost || 0;
+    // Always show only Sample Cost (bulk price handled later)
+    const totalPrice = order.sample_cost || 0;
     document.getElementById("sum-sample-cost").textContent = `₹${totalPrice.toLocaleString()}`;
 
     // Show bulk quantity if available, otherwise show sample size or quantity
