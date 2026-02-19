@@ -79,6 +79,213 @@ let authComplete = false;
 })();
 
 /* ---------------------------
+   VALIDATION FUNCTIONS
+---------------------------*/
+function validateAadharNumber(value) {
+    if (!value) return { valid: false, message: 'Aadhar number is required' };
+    
+    // Remove spaces and hyphens
+    const cleaned = value.replace(/[\s-]/g, '');
+    
+    // Check length (exactly 12 digits)
+    if (cleaned.length !== 12) {
+        return { valid: false, message: 'Aadhar number must be exactly 12 digits' };
+    }
+    
+    // Check if all numeric
+    if (!/^\d+$/.test(cleaned)) {
+        return { valid: false, message: 'Aadhar number must contain only digits' };
+    }
+    
+    // Check starting digit (cannot start with 0 or 1)
+    if (cleaned[0] === '0' || cleaned[0] === '1') {
+        return { valid: false, message: 'Aadhar number cannot start with 0 or 1' };
+    }
+    
+    return { valid: true, message: '', cleaned: cleaned };
+}
+
+function validatePANNumber(value) {
+    if (!value) return { valid: false, message: 'PAN number is required' };
+    
+    // Convert to uppercase and remove spaces
+    const cleaned = value.toUpperCase().replace(/\s/g, '');
+    
+    // Check length (exactly 10 characters)
+    if (cleaned.length !== 10) {
+        return { valid: false, message: 'PAN number must be exactly 10 characters' };
+    }
+    
+    // Check format: AAAAA9999A (5 alphabets, 4 digits, 1 alphabet)
+    const panRegex = /^[A-Z]{5}\d{4}[A-Z]{1}$/;
+    if (!panRegex.test(cleaned)) {
+        return { valid: false, message: 'Invalid PAN format. Should be like ABCDE1234F' };
+    }
+    
+    return { valid: true, message: '', cleaned: cleaned };
+}
+
+function validateDLNumber(value) {
+    if (!value) return { valid: false, message: 'DL number is required' };
+    
+    // Remove spaces and hyphens for validation
+    const cleaned = value.replace(/[\s-]/g, '');
+    
+    // Check total length (16 characters including separators, but we validate without them)
+    // Format: SS-RRYYYYNNNNNNN (2 state + 2 RTO + 4 year + 7 serial = 15 digits/chars)
+    // But user said 16 chars including separators, so let's check cleaned length
+    if (cleaned.length < 15 || cleaned.length > 16) {
+        return { valid: false, message: 'DL number must be 15-16 characters (format: SS-RRYYYYNNNNNNN)' };
+    }
+    
+    // Extract parts
+    const stateCode = cleaned.substring(0, 2);
+    const rtoCode = cleaned.substring(2, 4);
+    const year = cleaned.substring(4, 8);
+    const serial = cleaned.substring(8);
+    
+    // Validate state code (2 uppercase letters)
+    if (!/^[A-Z]{2}$/.test(stateCode)) {
+        return { valid: false, message: 'State code must be 2 uppercase letters (e.g., MH, DL, TN)' };
+    }
+    
+    // Validate RTO code (2 digits)
+    if (!/^\d{2}$/.test(rtoCode)) {
+        return { valid: false, message: 'RTO code must be 2 digits' };
+    }
+    
+    // Validate year (4 digits)
+    if (!/^\d{4}$/.test(year)) {
+        return { valid: false, message: 'Year must be 4 digits' };
+    }
+    
+    // Validate serial (7 digits)
+    if (!/^\d{7}$/.test(serial)) {
+        return { valid: false, message: 'Serial number must be 7 digits (use leading zeros if needed)' };
+    }
+    
+    // Format with hyphen: SS-RRYYYYNNNNNNN
+    const formatted = `${stateCode}-${rtoCode}${year}${serial}`;
+    return { valid: true, message: '', cleaned: formatted };
+}
+
+function validateRCNumber(value) {
+    if (!value) return { valid: false, message: 'RC number is required' };
+    
+    // Remove spaces and hyphens
+    const cleaned = value.replace(/[\s-]/g, '').toUpperCase();
+    
+    // Check minimum length (typically 8-15 characters)
+    if (cleaned.length < 8 || cleaned.length > 15) {
+        return { valid: false, message: 'RC number must be 8-15 characters' };
+    }
+    
+    // Check alphanumeric only
+    if (!/^[A-Z0-9]+$/.test(cleaned)) {
+        return { valid: false, message: 'RC number must contain only letters and numbers' };
+    }
+    
+    return { valid: true, message: '', cleaned: cleaned };
+}
+
+function validateInsuranceNumber(value) {
+    if (!value) return { valid: false, message: 'Insurance policy number is required' };
+    
+    // Remove spaces and hyphens
+    const cleaned = value.replace(/[\s-]/g, '').toUpperCase();
+    
+    // Check minimum length (typically 8-20 characters)
+    if (cleaned.length < 8 || cleaned.length > 20) {
+        return { valid: false, message: 'Insurance number must be 8-20 characters' };
+    }
+    
+    // Check alphanumeric only (excluding I and O to avoid confusion)
+    if (!/^[A-HJ-NP-Z0-9]+$/.test(cleaned)) {
+        return { valid: false, message: 'Insurance number must contain only letters (excluding I, O) and numbers' };
+    }
+    
+    return { valid: true, message: '', cleaned: cleaned };
+}
+
+function validateBankAccountNumber(value) {
+    if (!value) return { valid: false, message: 'Bank account number is required' };
+    
+    // Remove spaces (but preserve leading zeros)
+    const cleaned = value.replace(/\s/g, '');
+    
+    // Check if numeric only
+    if (!/^\d+$/.test(cleaned)) {
+        return { valid: false, message: 'Account number must contain only digits' };
+    }
+    
+    // Check minimum length (typically 9-18 digits)
+    if (cleaned.length < 9 || cleaned.length > 18) {
+        return { valid: false, message: 'Account number must be 9-18 digits' };
+    }
+    
+    return { valid: true, message: '', cleaned: cleaned };
+}
+
+function validateIFSCCode(value) {
+    if (!value) return { valid: false, message: 'IFSC code is required' };
+    
+    // Convert to uppercase and remove spaces
+    const cleaned = value.toUpperCase().replace(/\s/g, '');
+    
+    // Check length (exactly 11 characters)
+    if (cleaned.length !== 11) {
+        return { valid: false, message: 'IFSC code must be exactly 11 characters' };
+    }
+    
+    // Check format: AAAA0XXXXXX (4 letters, 0, 6 alphanumeric)
+    const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+    if (!ifscRegex.test(cleaned)) {
+        return { valid: false, message: 'Invalid IFSC format. Should be like ABCD0123456' };
+    }
+    
+    return { valid: true, message: '', cleaned: cleaned };
+}
+
+function validateVehicleNumber(value) {
+    if (!value) return { valid: false, message: 'Vehicle number is required' };
+    
+    // Convert to uppercase and remove spaces/hyphens
+    const cleaned = value.toUpperCase().replace(/[\s-]/g, '');
+    
+    // Check minimum length (typically 8-10 characters)
+    if (cleaned.length < 8 || cleaned.length > 10) {
+        return { valid: false, message: 'Vehicle number must be 8-10 characters' };
+    }
+    
+    // Check alphanumeric only (excluding I and O)
+    if (!/^[A-HJ-NP-Z0-9]+$/.test(cleaned)) {
+        return { valid: false, message: 'Vehicle number must contain only letters (excluding I, O) and numbers' };
+    }
+    
+    return { valid: true, message: '', cleaned: cleaned };
+}
+
+function getFieldValidator(fieldName) {
+    const validators = {
+        'aadhar_number': validateAadharNumber,
+        'pan_number': validatePANNumber,
+        'dl_number': validateDLNumber,
+        'vehicle_rc_number': validateRCNumber,
+        'insurance_policy_number': validateInsuranceNumber,
+        'bank_account_number': validateBankAccountNumber,
+        'ifsc_code': validateIFSCCode,
+        'vehicle_number': validateVehicleNumber
+    };
+    return validators[fieldName] || null;
+}
+
+function validateField(fieldName, value) {
+    const validator = getFieldValidator(fieldName);
+    if (!validator) return { valid: true, message: '', cleaned: value };
+    return validator(value);
+}
+
+/* ---------------------------
    API FUNCTIONS
 ---------------------------*/
 async function fetchVerificationStatus() {
@@ -323,13 +530,17 @@ function renderDocumentsGrid() {
                         <label class="text-xs text-gray-400 block mb-1">${field.placeholder}</label>
                         <input type="text" 
                                id="input-${docType.id}-${field.name}" 
-                               class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-blue-500"
+                               class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-blue-500 validation-input"
                                style="${displayStyle}"
                                placeholder="${field.placeholder}"
                                value="${val}"
+                               data-field-name="${field.name}"
+                               data-doc-type="${docType.id}"
                                oninput="window.updateExtraField('${docType.id}', '${field.name}', this.value)"
+                               onblur="window.validateInputField('${docType.id}', '${field.name}')"
                                ${disabled}
                         >
+                        <div id="error-${docType.id}-${field.name}" class="error-message text-xs text-red-400 mt-1 hidden"></div>
                     </div>
                 `;
             }).join('');
@@ -424,6 +635,7 @@ function openUploadModal(docId) {
 
     // Validate manual fields
     let missingFields = [];
+    let invalidFields = [];
     if (docType && docType.extraFields) {
         docType.extraFields.forEach(field => {
             const inputId = `input-${docId}-${field.name}`;
@@ -438,12 +650,27 @@ function openUploadModal(docId) {
 
             if (!val) {
                 missingFields.push(field.placeholder);
+            } else {
+                // Validate the field
+                const validation = validateField(field.name, val);
+                if (!validation.valid) {
+                    invalidFields.push(`${field.placeholder}: ${validation.message}`);
+                    // Show error on the input field
+                    if (el) {
+                        window.validateInputField(docId, field.name);
+                    }
+                }
             }
         });
     }
 
     if (missingFields.length > 0) {
         showAlert('Alert', `Please enter ${missingFields.join(', ')} before uploading`, 'error');
+        return;
+    }
+
+    if (invalidFields.length > 0) {
+        showAlert('Validation Error', `Please correct the following fields:\n${invalidFields.join('\n')}`, 'error');
         return;
     }
 
@@ -519,8 +746,77 @@ function handleFileSelect(file) {
 /* ---------------------------
    STATE MANAGEMENT HACK
 ---------------------------*/
+// Validation function for input fields
+window.validateInputField = function (docId, fieldName) {
+    const inputId = `input-${docId}-${fieldName}`;
+    const errorId = `error-${docId}-${fieldName}`;
+    const input = document.getElementById(inputId);
+    const errorDiv = document.getElementById(errorId);
+    
+    if (!input || !errorDiv) return;
+    
+    const value = input.value.trim();
+    const validation = validateField(fieldName, value);
+    
+    if (!validation.valid) {
+        input.classList.add('border-red-500');
+        input.classList.remove('border-gray-600', 'border-blue-500');
+        errorDiv.textContent = validation.message;
+        errorDiv.classList.remove('hidden');
+        return false;
+    } else {
+        input.classList.remove('border-red-500');
+        input.classList.add('border-gray-600');
+        errorDiv.classList.add('hidden');
+        
+        // Update input with cleaned value if different
+        if (validation.cleaned && validation.cleaned !== value) {
+            input.value = validation.cleaned;
+            // Update the state as well
+            if (documents[docId]) {
+                documents[docId][fieldName] = validation.cleaned;
+            }
+        }
+        return true;
+    }
+};
+
 window.updateExtraField = function (docId, fieldName, value) {
     if (!documents[docId]) documents[docId] = { status: 'pending' };
+    
+    // Auto-format certain fields as user types
+    const input = document.getElementById(`input-${docId}-${fieldName}`);
+    if (input) {
+        // Auto-uppercase for PAN, IFSC, Vehicle Number
+        if (['pan_number', 'ifsc_code', 'vehicle_number'].includes(fieldName)) {
+            input.value = value.toUpperCase();
+            value = value.toUpperCase();
+        }
+        
+        // Format Aadhar with spaces (XXXX XXXX XXXX)
+        if (fieldName === 'aadhar_number') {
+            const cleaned = value.replace(/\D/g, '');
+            if (cleaned.length <= 12) {
+                const formatted = cleaned.replace(/(\d{4})(?=\d)/g, '$1 ');
+                input.value = formatted.trim();
+                value = cleaned;
+            }
+        }
+        
+        // Format DL with hyphen (SS-RRYYYYNNNNNNN)
+        if (fieldName === 'dl_number') {
+            const cleaned = value.replace(/[\s-]/g, '').toUpperCase();
+            if (cleaned.length >= 2 && cleaned.length <= 15) {
+                let formatted = cleaned;
+                if (cleaned.length > 2) {
+                    formatted = cleaned.substring(0, 2) + '-' + cleaned.substring(2);
+                }
+                input.value = formatted;
+                value = cleaned;
+            }
+        }
+    }
+    
     documents[docId][fieldName] = value;
 };
 
@@ -623,6 +919,7 @@ async function submitVerification() {
 
     // Validate Extra Fields and Collect Data
     let missingExtras = [];
+    let invalidFields = [];
     let extraData = {};
 
     REQUIRED_DOCUMENTS.forEach(doc => {
@@ -630,21 +927,29 @@ async function submitVerification() {
             doc.extraFields.forEach(field => {
                 const inputId = `input-${doc.id}-${field.name}`;
                 const el = document.getElementById(inputId);
+                let val = '';
+                
                 if (el) {
-                    const val = el.value.trim();
-                    if (val) {
-                        extraData[field.name] = val;
-                    } else if (documents[doc.id] && documents[doc.id][field.name]) {
-                        // Fallback to state if input value is empty (might happen if display:none messes with value? usually not, but safe check)
-                        extraData[field.name] = documents[doc.id][field.name];
-                    } else {
-                        missingExtras.push(`${doc.label}: ${field.placeholder}`);
-                    }
+                    val = el.value.trim();
                 } else if (documents[doc.id] && documents[doc.id][field.name]) {
                     // Fallback to state if element is missing from DOM
-                    extraData[field.name] = documents[doc.id][field.name];
-                } else {
+                    val = documents[doc.id][field.name];
+                }
+                
+                if (!val) {
                     missingExtras.push(`${doc.label}: ${field.placeholder}`);
+                } else {
+                    // Validate the field
+                    const validation = validateField(field.name, val);
+                    if (!validation.valid) {
+                        invalidFields.push(`${doc.label}: ${field.placeholder} - ${validation.message}`);
+                        // Show error on the input field
+                        if (el) {
+                            window.validateInputField(doc.id, field.name);
+                        }
+                    } else {
+                        extraData[field.name] = validation.cleaned || val;
+                    }
                 }
             });
         }
@@ -655,14 +960,36 @@ async function submitVerification() {
         return;
     }
 
+    if (invalidFields.length > 0) {
+        showAlert('Validation Error', `Please correct the following fields:\n${invalidFields.join('\n')}`, 'error');
+        return;
+    }
+
     // 2. Validate Vehicle Form
     const vehicleType = document.getElementById('vehicle_type').value;
-    const vehicleNumber = document.getElementById('vehicle_number').value;
+    const vehicleNumberEl = document.getElementById('vehicle_number');
+    const vehicleNumber = vehicleNumberEl ? vehicleNumberEl.value.trim() : '';
     const serviceZone = document.getElementById('service_zone').value;
 
     if (!vehicleType || !vehicleNumber || !serviceZone) {
         showAlert('Error', 'Please fill in all vehicle details', 'error');
         return;
+    }
+    
+    // Validate vehicle number
+    const vehicleValidation = validateVehicleNumber(vehicleNumber);
+    if (!vehicleValidation.valid) {
+        showAlert('Validation Error', `Vehicle Number: ${vehicleValidation.message}`, 'error');
+        if (vehicleNumberEl) {
+            vehicleNumberEl.classList.add('border-red-500');
+            vehicleNumberEl.focus();
+        }
+        return;
+    }
+    
+    // Update vehicle number with cleaned value
+    if (vehicleNumberEl && vehicleValidation.cleaned) {
+        vehicleNumberEl.value = vehicleValidation.cleaned;
     }
 
     const btn = document.getElementById('submit-btn');
@@ -750,6 +1077,38 @@ async function submitVerification() {
         btn.innerHTML = originalText;
     }
 }
+
+// Vehicle number validation function (for vehicle form)
+function validateVehicleNumberField() {
+    const vehicleNumberEl = document.getElementById('vehicle_number');
+    const errorDiv = document.getElementById('error-vehicle_number');
+    
+    if (!vehicleNumberEl || !errorDiv) return;
+    
+    const value = vehicleNumberEl.value.trim();
+    const validation = validateVehicleNumber(value);
+    
+    if (!validation.valid) {
+        vehicleNumberEl.classList.add('border-red-500');
+        vehicleNumberEl.classList.remove('border-gray-600', 'border-blue-500');
+        errorDiv.textContent = validation.message;
+        errorDiv.classList.remove('hidden');
+        return false;
+    } else {
+        vehicleNumberEl.classList.remove('border-red-500');
+        vehicleNumberEl.classList.add('border-gray-600');
+        errorDiv.classList.add('hidden');
+        
+        // Update input with cleaned value if different
+        if (validation.cleaned && validation.cleaned !== value) {
+            vehicleNumberEl.value = validation.cleaned;
+        }
+        return true;
+    }
+}
+
+// Make it available globally
+window.validateVehicleNumberField = validateVehicleNumberField;
 
 /* ---------------------------
    INITIALIZATION
