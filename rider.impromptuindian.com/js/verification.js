@@ -92,7 +92,7 @@ async function fetchVerificationStatus() {
         return;
     }
     try {
-        const response = await ImpromptuIndianApi.fetch(`/api/rider/verification/status/${riderId}`);
+        const response = await ImpromptuIndianApi.fetch(`/api/rider/verification/status`);
         if (response.ok) {
             const data = await response.json();
 

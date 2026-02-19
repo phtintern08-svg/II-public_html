@@ -502,6 +502,33 @@ body {
 table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
+}
+
+/* Column widths */
+table th:nth-child(1),
+table td:nth-child(1) {
+    width: 28%;
+}
+
+table th:nth-child(2),
+table td:nth-child(2) {
+    width: 18%;
+}
+
+table th:nth-child(3),
+table td:nth-child(3) {
+    width: 18%;
+}
+
+table th:nth-child(4),
+table td:nth-child(4) {
+    width: 16%;
+}
+
+table th:nth-child(5),
+table td:nth-child(5) {
+    width: 20%;
 }
 
 table thead th {
@@ -549,6 +576,13 @@ table tbody tr:hover::before {
 
 table tbody tr:last-child {
     border-bottom: none;
+}
+
+table td,
+table th {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 table tbody td {
