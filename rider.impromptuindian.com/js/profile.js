@@ -16,31 +16,87 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Load profile data
-function loadProfile() {
-    // Sample data
-    document.getElementById('riderName').value = 'John Doe';
-    document.getElementById('riderPhone').value = '9876543210';
-    document.getElementById('riderEmail').value = 'john.doe@example.com';
-    document.getElementById('vehicleType').value = 'Bike';
-    document.getElementById('vehicleNumber').value = 'KA01AB1234';
-    document.getElementById('serviceZone').value = 'Bangalore Central';
-    document.getElementById('memberSince').value = '15 Nov 2024';
-    document.getElementById('adminContact').textContent = '+91 9999999999';
+async function loadProfile() {
+    try {
+        const response = await ImpromptuIndianApi.fetch('/api/rider/profile', {
+            method: 'GET'
+        });
 
-    // Set profile initial
-    document.getElementById('profileInitial').textContent = 'JD';
+        if (!response.ok) {
+            throw new Error('Failed to fetch profile');
+        }
+
+        const data = await response.json();
+
+        document.getElementById('riderName').value = data.name || '';
+        document.getElementById('riderPhone').value = data.phone || '';
+        document.getElementById('riderEmail').value = data.email || '';
+        document.getElementById('vehicleType').value = data.vehicle_type || '';
+        document.getElementById('vehicleNumber').value = data.vehicle_number || '';
+        document.getElementById('serviceZone').value = data.service_zone || '';
+        document.getElementById('memberSince').value = data.created_at
+            ? new Date(data.created_at).toLocaleDateString()
+            : '';
+
+        // Status
+        const statusEl = document.getElementById('riderStatus');
+        if (statusEl) {
+            const status = data.verification_status || 'pending';
+            statusEl.innerHTML = `
+                <span class="status-dot"></span>
+                ${status.charAt(0).toUpperCase() + status.slice(1)}
+            `;
+        }
+
+        // Profile Initial
+        const initials = (data.name || 'R')
+            .split(' ')
+            .map(word => word[0])
+            .join('')
+            .toUpperCase();
+
+        document.getElementById('profileInitial').textContent = initials;
+
+    } catch (error) {
+        console.error('Profile load error:', error);
+        showToast('Failed to load profile', 'error');
+    }
 }
 
 // Load performance metrics
-function loadPerformanceMetrics() {
-    document.getElementById('totalDeliveries').textContent = '45';
-    document.getElementById('successfulDeliveries').textContent = '42';
-    document.getElementById('averageRating').textContent = '4.7';
-    document.getElementById('successRate').textContent = '93%';
+async function loadPerformanceMetrics() {
+    try {
+        const response = await ImpromptuIndianApi.fetch('/api/rider/status', {
+            method: 'GET'
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+
+        document.getElementById('totalDeliveries').textContent =
+            data.stats.total_assigned || 0;
+
+        document.getElementById('successfulDeliveries').textContent =
+            data.stats.completed_today || 0;
+
+        document.getElementById('averageRating').textContent =
+            data.stats.earnings_today || 0;
+
+        document.getElementById('successRate').textContent =
+            data.stats.total_assigned > 0
+                ? Math.round(
+                    (data.stats.completed_today / data.stats.total_assigned) * 100
+                ) + '%'
+                : '0%';
+
+    } catch (error) {
+        console.error('Metrics error:', error);
+    }
 }
 
 // Update profile
-function updateProfile() {
+async function updateProfile() {
     const email = document.getElementById('riderEmail').value;
 
     if (!email) {
@@ -48,7 +104,27 @@ function updateProfile() {
         return;
     }
 
-    showToast('Profile updated successfully', 'success');
+    try {
+        const response = await ImpromptuIndianApi.fetch('/api/rider/profile', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: email
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Update failed');
+        }
+
+        showToast('Profile updated successfully', 'success');
+
+    } catch (error) {
+        console.error('Update error:', error);
+        showToast('Failed to update profile', 'error');
+    }
 }
 
 // Upload profile picture
