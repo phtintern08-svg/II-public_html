@@ -144,33 +144,34 @@ function renderOrders(data) {
             order.print_type
         ].filter(Boolean);
 
-        const productDetails = productParts.length 
-            ? productParts.join(' • ') 
-            : 'Custom order';
+        const productDetails = productParts.join(' • ');
 
-        // Bulk Handling
+        // Bulk Handling - Show bulk info if bulk_quantity exists
         let bulkInfo = '';
-        let parsedSizes = '';
+        if (order.bulk_quantity) {
+            let parsedSizes = '';
+            if (order.size_distribution) {
+                try {
+                    const sizes = typeof order.size_distribution === 'string'
+                        ? JSON.parse(order.size_distribution)
+                        : order.size_distribution;
 
-        if (order.bulk_quantity && order.size_distribution) {
-            try {
-                const sizes = typeof order.size_distribution === 'string'
-                    ? JSON.parse(order.size_distribution)
-                    : order.size_distribution;
-
-                parsedSizes = Object.entries(sizes)
-                    .map(([size, qty]) => `${size}: ${qty}`)
-                    .join(', ');
-
-                bulkInfo = `
-                    <div class="text-xs text-gray-400 mt-1">
-                        Bulk: ${order.bulk_quantity} pcs
-                        <br>Sizes → ${parsedSizes}
-                    </div>
-                `;
-            } catch (e) {
-                console.error("Invalid size distribution", e);
+                    parsedSizes = Object.entries(sizes)
+                        .map(([size, qty]) => `${size}:${qty}`)
+                        .join(', ');
+                } catch (e) {
+                    console.error("Invalid size distribution", e);
+                }
             }
+            
+            bulkInfo = parsedSizes
+                ? `<div class="text-xs text-gray-400 mt-1">
+                      Bulk: ${order.bulk_quantity} pcs<br>
+                      Sizes: ${parsedSizes}
+                   </div>`
+                : `<div class="text-xs text-gray-400 mt-1">
+                      Bulk: ${order.bulk_quantity} pcs
+                   </div>`;
         }
 
         // Show proper total (quotation OR sample)
@@ -198,16 +199,37 @@ function renderOrders(data) {
                 <td class="px-4 py-4 font-medium text-white">#${order.id}</td>
                 <td class="px-4 py-4 text-gray-300">${productDetails}</td>
                 <td class="px-4 py-4"><span class="${statusClass} whitespace-nowrap">${statusLabel}</span></td>
-                <td class="px-4 py-4 text-gray-300">
-                    <div>
-                        Sample Size: ${order.sample_size || '—'}
-                    </div>
-                    ${bulkInfo}
+                <td class="px-4 py-4 text-gray-300 text-sm">
+                    <div>Sample: ${order.sample_size || '—'}</div>
+                    ${
+                        order.bulk_quantity
+                        ? `<div class="text-xs text-gray-400 mt-1">
+                              Bulk: ${order.bulk_quantity} pcs
+                              ${
+                                  order.size_distribution
+                                  ? `<br>Sizes: ${
+                                        Object.entries(
+                                            typeof order.size_distribution === 'string'
+                                            ? JSON.parse(order.size_distribution)
+                                            : order.size_distribution
+                                        )
+                                        .map(([s,q]) => `${s}:${q}`)
+                                        .join(', ')
+                                    }`
+                                  : ''
+                              }
+                           </div>`
+                        : ''
+                    }
                 </td>
                 <td class="px-4 py-4 text-gray-300">${order.delivery_date || '—'}</td>
                 <td class="px-4 py-4 text-gray-400 text-xs">
-                    ${order.address_line1 || ''}<br>
-                    ${order.city || ''}, ${order.state || ''} - ${order.pincode || ''}
+                    ${
+                        order.address_line1
+                        ? `${order.address_line1}<br>
+                           ${order.city || ''}, ${order.state || ''} - ${order.pincode || ''}`
+                        : '—'
+                    }
                 </td>
                 <td class="px-4 py-4 text-right text-white font-medium">${totalDisplay}</td>
                 <td class="px-4 py-4 text-right">

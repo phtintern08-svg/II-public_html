@@ -49,11 +49,39 @@ function renderOrderDetails(order) {
     document.getElementById("sum-order-id").textContent = `#${order.id}`;
     document.getElementById("sum-date").textContent = dateStr;
 
-    // Display Sample Cost only (as per user request)
-    const sampleCost = order.sample_cost || 0;
-    document.getElementById("sum-sample-cost").textContent = `₹${sampleCost.toLocaleString()}`;
+    // Display Sample Cost or Quotation Total
+    const totalPrice = order.quotation_total_price || order.sample_cost || 0;
+    document.getElementById("sum-sample-cost").textContent = `₹${totalPrice.toLocaleString()}`;
 
-    document.getElementById("sum-qty").textContent = `${order.quantity} pcs`;
+    // Show bulk quantity if available, otherwise show sample size or quantity
+    let quantityDisplay = '';
+    if (order.bulk_quantity && order.size_distribution) {
+        try {
+            const sizes = typeof order.size_distribution === 'string'
+                ? JSON.parse(order.size_distribution)
+                : order.size_distribution;
+
+            const sizeText = Object.entries(sizes)
+                .map(([s, q]) => `${s}: ${q}`)
+                .join(', ');
+
+            quantityDisplay = `
+                <div>${order.bulk_quantity} pcs</div>
+                <div style="font-size:12px;color:#9ca3af;margin-top:4px;">
+                    Sizes: ${sizeText}
+                </div>
+            `;
+        } catch (e) {
+            console.error("Invalid size distribution", e);
+            quantityDisplay = `${order.bulk_quantity} pcs`;
+        }
+    } else if (order.bulk_quantity) {
+        quantityDisplay = `${order.bulk_quantity} pcs`;
+    } else {
+        quantityDisplay = `${order.sample_size || order.quantity || 1} pcs`;
+    }
+    
+    document.getElementById("sum-qty").innerHTML = quantityDisplay;
     document.getElementById("sum-deadline").textContent = order.delivery_date || "N/A";
 
     // Product Configuration (Grid Items)
@@ -79,13 +107,89 @@ function renderOrderDetails(order) {
 
     document.getElementById("product-details").innerHTML = productHtml || '<span class="text-gray-500 italic col-span-2">No product details available</span>';
 
-    // Size Breakdown (if available in sizes field - for now we'll show total quantity)
-    // Since the backend doesn't have size breakdown, we'll hide this section or show total only
-    const sizeBreakdownCard = document.getElementById("size-breakdown-card");
-    if (order.sizes) {
-        // If sizes data exists, parse and display it
+    // Bulk Order Details Section (if bulk order exists)
+    if (order.bulk_quantity) {
+        // Check if bulk section already exists, remove it first to avoid duplicates
+        let bulkDiv = document.getElementById('bulk-order-details');
+        if (bulkDiv) {
+            bulkDiv.remove();
+        }
+        
+        bulkDiv = document.createElement('div');
+        bulkDiv.id = 'bulk-order-details';
+        bulkDiv.className = 'bg-[#0b1220] border border-gray-700 rounded-xl p-6';
+        
+        // Find the product details element, get its parent card, then get the parent container
+        const productDetailsEl = document.getElementById('product-details');
+        if (productDetailsEl) {
+            const productCard = productDetailsEl.closest('div.bg-\\[\\#0b1220\\]');
+            if (productCard && productCard.parentNode) {
+                // Insert after the product configuration card
+                productCard.parentNode.insertBefore(bulkDiv, productCard.nextSibling);
+            }
+        }
+        
         try {
-            const sizes = JSON.parse(order.sizes);
+            const sizes = order.size_distribution 
+                ? (typeof order.size_distribution === 'string'
+                    ? JSON.parse(order.size_distribution)
+                    : order.size_distribution)
+                : null;
+
+            bulkDiv.innerHTML = `
+                <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                    <i data-lucide="package" class="w-5 h-5 text-blue-400"></i>
+                    Bulk Order Details
+                </h2>
+                <div class="space-y-3">
+                    <div class="bg-[#111827] p-4 rounded-lg border border-gray-700">
+                        <span class="block text-gray-500 text-xs uppercase mb-1">Total Pieces</span>
+                        <span class="text-2xl font-bold text-white">${order.bulk_quantity}</span>
+                    </div>
+                    ${sizes ? `
+                        <div class="bg-[#111827] p-4 rounded-lg border border-gray-700">
+                            <span class="block text-gray-500 text-xs uppercase mb-3">Size Distribution</span>
+                            <ul class="space-y-2 text-sm text-gray-300">
+                                ${Object.entries(sizes)
+                                    .map(([s, q]) => `<li class="flex justify-between items-center">
+                                        <span>Size ${s}</span>
+                                        <span class="font-semibold text-white">${q} pcs</span>
+                                    </li>`)
+                                    .join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        } catch (e) {
+            console.error("Error rendering bulk order details", e);
+            bulkDiv.innerHTML = `
+                <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                    <i data-lucide="package" class="w-5 h-5 text-blue-400"></i>
+                    Bulk Order Details
+                </h2>
+                <div class="bg-[#111827] p-4 rounded-lg border border-gray-700">
+                    <span class="block text-gray-500 text-xs uppercase mb-1">Total Pieces</span>
+                    <span class="text-2xl font-bold text-white">${order.bulk_quantity}</span>
+                </div>
+            `;
+        }
+    } else {
+        // Remove bulk section if it exists but order is not bulk
+        const bulkDiv = document.getElementById('bulk-order-details');
+        if (bulkDiv) {
+            bulkDiv.remove();
+        }
+    }
+
+    // Size Breakdown - Use size_distribution if available
+    const sizeBreakdownCard = document.getElementById("size-breakdown-card");
+    if (order.size_distribution) {
+        try {
+            const sizes = typeof order.size_distribution === 'string'
+                ? JSON.parse(order.size_distribution)
+                : order.size_distribution;
+            
             const sizeHtml = Object.entries(sizes).map(([size, qty]) => {
                 if (qty > 0) {
                     return `
@@ -99,11 +203,22 @@ function renderOrderDetails(order) {
             }).join('');
 
             document.getElementById("size-breakdown").innerHTML = sizeHtml || '<span class="text-gray-500 italic">No size breakdown available</span>';
+            sizeBreakdownCard.style.display = 'block';
         } catch (e) {
+            console.error("Invalid size distribution", e);
             sizeBreakdownCard.style.display = 'none';
         }
+    } else if (order.bulk_quantity) {
+        // Show bulk quantity even without size breakdown
+        document.getElementById("size-breakdown").innerHTML = `
+            <div class="bg-[#111827] p-3 rounded-lg border border-gray-700 text-center">
+                <div class="text-xs text-gray-400 uppercase mb-1">Total Pieces</div>
+                <div class="text-lg font-bold text-white">${order.bulk_quantity}</div>
+            </div>
+        `;
+        sizeBreakdownCard.style.display = 'block';
     } else {
-        // Hide size breakdown card if no data
+        // Hide size breakdown card if no bulk data
         sizeBreakdownCard.style.display = 'none';
     }
 
