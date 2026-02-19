@@ -100,8 +100,14 @@ async function fetchRiderRequests() {
 
         const data = await response.json();
         const all = data.riders || data || [];
-        riderRequests = Array.isArray(all) ? all : [];
-        
+        // Normalize field names to handle both camelCase and snake_case from backend
+        riderRequests = (Array.isArray(all) ? all : []).map(r => ({
+            ...r,
+            vehicleType: r.vehicleType || r.vehicle_type,
+            vehicleNumber: r.vehicleNumber || r.vehicle_number,
+            serviceZone: r.serviceZone || r.service_zone || r.zone
+        }));
+            
         calculateSummary();
         filterRequests();
     } catch (e) {
@@ -501,8 +507,11 @@ function previewDocument(url, filename, type) {
         ? `<img src="${url}" class="max-w-full max-h-[70vh] object-contain mx-auto rounded-md shadow-lg" alt="${filename}">`
         : `<iframe src="${url}" class="w-full h-[70vh] rounded-md border border-gray-700 bg-white" frameborder="0"></iframe>`;
 
+    // Prevent background scrolling
+    document.body.style.overflow = 'hidden';
+    
     const modalHtml = `
-    <div id="previewModal" class="fixed inset-0 flex items-center justify-center z-[150]">
+    <div id="previewModal" class="fixed inset-0 flex items-center justify-center z-[2000]">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity" onclick="closePreviewModal()"></div>
         
         <div class="relative bg-[#1a202c] border border-gray-700 rounded-xl shadow-2xl w-full max-w-4xl mx-4 flex flex-col max-h-[90vh] overflow-hidden">
@@ -545,6 +554,8 @@ function previewDocument(url, filename, type) {
 function closePreviewModal() {
     const el = document.getElementById('previewModal');
     if (el) el.remove();
+    // Restore background scrolling
+    document.body.style.overflow = '';
 }
 
 function closeRiderModal() {

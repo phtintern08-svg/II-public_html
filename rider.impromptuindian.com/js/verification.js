@@ -279,6 +279,24 @@ function getFieldValidator(fieldName) {
     return validators[fieldName] || null;
 }
 
+function getFieldMaxLength(fieldName) {
+    const maxLengths = {
+        'aadhar_number': 14, // 12 digits + 2 spaces for formatting (XXXX XXXX XXXX)
+        'pan_number': 10,
+        'dl_number': 16, // SS-RRYYYYNNNNNNN format
+        'dl_name': 100, // Name on DL
+        'dl_validity': 10, // Date format YYYY-MM-DD
+        'vehicle_rc_number': 15,
+        'insurance_policy_number': 20,
+        'bank_account_number': 18,
+        'bank_holder_name': 100, // Account holder name
+        'bank_branch': 100, // Branch name
+        'ifsc_code': 11,
+        'vehicle_number': 10
+    };
+    return maxLengths[fieldName] || null;
+}
+
 function validateField(fieldName, value) {
     const validator = getFieldValidator(fieldName);
     if (!validator) return { valid: true, message: '', cleaned: value };
@@ -525,6 +543,8 @@ function renderDocumentsGrid() {
                 const displayStyle = shouldHide ? 'display: none !important;' : 'display: block !important;';
 
                 const disabled = !canUpload ? 'disabled' : '';
+                const maxLength = getFieldMaxLength(field.name);
+                const maxLengthAttr = maxLength ? `maxlength="${maxLength}"` : '';
                 return `
                     <div class="mt-2" style="${displayStyle}">
                         <label class="text-xs text-gray-400 block mb-1">${field.placeholder}</label>
@@ -536,6 +556,7 @@ function renderDocumentsGrid() {
                                value="${val}"
                                data-field-name="${field.name}"
                                data-doc-type="${docType.id}"
+                               ${maxLengthAttr}
                                oninput="window.updateExtraField('${docType.id}', '${field.name}', this.value)"
                                onblur="window.validateInputField('${docType.id}', '${field.name}')"
                                ${disabled}
@@ -796,23 +817,37 @@ window.updateExtraField = function (docId, fieldName, value) {
         // Format Aadhar with spaces (XXXX XXXX XXXX)
         if (fieldName === 'aadhar_number') {
             const cleaned = value.replace(/\D/g, '');
-            if (cleaned.length <= 12) {
-                const formatted = cleaned.replace(/(\d{4})(?=\d)/g, '$1 ');
+            // Limit to 12 digits
+            const limited = cleaned.substring(0, 12);
+            if (limited.length <= 12) {
+                const formatted = limited.replace(/(\d{4})(?=\d)/g, '$1 ');
                 input.value = formatted.trim();
-                value = cleaned;
+                value = limited;
             }
         }
         
         // Format DL with hyphen (SS-RRYYYYNNNNNNN)
         if (fieldName === 'dl_number') {
             const cleaned = value.replace(/[\s-]/g, '').toUpperCase();
-            if (cleaned.length >= 2 && cleaned.length <= 15) {
-                let formatted = cleaned;
-                if (cleaned.length > 2) {
-                    formatted = cleaned.substring(0, 2) + '-' + cleaned.substring(2);
+            // Limit to 15 characters (before formatting)
+            const limited = cleaned.substring(0, 15);
+            if (limited.length >= 2 && limited.length <= 15) {
+                let formatted = limited;
+                if (limited.length > 2) {
+                    formatted = limited.substring(0, 2) + '-' + limited.substring(2);
                 }
                 input.value = formatted;
-                value = cleaned;
+                value = limited;
+            }
+        }
+        
+        // Enforce maxlength for other fields
+        const maxLength = getFieldMaxLength(fieldName);
+        if (maxLength && value.length > maxLength) {
+            // For fields without special formatting, just truncate
+            if (!['aadhar_number', 'dl_number'].includes(fieldName)) {
+                input.value = value.substring(0, maxLength);
+                value = value.substring(0, maxLength);
             }
         }
     }

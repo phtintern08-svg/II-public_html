@@ -5,6 +5,11 @@ body {
     background-color: var(--bg-dark);
 }
 
+/* Preview Modal - Ensure it appears above all other modals */
+#previewModal {
+    z-index: 2000 !important;
+}
+
 /* Spin animation for refresh button */
 @keyframes spin {
     from {
