@@ -937,3 +937,12 @@ table tbody td.text-right {
         height: 2rem;
     }
 }
+
+/* ========================================
+   PREVIEW MODAL - Always Above Everything
+   ======================================== */
+#previewModal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999 !important;
+}

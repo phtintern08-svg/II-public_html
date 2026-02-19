@@ -700,7 +700,7 @@ function previewDocument(url, filename, type) {
     : `<iframe src="${url}" class="w-full h-[70vh] rounded-md border border-gray-700 bg-white" frameborder="0"></iframe>`;
 
   const modalHtml = `
-    <div id="previewModal" class="fixed inset-0 flex items-center justify-center z-[150]">
+    <div id="previewModal" class="fixed inset-0 flex items-center justify-center" style="z-index: 9999;">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity" onclick="closePreviewModal()"></div>
         
         <div class="relative bg-[#1a202c] border border-gray-700 rounded-xl shadow-2xl w-full max-w-4xl mx-4 flex flex-col max-h-[90vh] overflow-hidden">
@@ -737,12 +737,25 @@ function previewDocument(url, filename, type) {
   if (existing) existing.remove();
 
   document.body.insertAdjacentHTML('beforeend', modalHtml);
+  
+  // Blur vendor modal when preview opens
+  const vendorModal = document.getElementById('vendor-modal');
+  if (vendorModal && !vendorModal.classList.contains('hidden')) {
+    vendorModal.style.filter = "blur(4px)";
+  }
+  
   if (window.lucide) lucide.createIcons();
 }
 
 function closePreviewModal() {
   const m = document.getElementById('previewModal');
   if (m) m.remove();
+  
+  // Remove blur from vendor modal when preview closes
+  const vendorModal = document.getElementById('vendor-modal');
+  if (vendorModal) {
+    vendorModal.style.filter = "";
+  }
 }
 
 // Keyboard shortcuts
