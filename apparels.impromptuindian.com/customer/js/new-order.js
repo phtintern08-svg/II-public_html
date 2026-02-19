@@ -2833,11 +2833,13 @@ function initPlaceOrder() {
       sample_cost: numericCost,
       payment_method: window.paymentDetails?.method || 'card',
       payment_details: JSON.stringify(window.paymentDetails || {}),
-      // 🔥 BULK ORDER FIELDS: Only include if this is a bulk order
+      // 🔥 BULK ORDER FIELDS: Store bulk intent but keep it INACTIVE until sample approval
+      // 🔥 ARCHITECTURE FIX: is_bulk_order is ALWAYS false at creation (bulk is just intent)
+      // Bulk becomes active only after sample approval when customer chooses to proceed
       ...(isBulkOrder && {
         bulk_quantity: total,
         size_distribution: sizeDistribution,
-        is_bulk_order: true
+        is_bulk_order: false  // 🔥 FIX: Always false initially - bulk activates after sample approval
       })
     };
 
