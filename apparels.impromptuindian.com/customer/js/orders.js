@@ -71,11 +71,11 @@ async function fetchOrders() {
             renderOrders(allOrders);
         } else {
             console.error('Failed to fetch orders');
-            document.getElementById('ordersTable').innerHTML = '<tr><td colspan="7" class="text-center py-4 text-red-400">Failed to load orders.</td></tr>';
+            document.getElementById('ordersTable').innerHTML = '<tr><td colspan="8" class="text-center py-4 text-red-400">Failed to load orders.</td></tr>';
         }
     } catch (error) {
         console.error('Error fetching orders:', error);
-        document.getElementById('ordersTable').innerHTML = '<tr><td colspan="7" class="text-center py-4 text-red-400">Error loading orders.</td></tr>';
+        document.getElementById('ordersTable').innerHTML = '<tr><td colspan="8" class="text-center py-4 text-red-400">Error loading orders.</td></tr>';
     }
 }
 
@@ -106,10 +106,10 @@ function renderOrders(data) {
     if (table) table.innerHTML = '';
     if (mobileList) mobileList.innerHTML = '';
 
-    if (!data || data.length === 0) {
+        if (!data || data.length === 0) {
         const emptyState = `
             <tr>
-                <td colspan="7" class="text-center py-12 text-gray-400">
+                <td colspan="8" class="text-center py-12 text-gray-400">
                     <div class="flex flex-col items-center gap-2">
                         <i data-lucide="package-open" class="w-10 h-10 opacity-50"></i>
                         <p>No orders found yet</p>
@@ -134,12 +134,50 @@ function renderOrders(data) {
     data.sort((a, b) => b.id - a.id);
 
     data.forEach((order, index) => {
-        // Construct Product Details (e.g., "T-Shirt - Cotton")
-        const productParts = [order.product_type, order.category, order.fabric].filter(Boolean);
-        const productDetails = productParts.length ? productParts.join(' • ') : 'Custom order';
+        // Build full product details
+        const productParts = [
+            order.product_type,
+            order.category,
+            order.neck_type,
+            order.fabric,
+            order.color,
+            order.print_type
+        ].filter(Boolean);
 
-        // UPDATED: Show only sample cost paid, not bulk estimate
-        const calculatedTotal = order.sample_cost || 0;
+        const productDetails = productParts.length 
+            ? productParts.join(' • ') 
+            : 'Custom order';
+
+        // Bulk Handling
+        let bulkInfo = '';
+        let parsedSizes = '';
+
+        if (order.bulk_quantity && order.size_distribution) {
+            try {
+                const sizes = typeof order.size_distribution === 'string'
+                    ? JSON.parse(order.size_distribution)
+                    : order.size_distribution;
+
+                parsedSizes = Object.entries(sizes)
+                    .map(([size, qty]) => `${size}: ${qty}`)
+                    .join(', ');
+
+                bulkInfo = `
+                    <div class="text-xs text-gray-400 mt-1">
+                        Bulk: ${order.bulk_quantity} pcs
+                        <br>Sizes → ${parsedSizes}
+                    </div>
+                `;
+            } catch (e) {
+                console.error("Invalid size distribution", e);
+            }
+        }
+
+        // Show proper total (quotation OR sample)
+        const calculatedTotal =
+            order.quotation_total_price ||
+            order.sample_cost ||
+            0;
 
         // Status Badge Class
         const normalizedStatus = (order.status || 'pending').toString();
@@ -160,8 +198,17 @@ function renderOrders(data) {
                 <td class="px-4 py-4 font-medium text-white">#${order.id}</td>
                 <td class="px-4 py-4 text-gray-300">${productDetails}</td>
                 <td class="px-4 py-4"><span class="${statusClass} whitespace-nowrap">${statusLabel}</span></td>
-                <td class="px-4 py-4 text-gray-300">${order.quantity}</td>
+                <td class="px-4 py-4 text-gray-300">
+                    <div>
+                        Sample Size: ${order.sample_size || '—'}
+                    </div>
+                    ${bulkInfo}
+                </td>
                 <td class="px-4 py-4 text-gray-300">${order.delivery_date || '—'}</td>
+                <td class="px-4 py-4 text-gray-400 text-xs">
+                    ${order.address_line1 || ''}<br>
+                    ${order.city || ''}, ${order.state || ''} - ${order.pincode || ''}
+                </td>
                 <td class="px-4 py-4 text-right text-white font-medium">${totalDisplay}</td>
                 <td class="px-4 py-4 text-right">
                     <button onclick="goDetails(${order.id})" 
@@ -191,16 +238,29 @@ function renderOrders(data) {
                     <p class="text-xs text-gray-400 mt-1">${productDetails}</p>
                 </div>
 
+                ${bulkInfo ? `
+                <div class="bg-[#111827] rounded p-2 border border-gray-700 text-xs text-gray-400">
+                    ${bulkInfo}
+                </div>
+                ` : ''}
+
                 <!-- Metrics Grid Boxes -->
                 <div class="grid grid-cols-2 gap-2">
                     <div class="bg-[#111827] rounded p-2 border border-gray-700 flex flex-col items-center justify-center">
-                         <span class="text-[10px] text-gray-500 uppercase">Quantity</span>
-                         <span class="text-sm font-semibold text-white">${order.quantity}</span>
+                         <span class="text-[10px] text-gray-500 uppercase">Sample Size</span>
+                         <span class="text-sm font-semibold text-white">${order.sample_size || '—'}</span>
                     </div>
                     <div class="bg-[#111827] rounded p-2 border border-gray-700 flex flex-col items-center justify-center">
-                         <span class="text-[10px] text-gray-500 uppercase">Sample Paid</span>
+                         <span class="text-[10px] text-gray-500 uppercase">Total</span>
                          <span class="text-sm font-semibold text-white">${totalDisplay}</span>
                     </div>
+                </div>
+
+                <!-- Address Box -->
+                <div class="bg-[#111827] rounded p-2 border border-gray-700 text-xs text-gray-400">
+                    <span class="text-[10px] text-gray-500 uppercase block mb-1">Delivery Address</span>
+                    ${order.address_line1 || ''}<br>
+                    ${order.city || ''}, ${order.state || ''} - ${order.pincode || ''}
                 </div>
 
                 <!-- Deadline Box -->
