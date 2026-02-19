@@ -140,7 +140,7 @@ const sidebarHTML = (status) => {
     `).join('');
 
   return `
-<aside class="sidebar bg-[#1273EB] flex flex-col justify-between h-screen fixed md:relative z-50 transition-all duration-300 -translate-x-full md:translate-x-0 w-[265px] shrink-0">
+<aside class="sidebar bg-[#1273EB] flex flex-col justify-between h-screen fixed left-0 top-0 w-[265px] shrink-0 z-40">
   <div class="p-5 flex items-center gap-3 text-xl font-bold">
     <i data-lucide="shirt" class="w-6 h-6 text-[#FFCC00]"></i>
     <a href="home.html">
@@ -161,10 +161,6 @@ const sidebarHTML = (status) => {
     </div>
   </div>
 </aside>
-
-<button id="mobile-menu-toggle" class="md:hidden fixed top-4 right-4 z-50 p-2 rounded-full shadow-lg transition" style="background-color: #FFCC00;">
-  <i data-lucide="menu" class="w-6 h-6" style="color: #1273EB;"></i>
-</button>
 
 <style>
   /* Hide scrollbar while maintaining scroll functionality */
@@ -283,24 +279,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (window.lucide) {
       lucide.createIcons();
-    }
-
-    const toggleBtn = document.getElementById("mobile-menu-toggle");
-    const sidebar = container.querySelector(".sidebar");
-
-    if (toggleBtn && sidebar) {
-      toggleBtn.addEventListener("click", () => {
-        sidebar.classList.toggle("-translate-x-full");
-      });
-
-      document.addEventListener("click", (e) => {
-        if (window.innerWidth < 768 &&
-          !sidebar.contains(e.target) &&
-          !toggleBtn.contains(e.target) &&
-          !sidebar.classList.contains("-translate-x-full")) {
-          sidebar.classList.add("-translate-x-full");
-        }
-      });
     }
 
     setActiveLink();
