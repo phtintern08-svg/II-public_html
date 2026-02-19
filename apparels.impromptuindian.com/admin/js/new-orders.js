@@ -141,7 +141,9 @@ async function fetchOrders() {
         details: [o.color, o.neck_type, o.fabric, o.print_type].filter(Boolean).join(', '),
         address: `${o.address_line1}, ${o.city}`,
         urgent: false,
-        vendor: null
+        vendor: null,
+        // ✅ NEW: Store size distribution for bulk orders
+        sizeDistribution: o.size_distribution || null
       }));
 
     filterOrders();
@@ -327,8 +329,9 @@ function renderOrders(ordersToRender = orders) {
           <span class="px-2 py-1 rounded-md bg-blue-500/10 text-blue-400 text-xs font-bold uppercase tracking-wider">${o.type}</span>
         </td>
         <td data-label="Qty">
-          <span class="font-bold text-gray-200">${o.qty}</span>
+          <span class="font-bold text-gray-200">${o.isBulk && o.bulkQty ? o.bulkQty : o.qty}</span>
           <span class="text-xs text-gray-500 ml-1">pcs</span>
+          ${o.isBulk ? '<span class="text-[10px] text-blue-400 ml-1">(bulk)</span>' : ''}
         </td>
         <td class="font-bold text-yellow-400 whitespace-nowrap" data-label="Amount">₹${o.amount > 0 ? o.amount.toLocaleString() : '—'}</td>
         <td data-label="Deadline">
@@ -484,6 +487,25 @@ async function openOrderModal(id) {
               <span class="text-xs text-gray-500 font-normal ml-1">Pieces</span>
               ${order.isBulk ? '<span class="text-xs text-blue-400 ml-2">Bulk Order</span>' : ''}
             </div>
+            ${order.sizeDistribution ? `
+            <div class="text-gray-500 col-span-2 mt-4">Size Distribution</div>
+            <div class="col-span-2 bg-black/20 p-4 rounded-lg border border-white/5 text-sm space-y-2">
+              ${
+                Object.entries(
+                  typeof order.sizeDistribution === 'string'
+                    ? JSON.parse(order.sizeDistribution)
+                    : order.sizeDistribution
+                )
+                .map(([size, qty]) => `
+                  <div class="flex justify-between">
+                    <span class="text-gray-400">Size ${size}</span>
+                    <span class="font-semibold text-white">${qty} pcs</span>
+                  </div>
+                `)
+                .join('')
+              }
+            </div>
+            ` : ''}
             
             <div class="text-gray-500">Sample Paid</div>
             <div class="font-bold text-yellow-400">₹${order.amount > 0 ? order.amount.toLocaleString() : '—'}</div>
