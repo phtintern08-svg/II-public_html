@@ -501,34 +501,7 @@ body {
 
 table {
     width: 100%;
-    table-layout: fixed;
     border-collapse: collapse;
-}
-
-/* Column Distribution */
-table th:nth-child(1),
-table td:nth-child(1) {
-    width: 35%;   /* Vendor Name */
-}
-
-table th:nth-child(2),
-table td:nth-child(2) {
-    width: 20%;   /* Business Type */
-}
-
-table th:nth-child(3),
-table td:nth-child(3) {
-    width: 18%;   /* Submitted On */
-}
-
-table th:nth-child(4),
-table td:nth-child(4) {
-    width: 15%;   /* Status */
-}
-
-table th:nth-child(5),
-table td:nth-child(5) {
-    width: 12%;   /* Actions */
 }
 
 table thead th {
@@ -583,9 +556,14 @@ table tbody td {
     font-size: 0.875rem;
     color: #cbd5e1;
     vertical-align: middle;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+}
+
+/* Fix first column flex alignment */
+table tbody td:first-child > div {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
 }
 
 table tbody td:first-child {
