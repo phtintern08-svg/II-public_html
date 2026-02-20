@@ -4,8 +4,3 @@ PassengerBaseURI "/"
 PassengerPython "/home/impromptuindian/virtualenv/backend/3.11/bin/python"
 PassengerAppLogFile "/home/impromptuindian/logs/passenger.log"
 # DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
-
-# Route root path to Passenger (Flask) instead of static index.html
-# This ensures the global lock works for the main domain
-# Disable DirectoryIndex so Apache doesn't serve index.html before Passenger
-DirectoryIndex disabled
