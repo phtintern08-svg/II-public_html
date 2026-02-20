@@ -18,21 +18,17 @@ document.addEventListener('DOMContentLoaded', () => {
 // Load profile data
 async function loadProfile() {
     try {
-        const token = localStorage.getItem('token');
-        if (!token || token.length < 20) {
-            console.error("Invalid token in storage:", token);
-            window.location.href = 'https://apparels.impromptuindian.com/login.html';
-            return;
-        }
-
+        // 🔥 FIX: Use HttpOnly cookies for authentication (shared across subdomains)
         const response = await ImpromptuIndianApi.fetch('/api/rider/profile', {
             method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            credentials: 'include'  // Send cookies automatically
         });
 
         if (!response.ok) {
+            if (response.status === 401) {
+                window.location.href = 'https://apparels.impromptuindian.com/login.html';
+                return;
+            }
             throw new Error('Failed to fetch profile');
         }
 
@@ -76,17 +72,10 @@ async function loadProfile() {
 // Load performance metrics
 async function loadPerformanceMetrics() {
     try {
-        const token = localStorage.getItem('token');
-        if (!token || token.length < 20) {
-            console.error("Invalid token in storage:", token);
-            return;
-        }
-
+        // 🔥 FIX: Use HttpOnly cookies for authentication
         const response = await ImpromptuIndianApi.fetch('/api/rider/status', {
             method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            credentials: 'include'  // Send cookies automatically
         });
 
         if (!response.ok) return;
@@ -124,19 +113,13 @@ async function updateProfile() {
     }
 
     try {
-        const token = localStorage.getItem('token');
-        if (!token || token.length < 20) {
-            console.error("Invalid token in storage:", token);
-            window.location.href = 'https://apparels.impromptuindian.com/login.html';
-            return;
-        }
-
+        // 🔥 FIX: Use HttpOnly cookies for authentication
         const response = await ImpromptuIndianApi.fetch('/api/rider/profile', {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
+            credentials: 'include',  // Send cookies automatically
             body: JSON.stringify({
                 email: email
             })
