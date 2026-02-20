@@ -15,6 +15,13 @@ let riderRequests = [];
 let filteredRiderRequests = [];
 let currentRiderId = null;
 
+// Normalize status values for UI consistency
+function normalizeStatus(status) {
+    if (status === 'under-review') return 'pending';
+    if (!status || status === 'not-submitted') return 'pending';
+    return status;
+}
+
 // Animate number from 0 to target
 function animateNumber(element, target, duration = 1000) {
     if (!element) return;
@@ -42,8 +49,8 @@ function animateNumber(element, target, duration = 1000) {
 // Calculate and update summary statistics
 function calculateSummary() {
     const total = riderRequests.length;
-    const pending = riderRequests.filter(r => (r.status || '').toLowerCase() === 'pending').length;
-    const underReview = riderRequests.filter(r => (r.status || '').toLowerCase() === 'under-review').length;
+    const pending = riderRequests.filter(r => normalizeStatus(r.status) === 'pending').length;
+    const underReview = riderRequests.filter(r => normalizeStatus(r.status) === 'under-review').length;
     
     // Calculate requests submitted this month
     const now = new Date();
@@ -100,12 +107,19 @@ async function fetchRiderRequests() {
 
         const data = await response.json();
         const all = data.riders || data || [];
-        // Normalize field names to handle both camelCase and snake_case from backend
+        // Normalize data shape to match frontend expectations (mirror vendor pattern)
         riderRequests = (Array.isArray(all) ? all : []).map(r => ({
-            ...r,
-            vehicleType: r.vehicleType || r.vehicle_type,
-            vehicleNumber: r.vehicleNumber || r.vehicle_number,
-            serviceZone: r.serviceZone || r.service_zone || r.zone
+            id: r.id,
+            name: r.name || 'Unknown',
+            email: r.email || 'N/A',
+            phone: r.phone || 'N/A',
+            vehicleType: r.vehicleType || r.vehicle_type || 'N/A',
+            vehicleNumber: r.vehicleNumber || r.vehicle_number || 'N/A',
+            serviceZone: r.serviceZone || r.service_zone || r.zone || 'N/A',
+            submitted: r.submitted || (r.created_at ? new Date(r.created_at).toLocaleDateString() : 'N/A'),
+            status: normalizeStatus(r.status || r.verification_status),
+            documents: r.documents || {},
+            adminRemarks: r.adminRemarks || r.admin_remarks || ''
         }));
             
         calculateSummary();
@@ -211,7 +225,7 @@ function renderRequests(data) {
 
     data.forEach((r, index) => {
         // Status badge styling
-        const status = (r.status || '').toLowerCase();
+        const status = normalizeStatus(r.status);
         let statusClass = 'status-pending';
         if (status === 'rejected') statusClass = 'status-rejected';
         if (status === 'under-review') statusClass = 'status-under-review';
@@ -269,7 +283,8 @@ function filterRequests() {
     }
 
     filteredRiderRequests = riderRequests.filter(r => {
-        const matchesStatus = status === 'all' || (r.status || '').toLowerCase() === status.toLowerCase();
+        const normalizedStatus = normalizeStatus(r.status);
+        const matchesStatus = status === 'all' || normalizedStatus === status.toLowerCase();
         const matchesSearch = 
             (r.name || '').toLowerCase().includes(search) || 
             (r.email || '').toLowerCase().includes(search) ||
@@ -494,24 +509,15 @@ function openRiderModal(id) {
 }
 
 function previewDocument(url, filename, type) {
-    // Determine if we can preview it roughly by extension or just try iframe
-    // Images and PDFs are good in iframe/img.
-    // We'll use an iframe for broad compatibility (PDFs) and img for images if we wanted specific handling,
-    // but iframe handles both usually.
-    // However, for better image scaling, let's check extension.
-
-    // Clean filename check
+    // Check if image for simpler preview
     const isImg = filename.toLowerCase().match(/\.(jpeg|jpg|png|gif|webp)$/i);
 
     const previewContent = isImg
         ? `<img src="${url}" class="max-w-full max-h-[70vh] object-contain mx-auto rounded-md shadow-lg" alt="${filename}">`
         : `<iframe src="${url}" class="w-full h-[70vh] rounded-md border border-gray-700 bg-white" frameborder="0"></iframe>`;
 
-    // Prevent background scrolling
-    document.body.style.overflow = 'hidden';
-    
     const modalHtml = `
-    <div id="previewModal" class="fixed inset-0 flex items-center justify-center z-[2000]">
+    <div id="previewModal" class="fixed inset-0 flex items-center justify-center" style="z-index: 9999;">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity" onclick="closePreviewModal()"></div>
         
         <div class="relative bg-[#1a202c] border border-gray-700 rounded-xl shadow-2xl w-full max-w-4xl mx-4 flex flex-col max-h-[90vh] overflow-hidden">
@@ -548,14 +554,25 @@ function previewDocument(url, filename, type) {
     if (existing) existing.remove();
 
     document.body.insertAdjacentHTML('beforeend', modalHtml);
-    lucide.createIcons();
+    
+    // Blur rider modal when preview opens
+    const riderModal = document.getElementById('rider-modal');
+    if (riderModal && !riderModal.classList.contains('hidden')) {
+        riderModal.style.filter = "blur(4px)";
+    }
+    
+    if (window.lucide) lucide.createIcons();
 }
 
 function closePreviewModal() {
-    const el = document.getElementById('previewModal');
-    if (el) el.remove();
-    // Restore background scrolling
-    document.body.style.overflow = '';
+    const m = document.getElementById('previewModal');
+    if (m) m.remove();
+    
+    // Remove blur from rider modal when preview closes
+    const riderModal = document.getElementById('rider-modal');
+    if (riderModal) {
+        riderModal.style.filter = "";
+    }
 }
 
 function closeRiderModal() {
@@ -575,30 +592,29 @@ async function approveRider() {
 
 async function performApprove() {
     try {
-        const token = localStorage.getItem('token');
-        const resp = await ImpromptuIndianApi.fetch(`/api/admin/riders/${currentRiderId}/verify`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+        const response = await ImpromptuIndianApi.fetch(`/api/admin/riders/${currentRiderId}/approve`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json'
             },
+            credentials: 'include',  // Use cookie-based authentication
             body: JSON.stringify({
-                status: 'verified',
                 remarks: 'Approved by admin'
             })
         });
-        if (resp.ok) {
+
+        if (response.ok) {
+            showToast('Rider approved');
             closeRiderModal();
-            fetchRiderRequests(); // Refresh list
+            fetchRiderRequests();
             if (window.fetchSidebarCounts) window.fetchSidebarCounts();
-            if (window.showAlert) window.showAlert('Success', 'Rider approved successfully', 'success');
         } else {
-            const err = await resp.json();
-            if (window.showAlert) window.showAlert('Error', err.error || 'Failed to approve', 'error');
+            const errorData = await response.json().catch(() => ({ error: 'Failed to approve rider' }));
+            showToast(errorData.error || 'Failed to approve rider');
         }
     } catch (e) {
         console.error(e);
-        if (window.showAlert) window.showAlert('Error', 'Network error', 'error');
+        showToast('Error approving rider');
     }
 }
 
@@ -671,31 +687,27 @@ async function executeRejection(reason, rejectedDocs = {}) {
     if (!currentRiderId) return;
 
     try {
-        const payload = {
-            reason: reason,
-            rejected_documents: rejectedDocs
-        };
-
-        const token = localStorage.getItem('token');
-        const response = await ImpromptuIndianApi.fetch(`/api/admin/riders/${currentRiderId}/verify`, {
-            method: 'PUT',
+        const response = await ImpromptuIndianApi.fetch(`/api/admin/riders/${currentRiderId}/reject`, {
+            method: 'POST',
             headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
+            credentials: 'include',  // Use cookie-based authentication
             body: JSON.stringify({
-                status: 'rejected',
-                remarks: payload.reason || 'Rejected by admin'
+                reason: reason,
+                rejected_documents: rejectedDocs
             })
         });
 
         if (response.ok) {
-            showToast('Rider rejected successfully');
+            showToast('Rider rejected');
             closeRejectionModal();
             closeRiderModal();
             fetchRiderRequests();
+            if (window.fetchSidebarCounts) window.fetchSidebarCounts();
         } else {
-            const err = await response.json();
+            const errorData = await response.json().catch(() => ({ error: 'Failed to reject rider' }));
+            showToast(errorData.error || 'Failed to reject rider');
             showToast(err.error || 'Failed to reject rider');
         }
     } catch (e) {
