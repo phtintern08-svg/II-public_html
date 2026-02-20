@@ -355,6 +355,11 @@ async function moveToProduction() {
             }
         }
 
+        // 🔥 FIX: Refresh order stats immediately for real-time update
+        if (window.fetchOrderStats) {
+            window.fetchOrderStats();
+        }
+
     } catch (e) {
         console.error('Error moving order to production:', e);
         showToast(e.message || 'Error moving order to production', 'error');
