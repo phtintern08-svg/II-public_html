@@ -58,21 +58,13 @@ if (tokenFromUrl && tokenFromUrl.length >= 20) {
     window.history.replaceState({}, document.title, window.location.pathname);
 }
 
-// Verify authentication via API using JWT token
+// Verify authentication via API using HttpOnly cookies
 (async () => {
     try {
-        const token = localStorage.getItem('token');
-        if (!token || token.length < 20) {
-            console.error("Invalid token in storage:", token);
-            window.location.href = 'https://apparels.impromptuindian.com/login.html';
-            return;
-        }
-
+        // 🔥 FIX: Use HttpOnly cookies for authentication (shared across subdomains)
         const response = await ImpromptuIndianApi.fetch('/api/verify-token', {
             method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            credentials: 'include'  // Send cookies automatically
         });
         
         if (!response.ok) {

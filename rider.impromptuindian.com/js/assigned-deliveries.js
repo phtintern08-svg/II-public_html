@@ -29,17 +29,10 @@ async function checkOnlineStatus() {
             return;
         }
 
-        const token = localStorage.getItem('token');
-        if (!token || token.length < 20) {
-            console.error("Invalid token in storage:", token);
-            window.location.href = 'https://apparels.impromptuindian.com/login.html';
-            return;
-        }
-
+        // 🔥 FIX: Use HttpOnly cookies for authentication
         const response = await ImpromptuIndianApi.fetch(`/api/rider/profile`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            method: 'GET',
+            credentials: 'include'  // Send cookies automatically
         });
 
         if (response.ok) {
@@ -79,17 +72,10 @@ async function loadDeliveries() {
             return;
         }
 
-        const token = localStorage.getItem('token');
-        if (!token || token.length < 20) {
-            console.error("Invalid token in storage:", token);
-            window.location.href = 'https://apparels.impromptuindian.com/login.html';
-            return;
-        }
-
+        // 🔥 FIX: Use HttpOnly cookies for authentication
         const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/assigned`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            method: 'GET',
+            credentials: 'include'  // Send cookies automatically
         });
 
         if (response.ok) {
@@ -345,19 +331,13 @@ async function markReachedVendor(deliveryId) {
        For now, just update status.
     */
     try {
-        const token = localStorage.getItem('token');
-        if (!token || token.length < 20) {
-            console.error("Invalid token in storage:", token);
-            window.location.href = 'https://apparels.impromptuindian.com/login.html';
-            return;
-        }
-
+        // 🔥 FIX: Use HttpOnly cookies for authentication
         const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${deliveryId}/status`, {
             method: 'PUT',
             headers: {
-                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
+            credentials: 'include',  // Send cookies automatically
             body: JSON.stringify({
                 status: 'reached_vendor',
                 latitude: currentLat, // global vars from getLiveLocation()
@@ -431,18 +411,10 @@ async function uploadPickupProof(event) {
     formData.append('notes', document.getElementById('pickupNotes').value);
 
     try {
-        const token = localStorage.getItem('token');
-        if (!token || token.length < 20) {
-            console.error("Invalid token in storage:", token);
-            window.location.href = 'https://apparels.impromptuindian.com/login.html';
-            return;
-        }
-
+        // 🔥 FIX: Use HttpOnly cookies for authentication
         const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${currentDeliveryId}/pickup-proof`, {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
+            credentials: 'include',  // Send cookies automatically
             body: formData
         });
 
@@ -495,18 +467,10 @@ async function uploadDeliveryProof(event) {
     formData.append('notes', document.getElementById('deliveryNotes').value);
 
     try {
-        const token = localStorage.getItem('token');
-        if (!token || token.length < 20) {
-            console.error("Invalid token in storage:", token);
-            window.location.href = 'https://apparels.impromptuindian.com/login.html';
-            return;
-        }
-
+        // 🔥 FIX: Use HttpOnly cookies for authentication
         const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${currentDeliveryId}/delivery-proof`, {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
+            credentials: 'include',  // Send cookies automatically
             body: formData
         });
 
@@ -696,19 +660,13 @@ async function startDelivery(deliveryId) {
     }
 
     try {
-        const token = localStorage.getItem('token');
-        if (!token || token.length < 20) {
-            console.error("Invalid token in storage:", token);
-            window.location.href = 'https://apparels.impromptuindian.com/login.html';
-            return;
-        }
-
+        // 🔥 FIX: Use HttpOnly cookies for authentication
         const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${deliveryId}/status`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
+            credentials: 'include',  // Send cookies automatically
             body: JSON.stringify({ status: 'out_for_delivery' })
         });
 
@@ -758,19 +716,13 @@ async function markReachedVendor(deliveryId) {
             }
         }
 
-        const token = localStorage.getItem('token');
-        if (!token || token.length < 20) {
-            console.error("Invalid token in storage:", token);
-            window.location.href = 'https://apparels.impromptuindian.com/login.html';
-            return;
-        }
-
+        // 🔥 FIX: Use HttpOnly cookies for authentication
         const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${deliveryId}/status`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
+            credentials: 'include',  // Send cookies automatically
             body: JSON.stringify({
                 status: 'reached_vendor',
                 latitude: latitude,
@@ -797,17 +749,10 @@ async function navigateToPickup(deliveryId) {
         showToast('Fetching delivery route...', 'info');
 
         // 1. Fetch delivery details from backend to get addresses
-        const token = localStorage.getItem('token');
-        if (!token || token.length < 20) {
-            console.error("Invalid token in storage:", token);
-            window.location.href = 'https://apparels.impromptuindian.com/login.html';
-            return;
-        }
-
+        // 🔥 FIX: Use HttpOnly cookies for authentication
         const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${deliveryId}/details`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            method: 'GET',
+            credentials: 'include'  // Send cookies automatically
         });
 
         if (!response.ok) {
@@ -1026,18 +971,13 @@ async function sendLocationUpdate(deliveryId) {
             });
         });
 
-        const token = localStorage.getItem('token');
-        if (!token || token.length < 20) {
-            console.error("Invalid token in storage:", token);
-            return; // Don't redirect on location updates, just fail silently
-        }
-
+        // 🔥 FIX: Use HttpOnly cookies for authentication
         const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${deliveryId}/location`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
+            credentials: 'include',  // Send cookies automatically
             body: JSON.stringify({
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude
