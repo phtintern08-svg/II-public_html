@@ -5,7 +5,8 @@ lucide.createIcons();
    STATE
 ---------------------------*/
 let newOrders = [];
-let currentOrderId = null;
+let currentOrderId = null;  // Stores numeric db_id for API calls
+let currentOrderDisplayId = null;  // Stores formatted ID (ORD-016) for display/filtering
 let filterQuery = '';
 
 /* ---------------------------
@@ -180,7 +181,18 @@ function openOrderModal(orderId) {
     const order = newOrders.find(o => o.id === orderId);
     if (!order) return;
 
-    currentOrderId = orderId;
+    // 🔥 FIX: Use db_id (numeric) for API calls, keep display ID for UI
+    // Extract numeric ID from formatted ID (ORD-016 -> 16) if db_id is missing
+    if (order.db_id) {
+        currentOrderId = order.db_id;
+    } else if (typeof order.id === 'string' && order.id.startsWith('ORD-')) {
+        // Extract number from "ORD-016" format
+        const match = order.id.match(/ORD-(\d+)/);
+        currentOrderId = match ? parseInt(match[1], 10) : order.id;
+    } else {
+        currentOrderId = order.id;  // Fallback: assume it's already numeric
+    }
+    currentOrderDisplayId = order.id;  // Keep formatted ID for display/filtering
     const modal = document.getElementById('order-modal');
     const modalBody = document.getElementById('modal-body');
     const modalTitle = document.getElementById('modal-order-id');
@@ -270,10 +282,6 @@ function openOrderModal(orderId) {
                     <span class="detail-label">Fulfillment Deadline</span>
                     <span class="detail-value text-blue-400 font-semibold">${deadlineFormatted}</span>
                 </div>
-                <div class="detail-item">
-                    <span class="detail-label">Dispatch From</span>
-                    <span class="detail-value">Admin Warehouse (Default)</span>
-                </div>
                 ${!isSample ? `
                     <div class="detail-item">
                         <span class="detail-label">Assignment Log</span>
@@ -304,6 +312,7 @@ function closeOrderModal() {
     modal.classList.add('hidden');
     document.body.style.overflow = 'auto';
     currentOrderId = null;
+    currentOrderDisplayId = null;
 }
 
 /* ---------------------------
@@ -330,11 +339,11 @@ async function moveToProduction() {
 
         const data = await response.json();
 
-        // Remove from local list
-        newOrders = newOrders.filter(o => o.id !== currentOrderId);
+        // Remove from local list using display ID
+        newOrders = newOrders.filter(o => o.id !== currentOrderDisplayId);
 
         closeOrderModal();
-        showToast(data.message || `Order ${currentOrderId} moved to production successfully!`, 'success');
+        showToast(data.message || `Order ${currentOrderDisplayId} moved to production successfully!`, 'success');
         renderOrders();
 
         // Update sidebar count if available
