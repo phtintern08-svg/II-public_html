@@ -125,11 +125,6 @@
                     lat: locData.lat,
                     lon: locData.lon
                 };
-                
-                console.log("Rider Coordinates (Toggle):");
-                console.log("Latitude:", coords.lat);
-                console.log("Longitude:", coords.lon);
-                
                 showToast('Location detected successfully', 'success');
             } catch (geoErr) {
                 console.warn('Geolocation failed:', geoErr);
@@ -203,11 +198,6 @@
         locationInterval = setInterval(async () => {
             try {
                 const coords = await getCurrentLocation();
-                
-                console.log("Rider Coordinates (Heartbeat):");
-                console.log("Latitude:", coords.lat);
-                console.log("Longitude:", coords.lon);
-                
                 // Use cookie-based authentication
                 await ImpromptuIndianApi.fetch('/api/rider/presence', {
                     method: 'PUT',
@@ -240,7 +230,14 @@
                 return;
             }
             navigator.geolocation.getCurrentPosition(
-                pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+                pos => {
+                    const lat = pos.coords.latitude;
+                    const lon = pos.coords.longitude;
+                    
+                    console.log(`📍 Rider Location → Lat: ${lat}, Lon: ${lon}`);
+                    
+                    resolve({ lat, lon });
+                },
                 err => reject(err),
                 { enableHighAccuracy: true, timeout: 8000 } // Increased timeout to 8s
             );
