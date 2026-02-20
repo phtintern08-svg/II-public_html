@@ -335,12 +335,9 @@ async function markReachedVendor(deliveryId) {
     try {
         const token = localStorage.getItem('token');
         const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${deliveryId}/status`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
             method: 'PUT',
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('rider_token')}`,
+                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
@@ -418,12 +415,9 @@ async function uploadPickupProof(event) {
     try {
         const token = localStorage.getItem('token');
         const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${currentDeliveryId}/pickup-proof`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('rider_token')}`
+                'Authorization': `Bearer ${token}`
             },
             body: formData
         });
@@ -479,12 +473,9 @@ async function uploadDeliveryProof(event) {
     try {
         const token = localStorage.getItem('token');
         const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${currentDeliveryId}/delivery-proof`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('rider_token')}`
+                'Authorization': `Bearer ${token}`
             },
             body: formData
         });
@@ -677,13 +668,10 @@ async function startDelivery(deliveryId) {
     try {
         const token = localStorage.getItem('token');
         const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${deliveryId}/status`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('rider_token')}`
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({ status: 'out_for_delivery' })
         });
@@ -736,13 +724,10 @@ async function markReachedVendor(deliveryId) {
 
         const token = localStorage.getItem('token');
         const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${deliveryId}/status`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('rider_token')}`
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
                 status: 'reached_vendor',
@@ -774,9 +759,6 @@ async function navigateToPickup(deliveryId) {
         const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${deliveryId}/details`, {
             headers: {
                 'Authorization': `Bearer ${token}`
-            },
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('rider_token')}`
             }
         });
 
@@ -998,13 +980,10 @@ async function sendLocationUpdate(deliveryId) {
 
         const token = localStorage.getItem('token');
         const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${deliveryId}/location`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('rider_token')}`
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
                 latitude: position.coords.latitude,

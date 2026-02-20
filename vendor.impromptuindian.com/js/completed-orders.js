@@ -70,9 +70,58 @@ const mockCompletedOrders = [
 /* ---------------------------
    STATE
 ---------------------------*/
-let allOrders = [...mockCompletedOrders];
-let filteredOrders = [...mockCompletedOrders];
+let allOrders = [];
+let filteredOrders = [];
 let currentOrderId = null;
+
+/* ---------------------------
+   FETCH COMPLETED ORDERS FROM BACKEND
+---------------------------*/
+async function fetchCompletedOrders() {
+    try {
+        // 🔥 FIX: Fetch completed orders (includes dispatched and delivered)
+        const response = await ImpromptuIndianApi.fetch(`/api/vendor/orders?status=completed`, {
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        });
+        
+        if (!response.ok) {
+            if (response.status === 401 || response.status === 403) {
+                showToast('Authentication failed. Please log in again.', 'error');
+                window.location.href = 'https://apparels.impromptuindian.com/login.html';
+                return;
+            }
+            throw new Error(`Failed to fetch completed orders: ${response.status}`);
+        }
+
+        const responseData = await response.json();
+        const data = responseData.orders || responseData;
+
+        // Map backend data to frontend format
+        allOrders = data.map(o => ({
+            id: o.id || `ORD-${String(o.db_id).padStart(3, '0')}`,
+            db_id: o.db_id,
+            customerName: o.customerName || 'Unknown',
+            productType: o.productType || 'N/A',
+            quantity: o.quantity || 0,
+            completedDate: o.assignedDate ? new Date(o.assignedDate) : new Date(),
+            deliveryStatus: o.status === 'dispatched' ? 'dispatched' : (o.status === 'delivered' ? 'delivered' : 'completed'),
+            rating: o.rating || null,
+            proofFiles: [] // TODO: Add proof files if available from backend
+        }));
+
+        filteredOrders = [...allOrders];
+        filterOrders();
+    } catch (error) {
+        console.error('Error fetching completed orders:', error);
+        showToast('Error loading completed orders from server');
+        // Fallback to mock data if API fails
+        allOrders = [...mockCompletedOrders];
+        filteredOrders = [...mockCompletedOrders];
+        filterOrders();
+    }
+}
 
 /* ---------------------------
    FILTER ORDERS
@@ -134,9 +183,14 @@ function renderCompletedTable() {
             year: 'numeric'
         });
 
-        const statusBadge = order.deliveryStatus === 'delivered'
-            ? '<span class="status-badge status-delivered">Delivered</span>'
-            : '<span class="status-badge status-picked-up">Picked Up</span>';
+        let statusBadge;
+        if (order.deliveryStatus === 'delivered') {
+            statusBadge = '<span class="status-badge status-delivered">Delivered</span>';
+        } else if (order.deliveryStatus === 'dispatched') {
+            statusBadge = '<span class="status-badge status-dispatched">Dispatched</span>';
+        } else {
+            statusBadge = '<span class="status-badge status-picked-up">Completed</span>';
+        }
 
         const ratingStars = order.rating
             ? generateStars(order.rating)
@@ -227,7 +281,7 @@ function openDetailsModal(orderId) {
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Delivery Status:</span>
-                    <span class="detail-value">${order.deliveryStatus === 'delivered' ? 'Delivered' : 'Picked Up'}</span>
+                    <span class="detail-value">${order.deliveryStatus === 'delivered' ? 'Delivered' : order.deliveryStatus === 'dispatched' ? 'Dispatched' : 'Completed'}</span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Rating:</span>
@@ -307,7 +361,7 @@ function showToast(message) {
    INITIALIZATION
 ---------------------------*/
 document.addEventListener('DOMContentLoaded', () => {
-    filterOrders();
+    fetchCompletedOrders();
 
     // Reveal animation
     const revealEls = document.querySelectorAll(".reveal");
