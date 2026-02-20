@@ -10,11 +10,20 @@
     let locationInterval = null;
 
     document.addEventListener('DOMContentLoaded', async () => {
-        // Verify authentication via API (using cookies) - works across subdomains
+        // 🔥 FIX: Verify authentication using JWT token (not cookies) - consistent with rest of system
         try {
+            const token = localStorage.getItem('token');
+            if (!token || token.length < 20) {
+                console.error("Invalid token in storage:", token);
+                window.location.href = 'https://apparels.impromptuindian.com/login.html';
+                return;
+            }
+
             const response = await ImpromptuIndianApi.fetch('/api/verify-token', {
                 method: 'GET',
-                credentials: 'include'  // Send cookies
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
             
             if (!response.ok) {
@@ -81,7 +90,8 @@
                 return;
             }
 
-            const response = await ImpromptuIndianApi.fetch('/api/rider/profile', {
+            // 🔥 FIX: Use /api/rider/status instead of /api/rider/profile for stats
+            const response = await ImpromptuIndianApi.fetch('/api/rider/status', {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`
