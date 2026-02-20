@@ -7,40 +7,57 @@ lucide.createIcons();
 ---------------------------*/
 const VALIDATION_RULES = {
     pan_number: {
-        pattern: /^[A-Z0-9]{10}$/,
+        pattern: /^[A-Z]{3}[PCHFATBLJG][A-Z][0-9]{4}[A-Z]$/,
         validate: (value) => {
             const cleaned = value.replace(/\s/g, '').toUpperCase();
-            return /^[A-Z0-9]{10}$/.test(cleaned);
+            // Check length
+            if (cleaned.length !== 10) return false;
+            // Check format: AAAAA9999A (5 letters, 4 digits, 1 letter)
+            // First 3: Alphabetic series, 4th: Entity type, 5th: First letter of surname, 6-9: Digits, 10th: Check digit
+            const panPattern = /^[A-Z]{3}[PCHFATBLJG][A-Z][0-9]{4}[A-Z]$/;
+            return panPattern.test(cleaned);
         },
         format: (value) => {
             // Remove spaces and convert to uppercase
             return value.replace(/\s/g, '').toUpperCase().slice(0, 10);
         },
-        message: 'PAN must be exactly 10 alphanumeric characters (A-Z, 0-9)'
+        message: 'PAN must be exactly 10 characters: 3 letters (series) + 1 entity type (P/C/H/F/A/T/B/L/J/G) + 1 letter (surname) + 4 digits + 1 letter (check digit)'
     },
     aadhar_number: {
-        pattern: /^\d{12}$/,
+        pattern: /^[2-9]\d{11}$/,
         validate: (value) => {
-            const cleaned = value.replace(/\s/g, '');
-            return /^\d{12}$/.test(cleaned);
+            const cleaned = value.replace(/\s/g, '').replace(/-/g, '');
+            // Check length
+            if (cleaned.length !== 12) return false;
+            // Check all digits
+            if (!/^\d{12}$/.test(cleaned)) return false;
+            // Check first digit is between 2-9 (cannot start with 0 or 1)
+            if (!/^[2-9]/.test(cleaned)) return false;
+            return true;
         },
         format: (value) => {
-            // Remove spaces and keep only digits
-            return value.replace(/\D/g, '').slice(0, 12);
+            // Remove spaces, hyphens, and keep only digits
+            const cleaned = value.replace(/[\s-]/g, '').replace(/\D/g, '').slice(0, 12);
+            // Return clean value without spaces for storage
+            return cleaned;
         },
-        message: 'Aadhar must be exactly 12 digits'
+        message: 'Aadhaar must be exactly 12 digits and cannot start with 0 or 1'
     },
     bank_account_number: {
-        pattern: /^\d+$/,
+        pattern: /^\d{8,18}$/,
         validate: (value) => {
             const cleaned = value.replace(/\s/g, '');
-            return /^\d+$/.test(cleaned) && cleaned.length > 0;
+            // Check numeric only
+            if (!/^\d+$/.test(cleaned)) return false;
+            // Check length between 8-18 digits
+            if (cleaned.length < 8 || cleaned.length > 18) return false;
+            return true;
         },
         format: (value) => {
             // Remove spaces and keep only digits
             return value.replace(/\D/g, '');
         },
-        message: 'Account number must contain only numbers'
+        message: 'Account number must be 8 to 18 digits (numeric only)'
     },
     bank_holder_name: {
         pattern: /^[A-Za-z\s]+$/,
@@ -65,28 +82,52 @@ const VALIDATION_RULES = {
         message: 'Branch name must contain only alphabets'
     },
     ifsc_code: {
-        pattern: /^[A-Z0-9]+$/,
+        pattern: /^[A-Z]{4}0[A-Z0-9]{6}$/,
         validate: (value) => {
             const cleaned = value.replace(/\s/g, '').toUpperCase();
-            return /^[A-Z0-9]+$/.test(cleaned) && cleaned.length > 0;
+            // Check length
+            if (cleaned.length !== 11) return false;
+            // Check structure: 4 letters (bank), 0, 6 alphanumeric (branch)
+            const ifscPattern = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+            return ifscPattern.test(cleaned);
         },
         format: (value) => {
             // Remove spaces and convert to uppercase, keep only alphanumeric
-            return value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+            return value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 11);
         },
-        message: 'IFSC must contain only uppercase letters and numbers'
+        message: 'IFSC must be exactly 11 characters: 4 letters (bank), 0, 6 alphanumeric (branch)'
     },
     gst_number: {
-        pattern: /^[A-Z0-9]{15}$/,
+        pattern: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
         validate: (value) => {
             const cleaned = value.replace(/\s/g, '').toUpperCase();
-            return /^[A-Z0-9]{15}$/.test(cleaned);
+            // Check length
+            if (cleaned.length !== 15) return false;
+            // Check structure: 2 digits (state) + 5 letters (PAN) + 4 digits + 1 letter + 1 alphanumeric (not 0) + Z + 1 alphanumeric
+            const gstPattern = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+            return gstPattern.test(cleaned);
         },
         format: (value) => {
             // Remove spaces and convert to uppercase
             return value.replace(/\s/g, '').toUpperCase().slice(0, 15);
         },
-        message: 'GST must be exactly 15 alphanumeric characters (A-Z, 0-9)'
+        message: 'GST must be exactly 15 characters: 2 digits (state) + 5 letters (PAN) + 4 digits + 1 letter + 1 alphanumeric + Z + 1 alphanumeric'
+    },
+    business_registration_number: {
+        pattern: /^[A-Z0-9]{6,21}$/,
+        validate: (value) => {
+            const cleaned = value.replace(/[\s-]/g, '').toUpperCase();
+            // Check alphanumeric
+            if (!/^[A-Z0-9]+$/.test(cleaned)) return false;
+            // Check length (typically 21 for CIN, but can vary)
+            if (cleaned.length < 6 || cleaned.length > 21) return false;
+            return true;
+        },
+        format: (value) => {
+            // Remove spaces and hyphens, convert to uppercase
+            return value.replace(/[\s-]/g, '').toUpperCase();
+        },
+        message: 'Business registration number must be 6-21 alphanumeric characters'
     }
 };
 
@@ -118,9 +159,9 @@ window.formatFieldValue = formatFieldValue;
 ---------------------------*/
 const REQUIRED_DOCUMENTS = [
     { id: 'pan', label: 'PAN Card', icon: 'credit-card', required: true, extraFields: [{ name: 'pan_number', placeholder: 'Enter PAN Number' }] },
-    { id: 'aadhar', label: 'Aadhar Card', icon: 'id-card', required: true, extraFields: [{ name: 'aadhar_number', placeholder: 'Enter Aadhar Number' }] },
+    { id: 'aadhar', label: 'Aadhar Card', icon: 'id-card', required: true, extraFields: [{ name: 'aadhar_number', placeholder: 'Enter Aadhaar Number' }] },
     { id: 'gst', label: 'GST Certificate', icon: 'file-text', required: true, extraFields: [{ name: 'gst_number', placeholder: 'Enter GST Number' }] },
-    { id: 'business', label: 'Business Registration', icon: 'building-2', required: true },
+    { id: 'business', label: 'Business Registration', icon: 'building-2', required: true, extraFields: [{ name: 'business_registration_number', placeholder: 'Enter Business Registration Number' }] },
     {
         id: 'bank', label: 'Bank Proof', icon: 'landmark', required: true,
         extraFields: [
@@ -185,13 +226,28 @@ function renderDocumentsGrid() {
                 const maxLength = field.name === 'pan_number' ? 10 : 
                                  field.name === 'aadhar_number' ? 12 : 
                                  field.name === 'gst_number' ? 15 :
-                                 field.name === 'ifsc_code' ? 11 : '';
+                                 field.name === 'ifsc_code' ? 11 :
+                                 field.name === 'business_registration_number' ? 21 :
+                                 field.name === 'bank_account_number' ? 18 : '';
+                
+                // Determine input type
+                const inputType = (field.name === 'aadhar_number' || field.name === 'bank_account_number') ? 'tel' : 'text';
+                
+                // For Aadhaar, add inputmode for mobile keyboards
+                const inputMode = field.name === 'aadhar_number' ? 'numeric' : 
+                                 field.name === 'bank_account_number' ? 'numeric' : '';
+                
                 const inputPattern = validationRule ? validationRule.pattern.source : '';
+                
+                // Special handling for Aadhaar - add helper text about masking
+                const helperText = field.name === 'aadhar_number' ? 
+                    '<p class="text-xs text-gray-500 mt-1">Format: NNNN NNNN NNNN (first digit must be 2-9)</p>' : '';
                 
                 return `
                     <div class="${colSpan}" style="${displayStyle}">
                         <label class="text-xs text-gray-400 block mb-1 uppercase tracking-wider">${field.placeholder}</label>
-                        <input type="text" 
+                        <input type="${inputType}" 
+                               ${inputMode ? `inputmode="${inputMode}"` : ''}
                                id="input-${docType.id}-${field.name}" 
                                class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors validation-input"
                                style="${displayStyle}"
@@ -203,6 +259,7 @@ function renderDocumentsGrid() {
                                onblur="window.validateFieldInput('${docType.id}', '${field.name}', this)"
                                ${disabled}
                         >
+                        ${helperText}
                         <span id="error-${docType.id}-${field.name}" class="text-red-400 text-xs mt-1 hidden block"></span>
                     </div>
                 `;
@@ -1064,15 +1121,55 @@ window.updateExtraField = function (docId, fieldName, value) {
 // Handle field input with formatting
 window.handleFieldInput = function (docId, fieldName, inputElement) {
     const originalValue = inputElement.value;
-    const formattedValue = window.formatFieldValue(fieldName, originalValue);
+    let displayValue = originalValue;
+    let storedValue = originalValue;
     
-    // Update input value if formatting changed it
-    if (formattedValue !== originalValue) {
-        inputElement.value = formattedValue;
+    // Special handling for Aadhaar - format with spaces while typing
+    if (fieldName === 'aadhar_number') {
+        // Remove all non-digits
+        const cleaned = originalValue.replace(/\D/g, '');
+        storedValue = cleaned; // Store without spaces
+        
+        // Format for display: NNNN NNNN NNNN
+        if (cleaned.length > 0) {
+            if (cleaned.length <= 4) {
+                displayValue = cleaned;
+            } else if (cleaned.length <= 8) {
+                displayValue = `${cleaned.slice(0, 4)} ${cleaned.slice(4)}`;
+            } else {
+                displayValue = `${cleaned.slice(0, 4)} ${cleaned.slice(4, 8)} ${cleaned.slice(8, 12)}`;
+            }
+        } else {
+            displayValue = '';
+        }
+    } else {
+        // For other fields, use standard formatting
+        storedValue = window.formatFieldValue(fieldName, originalValue);
+        displayValue = storedValue;
     }
     
-    // Update state
-    window.updateExtraField(docId, fieldName, formattedValue);
+    // Update input value if formatting changed it
+    if (displayValue !== originalValue) {
+        // Save cursor position
+        const cursorPos = inputElement.selectionStart;
+        inputElement.value = displayValue;
+        
+        // Restore cursor position (adjust for added spaces in Aadhaar)
+        if (fieldName === 'aadhar_number' && cursorPos > 0) {
+            const beforeCursor = originalValue.substring(0, cursorPos);
+            const digitsBefore = beforeCursor.replace(/\D/g, '').length;
+            let newPos = digitsBefore;
+            // Adjust for spaces
+            if (digitsBefore > 4) newPos += 1;
+            if (digitsBefore > 8) newPos += 1;
+            inputElement.setSelectionRange(newPos, newPos);
+        } else {
+            inputElement.setSelectionRange(cursorPos, cursorPos);
+        }
+    }
+    
+    // Update state with clean value (without spaces for Aadhaar)
+    window.updateExtraField(docId, fieldName, storedValue);
     
     // Clear error on input
     const errorElement = document.getElementById(`error-${docId}-${fieldName}`);
@@ -1088,7 +1185,13 @@ window.handleFieldInput = function (docId, fieldName, inputElement) {
 
 // Validate field on blur
 window.validateFieldInput = function (docId, fieldName, inputElement) {
-    const value = inputElement.value.trim();
+    let value = inputElement.value.trim();
+    
+    // For Aadhaar, remove spaces before validation
+    if (fieldName === 'aadhar_number') {
+        value = value.replace(/\s/g, '').replace(/-/g, '');
+    }
+    
     const validation = window.validateField(fieldName, value);
     const errorElement = document.getElementById(`error-${docId}-${fieldName}`);
     

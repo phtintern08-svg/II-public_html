@@ -381,7 +381,7 @@ function openRiderModal(id) {
                         ${statusBadge}
                         <div class="flex gap-2 mt-1">
                           ${doc.fileName ?
-                    `<button onclick="previewDocument('${ImpromptuIndianApi.baseUrl}/rider/verification/document/${rider.id}/${key}', '${doc.fileName}', '${key}')" 
+                    `<button onclick="previewDocument('${ImpromptuIndianApi.baseUrl}/api/admin/rider-requests/${rider.id}/document/${key}', '${doc.fileName}', '${key}')" 
                                   class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors cursor-pointer bg-transparent border-none">
                                   View <i data-lucide="eye" class="w-3 h-3"></i>
                               </button>` : ''
