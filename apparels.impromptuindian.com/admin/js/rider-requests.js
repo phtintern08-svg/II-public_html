@@ -367,20 +367,47 @@ function openRiderModal(id) {
 
             // Status Badges
             let statusBadge = '';
-            if (doc.status === 'approved') statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-green-500/10 text-green-400 border border-green-500/20">Verified</span>';
-            else if (doc.status === 'rejected') statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-red-500/10 text-red-400 border border-red-500/20">Rejected</span>';
-            else statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">Pending</span>';
+            // Check if document was resubmitted after rejection
+            const isResubmitted = doc.resubmitted === true || (doc.status === 'rejected' && doc.fileName && doc.uploadedDate);
+            
+            if (doc.status === 'approved') {
+                statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-green-500/10 text-green-400 border border-green-500/20">Verified</span>';
+            } else if (doc.status === 'rejected') {
+                if (isResubmitted) {
+                    statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-orange-500/10 text-orange-400 border border-orange-500/20">Rejected - Resubmitted</span>';
+                    // Show previous rejection reason if available
+                    if (doc.previousRejectionReason) {
+                        extraInfo += `<p class="text-[10px] text-orange-400/70 mt-0.5 italic">Previous: ${doc.previousRejectionReason}</p>`;
+                    }
+                } else {
+                    statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-red-500/10 text-red-400 border border-red-500/20">Rejected</span>';
+                    // Show rejection reason if available
+                    if (doc.adminRemarks) {
+                        extraInfo += `<p class="text-[10px] text-red-400/70 mt-0.5 italic">Reason: ${doc.adminRemarks}</p>`;
+                    }
+                }
+            } else {
+                statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">Pending</span>';
+            }
 
             const iconName = getDocIcon(key);
+            
+            // Checkbox interaction logic
+            const isApproved = doc.status === 'approved';
+            const isResubmittedRejected = doc.status === 'rejected' && isResubmitted;
+            const containerClass = isApproved ? 'opacity-50 border-green-500/20' : 'hover:bg-gray-800 border-gray-700/50';
+            const checkboxDisabled = isApproved ? 'disabled' : '';
+            const checkboxClass = isApproved ? 'cursor-not-allowed opacity-50 bg-green-900 border-green-700' : 'cursor-pointer bg-gray-700 hover:border-red-500';
 
             docsHtml += `
-            <div class="group flex flex-col p-3 bg-gray-800/50 hover:bg-gray-800 border border-gray-700/50 rounded-lg transition-all">
+            <div class="group flex flex-col p-3 bg-gray-800/50 ${containerClass} rounded-lg transition-all">
                 <div class="flex items-center justify-between w-full">
                     <div class="flex items-center gap-3">
                          <div class="flex items-center h-full">
                             <input type="checkbox" 
-                                class="doc-reject-checkbox w-4 h-4 rounded border-gray-600 bg-gray-700 text-red-500 focus:ring-red-500 cursor-pointer" 
+                                class="doc-reject-checkbox w-4 h-4 rounded border-gray-600 ${checkboxClass} text-red-500 focus:ring-red-500" 
                                 data-doctype="${key}" 
+                                ${checkboxDisabled}
                                 onchange="toggleReasonInput('${key}')">
                         </div>
                         <div class="p-2 bg-blue-500/10 rounded-lg text-blue-400">

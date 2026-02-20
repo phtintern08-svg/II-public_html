@@ -1072,15 +1072,17 @@ async function submitVerification() {
         await Promise.all(uploadPromises);
 
         // 4. Update Vehicle Details 
-        const vehicleData = new FormData();
-        vehicleData.append('rider_id', riderId);
-        vehicleData.append('vehicle_type', vehicleType);
-        vehicleData.append('vehicle_number', vehicleNumber);
-        vehicleData.append('service_zone', serviceZone);
-
         await ImpromptuIndianApi.fetch('/api/rider/update-vehicle', {
             method: 'POST',
-            body: vehicleData
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                vehicle_type: vehicleType,
+                vehicle_number: vehicleNumber,
+                service_zone: serviceZone
+            })
         });
 
         // 5. Final Submit to Change Status
