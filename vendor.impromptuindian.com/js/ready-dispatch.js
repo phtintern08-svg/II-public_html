@@ -22,7 +22,8 @@ async function fetchDispatchOrders() {
     // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
 
     try {
-        const response = await ImpromptuIndianApi.fetch(`/api/vendor/orders?status=in_production`, {
+        // 🔥 FIX: Fetch packed_ready orders directly - backend will filter correctly
+        const response = await ImpromptuIndianApi.fetch(`/api/vendor/orders?status=packed_ready`, {
             headers: {
                 'Content-Type': 'application/json'
             },
@@ -38,10 +39,8 @@ async function fetchDispatchOrders() {
         }
 
         const responseData = await response.json();
-        const allOrders = responseData.orders || responseData;
-
-        // Filter for 'packed_ready' orders
-        dispatchOrders = allOrders.filter(o => o.currentStage === 'packed_ready' || o.currentStage === 'packed');
+        // Backend already filters to packed_ready, no need for frontend filtering
+        dispatchOrders = responseData.orders || responseData;
 
         renderDispatchTable();
         updateUIState();
@@ -71,11 +70,13 @@ function renderDispatchTable() {
         // Mock data for packed date if not available (since API mostly returns current state)
         // In real app, this might come from status history
         const packedDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const orderDbId = order.db_id || (order.id && order.id.toString().replace('ORD-', '')) || order.id;
+        const displayId = order.id || `ORD-${String(orderDbId).padStart(3, '0')}`;
 
         return `
             <tr class="reveal show border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">
                 <td class="px-6 py-4">
-                    <span class="font-bold text-white text-sm tracking-tight">#${order.db_id}</span>
+                    <span class="font-bold text-white text-sm tracking-tight">#${displayId}</span>
                 </td>
                 <td class="px-6 py-4">
                     <div class="flex flex-col">
@@ -102,7 +103,7 @@ function renderDispatchTable() {
                     </div>
                 </td>
                 <td class="px-6 py-4 text-right">
-                    <button onclick="openDispatchModal(${order.db_id})" 
+                    <button onclick="openDispatchModal(${orderDbId})" 
                         class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg text-xs font-bold uppercase tracking-wide shadow-lg shadow-green-900/20 transition-all hover:scale-105">
                         <i data-lucide="truck" class="w-4 h-4"></i>
                         Dispatch
@@ -116,8 +117,11 @@ function renderDispatchTable() {
 }
 
 function openDispatchModal(orderId) {
+    // 🔥 FIX: Store db_id (numeric) for API calls, keep display ID for UI
     selectedOrderId = orderId;
-    document.getElementById('modal-order-id').textContent = `#ORD-${String(orderId).padStart(3, '0')}`;
+    const order = dispatchOrders.find(o => o.db_id === orderId || o.id === orderId);
+    const displayId = order ? (order.id || `ORD-${String(orderId).padStart(3, '0')}`) : `ORD-${String(orderId).padStart(3, '0')}`;
+    document.getElementById('modal-order-id').textContent = `#${displayId}`;
     document.getElementById('dispatch-modal').classList.remove('hidden');
 }
 
@@ -129,22 +133,26 @@ function closeDispatchModal() {
 async function confirmDispatch() {
     if (!selectedOrderId) return;
 
-    // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
-
     try {
-        // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
-        const response = await ImpromptuIndianApi.fetch(`/api/orders/${selectedOrderId}/status`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                status: 'dispatched',
-                remarks: 'Order dispatched by vendor logistics.'
-            })
-        });
+        // 🔥 FIX: Use correct vendor endpoint with db_id (numeric ID)
+        const response = await ImpromptuIndianApi.fetch(
+            `/api/vendor/orders/${selectedOrderId}/production-stage`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    stage_id: 'dispatched',
+                    notes: 'Order dispatched by vendor logistics.'
+                })
+            }
+        );
 
-        if (!response.ok) throw new Error('Dispatch failed');
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error || 'Dispatch failed');
+        }
 
         // Success Feedback
         closeDispatchModal();
@@ -153,6 +161,11 @@ async function confirmDispatch() {
         dispatchOrders = dispatchOrders.filter(o => o.db_id !== selectedOrderId);
         renderDispatchTable();
         updateUIState();
+
+        // 🔥 FIX: Refresh order stats immediately for real-time update
+        if (window.fetchOrderStats) {
+            window.fetchOrderStats();
+        }
 
         alert('Order successfully dispatched!');
 
