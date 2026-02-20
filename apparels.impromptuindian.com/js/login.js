@@ -384,8 +384,25 @@ if (loginForm) {
                         return; // Don't redirect if token is missing
                     }
                     
-                    console.log('✅ Redirecting to:', redirectUrl);
-                    window.location.href = redirectUrl;
+                    // 🔥 FIX: Pass token via URL parameter for cross-subdomain localStorage transfer
+                    // localStorage is isolated per subdomain, so we need to pass token in URL
+                    let finalRedirectUrl = redirectUrl;
+                    
+                    // Handle both absolute and relative URLs
+                    if (redirectUrl.startsWith('http://') || redirectUrl.startsWith('https://')) {
+                        const url = new URL(redirectUrl);
+                        url.searchParams.set('token', finalTokenCheck);
+                        url.searchParams.set('user_id', result.user_id || '');
+                        url.searchParams.set('role', result.role || '');
+                        finalRedirectUrl = url.toString();
+                    } else {
+                        // Relative URL - append query params
+                        const separator = redirectUrl.includes('?') ? '&' : '?';
+                        finalRedirectUrl = `${redirectUrl}${separator}token=${encodeURIComponent(finalTokenCheck)}&user_id=${result.user_id || ''}&role=${result.role || ''}`;
+                    }
+                    
+                    console.log('✅ Redirecting to:', finalRedirectUrl);
+                    window.location.href = finalRedirectUrl;
                 }, 1000);
             } else {
                 // Handle non-401 errors (shouldn't reach here for 401, but just in case)

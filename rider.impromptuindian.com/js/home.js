@@ -10,6 +10,25 @@
     let locationInterval = null;
 
     document.addEventListener('DOMContentLoaded', async () => {
+        // 🔥 FIX: Handle cross-subdomain token transfer via URL parameter
+        // localStorage is isolated per subdomain, so token must be passed via URL from login page
+        const urlParams = new URLSearchParams(window.location.search);
+        const tokenFromUrl = urlParams.get('token');
+        
+        if (tokenFromUrl && tokenFromUrl.length >= 20) {
+            // Store token in this subdomain's localStorage
+            localStorage.setItem('token', tokenFromUrl);
+            
+            // Store user info if provided
+            const userIdFromUrl = urlParams.get('user_id');
+            const roleFromUrl = urlParams.get('role');
+            if (userIdFromUrl) localStorage.setItem('user_id', userIdFromUrl);
+            if (roleFromUrl) localStorage.setItem('role', roleFromUrl);
+            
+            // Clean URL (remove token from address bar for security)
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        
         // 🔥 FIX: Verify authentication using JWT token (not cookies) - consistent with rest of system
         try {
             const token = localStorage.getItem('token');

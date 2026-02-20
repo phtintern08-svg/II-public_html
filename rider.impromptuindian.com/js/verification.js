@@ -39,12 +39,40 @@ let selectedFile = null;
 let riderId = null;
 let authComplete = false;
 
-// Verify authentication via API (using cookies) - works across subdomains
+// 🔥 FIX: Handle cross-subdomain token transfer via URL parameter
+// localStorage is isolated per subdomain, so token must be passed via URL from login page
+const urlParams = new URLSearchParams(window.location.search);
+const tokenFromUrl = urlParams.get('token');
+
+if (tokenFromUrl && tokenFromUrl.length >= 20) {
+    // Store token in this subdomain's localStorage
+    localStorage.setItem('token', tokenFromUrl);
+    
+    // Store user info if provided
+    const userIdFromUrl = urlParams.get('user_id');
+    const roleFromUrl = urlParams.get('role');
+    if (userIdFromUrl) localStorage.setItem('user_id', userIdFromUrl);
+    if (roleFromUrl) localStorage.setItem('role', roleFromUrl);
+    
+    // Clean URL (remove token from address bar for security)
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
+
+// Verify authentication via API using JWT token
 (async () => {
     try {
+        const token = localStorage.getItem('token');
+        if (!token || token.length < 20) {
+            console.error("Invalid token in storage:", token);
+            window.location.href = 'https://apparels.impromptuindian.com/login.html';
+            return;
+        }
+
         const response = await ImpromptuIndianApi.fetch('/api/verify-token', {
             method: 'GET',
-            credentials: 'include'  // Send cookies
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         });
         
         if (!response.ok) {
