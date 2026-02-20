@@ -174,11 +174,11 @@ function renderOrders(data) {
                    </div>`;
         }
 
-        // Show proper total (quotation OR sample)
-        const calculatedTotal =
-            order.quotation_total_price ||
-            order.sample_cost ||
-            0;
+        // Only show Sample Cost
+        const sampleCost = order.sample_cost || 0;
+        const sampleCostDisplay = sampleCost > 0
+            ? `₹${sampleCost.toLocaleString()}`
+            : '—';
 
         // Status Badge Class
         const normalizedStatus = (order.status || 'pending').toString();
@@ -186,7 +186,6 @@ function renderOrders(data) {
         const statusClass = badgeVariant[normalizedStatus] || 'bg-gray-500/10 text-gray-400 border border-gray-500/20 px-2 py-1 rounded text-xs';
 
         const statusLabel = normalizedStatus.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-        const totalDisplay = calculatedTotal > 0 ? `₹${calculatedTotal.toLocaleString()}` : '—';
 
         // 1. DESKTOP ROW
         if (table) {
@@ -231,7 +230,7 @@ function renderOrders(data) {
                         : '—'
                     }
                 </td>
-                <td class="px-4 py-4 text-right text-white font-medium">${totalDisplay}</td>
+                <td class="px-4 py-4 text-right text-white font-medium">${sampleCostDisplay}</td>
                 <td class="px-4 py-4 text-right">
                     <button onclick="goDetails(${order.id})" 
                         class="group px-3 py-1.5 bg-[#1273EB]/10 hover:bg-[#1273EB] text-[#1273EB] hover:text-white border border-[#1273EB]/50 hover:border-transparent text-xs font-semibold rounded transition-all duration-300 flex items-center gap-1 ml-auto">
@@ -273,8 +272,8 @@ function renderOrders(data) {
                          <span class="text-sm font-semibold text-white">${order.sample_size || '—'}</span>
                     </div>
                     <div class="bg-[#111827] rounded p-2 border border-gray-700 flex flex-col items-center justify-center">
-                         <span class="text-[10px] text-gray-500 uppercase">Total</span>
-                         <span class="text-sm font-semibold text-white">${totalDisplay}</span>
+                         <span class="text-[10px] text-gray-500 uppercase">Sample Cost</span>
+                         <span class="text-sm font-semibold text-white">${sampleCostDisplay}</span>
                     </div>
                 </div>
 
