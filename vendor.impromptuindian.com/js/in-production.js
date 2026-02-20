@@ -5,7 +5,7 @@ lucide.createIcons();
    PRODUCTION STAGES
 ---------------------------*/
 const PRODUCTION_STAGES = [
-    { id: 'accepted', label: 'Order Accepted', icon: 'check-circle' },
+    { id: 'in_production', label: 'In Production', icon: 'check-circle' },
     { id: 'material', label: 'Material Preparation', icon: 'package' },
     { id: 'printing', label: 'Printing In Progress', icon: 'printer' },
     { id: 'completed', label: 'Printing Completed', icon: 'check-square' },
@@ -47,10 +47,19 @@ async function fetchProductionOrders() {
         const responseData = await response.json();
         const data = responseData.orders || responseData;
 
-        productionOrders = data.map(o => ({
-            ...o,
-            deadline: o.deadline ? new Date(o.deadline) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-        }));
+        productionOrders = data.map(o => {
+            // Map backend 'production' stage to frontend 'in_production' (fallback for old data)
+            let currentStage = o.currentStage;
+            if (currentStage === 'production') {
+                currentStage = 'in_production';
+            }
+            
+            return {
+                ...o,
+                currentStage: currentStage || 'in_production',  // Default to first stage if not set
+                deadline: o.deadline ? new Date(o.deadline) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+            };
+        });
 
         renderView();
     } catch (e) {
@@ -226,22 +235,26 @@ async function quickAdvance(orderId) {
     const nextStage = PRODUCTION_STAGES[currentIndex + 1].id;
 
     try {
-        // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
-        const response = await ImpromptuIndianApi.fetch(`/api/orders/${orderId}/status`, {
-            method: 'PUT',
-            headers: { 
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                status: nextStage,
-                remarks: 'Quick check-off from technical pipeline dashboard.'
-            })
-        });
+        // 🔥 FIX: Use correct vendor endpoint with db_id (numeric ID)
+        const orderDbId = order.db_id || (order.id && order.id.toString().replace('ORD-', '')) || orderId;
+        const response = await ImpromptuIndianApi.fetch(
+            `/api/vendor/orders/${orderDbId}/production-stage`,
+            {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    stage_id: nextStage,
+                    notes: 'Quick check-off from pipeline dashboard.'
+                })
+            }
+        );
 
         if (!response.ok) throw new Error('Rapid update failed');
 
         await fetchProductionOrders();
-        showToast(`Requisition ${orderId} progressed to ${nextStage}`);
+        showToast(`Requisition ${order.id} progressed.`);
     } catch (e) {
         console.error('Quick advance error:', e);
         showToast('Phase progression failed');
@@ -255,7 +268,9 @@ function openUpdateModal(orderId) {
     const order = productionOrders.find(o => o.id === orderId);
     if (!order) return;
 
-    currentOrderId = orderId;
+    // 🔥 FIX: Store db_id (numeric) for API calls, keep display ID for UI
+    const orderDbId = order.db_id || (order.id && order.id.toString().replace('ORD-', '')) || orderId;
+    currentOrderId = orderDbId;
     uploadedFiles = [...(order.photos || [])];
 
     const modal = document.getElementById('update-modal');
@@ -425,22 +440,32 @@ function removeFile(index) {
 async function saveUpdate() {
     if (!currentOrderId) return;
 
+    // Find order by db_id to get current stage
+    const order = productionOrders.find(o => (o.db_id && o.db_id.toString() === currentOrderId.toString()) || o.id === currentOrderId);
+    if (!order) {
+        showToast('Order not found');
+        return;
+    }
+
     // Use current stage from order if none selected in modal session
-    const stageId = selectedStageId || productionOrders.find(o => o.id === currentOrderId).currentStage;
+    const stageId = selectedStageId || order.currentStage;
     const notes = document.getElementById('internal-notes')?.value || '';
 
     try {
-        // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
-        const response = await ImpromptuIndianApi.fetch(`/api/orders/${currentOrderId}/status`, {
-            method: 'PUT',
-            headers: { 
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                status: stageId,
-                remarks: notes
-            })
-        });
+        // 🔥 FIX: Use correct vendor endpoint with db_id (numeric ID)
+        const response = await ImpromptuIndianApi.fetch(
+            `/api/vendor/orders/${currentOrderId}/production-stage`,
+            {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    stage_id: stageId,
+                    notes: notes
+                })
+            }
+        );
 
         if (!response.ok) {
             const err = await response.json();
