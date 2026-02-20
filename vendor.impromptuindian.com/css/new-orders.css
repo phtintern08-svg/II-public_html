@@ -71,10 +71,33 @@ body {
 
 /* Orders Grid */
 .orders-grid {
+    padding: 1rem 0;
+}
+
+/* Section Titles */
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #ffffff;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.15em;
+}
+
+.section-title.mt-10 {
+    margin-top: 2.5rem;
+}
+
+/* Orders Section Container */
+.orders-section {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
     gap: 2.5rem;
-    padding: 1rem 0;
+    margin-bottom: 2rem;
 }
 
 /* Order Card - Advanced Glassmorphism */
@@ -91,6 +114,17 @@ body {
     position: relative;
     display: flex;
     flex-direction: column;
+}
+
+/* Sample Order - Yellow Glowing Border */
+.order-card.sample-order {
+    border-color: rgba(234, 179, 8, 0.3);
+    box-shadow: 0 0 20px rgba(234, 179, 8, 0.1);
+}
+
+.order-card.sample-order:hover {
+    border-color: rgba(234, 179, 8, 0.5);
+    box-shadow: 0 40px 60px -20px rgba(0, 0, 0, 0.8), 0 0 30px rgba(234, 179, 8, 0.2);
 }
 
 .order-card.show {
@@ -458,6 +492,33 @@ body {
     display: flex;
     align-items: center;
     gap: 0.375rem;
+}
+
+/* Order Type Badges */
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.badge-sample {
+    background: rgba(234, 179, 8, 0.1);
+    color: #fbbf24;
+    border: 1px solid rgba(234, 179, 8, 0.2);
+    box-shadow: 0 0 10px rgba(234, 179, 8, 0.1);
+}
+
+.badge-bulk {
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.1);
 }
 
 .modal-footer {

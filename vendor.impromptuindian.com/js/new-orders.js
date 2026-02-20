@@ -31,9 +31,11 @@ async function fetchOrders() {
 
         const data = await response.json();
 
-        // Convert dates correctly
+        // Convert dates correctly and enforce sample quantity = 1
         newOrders = data.map(o => ({
             ...o,
+            orderType: o.orderType || (o.quantity === 1 ? 'sample' : 'bulk'),
+            quantity: (o.orderType === 'sample' || (!o.orderType && o.quantity === 1)) ? 1 : o.quantity,
             deadline: o.deadline ? new Date(o.deadline) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
             assignedDate: o.assignedDate ? new Date(o.assignedDate) : new Date()
         }));
@@ -46,6 +48,72 @@ async function fetchOrders() {
 }
 
 /* ---------------------------
+   ORDER CARD TEMPLATE
+---------------------------*/
+function orderCardTemplate(order) {
+    const isSample = order.orderType === 'sample';
+    const diff = order.deadline - new Date();
+    const daysRemaining = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+    const urgencyClass = daysRemaining <= 3 ? 'urgent' : daysRemaining <= 7 ? 'moderate' : 'normal';
+
+    return `
+        <div class="order-card reveal ${urgencyClass} ${isSample ? 'sample-order' : ''}" onclick="openOrderModal('${order.id}')">
+            <div class="order-card-header">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="badge ${isSample ? 'badge-sample' : 'badge-bulk'}">
+                            ${isSample ? 'Sample Order' : 'Bulk Order'}
+                        </span>
+                        ${daysRemaining <= 3 ? '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-red-500/10 text-red-400 border border-red-500/20 uppercase tracking-tighter">Priority High</span>' : ''}
+                    </div>
+                    <h3 class="order-id">${order.id}</h3>
+                </div>
+                <div class="order-deadline ${urgencyClass}">
+                    <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                    <span>${daysRemaining}d WINDOW</span>
+                </div>
+            </div>
+            <div class="order-card-body">
+                <div class="order-details-summary">
+                    <div class="summary-item">
+                        <span class="summary-label">Product</span>
+                        <span class="summary-value">${order.productType}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Quantity</span>
+                        <span class="summary-value">
+                            ${isSample ? '1 Unit (Sample)' : order.quantity + ' Units'}
+                        </span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Fabric</span>
+                        <span class="summary-value">${order.customization.fabric || 'Standard'}</span>
+                    </div>
+                    ${!isSample ? `
+                        <div class="summary-item">
+                            <span class="summary-label">Variant Code</span>
+                            <span class="summary-value">${order.color || 'Standard'}</span>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+            <div class="order-card-footer">
+                <div class="flex items-center justify-between w-full">
+                    <div class="flex -space-x-2">
+                         <div class="w-6 h-6 rounded-full border-2 border-[#030712] bg-blue-500/20 flex items-center justify-center"><i data-lucide="layers" class="w-3 h-3 text-blue-400"></i></div>
+                         <div class="w-6 h-6 rounded-full border-2 border-[#030712] bg-purple-500/20 flex items-center justify-center"><i data-lucide="scissors" class="w-3 h-3 text-purple-400"></i></div>
+                    </div>
+                    <span class="view-details-link">
+                        ${isSample ? 'Sample Audit' : 'Technical Audit'}
+                        <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+/* ---------------------------
    RENDER ORDERS
 ---------------------------*/
 function renderOrders() {
@@ -55,6 +123,9 @@ function renderOrders() {
     const filteredOrders = newOrders.filter(order =>
         order.id.toLowerCase().includes(filterQuery.toLowerCase())
     );
+
+    const sampleOrders = filteredOrders.filter(o => o.orderType === 'sample');
+    const bulkOrders = filteredOrders.filter(o => o.orderType === 'bulk');
 
     if (filteredOrders.length === 0) {
         ordersGrid.classList.add('hidden');
@@ -74,66 +145,22 @@ function renderOrders() {
     ordersGrid.classList.remove('hidden');
     emptyState.classList.add('hidden');
 
-    const html = filteredOrders.map(order => {
-        const diff = order.deadline - new Date();
-        const daysRemaining = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
-        const urgencyClass = daysRemaining <= 3 ? 'urgent' : daysRemaining <= 7 ? 'moderate' : 'normal';
-
-        // Purge any hidden customer references
-        const displayId = order.id;
-
-        return `
-            <div class="order-card reveal ${urgencyClass}" onclick="openOrderModal('${order.id}')">
-                <div class="order-card-header">
-                    <div>
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="px-2 py-0.5 rounded text-[10px] font-black bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-tighter">Manufacturing Req</span>
-                            ${daysRemaining <= 3 ? '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-red-500/10 text-red-400 border border-red-500/20 uppercase tracking-tighter">Priority High</span>' : ''}
-                        </div>
-                        <h3 class="order-id">${displayId}</h3>
-                    </div>
-                    <div class="order-deadline ${urgencyClass}">
-                        <i data-lucide="clock" class="w-3.5 h-3.5"></i>
-                        <span>${daysRemaining}d WINDOW</span>
-                    </div>
-                </div>
-                <div class="order-card-body">
-                    <div class="order-details-summary">
-                        <div class="summary-item">
-                            <span class="summary-label">Production Line</span>
-                            <span class="summary-value">${order.productType}</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-label">Batch Size</span>
-                            <span class="summary-value">${order.quantity} Units</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-label">Standard</span>
-                            <span class="summary-value">${order.customization.fabric || 'Premium'}</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-label">Variant Code</span>
-                            <span class="summary-value">${order.color || 'Standard'}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="order-card-footer">
-                    <div class="flex items-center justify-between w-full">
-                        <div class="flex -space-x-2">
-                             <div class="w-6 h-6 rounded-full border-2 border-[#030712] bg-blue-500/20 flex items-center justify-center"><i data-lucide="layers" class="w-3 h-3 text-blue-400"></i></div>
-                             <div class="w-6 h-6 rounded-full border-2 border-[#030712] bg-purple-500/20 flex items-center justify-center"><i data-lucide="scissors" class="w-3 h-3 text-purple-400"></i></div>
-                        </div>
-                        <span class="view-details-link">
-                            Technical Audit
-                            <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
-                        </span>
-                    </div>
-                </div>
+    ordersGrid.innerHTML = `
+        ${sampleOrders.length ? `
+            <div class="section-title">Sample Orders</div>
+            <div class="orders-section">
+                ${sampleOrders.map(orderCardTemplate).join('')}
             </div>
-        `;
-    }).join('');
+        ` : ''}
 
-    ordersGrid.innerHTML = html;
+        ${bulkOrders.length ? `
+            <div class="section-title mt-10">Bulk Orders</div>
+            <div class="orders-section">
+                ${bulkOrders.map(orderCardTemplate).join('')}
+            </div>
+        ` : ''}
+    `;
+
     lucide.createIcons();
 
     // Trigger reveal animation
@@ -158,6 +185,7 @@ function openOrderModal(orderId) {
     const modalBody = document.getElementById('modal-body');
     const modalTitle = document.getElementById('modal-order-id');
 
+    const isSample = order.orderType === 'sample';
     const isValidDate = (d) => d instanceof Date && !isNaN(d);
 
     const deadlineFormatted = isValidDate(order.deadline)
@@ -173,9 +201,9 @@ function openOrderModal(orderId) {
             <div class="flex items-center gap-3 mb-1">
                 <span class="confidential-badge">
                     <i data-lucide="shield-alert" class="w-3 h-3"></i>
-                    Confidential Technical Audit
+                    ${isSample ? 'Sample Development Audit' : 'Confidential Technical Audit'}
                 </span>
-                <span class="text-xs font-bold text-gray-500 uppercase tracking-tighter">Manufacturing Docket</span>
+                <span class="text-xs font-bold text-gray-500 uppercase tracking-tighter">${isSample ? 'Sample Docket' : 'Manufacturing Docket'}</span>
             </div>
             <span class="text-2xl font-black tracking-tight text-white">REQUISITION ${order.id}</span>
         </div>
@@ -186,8 +214,20 @@ function openOrderModal(orderId) {
             <div class="detail-section">
                 <h4 class="detail-section-title">
                     <i data-lucide="info" class="w-4 h-4"></i>
-                    Manufacturing Specifications
+                    ${isSample ? 'Sample Specifications' : 'Manufacturing Specifications'}
                 </h4>
+                <div class="detail-item">
+                    <span class="detail-label">Order Type</span>
+                    <span class="detail-value font-bold ${isSample ? 'text-yellow-400' : 'text-blue-400'}">
+                        ${isSample ? 'Sample Development Order' : 'Bulk Production Order'}
+                    </span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Total Quantity</span>
+                    <span class="detail-value font-bold text-blue-400">
+                        ${isSample ? '1 Unit (Mandatory Sample)' : order.quantity + ' Units'}
+                    </span>
+                </div>
                 <div class="detail-item">
                     <span class="detail-label">Product SKU</span>
                     <span class="detail-value">${order.productType}</span>
@@ -197,12 +237,8 @@ function openOrderModal(orderId) {
                     <span class="detail-value">${order.color || 'N/A'}</span>
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">Sample Size</span>
+                    <span class="detail-label">${isSample ? 'Sample Size' : 'Size'}</span>
                     <span class="detail-value">${order.size || 'N/A'}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Total Volume</span>
-                    <span class="detail-value font-bold text-blue-400">${order.quantity} Units</span>
                 </div>
             </div>
 
@@ -238,10 +274,12 @@ function openOrderModal(orderId) {
                     <span class="detail-label">Dispatch From</span>
                     <span class="detail-value">Admin Warehouse (Default)</span>
                 </div>
-                <div class="detail-item">
-                    <span class="detail-label">Assignment Log</span>
-                    <span class="detail-value">${assignedFormatted}</span>
-                </div>
+                ${!isSample ? `
+                    <div class="detail-item">
+                        <span class="detail-label">Assignment Log</span>
+                        <span class="detail-value">${assignedFormatted}</span>
+                    </div>
+                ` : ''}
             </div>
 
             ${order.specialInstructions ? `
