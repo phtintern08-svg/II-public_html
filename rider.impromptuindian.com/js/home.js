@@ -212,12 +212,11 @@
                         'Content-Type': 'application/json'
                     },
                     credentials: 'include',  // Send cookies automatically
-                        body: JSON.stringify({
-                            latitude: coords.lat,
-                            longitude: coords.lon
-                        })
-                    });
-                }
+                    body: JSON.stringify({
+                        latitude: coords.lat,
+                        longitude: coords.lon
+                    })
+                });
             } catch (e) {
                 console.error('Periodic location update failed:', e);
             }
