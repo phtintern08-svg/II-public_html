@@ -10,43 +10,20 @@
     let locationInterval = null;
 
     document.addEventListener('DOMContentLoaded', async () => {
-        // 🔥 FIX: Handle cross-subdomain token transfer via URL parameter
-        // localStorage is isolated per subdomain, so token must be passed via URL from login page
-        const urlParams = new URLSearchParams(window.location.search);
-        const tokenFromUrl = urlParams.get('token');
+        // 🔥 FIX: Use HttpOnly cookies for cross-subdomain authentication
+        // Cookies are automatically shared across subdomains (.impromptuindian.com)
+        // No need for localStorage or URL parameters
         
-        if (tokenFromUrl && tokenFromUrl.length >= 20) {
-            // Store token in this subdomain's localStorage
-            localStorage.setItem('token', tokenFromUrl);
-            
-            // Store user info if provided
-            const userIdFromUrl = urlParams.get('user_id');
-            const roleFromUrl = urlParams.get('role');
-            if (userIdFromUrl) localStorage.setItem('user_id', userIdFromUrl);
-            if (roleFromUrl) localStorage.setItem('role', roleFromUrl);
-            
-            // Clean URL (remove token from address bar for security)
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
-        
-        // 🔥 FIX: Verify authentication using JWT token (not cookies) - consistent with rest of system
+        // Verify authentication using cookies (sent automatically with credentials: 'include')
         try {
-            const token = localStorage.getItem('token');
-            if (!token || token.length < 20) {
-                console.error("Invalid token in storage:", token);
-                window.location.href = 'https://apparels.impromptuindian.com/login.html';
-                return;
-            }
-
             const response = await ImpromptuIndianApi.fetch('/api/verify-token', {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                credentials: 'include'  // Send cookies automatically
             });
             
             if (!response.ok) {
                 // Not authenticated - redirect to login
+                console.error("Authentication failed - redirecting to login");
                 window.location.href = 'https://apparels.impromptuindian.com/login.html';
                 return;
             }
@@ -54,11 +31,12 @@
             const data = await response.json();
             if (!data.valid || data.role !== 'rider') {
                 // Invalid token or wrong role - redirect to login
+                console.error("Invalid token or wrong role - redirecting to login");
                 window.location.href = 'https://apparels.impromptuindian.com/login.html';
                 return;
             }
             
-            // Store user info in localStorage for this subdomain
+            // Store user info in localStorage for this subdomain (for UI display only)
             riderId = data.user_id;
             localStorage.setItem('user_id', riderId);
             localStorage.setItem('role', data.role);
@@ -102,19 +80,10 @@
     async function fetchRiderStatus() {
         if (!riderId) return;
         try {
-            const token = localStorage.getItem('token');
-            if (!token || token.length < 20) {
-                console.error("Invalid token in storage:", token);
-                window.location.href = 'https://apparels.impromptuindian.com/login.html';
-                return;
-            }
-
-            // 🔥 FIX: Use /api/rider/status instead of /api/rider/profile for stats
+            // 🔥 FIX: Use HttpOnly cookies for authentication (shared across subdomains)
             const response = await ImpromptuIndianApi.fetch('/api/rider/status', {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                credentials: 'include'  // Send cookies automatically
             });
             if (response.ok) {
                 const data = await response.json();
@@ -178,18 +147,13 @@
 
         // Update presence status via API
         try {
-            const token = localStorage.getItem('token');
-            if (!token || token.length < 20) {
-                console.error("Invalid token in storage:", token);
-                return;
-            }
-
+            // 🔥 FIX: Use HttpOnly cookies for authentication
             const response = await ImpromptuIndianApi.fetch('/api/rider/presence', {
                 method: 'PUT',
                 headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Content-Type': 'application/json'
                 },
+                credentials: 'include',  // Send cookies automatically
                 body: JSON.stringify({
                     is_online: newState,
                     latitude: coords.lat,
@@ -241,14 +205,13 @@
         locationInterval = setInterval(async () => {
             try {
                 const coords = await getCurrentLocation();
-                const token = localStorage.getItem('token');
-                if (token && token.length >= 20) {
-                    await ImpromptuIndianApi.fetch('/api/rider/presence', {
-                        method: 'PUT',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
+                // 🔥 FIX: Use HttpOnly cookies for authentication
+                await ImpromptuIndianApi.fetch('/api/rider/presence', {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',  // Send cookies automatically
                         body: JSON.stringify({
                             latitude: coords.lat,
                             longitude: coords.lon
@@ -294,17 +257,10 @@
         if (!container || !riderId) return;
 
         try {
-            const token = localStorage.getItem('token');
-            if (!token || token.length < 20) {
-                console.error("Invalid token in storage:", token);
-                return;
-            }
-
+            // 🔥 FIX: Use HttpOnly cookies for authentication
             const response = await ImpromptuIndianApi.fetch('/api/rider/deliveries/assigned', {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                credentials: 'include'  // Send cookies automatically
             });
 
             if (response.ok) {

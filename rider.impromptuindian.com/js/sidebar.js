@@ -233,19 +233,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Get user status
     let status = 'pending_verification'; // Default
     try {
-      // 🔥 FIX: Add token validation and Authorization header
-      const token = localStorage.getItem('token');
-      if (!token || token.length < 20) {
-        console.error("Invalid token in storage:", token);
-        window.location.href = 'https://apparels.impromptuindian.com/login.html';
-        return;
-      }
-
+      // 🔥 FIX: Use HttpOnly cookies for authentication (shared across subdomains)
       const response = await ImpromptuIndianApi.fetch('/api/rider/profile', {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        credentials: 'include'  // Send cookies automatically
       });
 
       if (response.ok) {
@@ -314,13 +305,7 @@ function populateUserData() {
 
 async function fetchNotificationCount() {
   try {
-    // 🔥 FIX: Add token validation and Authorization header
-    const token = localStorage.getItem('token');
-    if (!token || token.length < 20) {
-      console.error("Invalid token in storage:", token);
-      return;
-    }
-
+    // 🔥 FIX: Use HttpOnly cookies for authentication
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user || !user.user_id) {
       console.log('No user found in localStorage');
@@ -329,9 +314,7 @@ async function fetchNotificationCount() {
 
     const response = await ImpromptuIndianApi.fetch(`/api/rider/notifications?unread_only=true`, {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      credentials: 'include'  // Send cookies automatically
     });
     if (response.ok) {
       const data = await response.json();
