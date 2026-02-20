@@ -18,8 +18,18 @@ document.addEventListener('DOMContentLoaded', () => {
 // Load profile data
 async function loadProfile() {
     try {
+        const token = localStorage.getItem('token');
+        if (!token || token.length < 20) {
+            console.error("Invalid token in storage:", token);
+            window.location.href = 'https://apparels.impromptuindian.com/login.html';
+            return;
+        }
+
         const response = await ImpromptuIndianApi.fetch('/api/rider/profile', {
-            method: 'GET'
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         });
 
         if (!response.ok) {
@@ -66,8 +76,17 @@ async function loadProfile() {
 // Load performance metrics
 async function loadPerformanceMetrics() {
     try {
+        const token = localStorage.getItem('token');
+        if (!token || token.length < 20) {
+            console.error("Invalid token in storage:", token);
+            return;
+        }
+
         const response = await ImpromptuIndianApi.fetch('/api/rider/status', {
-            method: 'GET'
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         });
 
         if (!response.ok) return;
@@ -105,10 +124,18 @@ async function updateProfile() {
     }
 
     try {
+        const token = localStorage.getItem('token');
+        if (!token || token.length < 20) {
+            console.error("Invalid token in storage:", token);
+            window.location.href = 'https://apparels.impromptuindian.com/login.html';
+            return;
+        }
+
         const response = await ImpromptuIndianApi.fetch('/api/rider/profile', {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
                 email: email

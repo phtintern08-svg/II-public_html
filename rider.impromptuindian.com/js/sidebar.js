@@ -233,9 +233,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Get user status
     let status = 'pending_verification'; // Default
     try {
-      // Use cookie-based authentication (credentials: 'include' is set by ImpromptuIndianApi.fetch)
+      // 🔥 FIX: Add token validation and Authorization header
+      const token = localStorage.getItem('token');
+      if (!token || token.length < 20) {
+        console.error("Invalid token in storage:", token);
+        window.location.href = 'https://apparels.impromptuindian.com/login.html';
+        return;
+      }
+
       const response = await ImpromptuIndianApi.fetch('/api/rider/profile', {
-        method: 'GET'
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       if (response.ok) {
@@ -304,15 +314,24 @@ function populateUserData() {
 
 async function fetchNotificationCount() {
   try {
+    // 🔥 FIX: Add token validation and Authorization header
+    const token = localStorage.getItem('token');
+    if (!token || token.length < 20) {
+      console.error("Invalid token in storage:", token);
+      return;
+    }
+
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user || !user.user_id) {
       console.log('No user found in localStorage');
       return;
     }
 
-    // Use cookie-based authentication (credentials: 'include' is set by ImpromptuIndianApi.fetch)
     const response = await ImpromptuIndianApi.fetch(`/api/rider/notifications?unread_only=true`, {
-      method: 'GET'
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
     });
     if (response.ok) {
       const data = await response.json();

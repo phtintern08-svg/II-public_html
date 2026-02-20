@@ -30,6 +30,12 @@ async function checkOnlineStatus() {
         }
 
         const token = localStorage.getItem('token');
+        if (!token || token.length < 20) {
+            console.error("Invalid token in storage:", token);
+            window.location.href = 'https://apparels.impromptuindian.com/login.html';
+            return;
+        }
+
         const response = await ImpromptuIndianApi.fetch(`/api/rider/profile`, {
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -74,6 +80,12 @@ async function loadDeliveries() {
         }
 
         const token = localStorage.getItem('token');
+        if (!token || token.length < 20) {
+            console.error("Invalid token in storage:", token);
+            window.location.href = 'https://apparels.impromptuindian.com/login.html';
+            return;
+        }
+
         const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/assigned`, {
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -334,6 +346,12 @@ async function markReachedVendor(deliveryId) {
     */
     try {
         const token = localStorage.getItem('token');
+        if (!token || token.length < 20) {
+            console.error("Invalid token in storage:", token);
+            window.location.href = 'https://apparels.impromptuindian.com/login.html';
+            return;
+        }
+
         const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${deliveryId}/status`, {
             method: 'PUT',
             headers: {
@@ -414,6 +432,12 @@ async function uploadPickupProof(event) {
 
     try {
         const token = localStorage.getItem('token');
+        if (!token || token.length < 20) {
+            console.error("Invalid token in storage:", token);
+            window.location.href = 'https://apparels.impromptuindian.com/login.html';
+            return;
+        }
+
         const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${currentDeliveryId}/pickup-proof`, {
             method: 'POST',
             headers: {
@@ -472,6 +496,12 @@ async function uploadDeliveryProof(event) {
 
     try {
         const token = localStorage.getItem('token');
+        if (!token || token.length < 20) {
+            console.error("Invalid token in storage:", token);
+            window.location.href = 'https://apparels.impromptuindian.com/login.html';
+            return;
+        }
+
         const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${currentDeliveryId}/delivery-proof`, {
             method: 'POST',
             headers: {
@@ -667,6 +697,12 @@ async function startDelivery(deliveryId) {
 
     try {
         const token = localStorage.getItem('token');
+        if (!token || token.length < 20) {
+            console.error("Invalid token in storage:", token);
+            window.location.href = 'https://apparels.impromptuindian.com/login.html';
+            return;
+        }
+
         const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${deliveryId}/status`, {
             method: 'PUT',
             headers: {
@@ -723,6 +759,12 @@ async function markReachedVendor(deliveryId) {
         }
 
         const token = localStorage.getItem('token');
+        if (!token || token.length < 20) {
+            console.error("Invalid token in storage:", token);
+            window.location.href = 'https://apparels.impromptuindian.com/login.html';
+            return;
+        }
+
         const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${deliveryId}/status`, {
             method: 'PUT',
             headers: {
@@ -756,6 +798,12 @@ async function navigateToPickup(deliveryId) {
 
         // 1. Fetch delivery details from backend to get addresses
         const token = localStorage.getItem('token');
+        if (!token || token.length < 20) {
+            console.error("Invalid token in storage:", token);
+            window.location.href = 'https://apparels.impromptuindian.com/login.html';
+            return;
+        }
+
         const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${deliveryId}/details`, {
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -979,6 +1027,11 @@ async function sendLocationUpdate(deliveryId) {
         });
 
         const token = localStorage.getItem('token');
+        if (!token || token.length < 20) {
+            console.error("Invalid token in storage:", token);
+            return; // Don't redirect on location updates, just fail silently
+        }
+
         const response = await ImpromptuIndianApi.fetch(`/api/rider/deliveries/${deliveryId}/location`, {
             method: 'PUT',
             headers: {

@@ -74,10 +74,18 @@
     async function fetchRiderStatus() {
         if (!riderId) return;
         try {
-            // Use cookie-based authentication (credentials: 'include' sends cookies automatically)
+            const token = localStorage.getItem('token');
+            if (!token || token.length < 20) {
+                console.error("Invalid token in storage:", token);
+                window.location.href = 'https://apparels.impromptuindian.com/login.html';
+                return;
+            }
+
             const response = await ImpromptuIndianApi.fetch('/api/rider/profile', {
                 method: 'GET',
-                credentials: 'include'  // Send cookies
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
             if (response.ok) {
                 const data = await response.json();
@@ -141,12 +149,18 @@
 
         // Update presence status via API
         try {
+            const token = localStorage.getItem('token');
+            if (!token || token.length < 20) {
+                console.error("Invalid token in storage:", token);
+                return;
+            }
+
             const response = await ImpromptuIndianApi.fetch('/api/rider/presence', {
                 method: 'PUT',
                 headers: { 
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
-                credentials: 'include',  // Send cookies
                 body: JSON.stringify({
                     is_online: newState,
                     latitude: coords.lat,
@@ -198,18 +212,20 @@
         locationInterval = setInterval(async () => {
             try {
                 const coords = await getCurrentLocation();
-                // Use cookie-based authentication
-                await ImpromptuIndianApi.fetch('/api/rider/presence', {
-                    method: 'PUT',
-                    headers: { 
-                        'Content-Type': 'application/json'
-                    },
-                    credentials: 'include',  // Send cookies
-                    body: JSON.stringify({
-                        latitude: coords.lat,
-                        longitude: coords.lon
-                    })
-                });
+                const token = localStorage.getItem('token');
+                if (token && token.length >= 20) {
+                    await ImpromptuIndianApi.fetch('/api/rider/presence', {
+                        method: 'PUT',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            latitude: coords.lat,
+                            longitude: coords.lon
+                        })
+                    });
+                }
             } catch (e) {
                 console.error('Periodic location update failed:', e);
             }
@@ -249,10 +265,17 @@
         if (!container || !riderId) return;
 
         try {
-            // Use cookie-based authentication
+            const token = localStorage.getItem('token');
+            if (!token || token.length < 20) {
+                console.error("Invalid token in storage:", token);
+                return;
+            }
+
             const response = await ImpromptuIndianApi.fetch('/api/rider/deliveries/assigned', {
                 method: 'GET',
-                credentials: 'include'  // Send cookies
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
 
             if (response.ok) {
