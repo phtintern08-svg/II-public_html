@@ -116,36 +116,31 @@
         const currentState = toggle.classList.contains('active');
         const newState = forceState !== null ? forceState : !currentState;
 
-        try {
-            // Get current location if going online
-            let coords = { lat: null, lon: null };
-            if (newState) {
-                try {
-                    const locService = new LocationService();
-                    const locData = await locService.getCurrentLocation();
-
-                    coords = {
-                        lat: locData.coords.latitude,
-                        lon: locData.coords.longitude
-                    };
-
-                    if (locData.address) {
-                        showToast(`Location detected: ${locData.address.city || 'Success'}`, 'info');
-                    } else {
-                        showToast('GPS active, but address look up failed.', 'warning');
-                    }
-
-                } catch (geoErr) {
-                    console.warn('Geolocation failed:', geoErr);
-                    let errMsg = 'Location access is required for automatic assignments.';
-                    if (geoErr.message && geoErr.message.includes('denied')) errMsg = 'Location permission denied. Please enable it in your browser settings.';
-                    else if (geoErr.message && geoErr.message.includes('timeout')) errMsg = 'Location request timed out. Please check your GPS signal.';
-
-                    showToast(errMsg, 'error');
+        // Get current location if going online
+        let coords = { lat: null, lon: null };
+        if (newState) {
+            try {
+                const locData = await getCurrentLocation();
+                coords = {
+                    lat: locData.lat,
+                    lon: locData.lon
+                };
+                showToast('Location detected successfully', 'success');
+            } catch (geoErr) {
+                console.warn('Geolocation failed:', geoErr);
+                let errMsg = 'Location permission required.';
+                if (geoErr.message && geoErr.message.includes('denied')) {
+                    errMsg = 'Location permission denied. Please enable it in your browser settings.';
+                } else if (geoErr.message && geoErr.message.includes('timeout')) {
+                    errMsg = 'Location request timed out. Please check your GPS signal.';
                 }
+                showToast(errMsg, 'error');
+                // Still proceed with API call even if location fails (user can update later)
             }
+        }
 
-            // Use cookie-based authentication
+        // Update presence status via API
+        try {
             const response = await ImpromptuIndianApi.fetch('/api/rider/presence', {
                 method: 'PUT',
                 headers: { 
@@ -171,7 +166,8 @@
                     showToast('You are now offline');
                 }
             } else {
-                showToast('Failed to update status', 'error');
+                const errorData = await response.json().catch(() => ({}));
+                showToast(errorData.error || 'Failed to update status', 'error');
             }
         } catch (e) {
             console.error('Error toggling availability:', e);
