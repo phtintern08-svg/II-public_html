@@ -81,8 +81,8 @@ async function fetchRequests() {
   if (tbody) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="5" class="text-center py-12">
-          <div class="flex flex-col items-center gap-3">
+        <td colspan="5" class="empty-state-cell">
+          <div class="flex flex-col items-center justify-center gap-3 py-12">
             <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-blue-400"></i>
             <p class="text-gray-400">Loading vendor requests...</p>
           </div>
@@ -125,8 +125,8 @@ async function fetchRequests() {
     if (tbody) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="5" class="text-center py-12">
-            <div class="flex flex-col items-center gap-3">
+          <td colspan="5" class="empty-state-cell">
+            <div class="flex flex-col items-center justify-center gap-3 py-12">
               <i data-lucide="alert-circle" class="w-8 h-8 text-red-400"></i>
               <p class="text-gray-400">Failed to load vendor requests</p>
               <button onclick="fetchRequests()" class="btn-secondary mt-2">
@@ -208,7 +208,7 @@ function renderRequests() {
       </div>
     `;
 
-    tbody.innerHTML = `<tr><td colspan="5">${emptyHtml}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="empty-state-cell">${emptyHtml}</td></tr>`;
     if (mobileList) mobileList.innerHTML = emptyHtml;
     if (window.lucide) lucide.createIcons();
 
@@ -227,22 +227,22 @@ function renderRequests() {
 
     // ── Desktop table row ──────────────────────────────────────────────
     const tr = document.createElement('tr');
+    const vendorName = r.name || 'Unknown';
+    const vendorInitial = vendorName.charAt(0).toUpperCase();
     tr.innerHTML = `
-      <td>
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white text-xs font-bold">
-            ${(r.name || 'U').charAt(0).toUpperCase()}
-          </div>
-          <span class="font-semibold">${r.name || 'Unknown'}</span>
+      <td class="td-vendor">
+        <div class="vendor-cell-content">
+          <div class="vendor-avatar">${vendorInitial}</div>
+          <span class="vendor-name">${vendorName}</span>
         </div>
       </td>
-      <td>${r.businessType || 'N/A'}</td>
-      <td>${r.submitted || 'N/A'}</td>
-      <td><span class="doc-status ${statusClass}">${statusDisplay}</span></td>
-      <td class="text-right">
-        <button class="btn-primary" onclick="openVendorModal(${r.id})" title="View Details">
+      <td class="td-business">${r.businessType || 'N/A'}</td>
+      <td class="td-date">${r.submitted || 'N/A'}</td>
+      <td class="td-status"><span class="doc-status ${statusClass}">${statusDisplay}</span></td>
+      <td class="td-actions">
+        <button class="btn-primary action-btn" onclick="openVendorModal(${r.id})" title="View Details">
           <i data-lucide="eye" class="w-4 h-4"></i>
-          <span class="hidden sm:inline ml-1">View</span>
+          <span class="hidden sm:inline">View</span>
         </button>
       </td>
     `;

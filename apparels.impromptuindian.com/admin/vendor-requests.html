@@ -137,36 +137,42 @@
                 </div>
                 <div class="card-body">
                     <div class="table-container">
-                        <table>
+                        <table class="vendor-requests-table">
                             <thead>
                                 <tr>
-                                    <th class="rounded-tl-xl">
-                                        <span class="inline-flex items-center gap-2">
-                                            <i data-lucide="building" class="w-3.5 h-3.5"></i> Vendor Name
+                                    <th class="th-vendor">
+                                        <span class="th-content">
+                                            <i data-lucide="building" class="th-icon"></i>
+                                            Vendor Name
                                         </span>
                                     </th>
-                                    <th>
-                                        <span class="inline-flex items-center gap-2">
-                                            <i data-lucide="briefcase" class="w-3.5 h-3.5"></i> Business Type
+                                    <th class="th-business">
+                                        <span class="th-content">
+                                            <i data-lucide="briefcase" class="th-icon"></i>
+                                            Business Type
                                         </span>
                                     </th>
-                                    <th>
-                                        <span class="inline-flex items-center gap-2">
-                                            <i data-lucide="calendar" class="w-3.5 h-3.5"></i> Submitted On
+                                    <th class="th-date">
+                                        <span class="th-content">
+                                            <i data-lucide="calendar" class="th-icon"></i>
+                                            Submitted On
                                         </span>
                                     </th>
-                                    <th>
-                                        <span class="inline-flex items-center gap-2">
-                                            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Status
+                                    <th class="th-status">
+                                        <span class="th-content">
+                                            <i data-lucide="shield-check" class="th-icon"></i>
+                                            Status
                                         </span>
                                     </th>
-                                    <th class="text-right rounded-tr-xl">Actions</th>
+                                    <th class="th-actions">
+                                        <span class="th-content">Actions</span>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody id="requests-table">
                                 <tr>
-                                    <td colspan="5" class="text-center py-12">
-                                        <div class="flex flex-col items-center gap-3">
+                                    <td colspan="5" class="empty-state-cell">
+                                        <div class="flex flex-col items-center justify-center gap-3 py-12">
                                             <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-blue-400"></i>
                                             <p class="text-gray-400">Loading vendor requests...</p>
                                         </div>
@@ -227,7 +233,7 @@
     <!-- Custom Alert Script -->
     <script src="js/custom-alert.js"></script>
 
-    <script src="js/vendor-requests.js?v=11"></script>
+    <script src="js/vendor-requests.js?v=12"></script>
 </body>
 
 </html>

@@ -498,15 +498,207 @@ body {
 .table-container {
     overflow-x: auto;
     border-radius: 0 0 0.875rem 0.875rem;
+    -webkit-overflow-scrolling: touch;
 }
 
-table {
+/* ========================================
+   VENDOR REQUESTS TABLE - PROFESSIONAL LAYOUT
+   ======================================== */
+.vendor-requests-table {
     width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed;
+    min-width: 800px;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.875rem;
 }
 
-/* Column widths */
+.vendor-requests-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+.vendor-requests-table thead th {
+    padding: 1rem 1.25rem;
+    background: rgba(15, 23, 42, 0.95);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    vertical-align: middle;
+    overflow: visible;
+}
+
+.vendor-requests-table thead th:first-child {
+    padding-left: 1.5rem;
+    border-radius: 0;
+}
+
+.vendor-requests-table thead th:last-child {
+    padding-right: 1.5rem;
+}
+
+.th-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.th-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+    flex-shrink: 0;
+    color: #64748b;
+}
+
+/* Column-specific alignment */
+.th-vendor,
+.vendor-requests-table td.td-vendor {
+    text-align: left;
+    min-width: 200px;
+}
+
+.th-business,
+.vendor-requests-table td.td-business {
+    text-align: left;
+    min-width: 160px;
+}
+
+.th-date,
+.vendor-requests-table td.td-date {
+    text-align: left;
+    min-width: 145px;
+}
+
+.th-status,
+.vendor-requests-table td.td-status {
+    text-align: center;
+    min-width: 120px;
+}
+
+.th-status .th-content,
+.vendor-requests-table td.td-status {
+    justify-content: center;
+}
+
+.th-actions,
+.vendor-requests-table td.td-actions {
+    text-align: right;
+    min-width: 120px;
+}
+
+.th-actions .th-content {
+    justify-content: flex-end;
+}
+
+/* Table body */
+.vendor-requests-table tbody tr {
+    border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+    transition: background 0.2s ease;
+}
+
+.vendor-requests-table tbody tr:hover {
+    background: rgba(37, 99, 235, 0.04);
+}
+
+.vendor-requests-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.vendor-requests-table tbody td {
+    padding: 1rem 1.25rem;
+    vertical-align: middle;
+    color: #cbd5e1;
+    font-size: 0.875rem;
+}
+
+.vendor-requests-table tbody td:first-child {
+    padding-left: 1.5rem;
+}
+
+.vendor-requests-table tbody td:last-child {
+    padding-right: 1.5rem;
+}
+
+/* Vendor name cell - avatar + name */
+.vendor-requests-table td.td-vendor .vendor-cell-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.vendor-requests-table td.td-vendor .vendor-avatar {
+    width: 2.25rem;
+    height: 2.25rem;
+    min-width: 2.25rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.vendor-requests-table td.td-vendor .vendor-name {
+    font-weight: 600;
+    color: #f1f5f9;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Business type & date - subtle styling */
+.vendor-requests-table td.td-business,
+.vendor-requests-table td.td-date {
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+/* Status cell - center badge */
+.vendor-requests-table td.td-status {
+    display: table-cell;
+}
+
+.vendor-requests-table td.td-status .doc-status {
+    display: inline-flex;
+    margin: 0 auto;
+}
+
+/* Actions cell - right align buttons */
+.vendor-requests-table td.td-actions {
+    text-align: right;
+}
+
+.vendor-requests-table td.td-actions .action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+/* Empty / loading / error state cell */
+.vendor-requests-table .empty-state-cell {
+    text-align: center;
+    padding: 2rem 1.5rem !important;
+    vertical-align: middle;
+}
+
+.vendor-requests-table .empty-state-cell > div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+/* Legacy fallback for tables without new classes */
 table th:nth-child(1),
 table td:nth-child(1) {
     width: 28%;
@@ -533,7 +725,7 @@ table td:nth-child(5) {
 }
 
 table thead th {
-    padding: 1rem 1.1rem;
+    padding: 1rem 1.25rem;
     background: rgba(15, 23, 42, 0.4);
     border-bottom: 1px solid rgba(148, 163, 184, 0.1);
     text-align: left;
@@ -543,10 +735,6 @@ table thead th {
     text-transform: uppercase;
     letter-spacing: 0.05em;
     white-space: nowrap;
-}
-
-table thead th.text-right {
-    text-align: right;
 }
 
 table tbody tr {
@@ -583,17 +771,15 @@ table td,
 table th {
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 table tbody td {
-    padding: 1rem 1.1rem;
+    padding: 1rem 1.25rem;
     font-size: 0.875rem;
     color: #cbd5e1;
     vertical-align: middle;
 }
 
-/* Fix first column flex alignment */
 table tbody td:first-child>div {
     display: flex;
     align-items: center;
