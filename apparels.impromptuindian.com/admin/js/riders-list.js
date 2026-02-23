@@ -321,7 +321,7 @@ async function performApprove(id) {
             },
             credentials: 'include',
             body: JSON.stringify({
-                status: 'verified',
+                status: 'approved',
                 remarks: 'Approved by admin'
             })
         });

@@ -365,7 +365,7 @@ async function performApprove() {
             },
             credentials: 'include',
             body: JSON.stringify({
-                status: 'verified',
+                status: 'approved',
                 remarks: 'Approved after re-application'
             })
         });

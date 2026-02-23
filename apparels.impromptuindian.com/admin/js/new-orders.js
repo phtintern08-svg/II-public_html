@@ -28,7 +28,7 @@ async function fetchApprovedVendors() {
   try {
     // 🔥 FIX: Token is automatically injected by ImpromptuIndianApi.fetch() wrapper
     // No need for manual token check or Authorization header - wrapper handles it
-    const response = await ImpromptuIndianApi.fetch('/api/admin/vendors?status=verified');
+    const response = await ImpromptuIndianApi.fetch('/api/admin/vendors?status=approved');
 
     // 🔥 NOTE: 401 handling is now centralized in API wrapper (sidebar.js)
     // If 401 occurs, wrapper automatically redirects to login
@@ -60,8 +60,8 @@ async function fetchApprovedVendors() {
       console.log('First vendor keys:', Object.keys(approvedVendors[0]));
     } else {
       console.warn('⚠️ No verified vendors found! Check:');
-      console.warn('1. Are there vendors with verification_status = "verified" in the database?');
-      console.warn('2. Is the API endpoint /api/admin/vendors?status=verified returning data?');
+      console.warn('1. Are there vendors with verification_status = "approved" in the database?');
+      console.warn('2. Is the API endpoint /api/admin/vendors?status=approved returning data?');
       console.warn('3. Check Network tab for the API response');
     }
   } catch (e) {
