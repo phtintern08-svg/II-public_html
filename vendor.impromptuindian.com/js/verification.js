@@ -409,7 +409,8 @@ async function submitVerification() {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            credentials: 'include'
         });
 
         if (!response.ok) {
@@ -418,9 +419,9 @@ async function submitVerification() {
             return;
         }
 
-        showToast('Documents submitted for verification!', 'success');
+        showToast('Verification submitted successfully!', 'success');
 
-        // FORCE REFRESH STATUS FROM BACKEND (API is source of truth)
+        // 🔥 CRITICAL: Re-fetch status from backend - UI must sync with DB (pending/under-review)
         await fetchVerificationStatus();
 
         // Lock UI (fetchVerificationStatus already updates banner/timeline/grid)
@@ -864,6 +865,15 @@ function renderStatusBanner() {
                 </div>
             </div>
         `,
+        'under-review': `
+            <div class="status-banner status-info">
+                <i data-lucide="clock"></i>
+                <div class="flex-1">
+                    <h4 class="status-title">Documents Submitted – Awaiting Review</h4>
+                    <p class="status-description">Admin is reviewing your documents.</p>
+                </div>
+            </div>
+        `,
         'approved': `
             <div class="status-banner status-success">
                 <i data-lucide="check-circle-2"></i>
@@ -884,7 +894,9 @@ function renderStatusBanner() {
         `
     };
 
-    banner.innerHTML = banners[verificationStatus];
+    // Fallback for unexpected status (e.g. empty, under-review) – treat as pending
+    const html = banners[verificationStatus] || banners['pending'];
+    banner.innerHTML = html;
     lucide.createIcons();
 }
 
