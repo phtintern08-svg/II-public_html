@@ -69,24 +69,9 @@ async function loadVendorProfile() {
         });
         if (response.ok) {
             const data = await response.json();
-            
-            // Store complete vendor profile data from database
-            localStorage.setItem('vendor_profile', JSON.stringify(data));
-            
-            // Update localStorage with fresh data from database
-            if (data.username) localStorage.setItem('username', data.username);
-            if (data.email) localStorage.setItem('email', data.email);
-            if (data.phone) localStorage.setItem('phone', data.phone);
-            if (data.business_name) localStorage.setItem('business_name', data.business_name);
-            if (data.business_type) localStorage.setItem('business_type', data.business_type);
-            if (data.bio) localStorage.setItem('bio', data.bio);
-            if (data.avatar_url) localStorage.setItem('avatar_url', data.avatar_url);
-            if (data.address) localStorage.setItem('address', data.address);
-            if (data.city) localStorage.setItem('city', data.city);
-            if (data.state) localStorage.setItem('state', data.state);
-            if (data.pincode) localStorage.setItem('pincode', data.pincode);
-            
-            // Populate form fields
+            // Backend is source of truth - never store profile identity in localStorage
+
+            // Populate form fields from API response
             if (document.getElementById('profileBusinessName')) {
                 document.getElementById('profileBusinessName').value = data.business_name || '';
             }
@@ -204,18 +189,7 @@ async function saveProfileChanges() {
 
         if (response.ok) {
             const result = await response.json();
-            
-            // ✅ FIX: Update localStorage with fresh data from backend response
-            if (result.profile) {
-                const profile = result.profile;
-                localStorage.setItem('vendor_profile', JSON.stringify(profile));
-                if (profile.username) localStorage.setItem('username', profile.username);
-                if (profile.business_name) localStorage.setItem('business_name', profile.business_name);
-                if (profile.email) localStorage.setItem('email', profile.email);
-                if (profile.phone) localStorage.setItem('phone', profile.phone);
-                if (profile.business_type) localStorage.setItem('business_type', profile.business_type);
-                if (profile.bio) localStorage.setItem('bio', profile.bio);
-            }
+            // Backend is source of truth - no profile identity in localStorage
 
             showToast('Profile updated successfully!');
 

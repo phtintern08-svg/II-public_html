@@ -1,33 +1,5 @@
 (function () {
-  /* Session Transfer Logic */
-  (function () {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('user_id') && urlParams.has('role')) {
-      const userId = urlParams.get('user_id');
-      const role = urlParams.get('role');
-
-      if (role === 'vendor') {
-        localStorage.setItem('user_id', userId);
-        localStorage.setItem('role', role);
-
-        const username = urlParams.get('username');
-        if (username) localStorage.setItem('username', username);
-
-        const email = urlParams.get('email');
-        if (email) localStorage.setItem('email', email);
-
-        const phone = urlParams.get('phone');
-        if (phone) localStorage.setItem('phone', phone);
-
-        // Create user object for consistency
-        const userObj = { user_id: userId, role: role, username, email, phone };
-        localStorage.setItem('user', JSON.stringify(userObj));
-
-        // Clean URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-    }
-  })();
+  // Session transfer removed: JWT cookie is the source of truth. Never store identity in localStorage.
 
   // Use a safe way to declare ImpromptuIndianApi to avoid "already declared" errors
   if (typeof window.ImpromptuIndianApi === 'undefined') {
@@ -233,12 +205,21 @@
     });
   }
 
-  function populateUserData() {
-    const username = localStorage.getItem('username') || 'Creative Printz';
-    const nameEl = document.getElementById('userName');
-    const avatarEl = document.getElementById('userAvatar');
-    if (nameEl) nameEl.textContent = username;
-    if (avatarEl) avatarEl.textContent = username.charAt(0).toUpperCase();
+  async function populateUserData() {
+    try {
+      const res = await ImpromptuIndianApi.fetch('/api/vendor/profile', {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      const name = data.business_name || data.username || 'Vendor';
+      const nameEl = document.getElementById('userName');
+      const avatarEl = document.getElementById('userAvatar');
+      if (nameEl) nameEl.textContent = name;
+      if (avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
+    } catch (e) {
+      console.error('Failed to load sidebar user data:', e);
+    }
   }
 
   async function logout(event) {
