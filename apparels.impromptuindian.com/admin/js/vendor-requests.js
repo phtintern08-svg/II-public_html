@@ -35,22 +35,22 @@ function animateNumber(element, target, duration = 1000) {
   if (!element) return;
   const start = 0;
   const startTime = performance.now();
-  
+
   function update(currentTime) {
     const elapsed = currentTime - startTime;
     const progress = Math.min(elapsed / duration, 1);
     const easeOutQuart = 1 - Math.pow(1 - progress, 4);
     const current = Math.floor(start + (target - start) * easeOutQuart);
-    
+
     element.textContent = current.toLocaleString();
-    
+
     if (progress < 1) {
       requestAnimationFrame(update);
     } else {
       element.textContent = target.toLocaleString();
     }
   }
-  
+
   requestAnimationFrame(update);
 }
 
@@ -60,13 +60,13 @@ function calculateSummary() {
   const pending = requests.filter(r => normalizeStatus(r.status) === 'pending').length;
   const approved = requests.filter(r => normalizeStatus(r.status) === 'approved').length;
   const rejected = requests.filter(r => normalizeStatus(r.status) === 'rejected').length;
-  
+
   // Animate numbers
   const totalEl = document.querySelector('#total-requests-count .summary-number');
   const pendingEl = document.querySelector('#pending-requests-count .summary-number');
   const approvedEl = document.querySelector('#approved-requests-count .summary-number');
   const rejectedEl = document.querySelector('#rejected-requests-count .summary-number');
-  
+
   if (totalEl) animateNumber(totalEl, total);
   if (pendingEl) animateNumber(pendingEl, pending);
   if (approvedEl) animateNumber(approvedEl, approved);
@@ -76,7 +76,7 @@ function calculateSummary() {
 async function fetchRequests() {
   const tbody = document.getElementById('requests-table');
   const loadingSpinner = document.getElementById('table-loading');
-  
+
   // Show loading state
   if (tbody) {
     tbody.innerHTML = `
@@ -91,16 +91,16 @@ async function fetchRequests() {
     `;
     if (window.lucide) lucide.createIcons();
   }
-  
+
   if (loadingSpinner) loadingSpinner.classList.remove('hidden');
-  
+
   try {
     const response = await ImpromptuIndianApi.fetch('/api/admin/vendor-requests', {
       credentials: 'include'  // Use cookie-based authentication
     });
     if (!response.ok) throw new Error('Failed to fetch requests');
     const data = await response.json();
-    
+
     // Normalize data shape to match frontend expectations
     requests = (Array.isArray(data) ? data : (data.vendors || [])).map(v => ({
       id: v.id,
@@ -116,7 +116,7 @@ async function fetchRequests() {
       },
       adminRemarks: v.adminRemarks || v.admin_remarks || ''
     }));
-    
+
     console.log('Fetched requests:', requests);
     calculateSummary();
     filterRequests();
@@ -165,19 +165,21 @@ function refreshRequests() {
 
 function renderRequests() {
   const tbody = document.getElementById('requests-table');
+  const mobileList = document.getElementById('mobile-requests-list');
   const countDisplay = document.getElementById('requests-count-display');
-  
+
   if (!tbody) return;
-  
+
   tbody.innerHTML = '';
+  if (mobileList) mobileList.innerHTML = '';
 
   if (filteredRequests.length === 0) {
     const searchTerm = document.getElementById('search-vendor')?.value || '';
     const statusFilter = document.getElementById('status-filter')?.value || 'all';
-    
+
     let emptyMessage = '';
     let emptyIcon = 'inbox';
-    
+
     if (requests.length === 0) {
       emptyMessage = 'No vendor requests found';
       emptyIcon = 'inbox';
@@ -188,29 +190,28 @@ function renderRequests() {
       emptyMessage = 'No vendor requests found';
       emptyIcon = 'inbox';
     }
-    
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="5" class="text-center py-16">
-          <div class="flex flex-col items-center gap-4">
-            <div class="w-16 h-16 rounded-full bg-gray-800/50 flex items-center justify-center">
-              <i data-lucide="${emptyIcon}" class="w-8 h-8 text-gray-500"></i>
-            </div>
-            <div class="text-center">
-              <p class="text-gray-400 font-medium mb-1">${emptyMessage}</p>
-              ${requests.length === 0 ? '' : '<p class="text-gray-500 text-sm">Try adjusting your search or filters</p>'}
-            </div>
-            ${requests.length === 0 ? '' : `
-              <button onclick="resetFilters()" class="btn-secondary">
-                <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Clear Filters
-              </button>
-            `}
-          </div>
-        </td>
-      </tr>
+
+    const emptyHtml = `
+      <div class="flex flex-col items-center gap-4" style="padding: 3rem 1rem; text-align: center;">
+        <div class="w-16 h-16 rounded-full bg-gray-800/50 flex items-center justify-center" style="margin: 0 auto;">
+          <i data-lucide="${emptyIcon}" class="w-8 h-8 text-gray-500"></i>
+        </div>
+        <div>
+          <p class="text-gray-400 font-medium mb-1">${emptyMessage}</p>
+          ${requests.length === 0 ? '' : '<p class="text-gray-500 text-sm">Try adjusting your search or filters</p>'}
+        </div>
+        ${requests.length === 0 ? '' : `
+          <button onclick="resetFilters()" class="btn-secondary">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Clear Filters
+          </button>
+        `}
+      </div>
     `;
+
+    tbody.innerHTML = `<tr><td colspan="5">${emptyHtml}</td></tr>`;
+    if (mobileList) mobileList.innerHTML = emptyHtml;
     if (window.lucide) lucide.createIcons();
-    
+
     if (countDisplay) {
       countDisplay.textContent = '0 requests';
     }
@@ -224,6 +225,7 @@ function renderRequests() {
     const statusDisplay = hasDocs ? status : 'Missing Docs';
     const statusClass = hasDocs ? status : 'rejected'; // Use red for missing docs
 
+    // ── Desktop table row ──────────────────────────────────────────────
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>
@@ -245,10 +247,41 @@ function renderRequests() {
       </td>
     `;
     tbody.appendChild(tr);
+
+    // ── Mobile card ────────────────────────────────────────────────────
+    if (mobileList) {
+      const card = document.createElement('div');
+      card.className = 'vendor-mobile-card';
+      card.innerHTML = `
+        <div class="vendor-mobile-card-header">
+          <div class="vendor-mobile-card-identity">
+            <div class="vendor-mobile-avatar">${(r.name || 'U').charAt(0).toUpperCase()}</div>
+            <span class="vendor-mobile-name">${r.name || 'Unknown'}</span>
+          </div>
+          <span class="doc-status ${statusClass}" style="flex-shrink:0;">${statusDisplay}</span>
+        </div>
+        <div class="vendor-mobile-card-meta">
+          <div class="vendor-mobile-meta-item">
+            <div class="vendor-mobile-meta-label">Business Type</div>
+            <div class="vendor-mobile-meta-value">${r.businessType || 'N/A'}</div>
+          </div>
+          <div class="vendor-mobile-meta-item">
+            <div class="vendor-mobile-meta-label">Submitted On</div>
+            <div class="vendor-mobile-meta-value">${r.submitted || 'N/A'}</div>
+          </div>
+        </div>
+        <div class="vendor-mobile-card-footer">
+          <button class="vendor-mobile-view-btn" onclick="openVendorModal(${r.id})" style="width:100%; justify-content:center;">
+            <i data-lucide="eye" class="w-4 h-4"></i> View Application
+          </button>
+        </div>
+      `;
+      mobileList.appendChild(card);
+    }
   });
-  
+
   if (window.lucide) lucide.createIcons();
-  
+
   if (countDisplay) {
     const count = filteredRequests.length;
     const total = requests.length;
@@ -261,7 +294,7 @@ function filterRequests() {
   const searchInput = document.getElementById('search-vendor');
   const term = searchInput?.value.toLowerCase().trim() || '';
   const clearBtn = document.getElementById('search-clear-btn');
-  
+
   // Show/hide clear button
   if (clearBtn) {
     if (term) {
@@ -270,19 +303,19 @@ function filterRequests() {
       clearBtn.classList.add('hidden');
     }
   }
-  
+
   filteredRequests = requests.filter(r => {
     const normalizedStatus = normalizeStatus(r.status);
     const matchStatus = status === 'all' || normalizedStatus === status;
     // Safe access to prevent crashes
-    const matchTerm = 
-      (r.name || '').toLowerCase().includes(term) || 
+    const matchTerm =
+      (r.name || '').toLowerCase().includes(term) ||
       (r.businessType || '').toLowerCase().includes(term) ||
       (r.contact?.email || '').toLowerCase().includes(term) ||
       (r.contact?.phone || '').includes(term);
     return matchStatus && matchTerm;
   });
-  
+
   renderRequests();
 }
 
@@ -298,12 +331,12 @@ function clearSearch() {
 function resetFilters() {
   const searchInput = document.getElementById('search-vendor');
   const statusFilter = document.getElementById('status-filter');
-  
+
   if (searchInput) searchInput.value = '';
   if (statusFilter) statusFilter.value = 'all';
-  
+
   filterRequests();
-  
+
   if (searchInput) searchInput.focus();
 }
 
@@ -531,7 +564,7 @@ async function approveVendor() {
   try {
     const response = await ImpromptuIndianApi.fetch(`/api/admin/vendors/${currentVendorId}/approve`, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json'
       },
       credentials: 'include',  // Use cookie-based authentication
@@ -628,7 +661,7 @@ async function rejectVendor() {
   try {
     const response = await ImpromptuIndianApi.fetch(`/api/admin/vendors/${currentVendorId}/reject`, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json'
       },
       credentials: 'include',  // Use cookie-based authentication
@@ -737,20 +770,20 @@ function previewDocument(url, filename, type) {
   if (existing) existing.remove();
 
   document.body.insertAdjacentHTML('beforeend', modalHtml);
-  
+
   // Blur vendor modal when preview opens
   const vendorModal = document.getElementById('vendor-modal');
   if (vendorModal && !vendorModal.classList.contains('hidden')) {
     vendorModal.style.filter = "blur(4px)";
   }
-  
+
   if (window.lucide) lucide.createIcons();
 }
 
 function closePreviewModal() {
   const m = document.getElementById('previewModal');
   if (m) m.remove();
-  
+
   // Remove blur from vendor modal when preview closes
   const vendorModal = document.getElementById('vendor-modal');
   if (vendorModal) {
@@ -769,7 +802,7 @@ document.addEventListener('keydown', (e) => {
       searchInput.select();
     }
   }
-  
+
   // Escape to close modal
   if (e.key === 'Escape') {
     const modal = document.getElementById('vendor-modal');
@@ -799,11 +832,11 @@ window.addEventListener('DOMContentLoaded', () => {
   if (window.lucide) {
     lucide.createIcons();
   }
-  
+
   // Trigger reveal animations
   onScroll();
   window.addEventListener('scroll', onScroll);
-  
+
   // Initial reveal for elements in viewport
   setTimeout(() => {
     document.querySelectorAll('.reveal').forEach(el => {
@@ -813,10 +846,10 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     });
   }, 100);
-  
+
   // Fetch requests
   fetchRequests();
-  
+
   // Add search input event listeners
   const searchInput = document.getElementById('search-vendor');
   if (searchInput) {
@@ -827,7 +860,7 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-  
+
   // Add status filter event listener
   const statusFilter = document.getElementById('status-filter');
   if (statusFilter) {

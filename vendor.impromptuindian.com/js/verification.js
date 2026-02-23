@@ -418,19 +418,12 @@ async function submitVerification() {
             return;
         }
 
-        verificationStatus = 'pending';
-        
-        // Reload status to refresh valid data
-        await fetchVerificationStatus();
-        
-        // Update UI
-        renderStatusBanner();
-        renderTimeline();
-        renderDocumentsGrid();
-
         showToast('Documents submitted for verification!', 'success');
 
-        // Lock UI completely
+        // FORCE REFRESH STATUS FROM BACKEND (API is source of truth)
+        await fetchVerificationStatus();
+
+        // Lock UI (fetchVerificationStatus already updates banner/timeline/grid)
         freezeVerificationUI();
 
     } catch (e) {
@@ -1393,8 +1386,8 @@ function showToast(message, type = 'success') {
 /* ---------------------------
    INITIALIZATION
 ---------------------------*/
-document.addEventListener('DOMContentLoaded', () => {
-    fetchVerificationStatus();
+document.addEventListener('DOMContentLoaded', async () => {
+    await fetchVerificationStatus();
 
     // Reveal animation
     const revealEls = document.querySelectorAll(".reveal");

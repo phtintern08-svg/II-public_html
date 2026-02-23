@@ -328,81 +328,26 @@ if (loginForm) {
                     }
                 }
 
-                // 🔥 CRITICAL: Verify token was actually saved before redirecting
-                // This prevents race conditions where redirect happens before localStorage write completes
-                const savedToken = localStorage.getItem('token');
-                if (!savedToken || savedToken.length < 20) {
-                    console.error('❌ CRITICAL: Token was not saved correctly before redirect!', {
-                        savedToken: savedToken,
-                        savedTokenLength: savedToken ? savedToken.length : 0,
-                        originalToken: result.token ? result.token.substring(0, 20) + '...' : 'missing'
-                    });
-                    showAlert(
-                        'Login Error', 
-                        'Failed to save authentication token. Please try logging in again.',
-                        'error'
-                    );
-                    return; // Don't redirect if token wasn't saved
-                }
-                
-                console.log('✅ Token verified in localStorage before redirect', {
-                    tokenLength: savedToken.length,
-                    role: result.role
-                });
-                
                 showAlert('Success', 'Login successful!', 'success');
                 setTimeout(() => {
-                    // Use redirect_url directly from backend - never construct URLs in frontend
                     const redirectUrl = result.redirect_url;
-                    
-                    // Validate that redirect_url is a proper URL (safety check)
+
                     if (!redirectUrl || typeof redirectUrl !== 'string') {
                         console.error('Invalid redirect_url from server:', redirectUrl);
                         showAlert('Error', 'Invalid redirect URL received from server', 'error');
                         return;
                     }
-                    
-                    // Ensure it's a valid URL format
+
                     if (!redirectUrl.startsWith('http://') && !redirectUrl.startsWith('https://') && !redirectUrl.startsWith('/')) {
                         console.error('Invalid redirect_url format:', redirectUrl);
                         showAlert('Error', 'Invalid redirect URL format', 'error');
                         return;
                     }
-                    
-                    // 🔥 CRITICAL: Final verification before redirect
-                    const finalTokenCheck = localStorage.getItem('token');
-                    if (!finalTokenCheck || finalTokenCheck.length < 20) {
-                        console.error('❌ CRITICAL: Token missing right before redirect!', {
-                            token: finalTokenCheck,
-                            tokenLength: finalTokenCheck ? finalTokenCheck.length : 0
-                        });
-                        showAlert(
-                            'Login Error', 
-                            'Authentication token was lost. Please try logging in again.',
-                            'error'
-                        );
-                        return; // Don't redirect if token is missing
-                    }
-                    
-                    // 🔥 FIX: Pass token via URL parameter for cross-subdomain localStorage transfer
-                    // localStorage is isolated per subdomain, so we need to pass token in URL
-                    let finalRedirectUrl = redirectUrl;
-                    
-                    // Handle both absolute and relative URLs
-                    if (redirectUrl.startsWith('http://') || redirectUrl.startsWith('https://')) {
-                        const url = new URL(redirectUrl);
-                        url.searchParams.set('token', finalTokenCheck);
-                        url.searchParams.set('user_id', result.user_id || '');
-                        url.searchParams.set('role', result.role || '');
-                        finalRedirectUrl = url.toString();
-                    } else {
-                        // Relative URL - append query params
-                        const separator = redirectUrl.includes('?') ? '&' : '?';
-                        finalRedirectUrl = `${redirectUrl}${separator}token=${encodeURIComponent(finalTokenCheck)}&user_id=${result.user_id || ''}&role=${result.role || ''}`;
-                    }
-                    
-                    console.log('✅ Redirecting to:', finalRedirectUrl);
-                    window.location.href = finalRedirectUrl;
+
+                    // Cookie is set by backend with domain=.impromptuindian.com
+                    // Browser will send it automatically to vendor/apparels/rider subdomains
+                    // Do NOT pass token in URL - insecure and unnecessary
+                    window.location.href = redirectUrl;
                 }, 1000);
             } else {
                 // Handle non-401 errors (shouldn't reach here for 401, but just in case)

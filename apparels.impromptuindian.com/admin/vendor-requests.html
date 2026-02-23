@@ -40,7 +40,8 @@
             </div>
 
             <!-- Summary Statistics Cards -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8 reveal" style="transition-delay: 100ms;">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8 reveal"
+                style="transition-delay: 100ms;">
                 <div class="summary-card summary-card-primary">
                     <div class="summary-icon summary-icon-primary">
                         <i data-lucide="users" class="w-5 h-5 md:w-6 md:h-6"></i>
@@ -94,9 +95,10 @@
             <div class="reveal filters-bar mb-6" style="transition-delay: 200ms;">
                 <div class="search-input-wrapper">
                     <i data-lucide="search" class="w-4 h-4 search-icon"></i>
-                    <input type="text" id="search-vendor" class="search-input" placeholder="Search by Vendor name or Business type... (Ctrl+K)"
+                    <input type="text" id="search-vendor" class="search-input" placeholder="Search vendors... (Ctrl+K)"
                         oninput="filterRequests()" autocomplete="off" />
-                    <button class="search-clear hidden" id="search-clear-btn" onclick="clearSearch()" title="Clear search">
+                    <button class="search-clear hidden" id="search-clear-btn" onclick="clearSearch()"
+                        title="Clear search">
                         <i data-lucide="x" class="w-4 h-4"></i>
                     </button>
                 </div>
@@ -110,7 +112,8 @@
                             <option value="rejected">Rejected</option>
                         </select>
                     </div>
-                    <button class="filter-reset-btn" id="filter-reset-btn" onclick="resetFilters()" title="Reset filters">
+                    <button class="filter-reset-btn" id="filter-reset-btn" onclick="resetFilters()"
+                        title="Reset filters">
                         <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
                         <span class="hidden md:inline">Reset</span>
                     </button>
@@ -172,6 +175,8 @@
                             </tbody>
                         </table>
                     </div>
+                    <!-- Mobile card view (shown on screens ≤ 768px) -->
+                    <div class="mobile-card-list" id="mobile-requests-list"></div>
                 </div>
             </div>
         </main>
