@@ -24,7 +24,10 @@ const ImpromptuIndianApi = window.ImpromptuIndianApi || (() => {
     return {
         baseUrl: base,
         buildUrl,
-        fetch: (path, options = {}) => fetch(buildUrl(path), options)
+        fetch: (path, options = {}) => fetch(buildUrl(path), {
+            credentials: 'include',
+            ...options
+        })
     };
 })();
 window.ImpromptuIndianApi = ImpromptuIndianApi;
