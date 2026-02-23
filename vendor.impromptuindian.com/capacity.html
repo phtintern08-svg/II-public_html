@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Production Capacity – ImpromptuIndian Vendor</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/inventory.css">
+</head>
+
+<body class="text-white">
+
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <div class="reveal mb-8 flex items-start justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold tracking-tight">Production Capacity</h1>
+                    <p class="text-gray-400 mt-1">Made-to-Order: Set your daily capacity and lead time per product.</p>
+                </div>
+                <button class="btn-primary flex items-center gap-2" id="btn-add-capacity">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                    Add Capacity
+                </button>
+            </div>
+
+            <div id="capacity-empty" class="reveal card hidden">
+                <div class="card-body text-center py-12">
+                    <i data-lucide="factory" class="w-16 h-16 mx-auto text-gray-500 mb-4"></i>
+                    <p class="text-gray-400 mb-2">No production capacity set yet.</p>
+                    <p class="text-gray-500 text-sm mb-4">Add capacity for products you quote to receive order assignments.</p>
+                    <button class="btn-primary" onclick="openAddCapacityModal()">Add Capacity</button>
+                </div>
+            </div>
+
+            <div class="reveal card" id="capacity-card">
+                <div class="card-header">
+                    <h3 class="card-title">Your Production Capacity</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Daily Capacity</th>
+                                    <th>Max Bulk</th>
+                                    <th>Lead Time</th>
+                                    <th class="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="capacity-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Capacity Modal -->
+    <div id="capacity-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-[#1a1a2e] rounded-xl max-w-md w-full p-6 shadow-xl">
+            <h3 class="text-xl font-bold mb-4" id="modal-title">Add Production Capacity</h3>
+            <form id="capacity-form">
+                <input type="hidden" id="cap-product-id">
+                <div class="mb-4">
+                    <label class="block text-sm text-gray-400 mb-1">Product</label>
+                    <select id="cap-product-select" class="w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white">
+                        <option value="">Select product...</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm text-gray-400 mb-1">Daily Capacity (units/day)</label>
+                    <input type="number" id="cap-daily" min="1" placeholder="e.g. 200" class="w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm text-gray-400 mb-1">Max Bulk Order (0 = no limit)</label>
+                    <input type="number" id="cap-max-bulk" min="0" value="0" placeholder="0" class="w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white">
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm text-gray-400 mb-1">Lead Time (days)</label>
+                    <input type="number" id="cap-lead-time" min="1" value="3" placeholder="3" class="w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white">
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="btn-primary flex-1">Save</button>
+                    <button type="button" class="px-4 py-2 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-800" onclick="closeCapacityModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/capacity.js"></script>
+</body>
+
+</html>

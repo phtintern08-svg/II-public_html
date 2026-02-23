@@ -464,8 +464,37 @@ async function openOrderModal(id) {
   const order = orders.find(o => o.id === id);
   const body = document.getElementById('modal-body');
 
-  // Fetch latest vendors before rendering
+  // Fetch latest vendors and suggested vendors (by capacity) before rendering
   await fetchApprovedVendors();
+  let suggestedVendors = [];
+  try {
+    const sugRes = await ImpromptuIndianApi.fetch(`/api/admin/orders/${id}/suggested-vendors`);
+    if (sugRes.ok) {
+      const sugData = await sugRes.json();
+      suggestedVendors = sugData.suggested_vendors || [];
+    }
+  } catch (e) {
+    console.warn('Could not fetch suggested vendors:', e);
+  }
+
+  // Build vendor options: suggested first (by capacity + lead time), then all verified
+  const suggestedIds = new Set(suggestedVendors.map(s => s.vendor_id));
+  const vendorOptionsHtml = [
+    suggestedVendors.length > 0
+      ? '<optgroup label="✓ Suggested (has capacity + approved quote)">' +
+        suggestedVendors.map(v =>
+          `<option value="${v.vendor_id}" data-base-cost="${v.base_cost_per_piece || 0}">
+             ${v.vendor_name} — ${v.lead_time_days}d lead, ₹${(v.base_cost_per_piece || 0).toFixed(0)}/pc
+           </option>`
+        ).join('') + '</optgroup>'
+      : '',
+    '<optgroup label="All verified vendors">' +
+      approvedVendors
+        .filter(v => !suggestedIds.has(v.id))
+        .map(v => `<option value="${v.id}">${v.business_name || v.username || v.name || `Vendor #${v.id}`}</option>`)
+        .join('') +
+    '</optgroup>'
+  ].join('');
 
   body.innerHTML = `
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -555,16 +584,9 @@ async function openOrderModal(id) {
               <label class="block mb-2 text-xs font-bold text-gray-500 uppercase tracking-tighter">Choose Vendor <span class="text-red-400">*</span></label>
               <select id="vendor-select" class="w-full p-3 bg-gray-900 border border-white/10 rounded-xl text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none">
                 <option value="">Select an approved vendor...</option>
-                ${
-                  approvedVendors.length === 0
-                    ? '<option disabled>No verified vendors found</option>'
-                    : approvedVendors.map(v =>
-                        `<option value="${v.id}">
-                           ${v.business_name || v.username || v.name || `Vendor #${v.id}`}
-                         </option>`
-                      ).join('')
-                }
+                ${approvedVendors.length === 0 && suggestedVendors.length === 0 ? '<option disabled>No verified vendors found</option>' : vendorOptionsHtml}
               </select>
+              ${suggestedVendors.length > 0 ? '<p class="text-xs text-emerald-400/80 mt-1"><i data-lucide="info" class="w-3 h-3 inline"></i> Suggested vendors have production capacity for this order.</p>' : ''}
             </div>
             
             <div>
@@ -593,13 +615,24 @@ async function openOrderModal(id) {
   // Calculate total quotation when price changes
   const quotationInput = document.getElementById('quotation-price');
   const quotationTotal = document.getElementById('quotation-total');
+  const vendorSelect = document.getElementById('vendor-select');
   if (quotationInput && quotationTotal) {
     quotationInput.addEventListener('input', () => {
       const price = parseFloat(quotationInput.value) || 0;
-      // 🔥 BULK ORDER FIX: Use effective quantity (bulk_quantity for bulk orders, quantity for sample)
       const effectiveQty = order.effectiveQty || order.qty;
       const total = price * effectiveQty;
       quotationTotal.textContent = `₹${total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    });
+  }
+  // Auto-fill quotation price when selecting a suggested vendor (has data-base-cost)
+  if (vendorSelect && quotationInput) {
+    vendorSelect.addEventListener('change', () => {
+      const opt = vendorSelect.options[vendorSelect.selectedIndex];
+      const baseCost = parseFloat(opt?.dataset?.baseCost || 0);
+      if (baseCost > 0) {
+        quotationInput.value = baseCost.toFixed(2);
+        quotationInput.dispatchEvent(new Event('input'));
+      }
     });
   }
 }
