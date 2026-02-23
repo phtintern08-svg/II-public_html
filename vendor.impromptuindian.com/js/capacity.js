@@ -1,56 +1,71 @@
-// Production Capacity Page - Made-to-Order
+// Production Capacity - Auto-populated from approved quotations
+// Vendor Price = READ-ONLY. Vendor edits ONLY capacity.
 lucide.createIcons();
 
-let capacityData = [];
-let eligibleProducts = [];
+let capacityRows = [];
+let filters = { product_types: [], categories: [], sizes: [] };
 
 const ImpromptuIndianApi = window.ImpromptuIndianApi || {
     fetch: (path, opts = {}) => fetch(path, { credentials: 'include', ...opts })
 };
 
+function productLabel(row) {
+    const parts = [row.product_type, row.category, row.neck_type, row.fabric].filter(Boolean);
+    return parts.join(' / ') || `Product #${row.product_catalog_id}`;
+}
+
 async function fetchCapacity() {
+    const productType = document.getElementById('filter-product-type')?.value || '';
+    const category = document.getElementById('filter-category')?.value || '';
+    const size = document.getElementById('filter-size')?.value || '';
+
+    let url = '/api/vendor/capacity';
+    const params = new URLSearchParams();
+    if (productType) params.set('product_type', productType);
+    if (category) params.set('category', category);
+    if (size) params.set('size', size);
+    if (params.toString()) url += '?' + params.toString();
+
     try {
-        const res = await ImpromptuIndianApi.fetch('/api/vendor/capacity');
-        if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            throw new Error(err.error || 'Failed to load capacity');
-        }
+        const res = await ImpromptuIndianApi.fetch(url);
+        if (!res.ok) throw new Error('Failed to load');
         const data = await res.json();
-        capacityData = data.capacity || [];
-        renderCapacityTable();
+
+        capacityRows = data.rows || [];
+        filters = data.filters || { product_types: [], categories: [], sizes: [] };
+        renderFilters();
+        renderTable();
     } catch (e) {
         console.error(e);
+        capacityRows = [];
+        renderTable();
         document.getElementById('capacity-table-body').innerHTML =
-            `<tr><td colspan="5" class="text-center text-red-400 py-4">${e.message}</td></tr>`;
+            `<tr><td colspan="7" class="text-center text-red-400 py-4">Failed to load capacity</td></tr>`;
     }
 }
 
-async function fetchEligibleProducts() {
-    try {
-        const res = await ImpromptuIndianApi.fetch('/api/vendor/capacity/products');
-        if (!res.ok) throw new Error('Failed to load products');
-        const data = await res.json();
-        eligibleProducts = data.products || [];
-        return eligibleProducts;
-    } catch (e) {
-        console.error(e);
-        eligibleProducts = [];
-        return [];
-    }
+function renderFilters() {
+    const ptSelect = document.getElementById('filter-product-type');
+    const catSelect = document.getElementById('filter-category');
+    const sizeSelect = document.getElementById('filter-size');
+
+    if (!ptSelect) return;
+
+    const ptOpts = '<option value="">All</option>' + (filters.product_types || []).map(t => `<option value="${t}">${t}</option>`).join('');
+    const catOpts = '<option value="">All</option>' + (filters.categories || []).map(c => `<option value="${c}">${c}</option>`).join('');
+    const sizeOpts = '<option value="">All</option>' + (filters.sizes || []).map(s => `<option value="${s}">${s}</option>`).join('');
+
+    ptSelect.innerHTML = ptOpts;
+    catSelect.innerHTML = catOpts;
+    sizeSelect.innerHTML = sizeOpts;
 }
 
-function productLabel(p) {
-    if (!p) return '-';
-    const parts = [p.product_type, p.category, p.neck_type, p.fabric, p.size].filter(Boolean);
-    return parts.join(' / ') || `Product #${p.id}`;
-}
-
-function renderCapacityTable() {
+function renderTable() {
     const tbody = document.getElementById('capacity-table-body');
     const emptyEl = document.getElementById('capacity-empty');
     const cardEl = document.getElementById('capacity-card');
 
-    if (capacityData.length === 0) {
+    if (capacityRows.length === 0) {
         emptyEl.classList.remove('hidden');
         cardEl.classList.add('hidden');
         return;
@@ -59,90 +74,59 @@ function renderCapacityTable() {
     emptyEl.classList.add('hidden');
     cardEl.classList.remove('hidden');
 
-    tbody.innerHTML = capacityData.map(c => `
-        <tr>
+    tbody.innerHTML = capacityRows.map(row => `
+        <tr data-pcid="${row.product_catalog_id}">
             <td>
-                <div class="font-medium">${productLabel(c)}</div>
-                <span class="text-xs text-gray-500">#${c.product_catalog_id}</span>
+                <div class="font-medium text-sm">${productLabel(row)}</div>
             </td>
-            <td><span class="stock-badge">${c.daily_capacity}</span> / day</td>
-            <td>${c.max_bulk_capacity === 0 ? 'No limit' : c.max_bulk_capacity}</td>
-            <td>${c.lead_time_days} days</td>
+            <td><span class="font-semibold">${row.size || '-'}</span></td>
+            <td>
+                <span class="text-yellow-400 font-semibold" title="Read-only (set by admin)">₹${(row.quoted_price || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+            </td>
+            <td>
+                <input type="number" min="0" value="${row.daily_capacity || 0}" 
+                    class="cap-daily w-24 px-2 py-1.5 bg-[#0f0f1a] border border-gray-600 rounded text-white text-sm" 
+                    data-pcid="${row.product_catalog_id}" />
+            </td>
+            <td>
+                <input type="number" min="0" value="${row.max_bulk_capacity || 0}" 
+                    class="cap-max-bulk w-24 px-2 py-1.5 bg-[#0f0f1a] border border-gray-600 rounded text-white text-sm" 
+                    placeholder="0=no limit" data-pcid="${row.product_catalog_id}" />
+            </td>
+            <td>
+                <input type="number" min="1" value="${row.lead_time_days || 3}" 
+                    class="cap-lead-time w-20 px-2 py-1.5 bg-[#0f0f1a] border border-gray-600 rounded text-white text-sm" 
+                    data-pcid="${row.product_catalog_id}" />
+            </td>
             <td class="text-right">
-                <button class="action-btn mr-2" onclick="editCapacity(${c.product_catalog_id})" title="Edit">
-                    <i data-lucide="pencil" class="w-4 h-4"></i>
-                </button>
-                <button class="action-btn text-red-400 hover:text-red-300" onclick="deleteCapacity(${c.product_catalog_id})" title="Remove">
-                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                <button class="btn-save btn-primary py-1.5 px-3 text-xs" data-pcid="${row.product_catalog_id}" title="Save capacity">
+                    <i data-lucide="save" class="w-3.5 h-3.5 inline"></i> Save
                 </button>
             </td>
         </tr>
     `).join('');
+
     lucide.createIcons();
+
+    // Bind Save buttons
+    tbody.querySelectorAll('.btn-save').forEach(btn => {
+        btn.addEventListener('click', () => saveRow(parseInt(btn.dataset.pcid, 10)));
+    });
 }
 
-function openAddCapacityModal() {
-    document.getElementById('modal-title').textContent = 'Add Production Capacity';
-    document.getElementById('capacity-form').reset();
-    document.getElementById('cap-product-id').value = '';
-    document.getElementById('cap-product-select').disabled = false;
+async function saveRow(productCatalogId) {
+    const row = document.querySelector(`tr[data-pcid="${productCatalogId}"]`);
+    if (!row) return;
 
-    const sel = document.getElementById('cap-product-select');
-    sel.innerHTML = '<option value="">Select product...</option>' +
-        eligibleProducts
-            .filter(p => !capacityData.some(c => c.product_catalog_id === p.id))
-            .map(p => `<option value="${p.id}">${productLabel(p)}</option>`)
-            .join('');
+    const daily = parseInt(row.querySelector('.cap-daily')?.value || 0, 10);
+    const maxBulk = parseInt(row.querySelector('.cap-max-bulk')?.value || 0, 10);
+    const leadTime = parseInt(row.querySelector('.cap-lead-time')?.value || 3, 10);
 
-    document.getElementById('capacity-modal').classList.remove('hidden');
-    document.getElementById('capacity-modal').classList.add('flex');
-}
-
-function editCapacity(productCatalogId) {
-    const c = capacityData.find(x => x.product_catalog_id === productCatalogId);
-    if (!c) return;
-
-    document.getElementById('modal-title').textContent = 'Edit Production Capacity';
-    document.getElementById('cap-product-id').value = c.product_catalog_id;
-    document.getElementById('cap-product-select').disabled = true;
-    document.getElementById('cap-product-select').innerHTML = `<option value="${c.product_catalog_id}">${productLabel(c)}</option>`;
-    document.getElementById('cap-daily').value = c.daily_capacity;
-    document.getElementById('cap-max-bulk').value = c.max_bulk_capacity || 0;
-    document.getElementById('cap-lead-time').value = c.lead_time_days || 3;
-
-    document.getElementById('capacity-modal').classList.remove('hidden');
-    document.getElementById('capacity-modal').classList.add('flex');
-}
-
-function closeCapacityModal() {
-    document.getElementById('capacity-modal').classList.add('hidden');
-    document.getElementById('capacity-modal').classList.remove('flex');
-}
-
-async function deleteCapacity(productCatalogId) {
-    if (!confirm('Remove this capacity entry? You can add it again later.')) return;
-    try {
-        const res = await ImpromptuIndianApi.fetch(`/api/vendor/capacity/${productCatalogId}`, { method: 'DELETE' });
-        if (!res.ok) throw new Error('Failed to remove');
-        await fetchCapacity();
-    } catch (e) {
-        alert(e.message || 'Failed to remove capacity');
-    }
-}
-
-document.getElementById('btn-add-capacity').addEventListener('click', openAddCapacityModal);
-
-document.getElementById('capacity-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const productId = document.getElementById('cap-product-id').value ||
-        document.getElementById('cap-product-select').value;
-    const daily = parseInt(document.getElementById('cap-daily').value, 10);
-    const maxBulk = parseInt(document.getElementById('cap-max-bulk').value, 10) || 0;
-    const leadTime = parseInt(document.getElementById('cap-lead-time').value, 10) || 3;
-
-    if (!productId || daily < 1) {
-        alert('Please select a product and enter daily capacity.');
-        return;
+    const btn = row.querySelector('.btn-save');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin inline"></i> Saving...';
+        lucide.createIcons();
     }
 
     try {
@@ -150,7 +134,7 @@ document.getElementById('capacity-form').addEventListener('submit', async (e) =>
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                product_catalog_id: parseInt(productId, 10),
+                product_catalog_id: productCatalogId,
                 daily_capacity: daily,
                 max_bulk_capacity: maxBulk,
                 lead_time_days: leadTime
@@ -160,16 +144,32 @@ document.getElementById('capacity-form').addEventListener('submit', async (e) =>
             const err = await res.json().catch(() => ({}));
             throw new Error(err.error || 'Failed to save');
         }
-        closeCapacityModal();
-        await fetchCapacity();
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5 inline text-green-400"></i> Saved';
+            lucide.createIcons();
+            setTimeout(() => {
+                btn.innerHTML = '<i data-lucide="save" class="w-3.5 h-3.5 inline"></i> Save';
+                lucide.createIcons();
+            }, 1500);
+        }
     } catch (e) {
         alert(e.message || 'Failed to save capacity');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i data-lucide="save" class="w-3.5 h-3.5 inline"></i> Save';
+            lucide.createIcons();
+        }
     }
-});
+}
 
-document.addEventListener('DOMContentLoaded', async () => {
-    await fetchEligibleProducts();
-    await fetchCapacity();
+document.getElementById('btn-refresh')?.addEventListener('click', () => fetchCapacity());
+document.getElementById('filter-product-type')?.addEventListener('change', () => fetchCapacity());
+document.getElementById('filter-category')?.addEventListener('change', () => fetchCapacity());
+document.getElementById('filter-size')?.addEventListener('change', () => fetchCapacity());
+
+document.addEventListener('DOMContentLoaded', () => {
+    fetchCapacity();
 
     const revealEls = document.querySelectorAll('.reveal');
     function revealOnScroll() {
