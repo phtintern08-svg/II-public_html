@@ -48,7 +48,7 @@ async function fetchAveragePrices() {
         console.error('Error fetching prices:', error);
         document.getElementById('pricesTableBody').innerHTML = `
             <tr>
-                <td colspan="7" class="text-center py-8 text-red-500">
+                <td colspan="12" class="text-center py-8 text-red-500">
                     Error loading prices: ${error.message}
                 </td>
             </tr>
@@ -65,7 +65,7 @@ function renderPricesTable() {
     if (filteredPrices.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="7" class="text-center py-8 text-gray-500">
+                <td colspan="12" class="text-center py-8 text-gray-500">
                     No pricing data available
                 </td>
             </tr>
@@ -73,6 +73,7 @@ function renderPricesTable() {
         return;
     }
 
+    const fmt = (n) => (n != null && n !== '') ? Number(n).toFixed(2) : '0.00';
     const html = filteredPrices.map(item => `
         <tr class="border-b border-gray-800 hover:bg-gray-800/50">
             <td class="py-3 px-4">
@@ -83,13 +84,28 @@ function renderPricesTable() {
                 <span class="text-gray-400">${item.neck_type || 'Any'}</span>
             </td>
             <td class="py-3 px-4 text-right">
-                <span class="text-green-400 font-bold">₹${item.average_price}</span>
+                <span class="text-green-400 font-bold">₹${fmt(item.average_price)}</span>
             </td>
             <td class="py-3 px-4 text-right">
-                <span class="text-blue-400">₹${item.min_price}</span>
+                <span class="font-semibold text-white">₹${fmt(item.final_price)}</span>
             </td>
             <td class="py-3 px-4 text-right">
-                <span class="text-yellow-400">₹${item.max_price}</span>
+                <span class="text-emerald-400">₹${fmt(item.vendor_pay)}</span>
+            </td>
+            <td class="py-3 px-4 text-right">
+                <span class="text-amber-400">₹${fmt(item.platform_pay)}</span>
+            </td>
+            <td class="py-3 px-4 text-right">
+                <span class="text-cyan-400">₹${fmt(item.rider_pay)}</span>
+            </td>
+            <td class="py-3 px-4 text-right">
+                <span class="text-purple-400">₹${fmt(item.support_pay)}</span>
+            </td>
+            <td class="py-3 px-4 text-right">
+                <span class="text-blue-400">₹${fmt(item.min_price)}</span>
+            </td>
+            <td class="py-3 px-4 text-right">
+                <span class="text-yellow-400">₹${fmt(item.max_price)}</span>
             </td>
             <td class="py-3 px-4 text-center">
                 <span class="bg-blue-900/50 text-blue-400 px-3 py-1 rounded-full text-sm">
