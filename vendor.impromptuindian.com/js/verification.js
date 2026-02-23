@@ -194,17 +194,8 @@ function renderDocumentsGrid() {
         else if (status === 'approved') { statusLabel = 'Approved'; statusIcon = 'check-circle-2'; }
         else if (status === 'rejected') { statusLabel = 'Rejected'; statusIcon = 'x-circle'; }
 
-        // Logic for re-upload permission
-        const isRejectedGlobal = verificationStatus === 'rejected';
-        const isNotSubmitted = verificationStatus === 'not-submitted';
-        let canUpload = isNotSubmitted;
-
-        if (isRejectedGlobal) {
-            // If global is rejected, only allow editing rejected documents or those not yet handled?
-            // Assuming 'pending' means not yet uploaded or not yet reviewed.
-            // If it's 'approved', lock it.
-            canUpload = (status === 'rejected' || status === 'pending' || !doc.status);
-        }
+        // Upload allowed only when not yet submitted or rejected (can re-upload after rejection)
+        let canUpload = verificationStatus === 'not-submitted' || verificationStatus === 'rejected';
 
         let extraInputsHtml = '';
         if (docType.extraFields) {
@@ -421,11 +412,9 @@ async function submitVerification() {
 
         showToast('Verification submitted successfully!', 'success');
 
-        // 🔥 CRITICAL: Re-fetch status from backend - UI must sync with DB (pending/under-review)
+        // 🔥 CRITICAL: Re-fetch status from backend - UI must sync with DB (pending)
+        // fetchVerificationStatus() handles locking (pointer-events-none, submit disabled)
         await fetchVerificationStatus();
-
-        // Lock UI (fetchVerificationStatus already updates banner/timeline/grid)
-        freezeVerificationUI();
 
     } catch (e) {
         console.error(e);
@@ -564,18 +553,15 @@ async function fetchVerificationStatus() {
                 if (verificationStatus === 'not-submitted' || verificationStatus === 'rejected') {
                     submitBtn.textContent = 'Submit for Verification';
                 }
-                else if (verificationStatus === 'pending' || verificationStatus === 'under-review') {
+                else if (verificationStatus === 'pending') {
                     submitBtn.textContent = 'Documents Submitted – Awaiting Review';
                     submitBtn.disabled = true;
                     submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-
-                    // keep UI locked but do not hide submit button
                     const documentsGrid = document.getElementById('documents-grid');
                     if (documentsGrid) {
                         documentsGrid.classList.add('pointer-events-none', 'opacity-50');
                     }
                 }
-
                 else if (verificationStatus === 'approved') {
                     submitBtn.textContent = 'Verification Completed';
                     submitBtn.disabled = true;
@@ -865,15 +851,6 @@ function renderStatusBanner() {
                 </div>
             </div>
         `,
-        'under-review': `
-            <div class="status-banner status-info">
-                <i data-lucide="clock"></i>
-                <div class="flex-1">
-                    <h4 class="status-title">Documents Submitted – Awaiting Review</h4>
-                    <p class="status-description">Admin is reviewing your documents.</p>
-                </div>
-            </div>
-        `,
         'approved': `
             <div class="status-banner status-success">
                 <i data-lucide="check-circle-2"></i>
@@ -894,7 +871,7 @@ function renderStatusBanner() {
         `
     };
 
-    // Fallback for unexpected status (e.g. empty, under-review) – treat as pending
+    // Fallback for unexpected status – treat as pending
     const html = banners[verificationStatus] || banners['pending'];
     banner.innerHTML = html;
     lucide.createIcons();
@@ -943,10 +920,10 @@ function getStepStatus(stepId) {
     if (verificationStatus === 'approved') return 'completed';
 
     if (stepId === 'submit') {
-        return ['pending', 'under-review', 'approved', 'rejected'].includes(verificationStatus) ? 'completed' : 'pending';
+        return ['pending', 'approved', 'rejected'].includes(verificationStatus) ? 'completed' : 'pending';
     }
     if (stepId === 'review') {
-        if (verificationStatus === 'under-review') return 'current';
+        if (verificationStatus === 'pending') return 'current';
         if (['approved', 'rejected'].includes(verificationStatus)) return 'completed';
         return 'pending';
     }
@@ -970,7 +947,6 @@ function getStatusIcon(status) {
     return {
         pending: "circle",
         uploaded: "upload-cloud",
-        "under-review": "search",
         approved: "check-circle",
         rejected: "x-circle"
     }[status] || "circle";
@@ -980,7 +956,6 @@ function getStatusLabel(status) {
     return {
         pending: "Pending Upload",
         uploaded: "Uploaded",
-        "under-review": "Under Review",
         approved: "Approved",
         rejected: "Rejected - Reupload"
     }[status] || "Pending";
