@@ -101,21 +101,29 @@ async function fetchRequests() {
     if (!response.ok) throw new Error('Failed to fetch requests');
     const data = await response.json();
 
-    // Normalize data shape to match frontend expectations
-    requests = (Array.isArray(data) ? data : (data.vendors || [])).map(v => ({
-      id: v.id,
-      name: v.name || v.username || v.business_name || 'Unknown',
-      businessType: v.businessType || v.business_type || 'N/A',
-      submitted: v.submitted || (v.created_at ? new Date(v.created_at).toLocaleDateString() : 'N/A'),
-      status: normalizeStatus(v.status || v.verification_status),
-      documents: v.documents || {},
-      address: v.address || '',
-      contact: {
-        email: v.contact?.email || v.email || 'N/A',
-        phone: v.contact?.phone || v.phone || 'N/A'
-      },
-      adminRemarks: v.adminRemarks || v.admin_remarks || ''
-    }));
+    // Normalize data shape - handle both camelCase and snake_case from backend
+    const raw = Array.isArray(data) ? data : (data.vendors || []);
+    requests = raw.map(v => {
+      const created = v.created_at || v.submitted;
+      const dateStr = v.submitted || (created ? (typeof created === 'string' && created.match(/^\d{4}-\d{2}-\d{2}/)
+        ? created.slice(0, 10)
+        : new Date(created).toISOString().slice(0, 10)) : null);
+      return {
+        id: v.id,
+        name: v.name || v.vendor_name || v.username || v.business_name || v.businessName || 'N/A',
+        businessType: v.businessType || v.business_type || 'N/A',
+        submitted: dateStr || 'N/A',
+        submittedOn: dateStr || 'N/A',
+        status: normalizeStatus(v.status || v.verification_status),
+        documents: v.documents || {},
+        address: v.address || '',
+        contact: {
+          email: (v.contact && v.contact.email) || v.email || 'N/A',
+          phone: (v.contact && v.contact.phone) || v.phone || 'N/A'
+        },
+        adminRemarks: v.adminRemarks || v.admin_remarks || ''
+      };
+    });
 
     console.log('Fetched requests:', requests);
     calculateSummary();
@@ -223,12 +231,16 @@ function renderRequests() {
     const hasDocs = r.documents && Object.keys(r.documents).length > 0;
     const status = normalizeStatus(r.status);
     const statusDisplay = hasDocs ? status : 'Missing Docs';
-    const statusClass = hasDocs ? status : 'rejected'; // Use red for missing docs
+    const statusClass = hasDocs ? status : 'rejected';
+    const statusLabel = (statusDisplay.charAt(0).toUpperCase() + statusDisplay.slice(1).toLowerCase()).replace(/_/g, ' ');
+
+    const vendorName = r.name || 'N/A';
+    const vendorInitial = vendorName !== 'N/A' ? vendorName.charAt(0).toUpperCase() : '?';
+    const businessType = r.businessType || 'N/A';
+    const submittedOn = r.submittedOn || r.submitted || 'N/A';
 
     // ── Desktop table row ──────────────────────────────────────────────
     const tr = document.createElement('tr');
-    const vendorName = r.name || 'Unknown';
-    const vendorInitial = vendorName.charAt(0).toUpperCase();
     tr.innerHTML = `
       <td class="td-vendor">
         <div class="vendor-cell-content">
@@ -236,9 +248,11 @@ function renderRequests() {
           <span class="vendor-name">${vendorName}</span>
         </div>
       </td>
-      <td class="td-business">${r.businessType || 'N/A'}</td>
-      <td class="td-date">${r.submitted || 'N/A'}</td>
-      <td class="td-status"><span class="doc-status ${statusClass}">${statusDisplay}</span></td>
+      <td class="td-business">${businessType}</td>
+      <td class="td-date">${submittedOn}</td>
+      <td class="td-status">
+        <span class="doc-status ${statusClass}">${statusLabel}</span>
+      </td>
       <td class="td-actions">
         <button class="btn-primary action-btn" onclick="openVendorModal(${r.id})" title="View Details">
           <i data-lucide="eye" class="w-4 h-4"></i>
@@ -255,19 +269,19 @@ function renderRequests() {
       card.innerHTML = `
         <div class="vendor-mobile-card-header">
           <div class="vendor-mobile-card-identity">
-            <div class="vendor-mobile-avatar">${(r.name || 'U').charAt(0).toUpperCase()}</div>
-            <span class="vendor-mobile-name">${r.name || 'Unknown'}</span>
+            <div class="vendor-mobile-avatar">${vendorInitial}</div>
+            <span class="vendor-mobile-name">${vendorName}</span>
           </div>
-          <span class="doc-status ${statusClass}" style="flex-shrink:0;">${statusDisplay}</span>
+          <span class="doc-status ${statusClass}" style="flex-shrink:0;">${statusLabel}</span>
         </div>
         <div class="vendor-mobile-card-meta">
           <div class="vendor-mobile-meta-item">
             <div class="vendor-mobile-meta-label">Business Type</div>
-            <div class="vendor-mobile-meta-value">${r.businessType || 'N/A'}</div>
+            <div class="vendor-mobile-meta-value">${businessType}</div>
           </div>
           <div class="vendor-mobile-meta-item">
             <div class="vendor-mobile-meta-label">Submitted On</div>
-            <div class="vendor-mobile-meta-value">${r.submitted || 'N/A'}</div>
+            <div class="vendor-mobile-meta-value">${submittedOn}</div>
           </div>
         </div>
         <div class="vendor-mobile-card-footer">
