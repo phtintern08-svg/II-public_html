@@ -464,37 +464,49 @@ async function openOrderModal(id) {
   const order = orders.find(o => o.id === id);
   const body = document.getElementById('modal-body');
 
-  // Fetch latest vendors and suggested vendors (by capacity) before rendering
+  // Fetch latest vendors and recommended vendors (backend-ranked) before rendering
   await fetchApprovedVendors();
-  let suggestedVendors = [];
+  let recommendedVendors = [];
   try {
-    const sugRes = await ImpromptuIndianApi.fetch(`/api/admin/orders/${id}/suggested-vendors`);
-    if (sugRes.ok) {
-      const sugData = await sugRes.json();
-      suggestedVendors = sugData.suggested_vendors || [];
+    const recRes = await ImpromptuIndianApi.fetch(`/api/admin/orders/${id}/recommended-vendors`);
+    if (recRes.ok) {
+      const recData = await recRes.json();
+      recommendedVendors = recData.recommended_vendors || [];
     }
   } catch (e) {
-    console.warn('Could not fetch suggested vendors:', e);
+    console.warn('Could not fetch recommended vendors:', e);
   }
 
-  // Build vendor options: suggested first (by capacity + lead time), then all verified
-  const suggestedIds = new Set(suggestedVendors.map(s => s.vendor_id));
-  const vendorOptionsHtml = [
-    suggestedVendors.length > 0
-      ? '<optgroup label="✓ Suggested (has capacity + approved quote)">' +
-        suggestedVendors.map(v =>
-          `<option value="${v.vendor_id}" data-base-cost="${v.base_cost_per_piece || 0}">
-             ${v.vendor_name} — ${v.lead_time_days}d lead, ₹${(v.base_cost_per_piece || 0).toFixed(0)}/pc
-           </option>`
-        ).join('') + '</optgroup>'
-      : '',
-    '<optgroup label="All verified vendors">' +
-      approvedVendors
-        .filter(v => !suggestedIds.has(v.id))
-        .map(v => `<option value="${v.id}">${v.business_name || v.username || v.name || `Vendor #${v.id}`}</option>`)
-        .join('') +
-    '</optgroup>'
-  ].join('');
+  // Build vendor options: recommended first (backend-ranked), then all verified. No frontend ranking.
+  const recommendedIds = new Set(recommendedVendors.map(r => r.vendor_id));
+  const vendorOptionsHtml = recommendedVendors.length > 0
+    ? `
+      <optgroup label="⭐ Recommended Vendors (Ranked)">
+        ${recommendedVendors.map((v, index) => `
+          <option
+            value="${v.vendor_id}"
+            data-base-cost="${v.base_cost_per_piece || 0}"
+            ${index === 0 ? 'selected' : ''}
+          >
+            ${v.vendor_name}
+            — ⭐ ${(v.score != null ? v.score * 100 : 0).toFixed(0)}%
+            — 📦 ${v.stock_available ?? 0}
+            — 📍 ${v.distance_km != null ? v.distance_km.toFixed(1) + 'km' : '—'}
+            — 🏭 ${v.capacity_available ?? 0}
+            — ⏱ ${v.lead_time_days ?? 0}d
+          </option>
+        `).join('')}
+      </optgroup>
+      <optgroup label="All verified vendors">
+        ${approvedVendors
+          .filter(v => !recommendedIds.has(v.id))
+          .map(v => `<option value="${v.id}">${v.business_name || v.username || v.name || `Vendor #${v.id}`}</option>`)
+          .join('')}
+      </optgroup>
+    `
+    : `<optgroup label="All verified vendors">${
+        approvedVendors.map(v => `<option value="${v.id}">${v.business_name || v.username || v.name || `Vendor #${v.id}`}</option>`).join('')
+      }</optgroup>`;
 
   body.innerHTML = `
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -582,11 +594,12 @@ async function openOrderModal(id) {
           <div class="space-y-4">
             <div>
               <label class="block mb-2 text-xs font-bold text-gray-500 uppercase tracking-tighter">Choose Vendor <span class="text-red-400">*</span></label>
+              ${recommendedVendors.length > 0 ? '<p class="text-xs text-emerald-400/80 mb-2">⭐ Top recommendation auto-selected based on stock, distance & capacity.</p>' : ''}
               <select id="vendor-select" class="w-full p-3 bg-gray-900 border border-white/10 rounded-xl text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none">
                 <option value="">Select an approved vendor...</option>
-                ${approvedVendors.length === 0 && suggestedVendors.length === 0 ? '<option disabled>No verified vendors found</option>' : vendorOptionsHtml}
+                ${approvedVendors.length === 0 && recommendedVendors.length === 0 ? '<option disabled>No verified vendors found</option>' : vendorOptionsHtml}
               </select>
-              ${suggestedVendors.length > 0 ? '<p class="text-xs text-emerald-400/80 mt-1"><i data-lucide="info" class="w-3 h-3 inline"></i> Suggested vendors have production capacity for this order.</p>' : ''}
+              <div id="vendor-insight-panel" class="mt-4 hidden bg-black/20 p-4 rounded-xl border border-white/10 text-sm space-y-2"></div>
             </div>
             
             <div>
@@ -616,6 +629,8 @@ async function openOrderModal(id) {
   const quotationInput = document.getElementById('quotation-price');
   const quotationTotal = document.getElementById('quotation-total');
   const vendorSelect = document.getElementById('vendor-select');
+  const insightPanel = document.getElementById('vendor-insight-panel');
+
   if (quotationInput && quotationTotal) {
     quotationInput.addEventListener('input', () => {
       const price = parseFloat(quotationInput.value) || 0;
@@ -624,16 +639,59 @@ async function openOrderModal(id) {
       quotationTotal.textContent = `₹${total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     });
   }
-  // Auto-fill quotation price when selecting a suggested vendor (has data-base-cost)
-  if (vendorSelect && quotationInput) {
+
+  // Vendor select: insight panel + auto-fill quotation price
+  if (vendorSelect) {
     vendorSelect.addEventListener('change', () => {
-      const opt = vendorSelect.options[vendorSelect.selectedIndex];
-      const baseCost = parseFloat(opt?.dataset?.baseCost || 0);
-      if (baseCost > 0) {
-        quotationInput.value = baseCost.toFixed(2);
-        quotationInput.dispatchEvent(new Event('input'));
+      const selectedId = parseInt(vendorSelect.value, 10);
+      const vendor = recommendedVendors.find(v => v.vendor_id === selectedId);
+
+      // Update insight panel (only for recommended vendors)
+      if (insightPanel) {
+        if (!vendor) {
+          insightPanel.classList.add('hidden');
+        } else {
+          insightPanel.classList.remove('hidden');
+          insightPanel.innerHTML = `
+            <div class="flex justify-between">
+              <span class="text-gray-400">⭐ Recommendation Score</span>
+              <span class="text-yellow-400 font-bold">${(vendor.score != null ? vendor.score * 100 : 0).toFixed(1)}%</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-400">📦 Available Stock</span>
+              <span class="text-white font-semibold">${vendor.stock_available ?? 0}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-400">📍 Distance</span>
+              <span class="text-white font-semibold">${vendor.distance_km != null ? vendor.distance_km.toFixed(2) + ' km' : '—'}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-400">🏭 Production Capacity</span>
+              <span class="text-white font-semibold">${vendor.capacity_available ?? 0}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-400">⏱ Lead Time</span>
+              <span class="text-white font-semibold">${vendor.lead_time_days ?? 0} days</span>
+            </div>
+          `;
+        }
+      }
+
+      // Auto-fill quotation price when selecting a recommended vendor (has data-base-cost)
+      if (quotationInput) {
+        const opt = vendorSelect.options[vendorSelect.selectedIndex];
+        const baseCost = parseFloat(opt?.dataset?.baseCost || 0);
+        if (baseCost > 0) {
+          quotationInput.value = baseCost.toFixed(2);
+          quotationInput.dispatchEvent(new Event('input'));
+        }
       }
     });
+
+    // Auto-trigger first recommended vendor (show insight + fill price)
+    if (recommendedVendors.length > 0) {
+      vendorSelect.dispatchEvent(new Event('change'));
+    }
   }
 }
 
