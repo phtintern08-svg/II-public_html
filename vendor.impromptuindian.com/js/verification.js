@@ -194,8 +194,13 @@ function renderDocumentsGrid() {
         else if (status === 'approved') { statusLabel = 'Approved'; statusIcon = 'check-circle-2'; }
         else if (status === 'rejected') { statusLabel = 'Rejected'; statusIcon = 'x-circle'; }
 
-        // Upload allowed only when not yet submitted or rejected (can re-upload after rejection)
-        let canUpload = verificationStatus === 'not-submitted' || verificationStatus === 'rejected';
+        // Upload allowed: not-submitted → all docs; rejected → ONLY rejected docs
+        let canUpload = false;
+        if (verificationStatus === 'not-submitted') {
+            canUpload = true;
+        } else if (verificationStatus === 'rejected') {
+            canUpload = status === 'rejected';
+        }
 
         let extraInputsHtml = '';
         if (docType.extraFields) {
@@ -965,6 +970,19 @@ function getStatusLabel(status) {
    UPLOAD MODAL
 ---------------------------*/
 function openUploadModal(docId) {
+    const doc = documents[docId];
+    const status = doc?.status || 'pending';
+
+    // Block if not allowed (prevents console/DOM bypass)
+    if (
+        verificationStatus === 'pending' ||
+        verificationStatus === 'approved' ||
+        (verificationStatus === 'rejected' && status !== 'rejected')
+    ) {
+        showToast('This document cannot be modified.', 'error');
+        return;
+    }
+
     const docDef = REQUIRED_DOCUMENTS.find(d => d.id === docId);
 
     // Validate manual fields if any
@@ -1258,7 +1276,8 @@ async function confirmUpload() {
             showToast('Document uploaded!', 'success');
 
         } else {
-            showToast('Upload failed', 'error');
+            const errData = await response.json().catch(() => ({}));
+            showToast(errData.error || 'Upload failed', 'error');
         }
 
     } catch (e) {
