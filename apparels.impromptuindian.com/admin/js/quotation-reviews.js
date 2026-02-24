@@ -320,7 +320,7 @@ function openQuotationModal(id) {
 
     document.getElementById('modal-vendor-name').textContent = sub.vendor_name || 'Unknown Vendor';
     document.getElementById('modal-filename').textContent = sub.filename || 'No file';
-    document.getElementById('modal-commission').value = sub.proposed_commission_rate || 0;
+    document.getElementById('modal-commission').value = sub.proposed_commission_rate != null ? sub.proposed_commission_rate : '—';
     document.getElementById('modal-remarks').value = '';
 
     // Set download link
@@ -348,9 +348,10 @@ function closeQuotationModal() {
 async function approveQuotation() {
     if (!currentSubmissionId) return;
 
-    const commission = document.getElementById('modal-commission').value;
-    if (!commission || parseFloat(commission) < 0) {
-        showToast('Please enter a valid commission rate', 'error');
+    const sub = submissions.find(s => s.id === currentSubmissionId);
+    const commission = sub?.proposed_commission_rate;
+    if (commission == null || parseFloat(commission) < 0) {
+        showToast('Invalid commission rate from vendor', 'error');
         return;
     }
 
@@ -359,7 +360,7 @@ async function approveQuotation() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ commission_rate: commission })
+            body: JSON.stringify({})
         });
 
         if (response.ok) {
