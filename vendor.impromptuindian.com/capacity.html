@@ -20,9 +20,23 @@
         <main class="flex-1 overflow-y-auto p-8">
             <div class="reveal mb-8">
                 <h1 class="text-3xl font-bold tracking-tight">Production Capacity</h1>
-                <p class="text-gray-400 mt-1">Products auto-populated from your approved quotations. Set capacity only — pricing is locked by admin.</p>
+                <p class="text-gray-400 mt-1">Manage your stock capacity and create new products for admin approval.</p>
             </div>
 
+            <!-- Tabs -->
+            <div class="reveal mb-6">
+                <div class="flex gap-4">
+                    <button id="tab-stock" class="btn-primary px-4 py-2 rounded-lg font-medium transition-colors">
+                        Stock Management
+                    </button>
+                    <button id="tab-products" class="bg-[#0f0f1a] border border-gray-700 text-gray-300 px-4 py-2 rounded-lg font-medium hover:bg-[#1a1a2e] transition-colors">
+                        Product Management
+                    </button>
+                </div>
+            </div>
+
+            <!-- STOCK MANAGEMENT SECTION -->
+            <div id="section-stock">
             <!-- Filters -->
             <div class="reveal card mb-6" style="transition-delay: 100ms;">
                 <div class="card-body py-4">
@@ -89,7 +103,109 @@
                     </div>
                 </div>
             </div>
+            </div>
+            <!-- END STOCK MANAGEMENT SECTION -->
+
+            <!-- PRODUCT MANAGEMENT SECTION -->
+            <div id="section-products" class="hidden">
+                <div class="reveal card mb-6">
+                    <div class="card-header">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="card-title">Your Products</h3>
+                                <p class="text-sm text-gray-500 mt-1">Create and manage your products. Only approved products are visible to customers.</p>
+                            </div>
+                            <button id="btn-create-product" class="btn-primary flex items-center gap-2">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                Create Product
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="vendor-products-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <!-- Products will be loaded here -->
+                        </div>
+                        <div id="products-empty" class="text-center py-12 hidden">
+                            <i data-lucide="package" class="w-16 h-16 mx-auto text-gray-500 mb-4"></i>
+                            <p class="text-gray-400 mb-2">No products yet.</p>
+                            <p class="text-gray-500 text-sm">Create your first product to get started.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- END PRODUCT MANAGEMENT SECTION -->
         </main>
+    </div>
+
+    <!-- Create Product Modal -->
+    <div id="create-product-modal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-50">
+        <div class="bg-[#12121f] p-6 rounded-xl w-full max-w-lg border border-gray-700">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Create New Product</h3>
+                <button id="cp-close" class="text-gray-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Product Type</label>
+                    <select id="cp-product-type" class="input-field w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white">
+                        <option value="T-Shirt">T-Shirt</option>
+                        <option value="Hoodie">Hoodie</option>
+                        <option value="Oversized">Oversized</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Product Name</label>
+                    <input id="cp-name" type="text" class="input-field w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white" placeholder="Enter product name" />
+                </div>
+
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Description</label>
+                    <textarea id="cp-description" class="input-field w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white" rows="3" placeholder="Describe your product"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Cost Price (₹)</label>
+                    <input id="cp-cost" type="number" step="0.01" min="0" class="input-field w-full bg-[#0f0f1a] border border-gray-700 rounded-lg px-3 py-2 text-white" placeholder="0.00" />
+                </div>
+
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Sizes</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" value="S" class="w-4 h-4 text-primary" />
+                            <span class="text-sm">S</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" value="M" class="w-4 h-4 text-primary" />
+                            <span class="text-sm">M</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" value="L" class="w-4 h-4 text-primary" />
+                            <span class="text-sm">L</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" value="XL" class="w-4 h-4 text-primary" />
+                            <span class="text-sm">XL</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Upload Images</label>
+                    <input type="file" id="cp-images" multiple accept="image/*" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/80" />
+                    <p class="text-xs text-gray-500 mt-1">You can upload multiple images</p>
+                </div>
+
+                <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-700">
+                    <button id="cp-cancel" class="btn-secondary px-4 py-2">Cancel</button>
+                    <button id="cp-submit" class="btn-primary px-4 py-2">Submit for Approval</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="js/capacity.js"></script>

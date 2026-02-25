@@ -55,6 +55,21 @@ async function fetchVendorCounts() {
             }
         }
 
+        // Fetch cart products (pending)
+        const productsResponse = await ImpromptuIndianApi.fetch('/api/admin/cart-products/pending');
+        let pendingProducts = 0;
+        if (productsResponse.ok) {
+            const data = await productsResponse.json();
+            pendingProducts = (data.products || []).length;
+
+            // Update notification badge
+            const productsBadge = document.getElementById('products-count');
+            if (productsBadge && pendingProducts > 0) {
+                productsBadge.textContent = pendingProducts;
+                productsBadge.classList.add('show');
+            }
+        }
+
         // Fetch verified vendors (approved, active)
         const verifiedResponse = await ImpromptuIndianApi.fetch('/api/admin/verified-vendors');
         let verifiedCount = 0;

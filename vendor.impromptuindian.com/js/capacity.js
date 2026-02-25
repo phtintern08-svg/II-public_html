@@ -168,6 +168,201 @@ document.getElementById('filter-product-type')?.addEventListener('change', () =>
 document.getElementById('filter-category')?.addEventListener('change', () => fetchCapacity());
 document.getElementById('filter-size')?.addEventListener('change', () => fetchCapacity());
 
+// ============================================================================
+// TAB SWITCHING
+// ============================================================================
+function switchTab(tabName) {
+    const stockSection = document.getElementById('section-stock');
+    const productsSection = document.getElementById('section-products');
+    const stockTab = document.getElementById('tab-stock');
+    const productsTab = document.getElementById('tab-products');
+
+    if (tabName === 'stock') {
+        stockSection.classList.remove('hidden');
+        productsSection.classList.add('hidden');
+        stockTab.className = 'btn-primary px-4 py-2 rounded-lg font-medium transition-colors';
+        productsTab.className = 'bg-[#0f0f1a] border border-gray-700 text-gray-300 px-4 py-2 rounded-lg font-medium hover:bg-[#1a1a2e] transition-colors';
+    } else {
+        stockSection.classList.add('hidden');
+        productsSection.classList.remove('hidden');
+        stockTab.className = 'bg-[#0f0f1a] border border-gray-700 text-gray-300 px-4 py-2 rounded-lg font-medium hover:bg-[#1a1a2e] transition-colors';
+        productsTab.className = 'btn-primary px-4 py-2 rounded-lg font-medium transition-colors';
+        loadVendorProducts();
+    }
+}
+
+document.getElementById('tab-stock')?.addEventListener('click', () => switchTab('stock'));
+document.getElementById('tab-products')?.addEventListener('click', () => switchTab('products'));
+
+// ============================================================================
+// PRODUCT MANAGEMENT
+// ============================================================================
+let vendorProducts = [];
+
+async function loadVendorProducts() {
+    try {
+        const res = await ImpromptuIndianApi.fetch('/api/vendor/cart-products');
+        if (!res.ok) throw new Error('Failed to load products');
+        const data = await res.json();
+        vendorProducts = data.products || [];
+        renderProducts();
+    } catch (e) {
+        console.error(e);
+        vendorProducts = [];
+        renderProducts();
+    }
+}
+
+function renderProducts() {
+    const container = document.getElementById('vendor-products-list');
+    const emptyEl = document.getElementById('products-empty');
+
+    if (vendorProducts.length === 0) {
+        container.innerHTML = '';
+        emptyEl.classList.remove('hidden');
+        return;
+    }
+
+    emptyEl.classList.add('hidden');
+    container.innerHTML = vendorProducts.map(product => {
+        const statusColors = {
+            pending: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+            approved: 'bg-green-500/20 text-green-400 border-green-500/30',
+            rejected: 'bg-red-500/20 text-red-400 border-red-500/30'
+        };
+        const statusColor = statusColors[product.status] || statusColors.pending;
+        const images = product.images || [];
+        const sizes = product.sizes || [];
+
+        return `
+            <div class="card border border-gray-700">
+                <div class="card-body">
+                    ${images.length > 0 ? `
+                        <img src="/api/uploads/${images[0]}" alt="${product.product_name}" 
+                             class="w-full h-48 object-cover rounded-lg mb-4" />
+                    ` : `
+                        <div class="w-full h-48 bg-gray-800 rounded-lg mb-4 flex items-center justify-center">
+                            <i data-lucide="image" class="w-12 h-12 text-gray-600"></i>
+                        </div>
+                    `}
+                    <h4 class="font-semibold text-lg mb-2">${product.product_name}</h4>
+                    <p class="text-sm text-gray-400 mb-2">${product.product_type}</p>
+                    <p class="text-sm text-gray-300 mb-3 line-clamp-2">${product.description || 'No description'}</p>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-yellow-400 font-semibold">₹${parseFloat(product.cost_price).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                        <span class="px-2 py-1 rounded text-xs border ${statusColor}">
+                            ${product.status.charAt(0).toUpperCase() + product.status.slice(1)}
+                        </span>
+                    </div>
+                    <div class="flex flex-wrap gap-1 mb-2">
+                        ${sizes.map(size => `<span class="px-2 py-1 bg-gray-800 text-xs rounded">${size}</span>`).join('')}
+                    </div>
+                    ${product.admin_remarks ? `
+                        <div class="mt-2 p-2 bg-gray-800/50 rounded text-xs text-gray-400">
+                            <strong>Admin:</strong> ${product.admin_remarks}
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    lucide.createIcons();
+}
+
+// ============================================================================
+// CREATE PRODUCT MODAL
+// ============================================================================
+document.getElementById('btn-create-product')?.addEventListener('click', () => {
+    document.getElementById('create-product-modal').classList.remove('hidden');
+    lucide.createIcons();
+});
+
+document.getElementById('cp-cancel')?.addEventListener('click', () => {
+    document.getElementById('create-product-modal').classList.add('hidden');
+    resetProductForm();
+});
+
+document.getElementById('cp-close')?.addEventListener('click', () => {
+    document.getElementById('create-product-modal').classList.add('hidden');
+    resetProductForm();
+});
+
+function resetProductForm() {
+    document.getElementById('cp-product-type').value = 'T-Shirt';
+    document.getElementById('cp-name').value = '';
+    document.getElementById('cp-description').value = '';
+    document.getElementById('cp-cost').value = '';
+    document.querySelectorAll('#create-product-modal input[type="checkbox"]').forEach(cb => cb.checked = false);
+    document.getElementById('cp-images').value = '';
+}
+
+document.getElementById('cp-submit')?.addEventListener('click', async () => {
+    const type = document.getElementById('cp-product-type').value;
+    const name = document.getElementById('cp-name').value.trim();
+    const desc = document.getElementById('cp-description').value.trim();
+    const cost = parseFloat(document.getElementById('cp-cost').value);
+
+    if (!name || !cost || cost <= 0) {
+        alert('Please fill in product name and valid cost price');
+        return;
+    }
+
+    const sizeCheckboxes = document.querySelectorAll('#create-product-modal input[type="checkbox"]:checked');
+    const sizes = Array.from(sizeCheckboxes).map(cb => cb.value);
+
+    if (sizes.length === 0) {
+        alert('Please select at least one size');
+        return;
+    }
+
+    const files = document.getElementById('cp-images').files;
+    if (files.length === 0) {
+        alert('Please upload at least one image');
+        return;
+    }
+
+    const btn = document.getElementById('cp-submit');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin inline"></i> Submitting...';
+    lucide.createIcons();
+
+    try {
+        const formData = new FormData();
+        formData.append('product_type', type);
+        formData.append('product_name', name);
+        formData.append('description', desc);
+        formData.append('cost_price', cost);
+        formData.append('sizes', JSON.stringify(sizes));
+
+        for (let i = 0; i < files.length; i++) {
+            formData.append('images', files[i]);
+        }
+
+        const res = await ImpromptuIndianApi.fetch('/api/vendor/cart-products', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || 'Failed to create product');
+        }
+
+        alert('Product submitted for admin approval');
+        document.getElementById('create-product-modal').classList.add('hidden');
+        resetProductForm();
+        loadVendorProducts();
+    } catch (e) {
+        alert(e.message || 'Failed to create product');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        lucide.createIcons();
+    }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     fetchCapacity();
 

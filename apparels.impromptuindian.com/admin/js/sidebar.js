@@ -141,9 +141,33 @@
         <span class="notification-badge" id="orders-count-badge" style="display:none">0</span>
       </a>
 
-      <a href="vendors.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
-        <i data-lucide="store" class="w-5 h-5"></i> <span>Vendors</span>
-      </a>
+      <div>
+        <div class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white cursor-pointer" onclick="toggleSubmenu('vendor-submenu');">
+          <i data-lucide="store" class="w-5 h-5"></i> 
+          <a href="vendors.html" class="flex-1" onclick="event.stopPropagation();">Vendors</a>
+          <i data-lucide="chevron-down" class="w-4 h-4 transition-transform" id="vendor-chevron"></i>
+        </div>
+        <div id="vendor-submenu" class="submenu pl-4 mb-2 hidden">
+          <a href="vendor-requests.html" class="submenu-item flex items-center gap-3 p-2.5 rounded-lg mb-1.5 transition-colors hover:bg-black/30 hover:text-white text-sm">
+            <i data-lucide="user-plus" class="w-4 h-4"></i> <span>Vendor Requests</span>
+            <span class="notification-badge" id="vendor-requests-count" style="display:none">0</span>
+          </a>
+          <a href="quotation-reviews.html" class="submenu-item flex items-center gap-3 p-2.5 rounded-lg mb-1.5 transition-colors hover:bg-black/30 hover:text-white text-sm">
+            <i data-lucide="file-text" class="w-4 h-4"></i> <span>Quotation Reviews</span>
+            <span class="notification-badge" id="quotation-reviews-count" style="display:none">0</span>
+          </a>
+          <a href="product-approval.html" class="submenu-item flex items-center gap-3 p-2.5 rounded-lg mb-1.5 transition-colors hover:bg-black/30 hover:text-white text-sm">
+            <i data-lucide="package-check" class="w-4 h-4"></i> <span>Product Approval</span>
+            <span class="notification-badge" id="products-count" style="display:none">0</span>
+          </a>
+          <a href="verified-vendors.html" class="submenu-item flex items-center gap-3 p-2.5 rounded-lg mb-1.5 transition-colors hover:bg-black/30 hover:text-white text-sm">
+            <i data-lucide="check-circle" class="w-4 h-4"></i> <span>Verified Vendors</span>
+          </a>
+          <a href="rejected-vendors.html" class="submenu-item flex items-center gap-3 p-2.5 rounded-lg mb-1.5 transition-colors hover:bg-black/30 hover:text-white text-sm">
+            <i data-lucide="x-circle" class="w-4 h-4"></i> <span>Rejected Vendors</span>
+          </a>
+        </div>
+      </div>
 
       <a href="riders.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
         <i data-lucide="bike" class="w-5 h-5"></i> <span>Riders</span>
@@ -211,6 +235,29 @@
       min-width: 1.25rem;
       text-align: center;
     }
+    .submenu {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+      opacity: 0;
+    }
+    .submenu.open {
+      max-height: 500px;
+      opacity: 1;
+    }
+    .submenu-item {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.875rem;
+    }
+    .submenu-item:hover {
+      color: white;
+    }
+    .menu-item.open {
+      background-color: rgba(0, 0, 0, 0.2);
+    }
+    #vendor-chevron {
+      transition: transform 0.3s ease;
+    }
   </style>
   `;
 
@@ -218,18 +265,34 @@
     const submenu = document.getElementById(submenuId);
     if (!submenu) return;
     const parent = submenu.previousElementSibling;
+    const chevron = parent.querySelector('i[data-lucide="chevron-down"]');
 
     if (submenu.classList.contains('open')) {
       submenu.classList.remove('open');
+      submenu.classList.add('hidden');
       parent.classList.remove('open');
+      if (chevron) {
+        chevron.style.transform = 'rotate(0deg)';
+      }
     } else {
       document.querySelectorAll('.submenu.open').forEach(s => {
         s.classList.remove('open');
-        s.previousElementSibling.classList.remove('open');
+        s.classList.add('hidden');
+        const prevParent = s.previousElementSibling;
+        if (prevParent) prevParent.classList.remove('open');
+        const prevChevron = prevParent?.querySelector('i[data-lucide="chevron-down"]');
+        if (prevChevron) prevChevron.style.transform = 'rotate(0deg)';
       });
       submenu.classList.add('open');
+      submenu.classList.remove('hidden');
       parent.classList.add('open');
+      if (chevron) {
+        chevron.style.transform = 'rotate(180deg)';
+      }
     }
+    
+    // Reinitialize icons after toggle
+    if (window.lucide) lucide.createIcons();
   }
 
   function setActiveLink() {
@@ -238,7 +301,7 @@
 
     const parentPageMap = {
       'vendor-requests.html': 'vendors.html', 'quotation-reviews.html': 'vendors.html',
-      'verified-vendors.html': 'vendors.html', 'rejected-vendors.html': 'vendors.html',
+      'product-approval.html': 'vendors.html', 'verified-vendors.html': 'vendors.html', 'rejected-vendors.html': 'vendors.html',
       'rider-requests.html': 'riders.html', 'verified-riders.html': 'riders.html',
       'rejected-riders.html': 'riders.html', 'riders-list.html': 'riders.html',
       'rider-assignments.html': 'delivery.html', 'delivery-history.html': 'delivery.html',
@@ -249,6 +312,20 @@
     };
 
     const parentPage = parentPageMap[currentPage];
+
+    // Auto-expand vendor submenu if on a vendor page
+    if (parentPage === 'vendors.html' || currentPage === 'vendors.html') {
+      const vendorSubmenu = document.getElementById('vendor-submenu');
+      const vendorLink = document.querySelector('a[href="vendors.html"]');
+      const vendorParent = vendorLink ? vendorLink.closest('.menu-item') : null;
+      if (vendorSubmenu && !vendorSubmenu.classList.contains('open')) {
+        vendorSubmenu.classList.add('open');
+        vendorSubmenu.classList.remove('hidden');
+        if (vendorParent) vendorParent.classList.add('open');
+        const chevron = vendorParent?.querySelector('i[data-lucide="chevron-down"]');
+        if (chevron) chevron.style.transform = 'rotate(180deg)';
+      }
+    }
 
     links.forEach(link => {
       const href = link.getAttribute("href");
@@ -303,6 +380,17 @@
         if (el) {
           el.textContent = quotations.length;
           el.style.display = quotations.length > 0 ? 'inline-block' : 'none';
+        }
+      }
+
+      const cartProductsResponse = await ImpromptuIndianApi.fetch('/api/admin/cart-products/pending');
+      if (cartProductsResponse.ok) {
+        const data = await cartProductsResponse.json();
+        const products = data.products || [];
+        const productsCountEl = document.getElementById('products-count');
+        if (productsCountEl) {
+          productsCountEl.textContent = products.length;
+          productsCountEl.style.display = products.length > 0 ? 'block' : 'none';
         }
       }
 
