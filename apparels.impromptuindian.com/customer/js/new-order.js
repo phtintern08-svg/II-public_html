@@ -1423,6 +1423,8 @@ async function saveAddress() {
     return;
   }
 
+  // 🔥 GPS COORDINATES: Include lat/lng if available from AddressState (from "Use Current Location")
+  const currentAddress = AddressState.data[AddressState.currentType] || {};
   const payload = {
     address_type: AddressState.currentType,
     address_line1: house + " " + area,
@@ -1434,6 +1436,12 @@ async function saveAddress() {
     alternative_phone: phone,
     landmark
   };
+  
+  // Include latitude/longitude if available (from GPS or previous save)
+  if (currentAddress.latitude !== undefined && currentAddress.longitude !== undefined) {
+    payload.latitude = currentAddress.latitude;
+    payload.longitude = currentAddress.longitude;
+  }
 
   try {
     let response;
@@ -2082,6 +2090,7 @@ if (useCurrentLocationBtn) {
           }
 
           // Prepare address object for the form (Draft mode, not saved to backend) //
+          // 🔥 GPS COORDINATES: Store lat/lng from marker position for backend storage
           const newAddress = {
             id: (AddressState.data[targetType] && AddressState.data[targetType].id) ? AddressState.data[targetType].id : null,
             address_type: targetType,
@@ -2092,7 +2101,9 @@ if (useCurrentLocationBtn) {
             state: addressData.state || "",
             country: addressData.country || "India",
             pincode: addressData.pincode || "",
-            alternative_phone: (AddressState.data[targetType] && AddressState.data[targetType].alternative_phone) || ""
+            alternative_phone: (AddressState.data[targetType] && AddressState.data[targetType].alternative_phone) || "",
+            latitude: lat,  // Store GPS coordinates from marker
+            longitude: lng
           };
 
           // Update local state

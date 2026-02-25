@@ -966,6 +966,14 @@ function initAddressEvents() {
                     // Update current address type
                     AddressState.currentType = targetType;
 
+                    // 🔥 GPS COORDINATES: Store lat/lng in AddressState for backend storage
+                    // Update or create address entry with GPS coordinates
+                    if (!AddressState.data[targetType]) {
+                        AddressState.data[targetType] = {};
+                    }
+                    AddressState.data[targetType].latitude = lat;
+                    AddressState.data[targetType].longitude = lng;
+
                     // Fill the profile form
                     document.getElementById("fldHouse").value = getComp('houseNumber') || getComp('house_number') || '';
                     document.getElementById("fldArea").value = getComp('subLocality') || getComp('locality') || getComp('street') || '';
@@ -1475,6 +1483,8 @@ async function saveAddress() {
         return;
     }
 
+    // 🔥 GPS COORDINATES: Include lat/lng if available from AddressState (from "Use Current Location")
+    const currentAddress = AddressState.data[AddressState.currentType] || {};
     const addressData = {
         address_type: AddressState.currentType,
         address_line1: house + ' ' + area,
@@ -1486,6 +1496,12 @@ async function saveAddress() {
         landmark: landmark,
         alternative_phone: phone // Pass phone as alternative_phone
     };
+    
+    // Include latitude/longitude if available (from GPS or previous save)
+    if (currentAddress.latitude !== undefined && currentAddress.longitude !== undefined) {
+        addressData.latitude = currentAddress.latitude;
+        addressData.longitude = currentAddress.longitude;
+    }
 
     try {
         // Check if address already exists (either in memory or we can try update)
