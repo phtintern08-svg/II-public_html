@@ -337,6 +337,7 @@ function filterProducts() {
             (product.product_name || '').toLowerCase().includes(term) ||
             (product.vendor_name || '').toLowerCase().includes(term) ||
             (product.product_type || '').toLowerCase().includes(term) ||
+            (product.category || '').toLowerCase().includes(term) ||
             (product.description || '').toLowerCase().includes(term) ||
             String(product.id || '').includes(term) ||
             String(product.vendor_id || '').includes(term);
@@ -366,6 +367,10 @@ function openProductModal(id) {
 
     document.getElementById('modal-vendor-name').textContent = product.vendor_name || 'Unknown Vendor';
     document.getElementById('modal-product-type').textContent = product.product_type || 'N/A';
+    const categoryEl = document.getElementById('modal-category');
+    if (categoryEl) {
+        categoryEl.textContent = product.category || 'N/A';
+    }
     document.getElementById('modal-product-name').textContent = product.product_name || 'Unnamed Product';
     document.getElementById('modal-description').textContent = product.description || 'No description provided';
     document.getElementById('modal-cost-price').textContent = `₹${parseFloat(product.cost_price || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
