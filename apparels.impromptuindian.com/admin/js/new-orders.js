@@ -19,62 +19,6 @@ function showToast(msg, type = 'info') {
 
 // Mock escrow orders
 let orders = [];
-let approvedVendors = [];
-
-// 🔍 DEBUG: Expose approvedVendors globally for console debugging
-window.approvedVendors = approvedVendors;
-
-async function fetchApprovedVendors() {
-  try {
-    // 🔥 FIX: Token is automatically injected by ImpromptuIndianApi.fetch() wrapper
-    // No need for manual token check or Authorization header - wrapper handles it
-    const response = await ImpromptuIndianApi.fetch('/api/admin/vendors?status=approved');
-
-    // 🔥 NOTE: 401 handling is now centralized in API wrapper (sidebar.js)
-    // If 401 occurs, wrapper automatically redirects to login
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch vendors: ${response.status}`);
-    }
-
-    const data = await response.json();
-    // 🔍 DEBUG: Log raw API response
-    console.log("Vendor API raw response:", data);
-    console.log("Response status:", response.status);
-    console.log("Response OK:", response.ok);
-    
-    // Handle different response structures
-    approvedVendors = data.vendors || (Array.isArray(data) ? data : []);
-    
-    // 🔍 DEBUG: Update global reference for console debugging
-    window.approvedVendors = approvedVendors;
-    
-    // 🔍 DEBUG: Log parsed vendors
-    console.log('Approved vendors parsed:', approvedVendors);
-    console.log('Approved vendors count:', approvedVendors.length);
-    
-    // 🔍 DEBUG: Log first vendor structure if exists
-    if (approvedVendors.length > 0) {
-      console.log('First vendor structure:', approvedVendors[0]);
-      console.log('First vendor business_name:', approvedVendors[0].business_name);
-      console.log('First vendor keys:', Object.keys(approvedVendors[0]));
-    } else {
-      console.warn('⚠️ No verified vendors found! Check:');
-      console.warn('1. Are there vendors with verification_status = "approved" in the database?');
-      console.warn('2. Is the API endpoint /api/admin/vendors?status=approved returning data?');
-      console.warn('3. Check Network tab for the API response');
-    }
-  } catch (e) {
-    console.error('Failed to fetch approved vendors', e);
-    console.error('Error details:', {
-      message: e.message,
-      stack: e.stack,
-      name: e.name
-    });
-    showToast('Failed to load vendors', 'error');
-    approvedVendors = []; // Ensure it's an empty array on error
-  }
-}
 
 async function fetchOrders() {
   const tableLoading = document.getElementById('table-loading');
@@ -462,27 +406,53 @@ function resetFilters() {
 async function openOrderModal(id) {
   currentOrderId = id;
   const order = orders.find(o => o.id === id);
+  
+  // 🔥 EDGE CASE PROTECTION: Guard against null order (race condition, deleted order, etc.)
+  if (!order) {
+    showToast('Order not found. Please refresh the page.', 'error');
+    console.error(`Order ${id} not found in orders array`);
+    return;
+  }
+  
+  // 🔥 SECURITY: Scoped vendor map per modal (prevents stale data if admin opens multiple modals quickly)
+  const eligibleVendorsMap = {};
   const body = document.getElementById('modal-body');
 
-  // Fetch latest vendors and recommended vendors (backend-ranked) before rendering
-  await fetchApprovedVendors();
-  let recommendedVendors = [];
+  // 🔥 MARKETPLACE ARCHITECTURE: Only fetch eligible vendors (hard-filtered by backend)
+  // Backend filters: approved quotation, capacity, stock, verification status
+  let eligibleVendors = [];
+  let errorMessage = null;
   try {
-    const recRes = await ImpromptuIndianApi.fetch(`/api/admin/orders/${id}/recommended-vendors`);
-    if (recRes.ok) {
-      const recData = await recRes.json();
-      recommendedVendors = recData.recommended_vendors || [];
+    const response = await ImpromptuIndianApi.fetch(`/api/admin/orders/${id}/eligible-vendors`);
+    if (response.ok) {
+      const data = await response.json();
+      eligibleVendors = data.eligible_vendors || [];
+      
+      // 🔥 SECURITY: Store vendor data in JS map (not HTML attributes) to prevent XSS
+      // Map is scoped to this function call - no global state pollution
+      eligibleVendors.forEach(v => {
+        eligibleVendorsMap[v.vendor_id] = v;
+      });
+      
+      if (data.message) {
+        console.log('Eligible vendors:', data.message);
+      }
+    } else {
+      const errorData = await response.json().catch(() => ({}));
+      errorMessage = errorData.error || `Failed to load eligible vendors (${response.status})`;
+      console.error('Failed to fetch eligible vendors:', errorMessage);
     }
   } catch (e) {
-    console.warn('Could not fetch recommended vendors:', e);
+    console.error('Error fetching eligible vendors:', e);
+    errorMessage = 'Failed to load eligible vendors. Please try again.';
   }
 
-  // Build vendor options: recommended first (backend-ranked), then all verified. No frontend ranking.
-  const recommendedIds = new Set(recommendedVendors.map(r => r.vendor_id));
-  const vendorOptionsHtml = recommendedVendors.length > 0
+  // Build vendor options: ONLY eligible vendors (backend-ranked)
+  // 🔥 SECURITY: Only store vendor_id in HTML, not full JSON (prevents XSS)
+  const vendorOptionsHtml = eligibleVendors.length > 0
     ? `
-      <optgroup label="⭐ Recommended Vendors (Ranked)">
-        ${recommendedVendors.map((v, index) => `
+      <optgroup label="⭐ Eligible Vendors (Ranked by Backend)">
+        ${eligibleVendors.map((v, index) => `
           <option
             value="${v.vendor_id}"
             data-base-cost="${v.base_cost_per_piece || 0}"
@@ -497,16 +467,8 @@ async function openOrderModal(id) {
           </option>
         `).join('')}
       </optgroup>
-      <optgroup label="All verified vendors">
-        ${approvedVendors
-          .filter(v => !recommendedIds.has(v.id))
-          .map(v => `<option value="${v.id}">${v.business_name || v.username || v.name || `Vendor #${v.id}`}</option>`)
-          .join('')}
-      </optgroup>
     `
-    : `<optgroup label="All verified vendors">${
-        approvedVendors.map(v => `<option value="${v.id}">${v.business_name || v.username || v.name || `Vendor #${v.id}`}</option>`).join('')
-      }</optgroup>`;
+    : `<option value="" disabled>${errorMessage || 'No eligible vendors found. Check requirements, capacity, and quotations.'}</option>`;
 
   body.innerHTML = `
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -594,10 +556,11 @@ async function openOrderModal(id) {
           <div class="space-y-4">
             <div>
               <label class="block mb-2 text-xs font-bold text-gray-500 uppercase tracking-tighter">Choose Vendor <span class="text-red-400">*</span></label>
-              ${recommendedVendors.length > 0 ? '<p class="text-xs text-emerald-400/80 mb-2">⭐ Top recommendation auto-selected based on stock, distance & capacity.</p>' : ''}
-              <select id="vendor-select" class="w-full p-3 bg-gray-900 border border-white/10 rounded-xl text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none">
-                <option value="">Select an approved vendor...</option>
-                ${approvedVendors.length === 0 && recommendedVendors.length === 0 ? '<option disabled>No verified vendors found</option>' : vendorOptionsHtml}
+              ${eligibleVendors.length > 0 ? '<p class="text-xs text-emerald-400/80 mb-2">⭐ Top recommendation auto-selected. Only eligible vendors shown (approved quotation + capacity + stock).</p>' : ''}
+              ${eligibleVendors.length === 0 ? '<p class="text-xs text-yellow-400/80 mb-2">⚠️ No eligible vendors found. Vendors must have: approved quotation, sufficient capacity, and be verified.</p>' : ''}
+              <select id="vendor-select" class="w-full p-3 bg-gray-900 border border-white/10 rounded-xl text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none" ${eligibleVendors.length === 0 ? 'disabled' : ''}>
+                <option value="">${eligibleVendors.length > 0 ? 'Select an eligible vendor...' : 'No eligible vendors'}</option>
+                ${vendorOptionsHtml}
               </select>
               <div id="vendor-insight-panel" class="mt-4 hidden bg-black/20 p-4 rounded-xl border border-white/10 text-sm space-y-2"></div>
             </div>
@@ -641,17 +604,21 @@ async function openOrderModal(id) {
   }
 
   // Vendor select: insight panel + auto-fill quotation price
+  // 🔥 CLOSURE: Capture eligibleVendorsMap in closure for event handler
   if (vendorSelect) {
-    vendorSelect.addEventListener('change', () => {
-      const selectedId = parseInt(vendorSelect.value, 10);
-      const vendor = recommendedVendors.find(v => v.vendor_id === selectedId);
+    vendorSelect.addEventListener('change', (function(map) {
+      return function() {
+        const selectedId = parseInt(vendorSelect.value, 10);
+        // 🔥 SECURITY: Get vendor data from scoped JS map (not HTML attributes)
+        const vendor = map[selectedId] || null;
 
-      // Update insight panel (only for recommended vendors)
+      // Update insight panel (only for eligible vendors)
       if (insightPanel) {
-        if (!vendor) {
+        if (!vendor || !selectedId) {
           insightPanel.classList.add('hidden');
         } else {
           insightPanel.classList.remove('hidden');
+          const breakdown = vendor.breakdown || {};
           insightPanel.innerHTML = `
             <div class="flex justify-between">
               <span class="text-gray-400">⭐ Recommendation Score</span>
@@ -673,23 +640,44 @@ async function openOrderModal(id) {
               <span class="text-gray-400">⏱ Lead Time</span>
               <span class="text-white font-semibold">${vendor.lead_time_days ?? 0} days</span>
             </div>
+            ${breakdown.stock_score !== undefined ? `
+            <div class="mt-3 pt-3 border-t border-white/10">
+              <div class="text-xs text-gray-500 mb-2">Score Breakdown:</div>
+              <div class="flex justify-between text-xs">
+                <span class="text-gray-400">Stock (40%)</span>
+                <span class="text-white">${(breakdown.stock_score * 100).toFixed(0)}%</span>
+              </div>
+              <div class="flex justify-between text-xs">
+                <span class="text-gray-400">Distance (30%)</span>
+                <span class="text-white">${(breakdown.distance_score * 100).toFixed(0)}%</span>
+              </div>
+              <div class="flex justify-between text-xs">
+                <span class="text-gray-400">Capacity (20%)</span>
+                <span class="text-white">${(breakdown.capacity_score * 100).toFixed(0)}%</span>
+              </div>
+              <div class="flex justify-between text-xs">
+                <span class="text-gray-400">Lead Time (10%)</span>
+                <span class="text-white">${(breakdown.lead_time_score * 100).toFixed(0)}%</span>
+              </div>
+            </div>
+            ` : ''}
           `;
         }
       }
 
-      // Auto-fill quotation price when selecting a recommended vendor (has data-base-cost)
-      if (quotationInput) {
-        const opt = vendorSelect.options[vendorSelect.selectedIndex];
-        const baseCost = parseFloat(opt?.dataset?.baseCost || 0);
-        if (baseCost > 0) {
-          quotationInput.value = baseCost.toFixed(2);
-          quotationInput.dispatchEvent(new Event('input'));
+        // Auto-fill quotation price when selecting an eligible vendor
+        if (quotationInput && vendor) {
+          const baseCost = parseFloat(vendor.base_cost_per_piece || 0);
+          if (baseCost > 0) {
+            quotationInput.value = baseCost.toFixed(2);
+            quotationInput.dispatchEvent(new Event('input'));
+          }
         }
-      }
-    });
+      };
+    })(eligibleVendorsMap));
 
-    // Auto-trigger first recommended vendor (show insight + fill price)
-    if (recommendedVendors.length > 0) {
+    // Auto-trigger first eligible vendor (show insight + fill price)
+    if (eligibleVendors.length > 0) {
       vendorSelect.dispatchEvent(new Event('change'));
     }
   }
@@ -717,8 +705,18 @@ async function assignVendor() {
 
   // 🔥 IMPORTANT: Show confirmation modal - vendor cannot reject after assignment
   const order = orders.find(o => o.id === currentOrderId);
-  const selectedVendor = approvedVendors.find(v => v.id === parseInt(vendorId));
-  const vendorName = selectedVendor ? (selectedVendor.business_name || selectedVendor.username || `Vendor #${vendorId}`) : `Vendor #${vendorId}`;
+  
+  // 🔥 EDGE CASE PROTECTION: Check if order already assigned (UX improvement)
+  // Backend will also enforce this, but frontend check provides better UX
+  if (order && order.status && order.status !== 'unassigned' && order.status !== 'pending_admin_review') {
+    showToast('This order is already assigned to a vendor. Please refresh the page.', 'warning');
+    return;
+  }
+  
+  // 🔥 SECURITY: Get vendor name from select option text (map is scoped, but option text is safe)
+  const vendorSelect = document.getElementById('vendor-select');
+  const selectedOpt = vendorSelect?.options[vendorSelect.selectedIndex];
+  const vendorName = selectedOpt?.textContent?.split('—')[0]?.trim() || `Vendor #${vendorId}`;
   // 🔥 BULK ORDER FIX: Use effective quantity (bulk_quantity for bulk orders, quantity for sample)
   const effectiveQty = order.effectiveQty || order.qty;
   const totalPrice = parseFloat(quotationPrice) * effectiveQty;
@@ -800,7 +798,7 @@ async function refreshOrders() {
   }
 
   try {
-    await fetchApprovedVendors();
+    // 🔥 MARKETPLACE ARCHITECTURE: No need to fetch generic vendors - eligibility is order-specific
     await fetchOrders();
     showToast('Data refreshed successfully', 'success');
   } catch (error) {
@@ -893,7 +891,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   try {
-    await fetchApprovedVendors();
+    // 🔥 MARKETPLACE ARCHITECTURE: No need to fetch generic vendors - eligibility is order-specific
     await fetchOrders();
     calculateSummary();
   } catch (error) {
