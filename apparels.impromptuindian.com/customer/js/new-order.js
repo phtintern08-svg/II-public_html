@@ -2820,6 +2820,11 @@ function initPlaceOrder() {
       numericCost: numericCost
     });
 
+    // 🔥 GPS COORDINATES: Get latitude/longitude from selected address (for distance-based vendor ranking)
+    const currentAddress = AddressState.data[AddressState.currentType] || {};
+    const addressLat = currentAddress.latitude;
+    const addressLon = currentAddress.longitude;
+    
     // 🔥 DETERMINE IF THIS IS BULK ORDER (quantity > 1 means bulk)
     const isBulkOrder = total > 1;
     
@@ -2844,6 +2849,11 @@ function initPlaceOrder() {
       sample_cost: numericCost,
       payment_method: window.paymentDetails?.method || 'card',
       payment_details: JSON.stringify(window.paymentDetails || {}),
+      // 🔥 GPS COORDINATES: Include latitude/longitude if available (for vendor distance ranking)
+      ...(addressLat !== undefined && addressLon !== undefined && addressLat !== null && addressLon !== null && {
+        latitude: addressLat,
+        longitude: addressLon
+      }),
       // 🔥 BULK ORDER FIELDS: Store bulk intent but keep it INACTIVE until sample approval
       // 🔥 ARCHITECTURE FIX: is_bulk_order is ALWAYS false at creation (bulk is just intent)
       // Bulk becomes active only after sample approval when customer chooses to proceed
@@ -2930,6 +2940,11 @@ async function createOrderAfterPayment(paymentResult, amount) {
     throw new Error(error);
   }
 
+  // 🔥 GPS COORDINATES: Get latitude/longitude from selected address (for distance-based vendor ranking)
+  const currentAddress = AddressState.data[AddressState.currentType] || {};
+  const addressLat = currentAddress.latitude;
+  const addressLon = currentAddress.longitude;
+
   // Build order payload - MUST match OrderSchema exactly
   // Schema requires: product_type, category, quantity, price_per_piece, address_line1, city, state, pincode
   // Schema allows: neck_type, color, fabric, print_type, delivery_date, address_line2, country, transaction_id, sample_cost, sample_size
@@ -2952,6 +2967,12 @@ async function createOrderAfterPayment(paymentResult, amount) {
     address_line2: landmark || null,
     country: country || "India",
     transaction_id: paymentResult.transactionId, // Optional but required for payment tracking
+    
+    // 🔥 GPS COORDINATES: Include latitude/longitude if available (for vendor distance ranking)
+    ...(addressLat !== undefined && addressLon !== undefined && addressLat !== null && addressLon !== null && {
+      latitude: addressLat,
+      longitude: addressLon
+    }),
     
     // 🔥 CRITICAL: delivery_date must be null or valid ISO Date string (YYYY-MM-DD)
     // Send ISO format for proper backend parsing
