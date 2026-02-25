@@ -131,24 +131,48 @@ function changeQty(id, delta) {
   renderProducts();
 }
 
+/* GET PRODUCT TYPE FROM URL */
+function getProductTypeFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("product_type");
+}
+
 /* LOAD PRODUCTS FROM API */
 async function loadProducts() {
   try {
-    const response = await fetch("/api/products");
+    const productType = getProductTypeFromURL();
+    
+    let url = "/api/products";
+    if (productType) {
+      url += `?product_type=${encodeURIComponent(productType)}`;
+    }
+    
+    const response = await fetch(url, { credentials: "include" });
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
     products = data.products || [];
     renderProducts();
+    
+    // Update page title if filtered by product type
+    if (productType) {
+      const titleElement = document.querySelector("h1, .page-title");
+      if (titleElement) {
+        titleElement.textContent = `${productType} Products`;
+      }
+    }
   } catch (error) {
     console.error("Failed to load products:", error);
-    document.getElementById("productGrid").innerHTML = `
-      <div class="col-span-full text-center py-12">
-        <p class="text-red-400 text-lg">Failed to load products.</p>
-        <p class="text-gray-500 text-sm mt-2">Please refresh the page or try again later.</p>
-      </div>
-    `;
+    const productGrid = document.getElementById("productGrid");
+    if (productGrid) {
+      productGrid.innerHTML = `
+        <div class="col-span-full text-center py-12">
+          <p class="text-red-400 text-lg">Failed to load products.</p>
+          <p class="text-gray-500 text-sm mt-2">Please refresh the page or try again later.</p>
+        </div>
+      `;
+    }
   }
 }
 

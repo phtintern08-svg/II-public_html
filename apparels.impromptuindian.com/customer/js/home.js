@@ -84,11 +84,26 @@ const categories = [
   { name: "Shirts", image: "../images/shirt.png" }
 ];
 
+// Map category display names to product_type values used in database
+const categoryToProductType = {
+  "T-Shirts": "T-Shirt",
+  "Hoodies": "Hoodie",
+  "Jackets": "Jacket",
+  "Uniforms": "Uniform",  // May need to adjust based on your product types
+  "Sweatshirts": "Sweatshirt",
+  "Cap": "Cap",
+  "Shirts": "Shirt"
+};
+
 const grid = document.getElementById("categoryGrid");
 categories.forEach((cat, index) => {
   const card = document.createElement("div");
   card.className = "reveal rounded-xl overflow-hidden bg-black/20 relative group cursor-pointer";
   card.style.transitionDelay = `${index * 120}ms`;
+  
+  // Get product_type for this category
+  const productType = categoryToProductType[cat.name] || cat.name;
+  
   card.innerHTML = `
     <img src="${cat.image}" class="w-full h-64 sm:h-64 md:h-[600px] object-cover group-hover:scale-105 transition duration-300" loading="lazy" />
     <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
@@ -96,6 +111,12 @@ categories.forEach((cat, index) => {
       <p class="text-sm md:text-lg font-semibold">${cat.name}</p>
     </div>
   `;
+  
+  // Add click handler to navigate to products page with product_type filter
+  card.addEventListener("click", () => {
+    window.location.href = `products.html?product_type=${encodeURIComponent(productType)}`;
+  });
+  
   grid.appendChild(card);
 });
 
