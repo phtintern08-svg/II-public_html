@@ -222,8 +222,32 @@ function renderProducts() {
     filteredProducts.forEach(product => {
         const card = document.createElement('div');
         card.className = 'quotation-card reveal';
-        const images = product.images || [];
-        const sizes = product.sizes || [];
+        
+        // Safe parsing: ensure sizes and images are arrays
+        let images = product.images || [];
+        if (typeof images === 'string') {
+            try {
+                images = JSON.parse(images);
+            } catch (e) {
+                images = [];
+            }
+        }
+        if (!Array.isArray(images)) {
+            images = [];
+        }
+        
+        let sizes = product.sizes || [];
+        if (typeof sizes === 'string') {
+            try {
+                sizes = JSON.parse(sizes);
+            } catch (e) {
+                sizes = [];
+            }
+        }
+        if (!Array.isArray(sizes)) {
+            sizes = [];
+        }
+        
         const firstImage = images.length > 0 ? images[0] : null;
         
         card.innerHTML = `
@@ -350,7 +374,17 @@ function openProductModal(id) {
     // Render sizes
     const sizesContainer = document.getElementById('modal-sizes');
     if (sizesContainer) {
-        const sizes = product.sizes || [];
+        let sizes = product.sizes || [];
+        if (typeof sizes === 'string') {
+            try {
+                sizes = JSON.parse(sizes);
+            } catch (e) {
+                sizes = [];
+            }
+        }
+        if (!Array.isArray(sizes)) {
+            sizes = [];
+        }
         if (sizes.length > 0) {
             sizesContainer.innerHTML = sizes.map(size => 
                 `<span class="px-3 py-1.5 bg-gray-800 text-sm rounded-lg border border-gray-700">${size}</span>`
@@ -363,7 +397,17 @@ function openProductModal(id) {
     // Render images
     const imagesContainer = document.getElementById('modal-images');
     if (imagesContainer) {
-        const images = product.images || [];
+        let images = product.images || [];
+        if (typeof images === 'string') {
+            try {
+                images = JSON.parse(images);
+            } catch (e) {
+                images = [];
+            }
+        }
+        if (!Array.isArray(images)) {
+            images = [];
+        }
         if (images.length > 0) {
             imagesContainer.innerHTML = images.map(img => `
                 <div class="relative group">
