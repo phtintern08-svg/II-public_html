@@ -4,6 +4,7 @@ lucide.createIcons();
 
 let capacityRows = [];
 let filters = { product_types: [], categories: [], sizes: [] };
+let productTypes = []; // Store product types for dropdown
 
 const ImpromptuIndianApi = window.ImpromptuIndianApi || {
     fetch: (path, opts = {}) => fetch(path, { credentials: 'include', ...opts })
@@ -288,8 +289,43 @@ document.getElementById('cp-close')?.addEventListener('click', () => {
     resetProductForm();
 });
 
+async function loadProductTypes() {
+    try {
+        const res = await ImpromptuIndianApi.fetch('/api/product-types');
+        if (!res.ok) throw new Error('Failed to load product types');
+        productTypes = await res.json();
+        
+        const select = document.getElementById('cp-product-type');
+        if (!select) return;
+        
+        select.innerHTML = '<option value="">Select Product Type</option>';
+        productTypes.forEach(pt => {
+            const option = document.createElement('option');
+            option.value = pt.id;
+            option.textContent = pt.name;
+            option.setAttribute('data-slug', pt.slug);
+            select.appendChild(option);
+        });
+    } catch (e) {
+        console.error('Failed to load product types:', e);
+        // Fallback to hardcoded options if API fails
+        const select = document.getElementById('cp-product-type');
+        if (select) {
+            select.innerHTML = `
+                <option value="">Select Product Type</option>
+                <option value="1">T-Shirt</option>
+                <option value="2">Hoodie</option>
+                <option value="3">Sweatshirt</option>
+            `;
+        }
+    }
+}
+
 function resetProductForm() {
-    document.getElementById('cp-product-type').value = 'T-Shirt';
+    const select = document.getElementById('cp-product-type');
+    if (select && select.options.length > 0) {
+        select.value = select.options[0].value || '';
+    }
     document.getElementById('cp-name').value = '';
     document.getElementById('cp-description').value = '';
     document.getElementById('cp-cost').value = '';
@@ -298,13 +334,13 @@ function resetProductForm() {
 }
 
 document.getElementById('cp-submit')?.addEventListener('click', async () => {
-    const type = document.getElementById('cp-product-type').value;
+    const productTypeId = document.getElementById('cp-product-type').value;
     const name = document.getElementById('cp-name').value.trim();
     const desc = document.getElementById('cp-description').value.trim();
     const cost = parseFloat(document.getElementById('cp-cost').value);
 
-    if (!name || !cost || cost <= 0) {
-        alert('Please fill in product name and valid cost price');
+    if (!productTypeId || !name || !cost || cost <= 0) {
+        alert('Please fill in all required fields: product type, name, and valid cost price');
         return;
     }
 
@@ -330,7 +366,7 @@ document.getElementById('cp-submit')?.addEventListener('click', async () => {
 
     try {
         const formData = new FormData();
-        formData.append('product_type', type);
+        formData.append('product_type_id', productTypeId);
         formData.append('product_name', name);
         formData.append('description', desc);
         formData.append('cost_price', cost);
@@ -365,6 +401,8 @@ document.getElementById('cp-submit')?.addEventListener('click', async () => {
 
 document.addEventListener('DOMContentLoaded', () => {
     fetchCapacity();
+    loadProductTypes(); // Load product types for dropdown
+    loadVendorProducts(); // Load vendor's existing products
 
     const revealEls = document.querySelectorAll('.reveal');
     function revealOnScroll() {
