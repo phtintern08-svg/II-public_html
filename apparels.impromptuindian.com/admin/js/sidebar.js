@@ -141,33 +141,14 @@
         <span class="notification-badge" id="orders-count-badge" style="display:none">0</span>
       </a>
 
-      <div>
-        <div class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white cursor-pointer" onclick="toggleSubmenu('vendor-submenu');">
-          <i data-lucide="store" class="w-5 h-5"></i> 
-          <a href="vendors.html" class="flex-1" onclick="event.stopPropagation();">Vendors</a>
-          <i data-lucide="chevron-down" class="w-4 h-4 transition-transform" id="vendor-chevron"></i>
-        </div>
-        <div id="vendor-submenu" class="submenu pl-4 mb-2 hidden">
-          <a href="vendor-requests.html" class="submenu-item flex items-center gap-3 p-2.5 rounded-lg mb-1.5 transition-colors hover:bg-black/30 hover:text-white text-sm">
-            <i data-lucide="user-plus" class="w-4 h-4"></i> <span>Vendor Requests</span>
-            <span class="notification-badge" id="vendor-requests-count" style="display:none">0</span>
-          </a>
-          <a href="quotation-reviews.html" class="submenu-item flex items-center gap-3 p-2.5 rounded-lg mb-1.5 transition-colors hover:bg-black/30 hover:text-white text-sm">
-            <i data-lucide="file-text" class="w-4 h-4"></i> <span>Quotation Reviews</span>
-            <span class="notification-badge" id="quotation-reviews-count" style="display:none">0</span>
-          </a>
-          <a href="product-approval.html" class="submenu-item flex items-center gap-3 p-2.5 rounded-lg mb-1.5 transition-colors hover:bg-black/30 hover:text-white text-sm">
-            <i data-lucide="package-check" class="w-4 h-4"></i> <span>Product Approval</span>
-            <span class="notification-badge" id="products-count" style="display:none">0</span>
-          </a>
-          <a href="verified-vendors.html" class="submenu-item flex items-center gap-3 p-2.5 rounded-lg mb-1.5 transition-colors hover:bg-black/30 hover:text-white text-sm">
-            <i data-lucide="check-circle" class="w-4 h-4"></i> <span>Verified Vendors</span>
-          </a>
-          <a href="rejected-vendors.html" class="submenu-item flex items-center gap-3 p-2.5 rounded-lg mb-1.5 transition-colors hover:bg-black/30 hover:text-white text-sm">
-            <i data-lucide="x-circle" class="w-4 h-4"></i> <span>Rejected Vendors</span>
-          </a>
-        </div>
-      </div>
+      <a href="vendors.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
+        <i data-lucide="store" class="w-5 h-5"></i> <span>Vendors</span>
+      </a>
+
+      <a href="product-approval.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
+        <i data-lucide="package-check" class="w-5 h-5"></i> <span>Products</span>
+        <span class="notification-badge" id="products-count" style="display:none">0</span>
+      </a>
 
       <a href="riders.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
         <i data-lucide="bike" class="w-5 h-5"></i> <span>Riders</span>
@@ -301,7 +282,8 @@
 
     const parentPageMap = {
       'vendor-requests.html': 'vendors.html', 'quotation-reviews.html': 'vendors.html',
-      'product-approval.html': 'vendors.html', 'verified-vendors.html': 'vendors.html', 'rejected-vendors.html': 'vendors.html',
+      'verified-vendors.html': 'vendors.html', 'rejected-vendors.html': 'vendors.html',
+      'product-approval.html': 'product-approval.html',
       'rider-requests.html': 'riders.html', 'verified-riders.html': 'riders.html',
       'rejected-riders.html': 'riders.html', 'riders-list.html': 'riders.html',
       'rider-assignments.html': 'delivery.html', 'delivery-history.html': 'delivery.html',
@@ -313,19 +295,6 @@
 
     const parentPage = parentPageMap[currentPage];
 
-    // Auto-expand vendor submenu if on a vendor page
-    if (parentPage === 'vendors.html' || currentPage === 'vendors.html') {
-      const vendorSubmenu = document.getElementById('vendor-submenu');
-      const vendorLink = document.querySelector('a[href="vendors.html"]');
-      const vendorParent = vendorLink ? vendorLink.closest('.menu-item') : null;
-      if (vendorSubmenu && !vendorSubmenu.classList.contains('open')) {
-        vendorSubmenu.classList.add('open');
-        vendorSubmenu.classList.remove('hidden');
-        if (vendorParent) vendorParent.classList.add('open');
-        const chevron = vendorParent?.querySelector('i[data-lucide="chevron-down"]');
-        if (chevron) chevron.style.transform = 'rotate(180deg)';
-      }
-    }
 
     links.forEach(link => {
       const href = link.getAttribute("href");
@@ -390,7 +359,7 @@
         const productsCountEl = document.getElementById('products-count');
         if (productsCountEl) {
           productsCountEl.textContent = products.length;
-          productsCountEl.style.display = products.length > 0 ? 'block' : 'none';
+          productsCountEl.style.display = products.length > 0 ? 'inline-block' : 'none';
         }
       }
 
