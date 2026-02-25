@@ -26,13 +26,8 @@ function updateCartBadge() {
   }
 }
 
-/* SAMPLE PRODUCTS */
-const products = [
-  { id: "p1", name: "Basic Tee", color: "Black", size: "S", price: 1200, image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80" },
-  { id: "p2", name: "Basic Tee", color: "Black", size: "M", price: 1200, image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80" },
-  { id: "p3", name: "Basic Tee", color: "Black", size: "L", price: 1200, image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80" },
-  { id: "p4", name: "Basic Tee", color: "White", size: "M", price: 1200, image: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80" },
-];
+// Products loaded from API (no static data)
+let products = [];
 
 /* TEMPLATE BUTTONS */
 function addBtn(id) {
@@ -58,16 +53,40 @@ function qtyControls(id, qty) {
 /* RENDER PRODUCTS */
 function renderProducts() {
   const cart = getCart();
+  const productGrid = document.getElementById("productGrid");
+  
+  if (!productGrid) {
+    console.error("Product grid element not found");
+    return;
+  }
 
-  document.getElementById("productGrid").innerHTML = products.map(p => {
+  if (products.length === 0) {
+    productGrid.innerHTML = `
+      <div class="col-span-full text-center py-12">
+        <p class="text-gray-400 text-lg">No products available at the moment.</p>
+        <p class="text-gray-500 text-sm mt-2">Check back soon for new arrivals!</p>
+      </div>
+    `;
+    return;
+  }
+
+  productGrid.innerHTML = products.map(p => {
     const item = cart.find(x => x.id === p.id);
+    const sizeText = p.size ? ` - ${p.size}` : '';
+    const colorText = p.color ? `${p.color}${sizeText}` : (p.size ? sizeText : '');
+    
     return `
       <div class="bg-white text-black rounded-lg overflow-hidden">
-        <img src="${p.image}" class="w-full h-40 object-cover">
+        <img src="${p.image || 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80'}" 
+             class="w-full h-40 object-cover"
+             alt="${p.name}"
+             onerror="this.src='https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80'">
 
         <div class="p-4">
           <div class="font-semibold">${p.name}</div>
-          <div class="text-sm text-gray-500">${p.color} - ${p.size}</div>
+          ${colorText ? `<div class="text-sm text-gray-500">${colorText}</div>` : ''}
+          ${p.sizes && p.sizes.length > 0 ? `<div class="text-xs text-gray-400 mt-1">Sizes: ${p.sizes.join(', ')}</div>` : ''}
+          ${p.colors && p.colors.length > 0 ? `<div class="text-xs text-gray-400">Colors: ${p.colors.join(', ')}</div>` : ''}
           <div class="mt-2 font-bold">₹${p.price}</div>
 
           <div id="controls-${p.id}" class="mt-4">
@@ -112,6 +131,27 @@ function changeQty(id, delta) {
   renderProducts();
 }
 
+/* LOAD PRODUCTS FROM API */
+async function loadProducts() {
+  try {
+    const response = await fetch("/api/products");
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    products = data.products || [];
+    renderProducts();
+  } catch (error) {
+    console.error("Failed to load products:", error);
+    document.getElementById("productGrid").innerHTML = `
+      <div class="col-span-full text-center py-12">
+        <p class="text-red-400 text-lg">Failed to load products.</p>
+        <p class="text-gray-500 text-sm mt-2">Please refresh the page or try again later.</p>
+      </div>
+    `;
+  }
+}
+
 /* INIT */
-renderProducts();
+loadProducts();
 updateCartBadge();
