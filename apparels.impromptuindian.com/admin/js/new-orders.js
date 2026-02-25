@@ -447,25 +447,29 @@ async function openOrderModal(id) {
     errorMessage = 'Failed to load eligible vendors. Please try again.';
   }
 
-  // Build vendor options: ONLY eligible vendors (backend-ranked)
+  // Build vendor options: ONLY eligible vendors (professional enterprise-style layout)
   // 🔥 SECURITY: Only store vendor_id in HTML, not full JSON (prevents XSS)
   const vendorOptionsHtml = eligibleVendors.length > 0
     ? `
-      <optgroup label="⭐ Eligible Vendors (Ranked by Backend)">
-        ${eligibleVendors.map((v, index) => `
+      <optgroup label="Eligible Vendors">
+        ${eligibleVendors.map((v, index) => {
+          const location = [v.city, v.state].filter(Boolean).join(', ') || 'Location not specified';
+          const capacity = v.capacity_available ?? 0;
+          const leadTime = v.lead_time_days ?? 0;
+          const distance = v.distance_km != null ? `${v.distance_km.toFixed(1)} km` : '—';
+          const isBestMatch = index === 0;
+          
+          // Professional structured format: Vendor Name | Location | Metrics
+          return `
           <option
             value="${v.vendor_id}"
             data-base-cost="${v.base_cost_per_piece || 0}"
             ${index === 0 ? 'selected' : ''}
           >
-            ${v.vendor_name}
-            — ⭐ ${(v.score != null ? v.score * 100 : 0).toFixed(0)}%
-            — 📦 ${v.stock_available ?? 0}
-            — 📍 ${v.distance_km != null ? v.distance_km.toFixed(1) + 'km' : '—'}
-            — 🏭 ${v.capacity_available ?? 0}
-            — ⏱ ${v.lead_time_days ?? 0}d
+            ${v.vendor_name} | ${location} | Capacity: ${capacity} pcs | Lead: ${leadTime} day${leadTime !== 1 ? 's' : ''} | ${distance}${isBestMatch ? ' | Best Match' : ''}
           </option>
-        `).join('')}
+        `;
+        }).join('')}
       </optgroup>
     `
     : `<option value="" disabled>${errorMessage || 'No eligible vendors found. Check requirements, capacity, and quotations.'}</option>`;
@@ -556,13 +560,13 @@ async function openOrderModal(id) {
           <div class="space-y-4">
             <div>
               <label class="block mb-2 text-xs font-bold text-gray-500 uppercase tracking-tighter">Choose Vendor <span class="text-red-400">*</span></label>
-              ${eligibleVendors.length > 0 ? '<p class="text-xs text-emerald-400/80 mb-2">⭐ Top recommendation auto-selected. Only eligible vendors shown (approved quotation + capacity + stock).</p>' : ''}
-              ${eligibleVendors.length === 0 ? '<p class="text-xs text-yellow-400/80 mb-2">⚠️ No eligible vendors found. Vendors must have: approved quotation, sufficient capacity, and be verified.</p>' : ''}
+              ${eligibleVendors.length > 0 ? '<p class="text-xs text-gray-400 mb-2">Top recommendation auto-selected. Only eligible vendors shown.</p>' : ''}
+              ${eligibleVendors.length === 0 ? '<p class="text-xs text-yellow-400/80 mb-2">No eligible vendors found. Vendors must have approved quotation, sufficient capacity, and be verified.</p>' : ''}
               <select id="vendor-select" class="w-full p-3 bg-gray-900 border border-white/10 rounded-xl text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none" ${eligibleVendors.length === 0 ? 'disabled' : ''}>
-                <option value="">${eligibleVendors.length > 0 ? 'Select an eligible vendor...' : 'No eligible vendors'}</option>
+                <option value="">${eligibleVendors.length > 0 ? 'Select a vendor...' : 'No eligible vendors'}</option>
                 ${vendorOptionsHtml}
               </select>
-              <div id="vendor-insight-panel" class="mt-4 hidden bg-black/20 p-4 rounded-xl border border-white/10 text-sm space-y-2"></div>
+              <div id="vendor-insight-panel" class="mt-4 hidden bg-white/5 p-5 rounded-xl border border-white/10"></div>
             </div>
             
             <div>
@@ -612,56 +616,94 @@ async function openOrderModal(id) {
         // 🔥 SECURITY: Get vendor data from scoped JS map (not HTML attributes)
         const vendor = map[selectedId] || null;
 
-      // Update insight panel (only for eligible vendors)
+      // Update insight panel (professional vendor profile preview)
       if (insightPanel) {
         if (!vendor || !selectedId) {
           insightPanel.classList.add('hidden');
         } else {
           insightPanel.classList.remove('hidden');
           const breakdown = vendor.breakdown || {};
+          const location = [vendor.city, vendor.state].filter(Boolean).join(', ') || 'Location not specified';
+          const matchScore = (vendor.score != null ? vendor.score * 100 : 0).toFixed(0);
+          const scoreColor = vendor.score >= 0.8 ? 'text-emerald-400' : vendor.score >= 0.6 ? 'text-blue-400' : 'text-yellow-400';
+          
           insightPanel.innerHTML = `
-            <div class="flex justify-between">
-              <span class="text-gray-400">⭐ Recommendation Score</span>
-              <span class="text-yellow-400 font-bold">${(vendor.score != null ? vendor.score * 100 : 0).toFixed(1)}%</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-400">📦 Available Stock</span>
-              <span class="text-white font-semibold">${vendor.stock_available ?? 0}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-400">📍 Distance</span>
-              <span class="text-white font-semibold">${vendor.distance_km != null ? vendor.distance_km.toFixed(2) + ' km' : '—'}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-400">🏭 Production Capacity</span>
-              <span class="text-white font-semibold">${vendor.capacity_available ?? 0}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-400">⏱ Lead Time</span>
-              <span class="text-white font-semibold">${vendor.lead_time_days ?? 0} days</span>
-            </div>
-            ${breakdown.stock_score !== undefined ? `
-            <div class="mt-3 pt-3 border-t border-white/10">
-              <div class="text-xs text-gray-500 mb-2">Score Breakdown:</div>
-              <div class="flex justify-between text-xs">
-                <span class="text-gray-400">Stock (40%)</span>
-                <span class="text-white">${(breakdown.stock_score * 100).toFixed(0)}%</span>
+            <div class="space-y-4">
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <h4 class="text-white font-semibold text-base mb-1">${vendor.vendor_name}</h4>
+                  <p class="text-gray-400 text-sm">${location}</p>
+                </div>
+                <div class="text-right">
+                  <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
+                    <span class="text-xs text-gray-400">Match</span>
+                    <span class="${scoreColor} font-bold text-sm">${matchScore}%</span>
+                  </div>
+                </div>
               </div>
-              <div class="flex justify-between text-xs">
-                <span class="text-gray-400">Distance (30%)</span>
-                <span class="text-white">${(breakdown.distance_score * 100).toFixed(0)}%</span>
+              
+              <div class="grid grid-cols-2 gap-4 pt-3 border-t border-white/10">
+                <div>
+                  <div class="text-xs text-gray-500 mb-1">Production Capacity</div>
+                  <div class="text-white font-semibold">${vendor.capacity_available ?? 0} pcs</div>
+                </div>
+                <div>
+                  <div class="text-xs text-gray-500 mb-1">Lead Time</div>
+                  <div class="text-white font-semibold">${vendor.lead_time_days ?? 0} day${vendor.lead_time_days !== 1 ? 's' : ''}</div>
+                </div>
+                <div>
+                  <div class="text-xs text-gray-500 mb-1">Available Stock</div>
+                  <div class="text-white font-semibold">${vendor.stock_available ?? 0} pcs</div>
+                </div>
+                <div>
+                  <div class="text-xs text-gray-500 mb-1">Distance</div>
+                  <div class="text-white font-semibold">${vendor.distance_km != null ? vendor.distance_km.toFixed(1) + ' km' : '—'}</div>
+                </div>
               </div>
-              <div class="flex justify-between text-xs">
-                <span class="text-gray-400">Capacity (20%)</span>
-                <span class="text-white">${(breakdown.capacity_score * 100).toFixed(0)}%</span>
+              
+              ${breakdown.stock_score !== undefined ? `
+              <div class="pt-3 border-t border-white/10">
+                <button type="button" id="toggle-breakdown" class="flex items-center gap-2 text-xs text-gray-400 hover:text-gray-300 transition-colors">
+                  <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform" id="breakdown-icon"></i>
+                  <span>View Match Details</span>
+                </button>
+                <div id="breakdown-content" class="hidden mt-3 space-y-2">
+                  <div class="flex justify-between text-xs">
+                    <span class="text-gray-400">Stock Availability</span>
+                    <span class="text-white">${(breakdown.stock_score * 100).toFixed(0)}%</span>
+                  </div>
+                  <div class="flex justify-between text-xs">
+                    <span class="text-gray-400">Proximity</span>
+                    <span class="text-white">${(breakdown.distance_score * 100).toFixed(0)}%</span>
+                  </div>
+                  <div class="flex justify-between text-xs">
+                    <span class="text-gray-400">Production Capacity</span>
+                    <span class="text-white">${(breakdown.capacity_score * 100).toFixed(0)}%</span>
+                  </div>
+                  <div class="flex justify-between text-xs">
+                    <span class="text-gray-400">Lead Time</span>
+                    <span class="text-white">${(breakdown.lead_time_score * 100).toFixed(0)}%</span>
+                  </div>
+                </div>
               </div>
-              <div class="flex justify-between text-xs">
-                <span class="text-gray-400">Lead Time (10%)</span>
-                <span class="text-white">${(breakdown.lead_time_score * 100).toFixed(0)}%</span>
-              </div>
+              ` : ''}
             </div>
-            ` : ''}
           `;
+          
+          // Initialize breakdown toggle
+          if (window.lucide) lucide.createIcons();
+          const toggleBtn = insightPanel.querySelector('#toggle-breakdown');
+          const breakdownContent = insightPanel.querySelector('#breakdown-content');
+          const breakdownIcon = insightPanel.querySelector('#breakdown-icon');
+          if (toggleBtn && breakdownContent) {
+            toggleBtn.addEventListener('click', () => {
+              const isHidden = breakdownContent.classList.contains('hidden');
+              breakdownContent.classList.toggle('hidden');
+              if (breakdownIcon) {
+                breakdownIcon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+              }
+            });
+          }
         }
       }
 
