@@ -45,6 +45,97 @@
 
     </main>
 
+    <!-- Product Detail Modal (Flipkart/Amazon Style) -->
+    <div id="productDetailModal" class="fixed inset-0 z-50 hidden">
+      <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeProductDetail()"></div>
+      <div class="absolute inset-4 md:inset-8 lg:inset-16 bg-white text-black rounded-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-4 border-b border-gray-200">
+          <h2 class="text-xl font-bold">Product Details</h2>
+          <button onclick="closeProductDetail()" class="text-gray-500 hover:text-black transition-colors">
+            <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+        </div>
+
+        <!-- Modal Body - Scrollable -->
+        <div class="flex-1 overflow-y-auto p-6">
+          <div class="grid lg:grid-cols-2 gap-8">
+            
+            <!-- Left: Image Gallery -->
+            <div class="space-y-4">
+              <!-- Main Image -->
+              <div class="bg-gray-100 rounded-lg overflow-hidden aspect-square flex items-center justify-center">
+                <img id="modal-main-image" src="" alt="Product" class="w-full h-full object-contain">
+              </div>
+              
+              <!-- Thumbnail Images -->
+              <div id="modal-thumbnails" class="grid grid-cols-4 gap-2">
+                <!-- Thumbnails will be injected here -->
+              </div>
+            </div>
+
+            <!-- Right: Product Details -->
+            <div class="space-y-6">
+              <!-- Product Name -->
+              <div>
+                <h1 id="modal-product-name" class="text-3xl font-bold mb-2"></h1>
+                <div id="modal-product-type" class="text-sm text-gray-500 mb-2"></div>
+              </div>
+
+              <!-- Price -->
+              <div class="border-b border-gray-200 pb-4">
+                <div class="flex items-baseline gap-2">
+                  <span id="modal-price" class="text-4xl font-bold text-[#1273EB]"></span>
+                </div>
+              </div>
+
+              <!-- Size Selection -->
+              <div id="modal-size-section" class="border-b border-gray-200 pb-4">
+                <label class="block text-sm font-semibold mb-3">Select Size</label>
+                <div id="modal-sizes" class="flex flex-wrap gap-2">
+                  <!-- Size buttons will be injected here -->
+                </div>
+                <p id="modal-size-error" class="text-red-500 text-sm mt-2 hidden">Please select a size</p>
+              </div>
+
+              <!-- Quantity -->
+              <div class="border-b border-gray-200 pb-4">
+                <label class="block text-sm font-semibold mb-3">Quantity</label>
+                <div class="flex items-center gap-3">
+                  <button id="modal-qty-decrease" class="w-10 h-10 border-2 border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors">
+                    <i data-lucide="minus" class="w-4 h-4"></i>
+                  </button>
+                  <span id="modal-quantity" class="text-xl font-semibold w-12 text-center">1</span>
+                  <button id="modal-qty-increase" class="w-10 h-10 border-2 border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Description -->
+              <div id="modal-description-section" class="border-b border-gray-200 pb-4">
+                <h3 class="text-lg font-semibold mb-2">Description</h3>
+                <p id="modal-description" class="text-gray-600 text-sm leading-relaxed"></p>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="space-y-3 pt-4">
+                <button id="modal-add-to-cart" class="w-full bg-[#FFCC00] hover:bg-yellow-400 text-black font-semibold py-4 rounded-lg flex items-center justify-center gap-2 transition-colors text-lg">
+                  <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                  <span>Add to Cart</span>
+                </button>
+                <button id="modal-buy-now" class="w-full bg-[#1273EB] hover:bg-blue-600 text-white font-semibold py-4 rounded-lg flex items-center justify-center gap-2 transition-colors text-lg">
+                  <i data-lucide="zap" class="w-5 h-5"></i>
+                  <span>Buy Now</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Products Script -->
     <script src="js/products.js"></script>
 
