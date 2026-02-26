@@ -94,11 +94,13 @@ if (loginForm) {
         // If no URL parameter, try to detect from subdomain or referrer
         if (!role) {
             const hostname = window.location.hostname;
-            if (hostname.includes('vendor.')) {
+            if (hostname.includes('support.')) {
+                role = 'support';
+            } else if (hostname.includes('vendor.')) {
                 role = 'vendor';
             } else if (hostname.includes('rider.')) {
                 role = 'rider';
-            } else if (hostname.includes('admin.')) {
+            } else if (hostname.includes('admin.') || hostname.includes('apparels.')) {
                 role = 'admin';
             } else {
                 // Default to customer if on main domain
