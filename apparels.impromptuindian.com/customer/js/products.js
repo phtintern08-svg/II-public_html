@@ -76,18 +76,18 @@ function renderProducts() {
     const colorText = p.color ? `${p.color}${sizeText}` : (p.size ? sizeText : '');
     
     return `
-      <div class="bg-white text-black rounded-lg overflow-hidden">
+      <div class="bg-white text-black rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
         <img src="${p.image || 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80'}" 
              class="w-full h-40 object-cover"
              alt="${p.name}"
              onerror="this.src='https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80'">
 
         <div class="p-4">
-          <div class="font-semibold">${p.name}</div>
-          ${colorText ? `<div class="text-sm text-gray-500">${colorText}</div>` : ''}
-          ${p.sizes && p.sizes.length > 0 ? `<div class="text-xs text-gray-400 mt-1">Sizes: ${p.sizes.join(', ')}</div>` : ''}
-          ${p.colors && p.colors.length > 0 ? `<div class="text-xs text-gray-400">Colors: ${p.colors.join(', ')}</div>` : ''}
-          <div class="mt-2 font-bold">₹${p.price}</div>
+          <div class="font-semibold text-lg mb-1">${p.name}</div>
+          ${p.product_type ? `<div class="text-xs text-gray-500 mb-1">${p.product_type}${p.category && p.category !== 'N/A' ? ` • ${p.category}` : ''}</div>` : ''}
+          ${p.description ? `<div class="text-sm text-gray-600 mb-2 line-clamp-2">${p.description}</div>` : ''}
+          ${p.sizes && p.sizes.length > 0 ? `<div class="text-xs text-gray-500 mb-2">Available Sizes: ${p.sizes.join(', ')}</div>` : ''}
+          <div class="mt-2 font-bold text-xl text-[#1273EB]">₹${parseFloat(p.price || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
 
           <div id="controls-${p.id}" class="mt-4">
             ${item ? qtyControls(p.id, item.quantity) : addBtn(p.id)}

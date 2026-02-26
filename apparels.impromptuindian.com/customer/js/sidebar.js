@@ -53,6 +53,10 @@ const sidebarHTML = `
       <i data-lucide="home" class="w-5 h-5"></i> <span>Home</span>
     </a>
 
+    <a href="products.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
+      <i data-lucide="package" class="w-5 h-5"></i> <span>Products</span>
+    </a>
+
     <a href="cart.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 relative hover:bg-black hover:text-white">
       <i data-lucide="shopping-cart" class="w-5 h-5"></i>
       <span>Cart</span>
