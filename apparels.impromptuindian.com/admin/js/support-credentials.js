@@ -4,22 +4,30 @@ const ImpromptuIndianApi = window.ImpromptuIndianApi;
 
 function showToast(msg, type = 'success') {
     const toast = document.getElementById('toast');
+    if (!toast) {
+        console.warn('Toast element not found');
+        alert(msg); // Fallback to alert if toast doesn't exist
+        return;
+    }
+    
     const txt = document.getElementById('toast-msg');
     const icon = toast.querySelector('i');
     
-    txt.textContent = msg;
+    if (txt) txt.textContent = msg;
     
-    if (type === 'error') {
-        icon.setAttribute('data-lucide', 'x-circle');
-        icon.classList.remove('text-green-500');
-        icon.classList.add('text-red-500');
-    } else {
-        icon.setAttribute('data-lucide', 'check-circle');
-        icon.classList.remove('text-red-500');
-        icon.classList.add('text-green-500');
+    if (icon) {
+        if (type === 'error') {
+            icon.setAttribute('data-lucide', 'x-circle');
+            icon.classList.remove('text-green-500');
+            icon.classList.add('text-red-500');
+        } else {
+            icon.setAttribute('data-lucide', 'check-circle');
+            icon.classList.remove('text-red-500');
+            icon.classList.add('text-green-500');
+        }
+        
+        if (window.lucide) lucide.createIcons();
     }
-    
-    if (window.lucide) lucide.createIcons();
     
     toast.classList.remove('hidden');
     setTimeout(() => toast.classList.add('hidden'), 3000);
