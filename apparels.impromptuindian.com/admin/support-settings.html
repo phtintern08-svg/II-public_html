@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Support Settings – ImpromptuIndian Admin</title>
+    <meta name="description" content="Configure support system settings, categories, and rules" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/admin-global.css" />
+    <link rel="shortcut icon" href="../images/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+</head>
+
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-container"></div>
+        <script src="js/sidebar.js"></script>
+
+        <main class="flex-1 overflow-y-auto p-4 pt-20 md:p-8 md:pt-8">
+            <!-- Page Header -->
+            <div class="reveal mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div class="w-full md:w-auto">
+                    <h1 class="text-2xl md:text-3xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
+                        <i data-lucide="sliders" class="w-6 h-6 md:w-7 md:h-7 text-[#FFCC00]"></i>
+                        Support Settings
+                    </h1>
+                    <p class="text-gray-400 text-sm md:text-base">Configure ticket categories, priority rules, SLA, and auto-assignment</p>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                    <a href="support.html"
+                        class="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-800/50 text-gray-300 rounded-xl transition-all border border-white/10 hover:border-blue-500/50 hover:bg-gray-800 hover:text-white w-full md:w-auto">
+                        <i data-lucide="arrow-left" class="w-4 h-4 text-blue-400"></i>
+                        <span class="text-sm font-semibold tracking-wide uppercase">Back to Support</span>
+                    </a>
+                    <button class="btn-refresh w-full md:w-auto" onclick="loadSettings()">
+                        <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
+                        <span>Sync Data</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Ticket Categories Section -->
+            <div class="card mb-6 reveal" style="transition-delay: 100ms;">
+                <div class="card-header flex items-center justify-between">
+                    <h3 class="card-title flex items-center gap-2">
+                        <i data-lucide="tags" class="w-5 h-5"></i>
+                        Ticket Categories
+                    </h3>
+                    <button onclick="showAddCategoryModal()" class="btn-primary">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>Add Category</span>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <i data-lucide="tag" class="w-3.5 h-3.5 inline-block"></i>
+                                        Category Name
+                                    </th>
+                                    <th>
+                                        <i data-lucide="file-text" class="w-3.5 h-3.5 inline-block"></i>
+                                        Description
+                                    </th>
+                                    <th>
+                                        <i data-lucide="circle" class="w-3.5 h-3.5 inline-block"></i>
+                                        Status
+                                    </th>
+                                    <th class="text-right">
+                                        <i data-lucide="settings" class="w-3.5 h-3.5 inline-block"></i>
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="categories-table">
+                                <tr>
+                                    <td colspan="4" class="text-center py-12">
+                                        <div class="flex flex-col items-center gap-3">
+                                            <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-blue-400"></i>
+                                            <p class="text-gray-400">Loading categories...</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Priority Rules & SLA Section -->
+            <div class="card mb-6 reveal" style="transition-delay: 200ms;">
+                <div class="card-header">
+                    <h3 class="card-title flex items-center gap-2">
+                        <i data-lucide="gauge" class="w-5 h-5"></i>
+                        Priority Rules & SLA
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <i data-lucide="arrow-up" class="w-3.5 h-3.5 inline-block"></i>
+                                        Priority Level
+                                    </th>
+                                    <th>
+                                        <i data-lucide="clock" class="w-3.5 h-3.5 inline-block"></i>
+                                        SLA (Hours)
+                                    </th>
+                                    <th>
+                                        <i data-lucide="file-text" class="w-3.5 h-3.5 inline-block"></i>
+                                        Description
+                                    </th>
+                                    <th>
+                                        <i data-lucide="circle" class="w-3.5 h-3.5 inline-block"></i>
+                                        Status
+                                    </th>
+                                    <th class="text-right">
+                                        <i data-lucide="settings" class="w-3.5 h-3.5 inline-block"></i>
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="priority-rules-table">
+                                <tr>
+                                    <td colspan="5" class="text-center py-12">
+                                        <div class="flex flex-col items-center gap-3">
+                                            <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-blue-400"></i>
+                                            <p class="text-gray-400">Loading priority rules...</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Auto Assignment Section -->
+            <div class="card mb-6 reveal" style="transition-delay: 300ms;">
+                <div class="card-header">
+                    <h3 class="card-title flex items-center gap-2">
+                        <i data-lucide="user-cog" class="w-5 h-5"></i>
+                        Auto Assignment Rules
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-white/5 hover:border-blue-500/20 transition-colors">
+                            <div class="flex-1">
+                                <h4 class="font-semibold mb-1 flex items-center gap-2">
+                                    <i data-lucide="repeat" class="w-4 h-4 text-blue-400"></i>
+                                    Round-Robin Assignment
+                                </h4>
+                                <p class="text-sm text-gray-400">Assign tickets evenly across all active agents</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer ml-4">
+                                <input type="checkbox" id="round-robin" class="sr-only peer" onchange="toggleAutoAssignment('round_robin', this.checked)">
+                                <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-white/5 hover:border-blue-500/20 transition-colors">
+                            <div class="flex-1">
+                                <h4 class="font-semibold mb-1 flex items-center gap-2">
+                                    <i data-lucide="bar-chart" class="w-4 h-4 text-purple-400"></i>
+                                    Workload-Based Assignment
+                                </h4>
+                                <p class="text-sm text-gray-400">Assign to agent with least active tickets</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer ml-4">
+                                <input type="checkbox" id="workload" class="sr-only peer" onchange="toggleAutoAssignment('workload', this.checked)">
+                                <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-white/5 hover:border-blue-500/20 transition-colors">
+                            <div class="flex-1">
+                                <h4 class="font-semibold mb-1 flex items-center gap-2">
+                                    <i data-lucide="layers" class="w-4 h-4 text-yellow-400"></i>
+                                    Category-Based Assignment
+                                </h4>
+                                <p class="text-sm text-gray-400">Assign based on agent expertise/category</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer ml-4">
+                                <input type="checkbox" id="category" class="sr-only peer" onchange="toggleAutoAssignment('category', this.checked)">
+                                <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-white/5 hover:border-blue-500/20 transition-colors">
+                            <div class="flex-1">
+                                <h4 class="font-semibold mb-1 flex items-center gap-2">
+                                    <i data-lucide="hand" class="w-4 h-4 text-green-400"></i>
+                                    Manual Assignment Only
+                                </h4>
+                                <p class="text-sm text-gray-400">Disable auto-assignment, tickets require manual assignment</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer ml-4">
+                                <input type="checkbox" id="manual" class="sr-only peer" onchange="toggleAutoAssignment('manual', this.checked)">
+                                <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Escalation Rules Section -->
+            <div class="card reveal" style="transition-delay: 400ms;">
+                <div class="card-header flex items-center justify-between">
+                    <h3 class="card-title flex items-center gap-2">
+                        <i data-lucide="arrow-up-circle" class="w-5 h-5"></i>
+                        Escalation Rules
+                    </h3>
+                    <button onclick="showAddEscalationModal()" class="btn-primary">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>Add Rule</span>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <i data-lucide="clock" class="w-3.5 h-3.5 inline-block"></i>
+                                        Hours Threshold
+                                    </th>
+                                    <th>
+                                        <i data-lucide="arrow-up" class="w-3.5 h-3.5 inline-block"></i>
+                                        Escalate To
+                                    </th>
+                                    <th>
+                                        <i data-lucide="bell" class="w-3.5 h-3.5 inline-block"></i>
+                                        Notify Admin
+                                    </th>
+                                    <th>
+                                        <i data-lucide="circle" class="w-3.5 h-3.5 inline-block"></i>
+                                        Status
+                                    </th>
+                                    <th class="text-right">
+                                        <i data-lucide="settings" class="w-3.5 h-3.5 inline-block"></i>
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="escalation-rules-table">
+                                <tr>
+                                    <td colspan="5" class="text-center py-12">
+                                        <div class="flex flex-col items-center gap-3">
+                                            <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-blue-400"></i>
+                                            <p class="text-gray-400">Loading escalation rules...</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Category Modal -->
+    <div id="category-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeCategoryModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="category-modal-title">Add Category</h2>
+                <button class="modal-close" onclick="closeCategoryModal()"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="category-form" onsubmit="saveCategory(event)">
+                    <input type="hidden" id="category-id">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2 text-gray-300">Category Name</label>
+                        <input type="text" id="category-name" class="w-full bg-gray-800/50 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2 text-gray-300">Description</label>
+                        <textarea id="category-description" class="w-full bg-gray-800/50 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all" rows="3"></textarea>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="submit" class="btn-primary flex-1">Save</button>
+                        <button type="button" onclick="closeCategoryModal()" class="btn-secondary">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Priority Modal -->
+    <div id="priority-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closePriorityModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="priority-modal-title">Add Priority Rule</h2>
+                <button class="modal-close" onclick="closePriorityModal()"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="priority-form" onsubmit="savePriority(event)">
+                    <input type="hidden" id="priority-id">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2 text-gray-300">Priority Level</label>
+                        <select id="priority-level" class="w-full bg-gray-800/50 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all" required>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="critical">Critical</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2 text-gray-300">SLA (Hours)</label>
+                        <input type="number" id="priority-sla" class="w-full bg-gray-800/50 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all" min="1" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2 text-gray-300">Description</label>
+                        <textarea id="priority-description" class="w-full bg-gray-800/50 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all" rows="3"></textarea>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="submit" class="btn-primary flex-1">Save</button>
+                        <button type="button" onclick="closePriorityModal()" class="btn-secondary">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Escalation Modal -->
+    <div id="escalation-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeEscalationModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="escalation-modal-title">Add Escalation Rule</h2>
+                <button class="modal-close" onclick="closeEscalationModal()"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="escalation-form" onsubmit="saveEscalation(event)">
+                    <input type="hidden" id="escalation-id">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2 text-gray-300">Hours Threshold</label>
+                        <input type="number" id="escalation-hours" class="w-full bg-gray-800/50 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all" min="1" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2 text-gray-300">Escalate To</label>
+                        <select id="escalation-role" class="w-full bg-gray-800/50 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all" required>
+                            <option value="senior_support">Senior Support</option>
+                            <option value="manager">Support Manager</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="flex items-center cursor-pointer">
+                            <input type="checkbox" id="escalation-notify" class="mr-2 w-4 h-4">
+                            <span class="text-gray-300">Notify Admin</span>
+                        </label>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="submit" class="btn-primary flex-1">Save</button>
+                        <button type="button" onclick="closeEscalationModal()" class="btn-secondary">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast hidden">
+        <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+        <span id="toast-msg">Action completed!</span>
+    </div>
+
+    <script src="js/support-settings.js"></script>
+</body>
+
+</html>

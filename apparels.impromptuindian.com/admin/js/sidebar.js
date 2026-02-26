@@ -180,7 +180,7 @@
       </a>
 
       <a href="support.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
-        <i data-lucide="headphones" class="w-5 h-5"></i> <span>Support & Tickets</span>
+        <i data-lucide="headphones" class="w-5 h-5"></i> <span>Support</span>
       </a>
     </nav>
 
@@ -290,7 +290,10 @@
       'vendor-payouts.html': 'payments.html', 'payment-history.html': 'payments.html',
       'new-orders.html': 'orders.html', 'in-production.html': 'orders.html',
       'ready-dispatch.html': 'orders.html', 'completed-orders.html': 'orders.html',
-      'support-tickets.html': 'support.html'
+      'support-tickets.html': 'support.html',
+      'support-credentials.html': 'support.html',
+      'support-overview.html': 'support.html',
+      'support-settings.html': 'support.html'
     };
 
     const parentPage = parentPageMap[currentPage];

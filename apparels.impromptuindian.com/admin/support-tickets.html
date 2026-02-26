@@ -4,12 +4,11 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Support & Tickets – ImpromptuIndian Admin</title>
-    <meta name="description" content="Manage support tickets from customers, vendors, and riders" />
+    <title>Support Tickets – ImpromptuIndian Admin</title>
+    <meta name="description" content="View and monitor all support tickets" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="css/admin-global.css" />
-    <link rel="stylesheet" href="css/support-tickets.css" />
     <link rel="shortcut icon" href="../images/favicon.ico" type="image/x-icon">
     <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
 </head>
@@ -19,95 +18,183 @@
         <div id="sidebar-container"></div>
         <script src="js/sidebar.js"></script>
 
-        <main class="flex-1 overflow-y-auto p-8">
-            <div class="reveal mb-8 flex items-start justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold">Support & Tickets</h1>
-                    <p class="text-gray-400 mt-1">Manage support requests from all users</p>
+        <main class="flex-1 overflow-y-auto p-4 pt-20 md:p-8 md:pt-8">
+            <!-- Page Header -->
+            <div class="reveal mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div class="w-full md:w-auto">
+                    <h1 class="text-2xl md:text-3xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
+                        <i data-lucide="headphones" class="w-6 h-6 md:w-7 md:h-7 text-[#FFCC00]"></i>
+                        Support Tickets
+                    </h1>
+                    <p class="text-gray-400 text-sm md:text-base">View and monitor all support tickets (read-only)</p>
                 </div>
-                <button class="btn-refresh" onclick="refreshTickets()"><i data-lucide="refresh-ccw" class="w-4 h-4"></i>
-                    Refresh</button>
+                <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                    <a href="support.html"
+                        class="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-800/50 text-gray-300 rounded-xl transition-all border border-white/10 hover:border-blue-500/50 hover:bg-gray-800 hover:text-white w-full md:w-auto">
+                        <i data-lucide="arrow-left" class="w-4 h-4 text-blue-400"></i>
+                        <span class="text-sm font-semibold tracking-wide uppercase">Back to Support</span>
+                    </a>
+                    <button class="btn-refresh w-full md:w-auto" onclick="refreshTickets()">
+                        <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
+                        <span>Sync Data</span>
+                    </button>
+                </div>
             </div>
 
-            <!-- Summary Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 reveal" style="transition-delay: 100ms;">
-                <div class="summary-card bg-red-500/10 border-red-500/20">
-                    <div class="summary-icon bg-red-500/20"><i data-lucide="alert-circle"
-                            class="w-6 h-6 text-red-500"></i></div>
-                    <div>
+            <!-- Summary Statistics Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8 reveal" style="transition-delay: 100ms;">
+                <div class="summary-card summary-card-danger">
+                    <div class="summary-icon summary-icon-danger">
+                        <i data-lucide="alert-circle" class="w-5 h-5 md:w-6 md:h-6"></i>
+                    </div>
+                    <div class="summary-content">
                         <p class="summary-label">Open Tickets</p>
-                        <p class="summary-value" id="open-tickets">0</p>
+                        <p class="summary-value" id="open-tickets">
+                            <span class="summary-number">0</span>
+                        </p>
                     </div>
+                    <div class="summary-glow"></div>
                 </div>
-                <div class="summary-card bg-yellow-500/10 border-yellow-500/20">
-                    <div class="summary-icon bg-yellow-500/20"><i data-lucide="clock"
-                            class="w-6 h-6 text-yellow-500"></i></div>
-                    <div>
+
+                <div class="summary-card summary-card-warning">
+                    <div class="summary-icon summary-icon-warning">
+                        <i data-lucide="clock" class="w-5 h-5 md:w-6 md:h-6"></i>
+                    </div>
+                    <div class="summary-content">
                         <p class="summary-label">Pending</p>
-                        <p class="summary-value" id="pending-tickets">0</p>
+                        <p class="summary-value" id="pending-tickets">
+                            <span class="summary-number">0</span>
+                        </p>
                     </div>
+                    <div class="summary-glow"></div>
                 </div>
-                <div class="summary-card bg-green-500/10 border-green-500/20">
-                    <div class="summary-icon bg-green-500/20"><i data-lucide="check-circle"
-                            class="w-6 h-6 text-green-500"></i></div>
-                    <div>
+
+                <div class="summary-card summary-card-success">
+                    <div class="summary-icon summary-icon-success">
+                        <i data-lucide="check-circle" class="w-5 h-5 md:w-6 md:h-6"></i>
+                    </div>
+                    <div class="summary-content">
                         <p class="summary-label">Resolved Today</p>
-                        <p class="summary-value" id="resolved-tickets">0</p>
+                        <p class="summary-value" id="resolved-tickets">
+                            <span class="summary-number">0</span>
+                        </p>
                     </div>
+                    <div class="summary-glow"></div>
                 </div>
-                <div class="summary-card bg-purple-500/10 border-purple-500/20">
-                    <div class="summary-icon bg-purple-500/20"><i data-lucide="trending-up"
-                            class="w-6 h-6 text-purple-500"></i></div>
-                    <div>
+
+                <div class="summary-card summary-card-info">
+                    <div class="summary-icon summary-icon-info">
+                        <i data-lucide="trending-up" class="w-5 h-5 md:w-6 md:h-6"></i>
+                    </div>
+                    <div class="summary-content">
                         <p class="summary-label">Avg Response Time</p>
-                        <p class="summary-value" id="avg-response">0h</p>
+                        <p class="summary-value" id="avg-response">
+                            <span class="summary-number">0h</span>
+                        </p>
                     </div>
+                    <div class="summary-glow"></div>
                 </div>
             </div>
 
+            <!-- Filters -->
             <div class="reveal filters-bar mb-6" style="transition-delay: 200ms;">
-                <select id="priority-filter" class="filter-select" onchange="filterTickets()">
-                    <option value="all">All Priority</option>
-                    <option value="high">High</option>
-                    <option value="medium">Medium</option>
-                    <option value="low">Low</option>
-                </select>
-                <select id="type-filter" class="filter-select" onchange="filterTickets()">
-                    <option value="all">All Types</option>
-                    <option value="customer">Customer</option>
-                    <option value="vendor">Vendor</option>
-                    <option value="rider">Rider</option>
-                </select>
-                <select id="status-filter" class="filter-select" onchange="filterTickets()">
-                    <option value="all">All Status</option>
-                    <option value="open">Open</option>
-                    <option value="pending">Pending</option>
-                    <option value="resolved">Resolved</option>
-                    <option value="closed">Closed</option>
-                </select>
-                <input type="text" id="search-ticket" class="search-input" placeholder="Search ticket..."
-                    oninput="filterTickets()" />
+                <div class="search-input-wrapper">
+                    <i data-lucide="search" class="w-4 h-4 search-icon"></i>
+                    <input type="text" id="search-ticket" class="search-input" placeholder="Search ticket by ID or subject... (Ctrl+K)"
+                        oninput="filterTickets()" autocomplete="off" />
+                    <button class="search-clear hidden" id="search-clear-btn" onclick="clearSearch()" title="Clear search">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <div class="flex gap-3">
+                    <select id="priority-filter" class="filter-select" onchange="filterTickets()">
+                        <option value="all">All Priority</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                    <select id="type-filter" class="filter-select" onchange="filterTickets()">
+                        <option value="all">All Types</option>
+                        <option value="customer">Customer</option>
+                        <option value="vendor">Vendor</option>
+                        <option value="rider">Rider</option>
+                    </select>
+                    <select id="status-filter" class="filter-select" onchange="filterTickets()">
+                        <option value="all">All Status</option>
+                        <option value="open">Open</option>
+                        <option value="pending">Pending</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="closed">Closed</option>
+                    </select>
+                    <button class="filter-reset-btn" id="filter-reset-btn" onclick="resetFilters()" title="Reset filters">
+                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                        <span class="hidden md:inline">Reset</span>
+                    </button>
+                </div>
             </div>
 
+            <!-- Tickets Table -->
             <div class="reveal card" style="transition-delay: 300ms;">
                 <div class="card-header">
-                    <h3 class="card-title">Support Tickets</h3>
+                    <div class="flex items-center justify-between">
+                        <h3 class="card-title flex items-center gap-2">
+                            <i data-lucide="mail" class="w-5 h-5"></i>
+                            Support Tickets
+                        </h3>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-gray-400" id="tickets-count-display">0 tickets</span>
+                            <div class="loading-spinner hidden" id="table-loading">
+                                <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="table-container">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Ticket ID</th>
-                                    <th>User Type</th>
-                                    <th>Subject</th>
-                                    <th>Priority</th>
-                                    <th>Status</th>
-                                    <th>Created</th>
-                                    <th class="text-right">Actions</th>
+                                    <th>
+                                        <i data-lucide="hash" class="w-3.5 h-3.5 inline-block"></i>
+                                        Ticket ID
+                                    </th>
+                                    <th>
+                                        <i data-lucide="user" class="w-3.5 h-3.5 inline-block"></i>
+                                        User Type
+                                    </th>
+                                    <th>
+                                        <i data-lucide="file-text" class="w-3.5 h-3.5 inline-block"></i>
+                                        Subject
+                                    </th>
+                                    <th>
+                                        <i data-lucide="arrow-up" class="w-3.5 h-3.5 inline-block"></i>
+                                        Priority
+                                    </th>
+                                    <th>
+                                        <i data-lucide="circle" class="w-3.5 h-3.5 inline-block"></i>
+                                        Status
+                                    </th>
+                                    <th>
+                                        <i data-lucide="calendar" class="w-3.5 h-3.5 inline-block"></i>
+                                        Created
+                                    </th>
+                                    <th class="text-right">
+                                        <i data-lucide="eye" class="w-3.5 h-3.5 inline-block"></i>
+                                        Actions
+                                    </th>
                                 </tr>
                             </thead>
-                            <tbody id="tickets-table"></tbody>
+                            <tbody id="tickets-table">
+                                <tr>
+                                    <td colspan="7" class="text-center py-12">
+                                        <div class="flex flex-col items-center gap-3">
+                                            <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-blue-400"></i>
+                                            <p class="text-gray-400">Loading tickets...</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -121,22 +208,19 @@
         <div class="modal-content modal-large">
             <div class="modal-header">
                 <h2 class="modal-title" id="modal-title">Ticket Details</h2>
-                <button class="modal-close" onclick="closeTicketModal()"><i data-lucide="x"
-                        class="w-5 h-5"></i></button>
+                <button class="modal-close" onclick="closeTicketModal()"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
             <div class="modal-body" id="modal-body"></div>
             <div class="modal-footer">
                 <button class="btn-secondary" onclick="closeTicketModal()">Close</button>
-                <button class="btn-primary" onclick="assignStaff()"><i data-lucide="user-plus"
-                        class="w-4 h-4"></i>Assign Staff</button>
-                <button class="btn-success" onclick="resolveTicket()"><i data-lucide="check"
-                        class="w-4 h-4"></i>Resolve</button>
             </div>
         </div>
     </div>
 
-    <div id="toast" class="toast hidden"><i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i><span
-            id="toast-msg">Action completed!</span></div>
+    <div id="toast" class="toast hidden">
+        <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+        <span id="toast-msg">Action completed!</span>
+    </div>
 
     <script src="js/support-tickets.js"></script>
 </body>
