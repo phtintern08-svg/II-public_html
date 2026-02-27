@@ -57,25 +57,37 @@
 
 /* ========================================
    SUPPORT USERS TABLE - Standard table layout for proper alignment
-   Override new-order.css grid so header and body columns align
+   Override new-order.css grid - force native table display so columns align
    ======================================== */
 .support-users-table {
     table-layout: fixed;
     width: 100%;
     min-width: 600px;
+    display: table !important;
+    border-collapse: collapse;
+}
+
+.support-users-table thead {
+    display: table-header-group !important;
+}
+
+.support-users-table tbody {
+    display: table-row-group !important;
 }
 
 /* Reset grid from new-order.css - use native table layout */
 .support-users-table thead tr,
 .support-users-table tbody tr {
-    display: table-row;
+    display: table-row !important;
 }
 
 .support-users-table thead th,
 .support-users-table tbody td {
+    display: table-cell !important;
     padding: 1rem 1.25rem;
     vertical-align: middle;
     border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+    box-sizing: border-box;
 }
 
 .support-users-table thead th {
@@ -88,6 +100,13 @@
     background: rgba(15, 23, 42, 0.4);
     white-space: nowrap;
 }
+
+.support-users-table thead th:nth-child(1) { width: 18%; }
+.support-users-table thead th:nth-child(2) { width: 22%; }
+.support-users-table thead th:nth-child(3) { width: 14%; }
+.support-users-table thead th:nth-child(4) { width: 18%; }
+.support-users-table thead th:nth-child(5) { width: 12%; }
+.support-users-table thead th:nth-child(6) { width: 16%; }
 
 .support-users-table thead th:last-child,
 .support-users-table tbody td:last-child {
