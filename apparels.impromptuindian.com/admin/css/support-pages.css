@@ -1,9 +1,36 @@
-/* support-pages.css - Professional Support pages matching Orders design
-   Extends new-order.css with Support-specific info variant and ensures parity */
+/* support-pages.css - Professional Support pages (Support Credentials standalone)
+   Includes summary-card variants and table styles - no new-order.css dependency */
 
 /* ========================================
-   SUMMARY CARD - INFO VARIANT (Support Overview, Support Tickets)
+   SUMMARY CARD VARIANTS (for pages without new-order.css)
    ======================================== */
+.summary-icon-primary {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.summary-card-primary:hover .summary-glow {
+    background: radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, transparent 70%);
+}
+
+.summary-icon-success {
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.summary-card-success:hover .summary-glow {
+    background: radial-gradient(circle, rgba(22, 163, 74, 0.15) 0%, transparent 70%);
+}
+
+.summary-icon-danger {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.summary-card-danger:hover .summary-glow {
+    background: radial-gradient(circle, rgba(220, 38, 38, 0.15) 0%, transparent 70%);
+}
+
 .summary-icon-info {
     background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
     box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -11,6 +38,63 @@
 
 .summary-card-info:hover .summary-glow {
     background: radial-gradient(circle, rgba(8, 145, 178, 0.15) 0%, transparent 70%);
+}
+
+/* Summary card enhancements */
+.summary-card {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.6) 100%);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.summary-glow {
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.summary-card:hover .summary-glow {
+    opacity: 1;
+}
+
+.summary-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.summary-label {
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+/* btn-refresh for support credentials */
+.btn-refresh {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+}
+
+.btn-refresh:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 /* ========================================
@@ -56,38 +140,20 @@
 }
 
 /* ========================================
-   SUPPORT USERS TABLE - Standard table layout for proper alignment
-   Override new-order.css grid - force native table display so columns align
+   SUPPORT USERS TABLE - Native table layout, columns align correctly
    ======================================== */
 .support-users-table {
     table-layout: fixed;
     width: 100%;
     min-width: 600px;
-    display: table !important;
     border-collapse: collapse;
-}
-
-.support-users-table thead {
-    display: table-header-group !important;
-}
-
-.support-users-table tbody {
-    display: table-row-group !important;
-}
-
-/* Reset grid from new-order.css - use native table layout */
-.support-users-table thead tr,
-.support-users-table tbody tr {
-    display: table-row !important;
 }
 
 .support-users-table thead th,
 .support-users-table tbody td {
-    display: table-cell !important;
     padding: 1rem 1.25rem;
     vertical-align: middle;
     border-bottom: 1px solid rgba(148, 163, 184, 0.08);
-    box-sizing: border-box;
 }
 
 .support-users-table thead th {
@@ -101,12 +167,19 @@
     white-space: nowrap;
 }
 
-.support-users-table thead th:nth-child(1) { width: 18%; }
-.support-users-table thead th:nth-child(2) { width: 22%; }
-.support-users-table thead th:nth-child(3) { width: 14%; }
-.support-users-table thead th:nth-child(4) { width: 18%; }
-.support-users-table thead th:nth-child(5) { width: 12%; }
-.support-users-table thead th:nth-child(6) { width: 16%; }
+/* Explicit column widths - ensures Name, Email, etc. align under headers */
+.support-users-table thead th:nth-child(1),
+.support-users-table tbody td:nth-child(1) { width: 18%; }
+.support-users-table thead th:nth-child(2),
+.support-users-table tbody td:nth-child(2) { width: 22%; }
+.support-users-table thead th:nth-child(3),
+.support-users-table tbody td:nth-child(3) { width: 14%; }
+.support-users-table thead th:nth-child(4),
+.support-users-table tbody td:nth-child(4) { width: 18%; }
+.support-users-table thead th:nth-child(5),
+.support-users-table tbody td:nth-child(5) { width: 12%; }
+.support-users-table thead th:nth-child(6),
+.support-users-table tbody td:nth-child(6) { width: 16%; }
 
 .support-users-table thead th:last-child,
 .support-users-table tbody td:last-child {
