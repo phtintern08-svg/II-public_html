@@ -582,6 +582,23 @@
     text-overflow: ellipsis;
 }
 
+/* Actions column - prevent clipping of buttons */
+.support-categories-table tbody td:last-child,
+.support-priority-table tbody td:last-child,
+.support-escalation-rules-table tbody td:last-child {
+    overflow: visible;
+    text-overflow: clip;
+}
+
+/* Ensure action buttons are visible and clickable */
+.support-categories-table tbody td:last-child button,
+.support-priority-table tbody td:last-child button,
+.support-escalation-rules-table tbody td:last-child button {
+    flex-shrink: 0;
+    cursor: pointer;
+    opacity: 1;
+}
+
 .support-categories-table tbody td:first-child,
 .support-priority-table tbody td:first-child,
 .support-escalation-rules-table tbody td:first-child {

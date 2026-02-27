@@ -69,6 +69,7 @@ async function loadCategories() {
                     </td>
                 </tr>
             `).join('');
+            if (window.lucide) lucide.createIcons();
         } else {
             table.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-red-500">Error loading categories</td></tr>';
         }
@@ -120,6 +121,7 @@ async function loadPriorityRules() {
                     </tr>
                 `;
             }).join('');
+            if (window.lucide) lucide.createIcons();
         } else {
             table.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-red-500">Error loading priority rules</td></tr>';
         }
@@ -174,6 +176,7 @@ async function loadEscalationRules() {
                     </tr>
                 `;
             }).join('');
+            if (window.lucide) lucide.createIcons();
         } else {
             table.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-red-500">Error loading escalation rules</td></tr>';
         }

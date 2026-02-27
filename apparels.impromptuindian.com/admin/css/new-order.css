@@ -482,6 +482,7 @@ body {
 
 .card-body {
     padding: 0;
+    min-width: 0;
 }
 
 .table-container {
@@ -489,6 +490,19 @@ body {
     border-radius: 0 0 0.875rem 0.875rem;
     width: 100%;
     padding: 0;
+}
+
+/* Escrow Orders table - keep columns within container */
+.table-container-escrow {
+    min-width: 0;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+
+.escrow-orders-table {
+    table-layout: fixed;
+    width: 100%;
+    min-width: 900px;
 }
 
 table {
@@ -526,6 +540,15 @@ table td {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+/* Customer column - ensure nested content truncates */
+.escrow-orders-table td:nth-child(2) div {
+    min-width: 0;
+    overflow: hidden;
+}
+.escrow-orders-table td:nth-child(2) .truncate {
+    max-width: 100%;
 }
 
 /* Fix Qty column truncation */
@@ -596,16 +619,17 @@ table:not(.support-performance-table):not(.support-escalations-table):not(.suppo
 table:not(.support-performance-table):not(.support-escalations-table):not(.support-categories-table):not(.support-priority-table):not(.support-escalation-rules-table):not(.support-tickets-table) tbody tr {
     display: grid;
     grid-template-columns:
-        85px      /* Order ID */
-        1.55fr    /* Customer */
-        0.95fr    /* Apparel */
-        65px      /* Qty */
-        105px     /* Amount */
-        1fr       /* Deadline */
-        110px     /* Status */
-        55px;     /* Actions */
+        85px           /* Order ID */
+        minmax(0, 1.55fr)  /* Customer - minmax(0,) allows shrink */
+        minmax(0, 0.95fr)  /* Apparel */
+        65px           /* Qty */
+        105px          /* Amount */
+        minmax(0, 1fr)     /* Deadline */
+        110px          /* Status */
+        55px;          /* Actions */
     column-gap: 0.6rem;
     align-items: center;
+    min-width: 0;      /* Allow row to shrink within container */
 }
 
 
