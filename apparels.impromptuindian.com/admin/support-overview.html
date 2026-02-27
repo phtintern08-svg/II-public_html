@@ -9,23 +9,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="css/admin-global.css" />
-    <link rel="stylesheet" href="css/new-order.css" />
+    <!-- NOTE: new-order.css excluded - its table grid breaks Support Agent Performance column alignment -->
     <link rel="stylesheet" href="css/support-pages.css" />
     <link rel="stylesheet" href="css/support-overview.css" />
-    <!-- CRITICAL: Override new-order.css grid - ensures Agent/Role columns align correctly -->
-    <style>
-    .support-performance-table,.support-escalations-table{table-layout:fixed!important;width:100%!important;display:table!important}
-    .support-performance-table thead,.support-escalations-table thead{display:table-header-group!important}
-    .support-performance-table tbody,.support-escalations-table tbody{display:table-row-group!important}
-    .support-performance-table thead tr,.support-performance-table tbody tr,.support-escalations-table thead tr,.support-escalations-table tbody tr{display:table-row!important;grid:none!important}
-    .support-performance-table thead th,.support-performance-table tbody td,.support-escalations-table thead th,.support-escalations-table tbody td{display:table-cell!important}
-    .support-performance-table thead th:nth-child(1),.support-performance-table tbody td:nth-child(1){width:22%!important;min-width:110px!important}
-    .support-performance-table thead th:nth-child(2),.support-performance-table tbody td:nth-child(2){width:18%!important}
-    .support-performance-table thead th:nth-child(3),.support-performance-table tbody td:nth-child(3){width:12%!important}
-    .support-performance-table thead th:nth-child(4),.support-performance-table tbody td:nth-child(4){width:14%!important}
-    .support-performance-table thead th:nth-child(5),.support-performance-table tbody td:nth-child(5){width:18%!important}
-    .support-performance-table thead th:nth-child(6),.support-performance-table tbody td:nth-child(6){width:16%!important}
-    </style>
     <link rel="shortcut icon" href="../images/favicon.ico" type="image/x-icon">
     <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
 </head>
