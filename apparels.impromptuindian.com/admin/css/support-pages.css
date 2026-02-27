@@ -183,7 +183,7 @@
 
 .support-users-table thead th:last-child,
 .support-users-table tbody td:last-child {
-    text-align: right;
+    text-align: center;
 }
 
 .support-users-table tbody td {
@@ -204,7 +204,7 @@
 }
 
 .support-users-table tbody td:last-child .flex {
-    justify-content: flex-end;
+    justify-content: center;
 }
 
 .support-users-table tbody tr:last-child td {
@@ -225,6 +225,269 @@
 .table-container {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+}
+
+/* ========================================
+   SUPPORT OVERVIEW TABLES - Override new-order.css grid for proper alignment
+   Agent Performance & Recent Escalations tables
+   ======================================== */
+.support-performance-table,
+.support-escalations-table {
+    table-layout: fixed;
+    width: 100%;
+    min-width: 600px;
+    display: table !important;
+    border-collapse: collapse;
+}
+
+.support-performance-table thead,
+.support-escalations-table thead {
+    display: table-header-group !important;
+}
+
+.support-performance-table tbody,
+.support-escalations-table tbody {
+    display: table-row-group !important;
+}
+
+.support-performance-table thead tr,
+.support-performance-table tbody tr,
+.support-escalations-table thead tr,
+.support-escalations-table tbody tr {
+    display: table-row !important;
+}
+
+.support-performance-table thead th,
+.support-performance-table tbody td,
+.support-escalations-table thead th,
+.support-escalations-table tbody td {
+    display: table-cell !important;
+    padding: 1rem 1.25rem;
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+    box-sizing: border-box;
+}
+
+.support-performance-table thead th,
+.support-escalations-table thead th {
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(15, 23, 42, 0.4);
+    white-space: nowrap;
+}
+
+/* Column widths - Agent Performance */
+.support-performance-table thead th:nth-child(1),
+.support-performance-table tbody td:nth-child(1) { width: 20%; }
+.support-performance-table thead th:nth-child(2),
+.support-performance-table tbody td:nth-child(2) { width: 18%; }
+.support-performance-table thead th:nth-child(3),
+.support-performance-table tbody td:nth-child(3) { width: 12%; }
+.support-performance-table thead th:nth-child(4),
+.support-performance-table tbody td:nth-child(4) { width: 14%; }
+.support-performance-table thead th:nth-child(5),
+.support-performance-table tbody td:nth-child(5) { width: 18%; }
+.support-performance-table thead th:nth-child(6),
+.support-performance-table tbody td:nth-child(6) { width: 18%; }
+
+/* Column widths - Escalations */
+.support-escalations-table thead th:nth-child(1),
+.support-escalations-table tbody td:nth-child(1) { width: 12%; }
+.support-escalations-table thead th:nth-child(2),
+.support-escalations-table tbody td:nth-child(2) { width: 14%; }
+.support-escalations-table thead th:nth-child(3),
+.support-escalations-table tbody td:nth-child(3) { width: 18%; }
+.support-escalations-table thead th:nth-child(4),
+.support-escalations-table tbody td:nth-child(4) { width: 18%; }
+.support-escalations-table thead th:nth-child(5),
+.support-escalations-table tbody td:nth-child(5) { width: 18%; }
+.support-escalations-table thead th:nth-child(6),
+.support-escalations-table tbody td:nth-child(6) { width: 20%; }
+
+.support-performance-table thead th:last-child,
+.support-performance-table tbody td:last-child,
+.support-escalations-table thead th:last-child,
+.support-escalations-table tbody td:last-child {
+    text-align: center;
+}
+
+.support-performance-table tbody td,
+.support-escalations-table tbody td {
+    font-size: 0.875rem;
+    color: #cbd5e1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.support-performance-table tbody td:first-child,
+.support-escalations-table tbody td:first-child {
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.support-performance-table tbody tr:last-child td,
+.support-escalations-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.support-performance-table tbody tr:hover,
+.support-escalations-table tbody tr:hover {
+    background: rgba(37, 99, 235, 0.05);
+}
+
+.support-performance-table tbody tr td[colspan],
+.support-escalations-table tbody tr td[colspan] {
+    text-align: center;
+    padding: 2rem 1.5rem;
+}
+
+/* ========================================
+   SUPPORT SETTINGS TABLES - Override new-order.css grid
+   Ticket Categories, Priority Rules, Escalation Rules
+   ======================================== */
+.support-categories-table,
+.support-priority-table,
+.support-escalation-rules-table {
+    table-layout: fixed;
+    width: 100%;
+    min-width: 500px;
+    display: table !important;
+    border-collapse: collapse;
+}
+
+.support-categories-table thead,
+.support-priority-table thead,
+.support-escalation-rules-table thead {
+    display: table-header-group !important;
+}
+
+.support-categories-table tbody,
+.support-priority-table tbody,
+.support-escalation-rules-table tbody {
+    display: table-row-group !important;
+}
+
+.support-categories-table thead tr,
+.support-categories-table tbody tr,
+.support-priority-table thead tr,
+.support-priority-table tbody tr,
+.support-escalation-rules-table thead tr,
+.support-escalation-rules-table tbody tr {
+    display: table-row !important;
+}
+
+.support-categories-table thead th,
+.support-categories-table tbody td,
+.support-priority-table thead th,
+.support-priority-table tbody td,
+.support-escalation-rules-table thead th,
+.support-escalation-rules-table tbody td {
+    display: table-cell !important;
+    padding: 1rem 1.25rem;
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+    box-sizing: border-box;
+}
+
+.support-categories-table thead th,
+.support-priority-table thead th,
+.support-escalation-rules-table thead th {
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(15, 23, 42, 0.4);
+    white-space: nowrap;
+}
+
+/* Categories - 4 columns */
+.support-categories-table thead th:nth-child(1),
+.support-categories-table tbody td:nth-child(1) { width: 22%; }
+.support-categories-table thead th:nth-child(2),
+.support-categories-table tbody td:nth-child(2) { width: 40%; }
+.support-categories-table thead th:nth-child(3),
+.support-categories-table tbody td:nth-child(3) { width: 18%; }
+.support-categories-table thead th:nth-child(4),
+.support-categories-table tbody td:nth-child(4) { width: 20%; }
+
+/* Priority - 5 columns */
+.support-priority-table thead th:nth-child(1),
+.support-priority-table tbody td:nth-child(1) { width: 18%; }
+.support-priority-table thead th:nth-child(2),
+.support-priority-table tbody td:nth-child(2) { width: 14%; }
+.support-priority-table thead th:nth-child(3),
+.support-priority-table tbody td:nth-child(3) { width: 36%; }
+.support-priority-table thead th:nth-child(4),
+.support-priority-table tbody td:nth-child(4) { width: 14%; }
+.support-priority-table thead th:nth-child(5),
+.support-priority-table tbody td:nth-child(5) { width: 18%; }
+
+/* Escalation Rules - 5 columns */
+.support-escalation-rules-table thead th:nth-child(1),
+.support-escalation-rules-table tbody td:nth-child(1) { width: 16%; }
+.support-escalation-rules-table thead th:nth-child(2),
+.support-escalation-rules-table tbody td:nth-child(2) { width: 22%; }
+.support-escalation-rules-table thead th:nth-child(3),
+.support-escalation-rules-table tbody td:nth-child(3) { width: 18%; }
+.support-escalation-rules-table thead th:nth-child(4),
+.support-escalation-rules-table tbody td:nth-child(4) { width: 16%; }
+.support-escalation-rules-table thead th:nth-child(5),
+.support-escalation-rules-table tbody td:nth-child(5) { width: 28%; }
+
+.support-categories-table thead th:last-child,
+.support-categories-table tbody td:last-child,
+.support-priority-table thead th:last-child,
+.support-priority-table tbody td:last-child,
+.support-escalation-rules-table thead th:last-child,
+.support-escalation-rules-table tbody td:last-child {
+    text-align: center;
+}
+
+.support-categories-table tbody td:last-child .flex,
+.support-priority-table tbody td:last-child .flex,
+.support-escalation-rules-table tbody td:last-child .flex {
+    justify-content: center;
+}
+
+.support-categories-table tbody td,
+.support-priority-table tbody td,
+.support-escalation-rules-table tbody td {
+    font-size: 0.875rem;
+    color: #cbd5e1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.support-categories-table tbody td:first-child,
+.support-priority-table tbody td:first-child,
+.support-escalation-rules-table tbody td:first-child {
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.support-categories-table tbody tr:last-child td,
+.support-priority-table tbody tr:last-child td,
+.support-escalation-rules-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.support-categories-table tbody tr:hover,
+.support-priority-table tbody tr:hover,
+.support-escalation-rules-table tbody tr:hover {
+    background: rgba(37, 99, 235, 0.05);
+}
+
+.support-categories-table tbody tr td[colspan],
+.support-priority-table tbody tr td[colspan],
+.support-escalation-rules-table tbody tr td[colspan] {
+    text-align: center;
+    padding: 2rem 1.5rem;
 }
 
 @media (max-width: 768px) {

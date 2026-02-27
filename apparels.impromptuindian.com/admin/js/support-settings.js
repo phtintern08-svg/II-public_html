@@ -57,8 +57,8 @@ async function loadCategories() {
                             ${cat.is_active ? 'Active' : 'Inactive'}
                         </span>
                     </td>
-                    <td class="text-right">
-                        <div class="flex items-center justify-end gap-2">
+                    <td class="text-center">
+                        <div class="flex items-center justify-center gap-2">
                             <button onclick="editCategory(${cat.id})" class="w-9 h-9 flex items-center justify-center rounded-lg bg-blue-600/10 hover:bg-blue-600 transition-all text-blue-400 hover:text-white" title="Edit">
                                 <i data-lucide="edit" class="w-4 h-4"></i>
                             </button>
@@ -107,8 +107,8 @@ async function loadPriorityRules() {
                                 ${rule.is_active ? 'Active' : 'Inactive'}
                             </span>
                         </td>
-                        <td class="text-right">
-                            <div class="flex items-center justify-end gap-2">
+                        <td class="text-center">
+                            <div class="flex items-center justify-center gap-2">
                                 <button onclick="editPriority(${rule.id})" class="w-9 h-9 flex items-center justify-center rounded-lg bg-blue-600/10 hover:bg-blue-600 transition-all text-blue-400 hover:text-white" title="Edit">
                                     <i data-lucide="edit" class="w-4 h-4"></i>
                                 </button>
@@ -161,8 +161,8 @@ async function loadEscalationRules() {
                                 ${rule.is_active ? 'Active' : 'Inactive'}
                             </span>
                         </td>
-                        <td class="text-right">
-                            <div class="flex items-center justify-end gap-2">
+                        <td class="text-center">
+                            <div class="flex items-center justify-center gap-2">
                                 <button onclick="editEscalation(${rule.id})" class="w-9 h-9 flex items-center justify-center rounded-lg bg-blue-600/10 hover:bg-blue-600 transition-all text-blue-400 hover:text-white" title="Edit">
                                     <i data-lucide="edit" class="w-4 h-4"></i>
                                 </button>

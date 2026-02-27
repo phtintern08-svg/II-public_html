@@ -245,8 +245,8 @@ async function loadSupportUsers() {
                         <td><span class="text-gray-400">${escapeHtml(user.phone || 'N/A')}</span></td>
                         <td><span class="px-2 py-1 rounded-md bg-blue-500/10 text-blue-400 text-xs font-medium">${escapeHtml(roleDisplay)}</span></td>
                         <td>${statusBadge}</td>
-                        <td class="text-right">
-                            <div class="flex items-center justify-end gap-2">
+                        <td class="text-center">
+                            <div class="flex items-center justify-center gap-2">
                                 <button onclick="resetPassword(${user.id})" 
                                     class="w-9 h-9 flex items-center justify-center rounded-lg bg-blue-600/10 hover:bg-blue-600 transition-all text-blue-400 hover:text-white" title="Reset Password">
                                     <i data-lucide="key-round" class="w-4 h-4"></i>
