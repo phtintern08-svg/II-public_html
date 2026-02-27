@@ -427,12 +427,8 @@ function initMapEvents() {
               lng = pos.coords.longitude;
               const acc = pos.coords.accuracy;
               console.log(`GPS Success: Lat ${lat}, Lng ${lng}, Acc ${acc}m`);
-              const valid = window.LocationUtils ? window.LocationUtils.isValidLocation(pos) : (acc <= 50);
-              if (!valid) {
-                if (typeof showAlert === 'function') {
-                  showAlert("Location Inaccurate", "GPS accuracy is ±" + Math.round(acc) + "m. Please drag the pin to your shop's exact location.", "warning");
-                }
-              }
+              const valid = window.LocationUtils ? window.LocationUtils.isValidLocation(pos, 'vendor') : (acc <= 300);
+              if (!valid) console.warn('[Location] Low accuracy:', acc, 'm');
             } else if (Array.isArray(pos)) {
               [lat, lng] = pos;
             }

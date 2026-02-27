@@ -22,15 +22,17 @@
         return localStorage.getItem('rider_is_online') === 'true';
     }
 
-    function sendLocationToServer(lat, lon) {
+    function sendLocationToServer(lat, lon, accuracy) {
         if (!window.ImpromptuIndianApi || typeof window.ImpromptuIndianApi.fetch !== 'function') {
             return Promise.resolve();
         }
+        const payload = { latitude: lat, longitude: lon };
+        if (typeof accuracy === 'number') payload.accuracy = accuracy;
         return window.ImpromptuIndianApi.fetch('/api/rider/presence', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ latitude: lat, longitude: lon })
+            body: JSON.stringify(payload)
         }).then(res => {
             if (res.ok) {
                 lastUpdateTime = Date.now();
@@ -50,8 +52,8 @@
 
         if (!isOnline()) return;
 
-        const valid = window.LocationUtils ? window.LocationUtils.isValidLocation(position) : (accuracy <= 50);
-        if (!valid) return;
+        const valid = window.LocationUtils ? window.LocationUtils.isValidLocation(position, 'rider') : (accuracy <= 80);
+        if (!valid) console.warn('[RiderLocation] Low accuracy:', accuracy, 'm');
 
         const now = Date.now();
         const elapsed = now - lastUpdateTime;
@@ -61,7 +63,7 @@
         if (isFirstFix || elapsed >= 5000) {
             lastLat = lat;
             lastLon = lon;
-            sendLocationToServer(lat, lon);
+            sendLocationToServer(lat, lon, accuracy);
         }
     }
 
@@ -74,7 +76,7 @@
         if (lastLat != null && lastLon != null) {
             const elapsed = Date.now() - lastUpdateTime;
             if (elapsed >= FALLBACK_INTERVAL_MS) {
-                sendLocationToServer(lastLat, lastLon);
+                sendLocationToServer(lastLat, lastLon, null);
             }
         }
     }
@@ -99,15 +101,12 @@
         navigator.geolocation.getCurrentPosition(
             pos => {
                 if (isOnline() && pos && pos.coords) {
-                    const valid = window.LocationUtils ? window.LocationUtils.isValidLocation(pos) : (pos.coords.accuracy <= 50);
+                    const valid = window.LocationUtils ? window.LocationUtils.isValidLocation(pos, 'rider') : (pos.coords.accuracy <= 80);
                     lastLat = pos.coords.latitude;
                     lastLon = pos.coords.longitude;
                     lastUpdateTime = 0;
-                    if (valid) {
-                        sendLocationToServer(lastLat, lastLon);
-                    } else {
-                        console.warn('[RiderLocation] Accuracy', pos.coords.accuracy, 'm > 50m - use mobile GPS');
-                    }
+                    if (!valid) console.warn('[RiderLocation] Low accuracy:', pos.coords.accuracy, 'm');
+                    sendLocationToServer(lastLat, lastLon, pos.coords.accuracy);
                 }
             },
             () => {},

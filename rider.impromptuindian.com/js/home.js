@@ -129,17 +129,13 @@
                 const locData = await getCurrentLocation();
                 coords = {
                     lat: locData.lat,
-                    lon: locData.lon
+                    lon: locData.lon,
+                    accuracy: locData.accuracy
                 };
                 showToast('Location detected successfully', 'success');
             } catch (geoErr) {
                 console.warn('Geolocation failed:', geoErr);
                 let errMsg = 'Location permission required.';
-                if (geoErr.message && geoErr.message.includes('inaccurate')) {
-                    errMsg = 'Location inaccurate. Please use mobile or enable GPS for accurate tracking.';
-                    showToast(errMsg, 'error');
-                    return;
-                }
                 if (geoErr.message && geoErr.message.includes('denied')) {
                     errMsg = 'Location permission denied. Please enable it in your browser settings.';
                 } else if (geoErr.message && geoErr.message.includes('timeout')) {
@@ -161,7 +157,8 @@
                 body: JSON.stringify({
                     is_online: newState,
                     latitude: coords.lat,
-                    longitude: coords.lon
+                    longitude: coords.lon,
+                    accuracy: coords.accuracy
                 })
             });
 
@@ -215,13 +212,11 @@
                 pos => {
                     const lat = pos.coords.latitude;
                     const lon = pos.coords.longitude;
-                    const valid = window.LocationUtils ? window.LocationUtils.isValidLocation(pos) : (pos.coords.accuracy <= 50);
-                    console.log(`📍 Rider Location → Lat: ${lat}, Lon: ${lon}, Acc: ${pos.coords.accuracy}m`);
-                    if (!valid) {
-                        reject({ code: 2, message: 'Location inaccurate. Please use mobile or enable GPS for accurate tracking.' });
-                        return;
-                    }
-                    resolve({ lat, lon });
+                    const acc = pos.coords.accuracy;
+                    const valid = window.LocationUtils ? window.LocationUtils.isValidLocation(pos, 'rider') : (acc <= 80);
+                    console.log(`📍 Rider Location → Lat: ${lat}, Lon: ${lon}, Acc: ${acc}m`);
+                    if (!valid) showToast('Location accuracy ±' + Math.round(acc) + 'm. For best results use mobile.', 'warning');
+                    resolve({ lat, lon, accuracy: acc });
                 },
                 err => reject(err),
                 geoOpts
