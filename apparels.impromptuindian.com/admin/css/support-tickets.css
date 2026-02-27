@@ -93,8 +93,8 @@ tr:hover {
 
 /* ========================================
    SUPPORT TICKETS TABLE - Force native table layout
-   CRITICAL: Must override new-order.css grid so columns align correctly
-   Ticket ID | User Type | Subject | Priority | Status | Created | Actions
+   CRITICAL: new-order.css excluded from page - no grid conflict
+   TKT-1001, TKT-1002 → Ticket ID | customer, vendor → User Type | etc.
    ======================================== */
 .support-tickets-table {
     table-layout: fixed !important;
@@ -137,9 +137,9 @@ tr:hover {
     background: rgba(15, 23, 42, 0.4);
 }
 
-/* Explicit column widths - ensures TKT-1001 under Ticket ID, customer under User Type, etc. */
+/* Explicit column widths - TKT-1001 under Ticket ID, customer under User Type */
 .support-tickets-table thead th:nth-child(1),
-.support-tickets-table tbody td:nth-child(1) { width: 12% !important; min-width: 90px; }
+.support-tickets-table tbody td:nth-child(1) { width: 12% !important; min-width: 90px !important; }
 .support-tickets-table thead th:nth-child(2),
 .support-tickets-table tbody td:nth-child(2) { width: 12% !important; }
 .support-tickets-table thead th:nth-child(3),
@@ -167,23 +167,72 @@ tr:hover {
 /* Filters */
 .filters-bar {
     display: flex;
-    gap: .5rem;
+    gap: .75rem;
     align-items: center;
     flex-wrap: wrap;
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(10px);
+    padding: 1rem;
+    border-radius: 0.875rem;
+    border: 1px solid rgba(148, 163, 184, 0.15);
 }
 
-.filter-select,
-.search-input {
-    background: #2d3748;
-    border: none;
-    padding: .5rem;
-    border-radius: .5rem;
+.filters-bar .search-input-wrapper {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.filters-bar .search-input-wrapper .search-icon {
+    position: absolute;
+    left: 1rem;
+    color: #64748b;
+    pointer-events: none;
+}
+
+.filters-bar .search-input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 0.75rem;
     color: #fff;
+    font-size: 0.875rem;
 }
 
-.filter-select:focus,
-.search-input:focus {
+.filters-bar .search-input:focus {
     outline: none;
+    border-color: rgba(37, 99, 235, 0.5);
+}
+
+.filters-bar .filter-select {
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    color: #fff;
+    font-size: 0.875rem;
+}
+
+.filters-bar .filter-reset-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: rgba(148, 163, 184, 0.1);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 0.75rem;
+    color: #94a3b8;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filters-bar .filter-reset-btn:hover {
+    background: rgba(148, 163, 184, 0.2);
+    color: #fff;
 }
 
 /* Priority badges */
