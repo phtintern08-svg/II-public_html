@@ -16,6 +16,18 @@ function showToast(msg, type = 'info') {
   }
 }
 
+function formatDeadline(val) {
+  if (!val) return 'No deadline';
+  if (typeof val === 'string' && (val === 'No deadline' || val === 'N/A')) return val;
+  try {
+    const d = new Date(val);
+    if (isNaN(d.getTime())) return val;
+    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  } catch (_) {
+    return val;
+  }
+}
+
 // Global production data
 let production = [];
 
@@ -27,14 +39,14 @@ async function fetchProduction() {
   if (tableLoading) tableLoading.classList.remove('hidden');
   if (tbody) {
     tbody.innerHTML = `
-      <tr>
-        <td colspan="6" class="text-center py-12">
-          <div class="flex flex-col items-center gap-3">
+      <div class="production-grid-row production-grid-loading">
+        <div class="prod-col prod-col-full">
+          <div class="flex flex-col items-center gap-3 py-12">
             <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-blue-400"></i>
             <p class="text-gray-400">Loading production orders...</p>
           </div>
-        </td>
-      </tr>
+        </div>
+      </div>
     `;
   }
   if (window.lucide) lucide.createIcons();
@@ -56,14 +68,14 @@ async function fetchProduction() {
     if (tableLoading) tableLoading.classList.add('hidden');
     if (tbody) {
       tbody.innerHTML = `
-        <tr>
-          <td colspan="6" class="text-center py-12">
-            <div class="flex flex-col items-center gap-3">
+        <div class="production-grid-row production-grid-loading">
+          <div class="prod-col prod-col-full">
+            <div class="flex flex-col items-center gap-3 py-12">
               <i data-lucide="alert-circle" class="w-8 h-8 text-red-400"></i>
               <p class="text-gray-400">Failed to load production orders. Please try again.</p>
             </div>
-          </td>
-        </tr>
+          </div>
+        </div>
       `;
     }
     if (window.lucide) lucide.createIcons();
@@ -157,9 +169,9 @@ function renderProduction(ordersToRender = production) {
                       document.getElementById('search-prod')?.value.trim() !== '';
     
     tbody.innerHTML = `
-      <tr>
-        <td colspan="6" class="text-center py-16 text-gray-400">
-          <div class="flex flex-col items-center gap-4">
+      <div class="production-grid-row production-grid-loading">
+        <div class="prod-col prod-col-full">
+          <div class="flex flex-col items-center gap-4 py-16 text-gray-400">
             <div class="w-20 h-20 rounded-full bg-gray-800/50 flex items-center justify-center">
               <i data-lucide="factory" class="w-10 h-10 opacity-50"></i>
             </div>
@@ -174,8 +186,8 @@ function renderProduction(ordersToRender = production) {
               </button>
             ` : ''}
           </div>
-        </td>
-      </tr>
+        </div>
+      </div>
     `;
     if (window.lucide) lucide.createIcons();
     return;
@@ -191,26 +203,26 @@ function renderProduction(ordersToRender = production) {
     const vendorName = p.vendorName || 'Unknown';
     const dbId = p.db_id || p.id;
     
-    const tr = document.createElement('tr');
-    tr.className = 'hover:bg-white/5 transition-colors duration-200';
-    tr.innerHTML = `
-      <td class="px-4 py-4 font-mono text-sm text-[#1273EB] font-semibold" data-label="Order ID">${orderId}</td>
-      <td class="px-4 py-4 font-semibold text-gray-100" data-label="Vendor">
+    const row = document.createElement('div');
+    row.className = 'production-grid-row hover:bg-white/5 transition-colors duration-200';
+    row.innerHTML = `
+      <div class="prod-col prod-col-id font-mono text-sm text-[#1273EB] font-semibold">${orderId}</div>
+      <div class="prod-col prod-col-vendor font-semibold text-gray-100">
         <div class="flex items-center gap-2">
           <i data-lucide="building" class="w-4 h-4 text-gray-500"></i>
           <span class="truncate max-w-[200px]" title="${vendorName}">${vendorName}</span>
         </div>
-      </td>
-      <td class="px-4 py-4" data-label="Current Stage">
+      </div>
+      <div class="prod-col prod-col-stage">
         <span class="status-badge ${statusClass} shadow-sm">${statusText}</span>
-      </td>
-      <td class="px-4 py-4" data-label="Deadline">
+      </div>
+      <div class="prod-col prod-col-deadline">
         <div class="flex items-center gap-2 text-xs font-medium text-gray-400">
-          <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-400"></i>
-          ${p.deadline || 'No deadline'}
+          <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-400 flex-shrink-0"></i>
+          <span class="truncate max-w-[140px]" title="${p.deadline || 'No deadline'}">${formatDeadline(p.deadline)}</span>
         </div>
-      </td>
-      <td class="px-4 py-4" data-label="Progress">
+      </div>
+      <div class="prod-col prod-col-progress">
         <div class="w-full max-w-[140px]">
           <div class="flex justify-between items-center mb-1.5">
             <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">${progress.toFixed(1)}%</span>
@@ -219,14 +231,14 @@ function renderProduction(ordersToRender = production) {
             <div class="progress-fill h-full ${progressClass}" style="width:${progress}%"></div>
           </div>
         </div>
-      </td>
-      <td class="px-4 py-4 text-right" data-label="Actions">
+      </div>
+      <div class="prod-col prod-col-actions text-right">
         <button class="p-2 rounded-lg bg-blue-600/10 hover:bg-blue-600 transition-all text-blue-400 hover:text-white shadow-lg hover:shadow-xl" onclick="openProdModal(${dbId})" title="View Details">
           <i data-lucide="eye" class="w-4 h-4"></i>
         </button>
-      </td>
+      </div>
     `;
-    tbody.appendChild(tr);
+    tbody.appendChild(row);
   });
   if (window.lucide) lucide.createIcons();
 }

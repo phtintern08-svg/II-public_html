@@ -63,7 +63,7 @@
 
         const toggle = document.getElementById('availabilityToggle');
         if (toggle) {
-            toggle.addEventListener('click', toggleAvailability);
+            toggle.addEventListener('click', () => toggleAvailability());
         }
 
         // Initialize dashboard state
@@ -120,7 +120,7 @@
         if (!toggle) return;
 
         const currentState = toggle.classList.contains('active');
-        const newState = forceState !== null ? forceState : !currentState;
+        const newState = (forceState === true || forceState === false) ? forceState : !currentState;
 
         // Get current location if going online
         let coords = { lat: null, lon: null };

@@ -487,51 +487,84 @@ table {
     border-collapse: collapse;
 }
 
-/* Production Orders table - CRITICAL: force native table layout
-   ORD-022 under Order ID | Vendor under Vendor | Stage | Deadline | Progress | Actions */
-.production-orders-table {
-    table-layout: fixed !important;
-    width: 100% !important;
-    display: table !important;
-    border-collapse: collapse;
+/* Production Orders - Grid layout (guarantees ORD-022 under Order ID, vendor under Vendor) */
+.production-grid-wrapper {
+    overflow-x: auto;
+    min-width: 0;
 }
 
-.production-orders-table thead {
-    display: table-header-group !important;
+.production-grid {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 800px;
 }
 
-.production-orders-table tbody {
-    display: table-row-group !important;
+.production-grid-header {
+    display: grid;
+    grid-template-columns: 12% 18% 18% 16% 20% 16%;
+    gap: 0.5rem;
+    padding: 1rem 1.25rem;
+    background: rgba(15, 23, 42, 0.4);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
-.production-orders-table thead tr,
-.production-orders-table tbody tr {
-    display: table-row !important;
-    grid: none !important;
-    grid-template-columns: none !important;
+.production-grid-body {
+    display: flex;
+    flex-direction: column;
 }
 
-.production-orders-table thead th,
-.production-orders-table tbody td {
-    display: table-cell !important;
-    box-sizing: border-box;
-    padding: 1rem 1.25rem !important;
-    vertical-align: middle;
+.production-grid-row {
+    display: grid;
+    grid-template-columns: 12% 18% 18% 16% 20% 16%;
+    gap: 0.5rem;
+    padding: 1rem 1.25rem;
+    align-items: center;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+    font-size: 0.875rem;
+    color: #cbd5e1;
 }
 
-/* Column widths: Order ID | Vendor | Current Stage | Deadline | Progress | Actions */
-.production-orders-table thead th:nth-child(1),
-.production-orders-table tbody td:nth-child(1) { width: 12% !important; min-width: 90px !important; }
-.production-orders-table thead th:nth-child(2),
-.production-orders-table tbody td:nth-child(2) { width: 18% !important; }
-.production-orders-table thead th:nth-child(3),
-.production-orders-table tbody td:nth-child(3) { width: 18% !important; }
-.production-orders-table thead th:nth-child(4),
-.production-orders-table tbody td:nth-child(4) { width: 16% !important; }
-.production-orders-table thead th:nth-child(5),
-.production-orders-table tbody td:nth-child(5) { width: 20% !important; }
-.production-orders-table thead th:nth-child(6),
-.production-orders-table tbody td:nth-child(6) { width: 16% !important; }
+.production-grid-row:last-child {
+    border-bottom: none;
+}
+
+.production-grid-row:hover {
+    background: linear-gradient(90deg, rgba(37, 99, 235, 0.05) 0%, rgba(15, 23, 42, 0.3) 100%);
+}
+
+.production-grid-row.production-grid-loading {
+    grid-template-columns: 1fr;
+}
+
+.production-grid-row.production-grid-loading .prod-col-full {
+    grid-column: 1 / -1;
+    text-align: center;
+}
+
+.prod-col {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.prod-col-id {
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-weight: 600;
+    color: #1273EB;
+}
+
+.prod-col-actions {
+    text-align: right;
+}
+
+.production-grid-header .prod-col-actions {
+    text-align: right;
+}
 
 table thead th {
     padding: 1rem 1.5rem;
