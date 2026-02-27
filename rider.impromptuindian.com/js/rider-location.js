@@ -37,6 +37,9 @@
             if (res.ok) {
                 lastUpdateTime = Date.now();
                 console.log('[RiderLocation] Updated DB:', lat.toFixed(6), lon.toFixed(6));
+            } else if (res.status === 429) {
+                console.warn('[RiderLocation] Rate limited - slowing updates for 10s');
+                lastUpdateTime = Date.now() + 10000;
             }
             return res;
         }).catch(err => {
