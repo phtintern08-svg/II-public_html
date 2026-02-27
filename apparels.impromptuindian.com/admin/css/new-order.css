@@ -496,13 +496,33 @@ body {
 .table-container-escrow {
     min-width: 0;
     max-width: 100%;
+    overflow-x: auto;
     -webkit-overflow-scrolling: touch;
 }
 
 .escrow-orders-table {
     table-layout: fixed;
     width: 100%;
-    min-width: 900px;
+    min-width: 880px;
+    max-width: 100%;
+}
+
+/* Escrow table - use percentage-based grid so columns fit container */
+.escrow-orders-table thead tr,
+.escrow-orders-table tbody tr {
+    display: grid !important;
+    grid-template-columns:
+        minmax(70px, 8%)   /* Order ID */
+        minmax(0, 1fr)     /* Customer */
+        minmax(80px, 10%)  /* Apparel */
+        minmax(75px, 9%)   /* Qty */
+        minmax(85px, 10%)  /* Amount */
+        minmax(90px, 12%)  /* Deadline */
+        minmax(95px, 12%)  /* Status */
+        minmax(50px, 6%);  /* Actions */
+    column-gap: 0.5rem;
+    width: 100%;
+    min-width: 0;
 }
 
 table {
@@ -542,10 +562,15 @@ table td {
     white-space: nowrap;
 }
 
-/* Customer column - ensure nested content truncates */
+/* Customer column - ensure nested content truncates within column */
+.escrow-orders-table td:nth-child(2) {
+    overflow: hidden;
+    min-width: 0;
+}
 .escrow-orders-table td:nth-child(2) div {
     min-width: 0;
     overflow: hidden;
+    max-width: 100%;
 }
 .escrow-orders-table td:nth-child(2) .truncate {
     max-width: 100%;
@@ -614,9 +639,9 @@ table td:last-child {
 }
 
 /* Turn header and body rows into identical grid */
-/* Exclude support tables - they use native table layout for proper column alignment */
-table:not(.support-performance-table):not(.support-escalations-table):not(.support-categories-table):not(.support-priority-table):not(.support-escalation-rules-table):not(.support-tickets-table) thead tr,
-table:not(.support-performance-table):not(.support-escalations-table):not(.support-categories-table):not(.support-priority-table):not(.support-escalation-rules-table):not(.support-tickets-table) tbody tr {
+/* Exclude support tables + escrow (escrow has its own %-based grid for container fit) */
+table:not(.support-performance-table):not(.support-escalations-table):not(.support-categories-table):not(.support-priority-table):not(.support-escalation-rules-table):not(.support-tickets-table):not(.escrow-orders-table) thead tr,
+table:not(.support-performance-table):not(.support-escalations-table):not(.support-categories-table):not(.support-priority-table):not(.support-escalation-rules-table):not(.support-tickets-table):not(.escrow-orders-table) tbody tr {
     display: grid;
     grid-template-columns:
         85px           /* Order ID */
