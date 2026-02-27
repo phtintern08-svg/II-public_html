@@ -10,6 +10,14 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="css/admin-global.css" />
     <link rel="stylesheet" href="css/in-production.css" />
+    <!-- CRITICAL: Force Production Orders table native layout - ORD-022 under Order ID -->
+    <style>
+    .production-orders-table,.production-orders-table thead,.production-orders-table tbody{display:table!important}
+    .production-orders-table thead{display:table-header-group!important}
+    .production-orders-table tbody{display:table-row-group!important}
+    .production-orders-table thead tr,.production-orders-table tbody tr{display:table-row!important;grid:none!important}
+    .production-orders-table thead th,.production-orders-table tbody td{display:table-cell!important}
+    </style>
     <link rel="shortcut icon" href="../images/favicon.ico" type="image/x-icon">
     <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
 </head>
@@ -150,8 +158,8 @@
                             </colgroup>
                             <thead>
                                 <tr>
-                                    <th class="flex items-center gap-2 rounded-tl-xl">
-                                        <i data-lucide="hash" class="w-3.5 h-3.5"></i> Order ID
+                                    <th>
+                                        <i data-lucide="hash" class="w-3.5 h-3.5 inline-block mr-1"></i> Order ID
                                     </th>
                                     <th>
                                         <i data-lucide="building" class="w-3.5 h-3.5 inline mr-1"></i> Vendor
@@ -165,7 +173,7 @@
                                     <th>
                                         <i data-lucide="trending-up" class="w-3.5 h-3.5 inline mr-1"></i> Progress
                                     </th>
-                                    <th class="text-right rounded-tr-xl">Actions</th>
+                                    <th class="text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="production-table">
