@@ -91,6 +91,79 @@ tr:hover {
     background: rgba(255, 255, 255, .02);
 }
 
+/* ========================================
+   SUPPORT TICKETS TABLE - Force native table layout
+   CRITICAL: Must override new-order.css grid so columns align correctly
+   Ticket ID | User Type | Subject | Priority | Status | Created | Actions
+   ======================================== */
+.support-tickets-table {
+    table-layout: fixed !important;
+    width: 100% !important;
+    display: table !important;
+    border-collapse: collapse;
+}
+
+.support-tickets-table thead {
+    display: table-header-group !important;
+}
+
+.support-tickets-table tbody {
+    display: table-row-group !important;
+}
+
+.support-tickets-table thead tr,
+.support-tickets-table tbody tr {
+    display: table-row !important;
+    grid: none !important;
+    grid-template-columns: none !important;
+}
+
+.support-tickets-table thead th,
+.support-tickets-table tbody td {
+    display: table-cell !important;
+    padding: 1rem 1.25rem !important;
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+    box-sizing: border-box;
+}
+
+.support-tickets-table thead th {
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(15, 23, 42, 0.4);
+}
+
+/* Explicit column widths - ensures TKT-1001 under Ticket ID, customer under User Type, etc. */
+.support-tickets-table thead th:nth-child(1),
+.support-tickets-table tbody td:nth-child(1) { width: 12% !important; min-width: 90px; }
+.support-tickets-table thead th:nth-child(2),
+.support-tickets-table tbody td:nth-child(2) { width: 12% !important; }
+.support-tickets-table thead th:nth-child(3),
+.support-tickets-table tbody td:nth-child(3) { width: 28% !important; }
+.support-tickets-table thead th:nth-child(4),
+.support-tickets-table tbody td:nth-child(4) { width: 12% !important; }
+.support-tickets-table thead th:nth-child(5),
+.support-tickets-table tbody td:nth-child(5) { width: 14% !important; }
+.support-tickets-table thead th:nth-child(6),
+.support-tickets-table tbody td:nth-child(6) { width: 14% !important; }
+.support-tickets-table thead th:nth-child(7),
+.support-tickets-table tbody td:nth-child(7) { width: 8% !important; }
+
+.support-tickets-table thead th:last-child,
+.support-tickets-table tbody td:last-child {
+    text-align: center !important;
+}
+
+.support-tickets-table tbody td:first-child {
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    color: #60a5fa;
+}
+
 /* Filters */
 .filters-bar {
     display: flex;
