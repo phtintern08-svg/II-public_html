@@ -1,0 +1,106 @@
+/* ========================================
+   SUPPORT OVERVIEW - Agent Performance & Escalations Tables
+   CRITICAL: Force native table layout so columns align correctly
+   Support1, Support 2 → under AGENT | Support Executive, Senior Support → under ROLE
+   ======================================== */
+
+/* Support Agent Performance table */
+.support-performance-table {
+    table-layout: fixed !important;
+    width: 100% !important;
+    display: table !important;
+    border-collapse: collapse;
+}
+
+.support-performance-table thead {
+    display: table-header-group !important;
+}
+
+.support-performance-table tbody {
+    display: table-row-group !important;
+}
+
+.support-performance-table thead tr,
+.support-performance-table tbody tr {
+    display: table-row !important;
+    grid: none !important;
+    grid-template-columns: none !important;
+}
+
+.support-performance-table thead th,
+.support-performance-table tbody td {
+    display: table-cell !important;
+    padding: 1rem 1.25rem !important;
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+    box-sizing: border-box;
+}
+
+/* Column widths - Agent, Role, Active Tickets, Resolved Today, Avg Response Time, Status */
+.support-performance-table thead th:nth-child(1),
+.support-performance-table tbody td:nth-child(1) { width: 22% !important; min-width: 110px; }
+.support-performance-table thead th:nth-child(2),
+.support-performance-table tbody td:nth-child(2) { width: 18% !important; }
+.support-performance-table thead th:nth-child(3),
+.support-performance-table tbody td:nth-child(3) { width: 12% !important; }
+.support-performance-table thead th:nth-child(4),
+.support-performance-table tbody td:nth-child(4) { width: 14% !important; }
+.support-performance-table thead th:nth-child(5),
+.support-performance-table tbody td:nth-child(5) { width: 18% !important; }
+.support-performance-table thead th:nth-child(6),
+.support-performance-table tbody td:nth-child(6) { width: 16% !important; }
+
+.support-performance-table thead th:last-child,
+.support-performance-table tbody td:last-child {
+    text-align: center !important;
+}
+
+.support-performance-table tbody td:first-child {
+    font-weight: 600;
+    color: #ffffff;
+}
+
+/* Recent Escalations table */
+.support-escalations-table {
+    table-layout: fixed !important;
+    width: 100% !important;
+    display: table !important;
+    border-collapse: collapse;
+}
+
+.support-escalations-table thead {
+    display: table-header-group !important;
+}
+
+.support-escalations-table tbody {
+    display: table-row-group !important;
+}
+
+.support-escalations-table thead tr,
+.support-escalations-table tbody tr {
+    display: table-row !important;
+    grid: none !important;
+    grid-template-columns: none !important;
+}
+
+.support-escalations-table thead th,
+.support-escalations-table tbody td {
+    display: table-cell !important;
+    padding: 1rem 1.25rem !important;
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+    box-sizing: border-box;
+}
+
+.support-escalations-table thead th:nth-child(1),
+.support-escalations-table tbody td:nth-child(1) { width: 12% !important; }
+.support-escalations-table thead th:nth-child(2),
+.support-escalations-table tbody td:nth-child(2) { width: 14% !important; }
+.support-escalations-table thead th:nth-child(3),
+.support-escalations-table tbody td:nth-child(3) { width: 18% !important; }
+.support-escalations-table thead th:nth-child(4),
+.support-escalations-table tbody td:nth-child(4) { width: 18% !important; }
+.support-escalations-table thead th:nth-child(5),
+.support-escalations-table tbody td:nth-child(5) { width: 18% !important; }
+.support-escalations-table thead th:nth-child(6),
+.support-escalations-table tbody td:nth-child(6) { width: 20% !important; }
