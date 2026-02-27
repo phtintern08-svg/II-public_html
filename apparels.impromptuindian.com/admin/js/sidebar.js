@@ -141,25 +141,29 @@
         <span class="notification-badge" id="orders-count-badge" style="display:none">0</span>
       </a>
 
-      <a href="vendors.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
-        <i data-lucide="store" class="w-5 h-5"></i> <span>Vendors</span>
+      <a href="delivery.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
+        <i data-lucide="truck" class="w-5 h-5"></i> <span>Delivery</span>
       </a>
 
-      <a href="product-approval.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
-        <i data-lucide="package-check" class="w-5 h-5"></i> <span>Products</span>
-        <span class="notification-badge" id="products-count" style="display:none">0</span>
+      <a href="vendors.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
+        <i data-lucide="store" class="w-5 h-5"></i> <span>Vendors</span>
       </a>
 
       <a href="riders.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
         <i data-lucide="bike" class="w-5 h-5"></i> <span>Riders</span>
       </a>
 
-      <a href="delivery.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
-        <i data-lucide="truck" class="w-5 h-5"></i> <span>Delivery</span>
+      <a href="support.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
+        <i data-lucide="headphones" class="w-5 h-5"></i> <span>Support</span>
       </a>
 
       <a href="customers.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
         <i data-lucide="users" class="w-5 h-5"></i> <span>Customers</span>
+      </a>
+
+      <a href="product-approval.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
+        <i data-lucide="package-check" class="w-5 h-5"></i> <span>Products</span>
+        <span class="notification-badge" id="products-count" style="display:none">0</span>
       </a>
 
       <a href="payments.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
@@ -177,10 +181,6 @@
 
       <a href="settings.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
         <i data-lucide="settings" class="w-5 h-5"></i> <span>Settings</span>
-      </a>
-
-      <a href="support.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
-        <i data-lucide="headphones" class="w-5 h-5"></i> <span>Support</span>
       </a>
     </nav>
 

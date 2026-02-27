@@ -253,8 +253,12 @@ function onScroll() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
+    requestAnimationFrame(() => {
+        document.querySelectorAll('.reveal').forEach(el => el.classList.add('show'));
+    });
     calculateSummary();
     renderTickets();
+    if (window.lucide) lucide.createIcons();
     onScroll();
     window.addEventListener('scroll', onScroll);
 });

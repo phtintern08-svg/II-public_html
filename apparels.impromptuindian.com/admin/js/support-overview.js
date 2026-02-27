@@ -147,6 +147,9 @@ function refreshOverview() {
 
 // Load on page load
 document.addEventListener('DOMContentLoaded', () => {
+    requestAnimationFrame(() => {
+        document.querySelectorAll('.reveal').forEach(el => el.classList.add('show'));
+    });
     loadOverview();
     if (window.lucide) lucide.createIcons();
 });

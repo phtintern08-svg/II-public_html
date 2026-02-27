@@ -2,6 +2,31 @@
 
 const ImpromptuIndianApi = window.ImpromptuIndianApi;
 
+// Indian phone validation: 10 digits (excluding +91/91/0), first digit 6/7/8/9
+function validateIndianPhone(phone) {
+    if (!phone || !phone.trim()) return { valid: true, normalized: null }; // optional field
+    const digits = phone.replace(/\D/g, '');
+    let core = digits;
+    if (digits.length === 12 && digits.startsWith('91')) core = digits.slice(2);
+    else if (digits.length === 11 && digits.startsWith('0')) core = digits.slice(1);
+    else if (digits.length === 10) core = digits;
+    else return { valid: false, normalized: null };
+    return {
+        valid: core.length === 10 && /^[6789]/.test(core),
+        normalized: core
+    };
+}
+
+// Password validation: min 8 chars, 1 upper, 1 lower, 1 number, 1 special (!@#$%^&*)
+function validatePassword(pwd) {
+    if (!pwd || pwd.length < 8) return 'Password must be at least 8 characters';
+    if (!/[A-Z]/.test(pwd)) return 'Password must contain at least one uppercase letter';
+    if (!/[a-z]/.test(pwd)) return 'Password must contain at least one lowercase letter';
+    if (!/\d/.test(pwd)) return 'Password must contain at least one number';
+    if (!/[!@#$%^&*]/.test(pwd)) return 'Password must contain at least one special character (!@#$%^&*)';
+    return null;
+}
+
 function showToast(msg, type = 'success') {
     const toast = document.getElementById('toast');
     if (!toast) {
@@ -33,10 +58,59 @@ function showToast(msg, type = 'success') {
     setTimeout(() => toast.classList.add('hidden'), 3000);
 }
 
+// Toggle password visibility
+function initPasswordToggles() {
+    const togglePwd = document.getElementById('togglePassword');
+    const pwdInput = document.getElementById('password');
+    const toggleConfirm = document.getElementById('toggleConfirmPassword');
+    const confirmInput = document.getElementById('confirmPassword');
+
+    if (togglePwd && pwdInput) {
+        togglePwd.addEventListener('click', () => {
+            const isPwd = pwdInput.type === 'password';
+            pwdInput.type = isPwd ? 'text' : 'password';
+            const icon = togglePwd.querySelector('i');
+            if (icon) {
+                icon.setAttribute('data-lucide', isPwd ? 'eye-off' : 'eye');
+                if (window.lucide) lucide.createIcons();
+            }
+        });
+    }
+    if (toggleConfirm && confirmInput) {
+        toggleConfirm.addEventListener('click', () => {
+            const isPwd = confirmInput.type === 'password';
+            confirmInput.type = isPwd ? 'text' : 'password';
+            const icon = toggleConfirm.querySelector('i');
+            if (icon) {
+                icon.setAttribute('data-lucide', isPwd ? 'eye-off' : 'eye');
+                if (window.lucide) lucide.createIcons();
+            }
+        });
+    }
+}
+
 // Load support users on page load
 document.addEventListener('DOMContentLoaded', () => {
+    requestAnimationFrame(() => {
+        document.querySelectorAll('.reveal').forEach(el => el.classList.add('show'));
+    });
     loadSupportUsers();
-    
+    initPasswordToggles();
+
+    // Restrict phone input to digits and + only
+    const phoneInput = document.getElementById('phone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', (e) => {
+            let v = e.target.value;
+            if (v.startsWith('+')) {
+                v = '+' + v.slice(1).replace(/[^\d]/g, '');
+            } else {
+                v = v.replace(/[^\d]/g, '');
+            }
+            e.target.value = v;
+        });
+    }
+
     // Initialize Lucide icons
     if (window.lucide) lucide.createIcons();
 });
@@ -49,6 +123,7 @@ document.getElementById('createSupportForm')?.addEventListener('submit', async (
     const email = document.getElementById('email').value.trim();
     const phone = document.getElementById('phone').value.trim();
     const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
     const role = document.getElementById('role').value;
 
     if (!name || !email || !password) {
@@ -56,13 +131,35 @@ document.getElementById('createSupportForm')?.addEventListener('submit', async (
         return;
     }
 
+    // Phone validation (if provided)
+    const phoneResult = validateIndianPhone(phone);
+    if (!phoneResult.valid) {
+        showToast('Invalid phone number. Use 10 digits starting with 6/7/8/9. Prefixes +91, 91, or 0 allowed.', 'error');
+        return;
+    }
+
+    // Password validation
+    const pwdError = validatePassword(password);
+    if (pwdError) {
+        showToast(pwdError, 'error');
+        return;
+    }
+
+    // Confirm password match
+    if (password !== confirmPassword) {
+        showToast('Password and Confirm Password do not match', 'error');
+        return;
+    }
+
+    const phoneToSend = phoneResult.normalized || (phone.trim() || null);
+
     try {
         const res = await ImpromptuIndianApi.fetch(
             '/api/admin/support-users',
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, phone, password, role })
+                body: JSON.stringify({ name, email, phone: phoneToSend, password, role })
             }
         );
 
@@ -86,7 +183,7 @@ async function loadSupportUsers() {
     const tableBody = document.getElementById('supportUsersTable');
     if (!tableBody) return;
 
-    tableBody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-500">Loading...</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">Loading...</td></tr>';
 
     try {
         const res = await ImpromptuIndianApi.fetch('/api/admin/support-users');
@@ -204,8 +301,9 @@ async function resetPassword(userId) {
     const newPassword = prompt('Enter new temporary password:');
     if (!newPassword) return;
 
-    if (newPassword.length < 6) {
-        showToast('Password must be at least 6 characters', 'error');
+    const pwdErr = validatePassword(newPassword);
+    if (pwdErr) {
+        showToast(pwdErr, 'error');
         return;
     }
 

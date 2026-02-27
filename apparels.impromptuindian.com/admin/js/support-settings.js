@@ -461,6 +461,9 @@ async function toggleAutoAssignment(method, enabled) {
 
 // Load on page load
 document.addEventListener('DOMContentLoaded', () => {
+    requestAnimationFrame(() => {
+        document.querySelectorAll('.reveal').forEach(el => el.classList.add('show'));
+    });
     loadSettings();
     if (window.lucide) lucide.createIcons();
 });
