@@ -7,7 +7,6 @@
     };
     
     let riderId = null;
-    let locationInterval = null;
 
     document.addEventListener('DOMContentLoaded', async () => {
         // 🔥 FIX: Use HttpOnly cookies for cross-subdomain authentication
@@ -92,7 +91,8 @@
                 // syncing UI with backend state
                 if (data.is_online) {
                     setOnlineUI(true);
-                    startLocationUpdates();
+                    localStorage.setItem('rider_is_online', 'true');
+                    if (window.RiderLocation) window.RiderLocation.start();
                 }
             }
         } catch (e) {
@@ -166,10 +166,10 @@
                 localStorage.setItem('rider_is_online', newState);
 
                 if (newState) {
-                    startLocationUpdates();
+                    if (window.RiderLocation) window.RiderLocation.start();
                     showToast('You are now online and ready for orders');
                 } else {
-                    stopLocationUpdates();
+                    if (window.RiderLocation) window.RiderLocation.stop();
                     showToast('You are now offline');
                 }
             } else {
@@ -195,38 +195,6 @@
             toggle.classList.remove('active');
             statusBadge.className = 'status-badge offline';
             statusText.textContent = 'Offline';
-        }
-    }
-
-    function startLocationUpdates() {
-        if (locationInterval) clearInterval(locationInterval);
-
-        // Update location every 2 minutes
-        locationInterval = setInterval(async () => {
-            try {
-                const coords = await getCurrentLocation();
-                // 🔥 FIX: Use HttpOnly cookies for authentication
-                await ImpromptuIndianApi.fetch('/api/rider/presence', {
-                    method: 'PUT',
-                    headers: { 
-                        'Content-Type': 'application/json'
-                    },
-                    credentials: 'include',  // Send cookies automatically
-                    body: JSON.stringify({
-                        latitude: coords.lat,
-                        longitude: coords.lon
-                    })
-                });
-            } catch (e) {
-                console.error('Periodic location update failed:', e);
-            }
-        }, 120000);
-    }
-
-    function stopLocationUpdates() {
-        if (locationInterval) {
-            clearInterval(locationInterval);
-            locationInterval = null;
         }
     }
 

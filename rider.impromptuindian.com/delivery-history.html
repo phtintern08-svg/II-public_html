@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Delivery History – ImpromptuIndian Rider</title>
     <meta name="description" content="View your complete delivery history" />
+    <script>
+        window.IMPROMPTU_INDIAN_API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://apparels.impromptuindian.com';
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="css/rider-global.css" />
@@ -15,6 +18,7 @@
     <div class="flex h-screen overflow-hidden">
         <div id="sidebar-container"></div>
         <script src="js/sidebar.js"></script>
+        <script src="js/rider-location.js"></script>
 
         <main class="flex-1 overflow-y-auto p-8 ml-[265px]">
             <!-- Header -->
