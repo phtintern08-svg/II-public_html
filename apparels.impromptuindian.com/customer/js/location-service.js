@@ -117,12 +117,16 @@ class LocationService {
                 return reject(new Error("Geolocation not supported"));
             }
 
+            const geoOpts = (window.LocationUtils && window.LocationUtils.GEO_OPTIONS) || {
+                enableHighAccuracy: true, timeout: 15000, maximumAge: 0
+            };
             navigator.geolocation.getCurrentPosition(
                 async (pos) => {
-                    const { latitude, longitude } = pos.coords;
-
+                    const { latitude, longitude, accuracy } = pos.coords;
+                    const loc = { latitude, longitude, accuracy };
                     try {
                         const location = await this.reverseGeocodeMappls(latitude, longitude);
+                        Object.assign(location, loc);
                         resolve(location);
                     } catch (err) {
                         console.error("Mappls reverse geocode failed:", err);
@@ -133,11 +137,7 @@ class LocationService {
                     console.error("GPS error:", err);
                     reject(new Error("Location permission denied"));
                 },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 300000
-                }
+                geoOpts
             );
         });
     }

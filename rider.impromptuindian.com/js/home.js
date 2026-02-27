@@ -135,13 +135,17 @@
             } catch (geoErr) {
                 console.warn('Geolocation failed:', geoErr);
                 let errMsg = 'Location permission required.';
+                if (geoErr.message && geoErr.message.includes('inaccurate')) {
+                    errMsg = 'Location inaccurate. Please use mobile or enable GPS for accurate tracking.';
+                    showToast(errMsg, 'error');
+                    return;
+                }
                 if (geoErr.message && geoErr.message.includes('denied')) {
                     errMsg = 'Location permission denied. Please enable it in your browser settings.';
                 } else if (geoErr.message && geoErr.message.includes('timeout')) {
                     errMsg = 'Location request timed out. Please check your GPS signal.';
                 }
                 showToast(errMsg, 'error');
-                // Still proceed with API call even if location fails (user can update later)
             }
         }
 
@@ -204,17 +208,23 @@
                 reject({ code: 0, message: 'Geolocation not supported' });
                 return;
             }
+            const geoOpts = (window.LocationUtils && window.LocationUtils.GEO_OPTIONS) || {
+                enableHighAccuracy: true, timeout: 15000, maximumAge: 0
+            };
             navigator.geolocation.getCurrentPosition(
                 pos => {
                     const lat = pos.coords.latitude;
                     const lon = pos.coords.longitude;
-                    
-                    console.log(`📍 Rider Location → Lat: ${lat}, Lon: ${lon}`);
-                    
+                    const valid = window.LocationUtils ? window.LocationUtils.isValidLocation(pos) : (pos.coords.accuracy <= 50);
+                    console.log(`📍 Rider Location → Lat: ${lat}, Lon: ${lon}, Acc: ${pos.coords.accuracy}m`);
+                    if (!valid) {
+                        reject({ code: 2, message: 'Location inaccurate. Please use mobile or enable GPS for accurate tracking.' });
+                        return;
+                    }
                     resolve({ lat, lon });
                 },
                 err => reject(err),
-                { enableHighAccuracy: true, timeout: 8000 } // Increased timeout to 8s
+                geoOpts
             );
         });
     }

@@ -117,10 +117,10 @@ class LocationService {
                 return reject(new Error("Geolocation not supported"));
             }
 
-            const geoOptions = {
+            const geoOptions = (window.LocationUtils && window.LocationUtils.GEO_OPTIONS) || {
                 enableHighAccuracy: true,
                 timeout: 15000,
-                maximumAge: 60000
+                maximumAge: 0
             };
 
             const handleSuccess = async (pos) => {

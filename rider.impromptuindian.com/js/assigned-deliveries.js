@@ -697,11 +697,10 @@ async function markReachedVendor(deliveryId) {
         // Try to get current location, but don't fail if unavailable
         try {
             const position = await new Promise((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(resolve, reject, {
-                    enableHighAccuracy: true,
-                    timeout: 15000,
-                    maximumAge: 0
-                });
+                const geoOpts = (window.LocationUtils && window.LocationUtils.GEO_OPTIONS) || {
+                enableHighAccuracy: true, timeout: 15000, maximumAge: 0
+            };
+            navigator.geolocation.getCurrentPosition(resolve, reject, geoOpts);
             });
             latitude = position.coords.latitude;
             longitude = position.coords.longitude;
@@ -771,11 +770,10 @@ async function navigateToPickup(deliveryId) {
         // 2. Get rider's current location (for tracking only)
         try {
             const position = await new Promise((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(resolve, reject, {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
-                });
+                const geoOpts = (window.LocationUtils && window.LocationUtils.GEO_OPTIONS) || {
+                    enableHighAccuracy: true, timeout: 15000, maximumAge: 0
+                };
+                navigator.geolocation.getCurrentPosition(resolve, reject, geoOpts);
             });
 
             // Start location tracking
@@ -964,11 +962,10 @@ function stopLocationTracking(deliveryId) {
 async function sendLocationUpdate(deliveryId) {
     try {
         const position = await new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
-            });
+            const geoOpts = (window.LocationUtils && window.LocationUtils.GEO_OPTIONS) || {
+                enableHighAccuracy: true, timeout: 15000, maximumAge: 0
+            };
+            navigator.geolocation.getCurrentPosition(resolve, reject, geoOpts);
         });
 
         // 🔥 FIX: Use HttpOnly cookies for authentication

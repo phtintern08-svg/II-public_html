@@ -46,8 +46,12 @@
         if (!position || !position.coords) return;
         const lat = position.coords.latitude;
         const lon = position.coords.longitude;
+        const accuracy = position.coords.accuracy;
 
         if (!isOnline()) return;
+
+        const valid = window.LocationUtils ? window.LocationUtils.isValidLocation(position) : (accuracy <= 50);
+        if (!valid) return;
 
         const now = Date.now();
         const elapsed = now - lastUpdateTime;
@@ -82,24 +86,32 @@
         }
         if (watchId != null) return;
 
+        const geoOpts = (window.LocationUtils && window.LocationUtils.GEO_OPTIONS) || {
+            enableHighAccuracy: true, timeout: 15000, maximumAge: 0
+        };
         watchId = navigator.geolocation.watchPosition(
             onPositionUpdate,
             onPositionError,
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 }
+            geoOpts
         );
         console.log('[RiderLocation] Started watching position');
 
         navigator.geolocation.getCurrentPosition(
             pos => {
                 if (isOnline() && pos && pos.coords) {
+                    const valid = window.LocationUtils ? window.LocationUtils.isValidLocation(pos) : (pos.coords.accuracy <= 50);
                     lastLat = pos.coords.latitude;
                     lastLon = pos.coords.longitude;
                     lastUpdateTime = 0;
-                    sendLocationToServer(lastLat, lastLon);
+                    if (valid) {
+                        sendLocationToServer(lastLat, lastLon);
+                    } else {
+                        console.warn('[RiderLocation] Accuracy', pos.coords.accuracy, 'm > 50m - use mobile GPS');
+                    }
                 }
             },
             () => {},
-            { enableHighAccuracy: true, timeout: 8000 }
+            geoOpts
         );
 
         if (!fallbackInterval) {

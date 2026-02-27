@@ -416,14 +416,23 @@ function initMapEvents() {
           throw new Error("Geolocation not supported");
         }
 
+        const geoOpts = (window.LocationUtils && window.LocationUtils.GEO_OPTIONS) || {
+          enableHighAccuracy: true, timeout: 15000, maximumAge: 0
+        };
         navigator.geolocation.getCurrentPosition(
           async (pos) => {
             let lat, lng;
             if (pos.coords) {
               lat = pos.coords.latitude;
               lng = pos.coords.longitude;
-              // Debugging Location Accuracy
-              console.log(`GPS Success: Lat ${lat}, Lng ${lng}, Acc ${pos.coords.accuracy}m`);
+              const acc = pos.coords.accuracy;
+              console.log(`GPS Success: Lat ${lat}, Lng ${lng}, Acc ${acc}m`);
+              const valid = window.LocationUtils ? window.LocationUtils.isValidLocation(pos) : (acc <= 50);
+              if (!valid) {
+                if (typeof showAlert === 'function') {
+                  showAlert("Location Inaccurate", "GPS accuracy is ±" + Math.round(acc) + "m. Please drag the pin to your shop's exact location.", "warning");
+                }
+              }
             } else if (Array.isArray(pos)) {
               [lat, lng] = pos;
             }
@@ -586,8 +595,7 @@ function initMapEvents() {
             useCurrentLocationBtn.disabled = false;
             lucide.createIcons();
           },
-          // Aggressive GPS Options
-          { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+          geoOpts
         );
 
         /* -------------------------------

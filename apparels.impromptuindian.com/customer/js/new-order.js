@@ -1881,22 +1881,31 @@ if (useCurrentLocationBtn) {
         throw new Error("Geolocation not supported");
       }
 
+      const geoOpts = (window.LocationUtils && window.LocationUtils.GEO_OPTIONS) || {
+        enableHighAccuracy: true, timeout: 15000, maximumAge: 0
+      };
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
-          // ... rest of existing code ...
-
           let lat, lng;
           if (pos.coords) {
             lat = pos.coords.latitude;
             lng = pos.coords.longitude;
-            // Debugging Location Accuracy
-            console.log(`GPS Success: Lat ${lat}, Lng ${lng}, Acc ${pos.coords.accuracy}m`);
-            // alert(`Debug: Browser returned location.\n\nLat: ${lat}\nLng: ${lng}\nAccuracy: ${pos.coords.accuracy} meters\n\nNote: If this is wrong, your Browser/ISP is estimating location via IP.`);
+            const acc = pos.coords.accuracy;
+            console.log(`GPS Success: Lat ${lat}, Lng ${lng}, Acc ${acc}m`);
+            const valid = window.LocationUtils ? window.LocationUtils.isValidLocation(pos) : (acc <= 50);
+            if (!valid) {
+              showAlert("Location Inaccurate", "GPS accuracy is ±" + Math.round(acc) + "m. Please drag the pin to your exact address.", "warning");
+            }
           } else if (Array.isArray(pos)) {
             [lat, lng] = pos;
           }
 
           const mapModal = document.getElementById("mapModal");
+          const mapSubtitle = mapModal && mapModal.querySelector(".text-yellow-500");
+          if (mapSubtitle && pos.coords && pos.coords.accuracy > 50) {
+            mapSubtitle.innerHTML = '<i data-lucide="alert-triangle" class="w-3 h-3 inline mr-1"></i><span>Location may be inaccurate. Please drag the pin to your exact address.</span>';
+            if (window.lucide) lucide.createIcons();
+          }
           mapModal.classList.remove("map-hidden");
           mapModal.classList.add("map-visible");
 
@@ -1984,7 +1993,6 @@ if (useCurrentLocationBtn) {
 
         (err) => {
           console.error("GPS Error", err);
-
           // Even if GPS fails/denied, OPEN THE MAP ANYWAY so they can search
           // Default to Bangalore center
           let lat = 12.9716;
@@ -2044,8 +2052,7 @@ if (useCurrentLocationBtn) {
           useCurrentLocationBtn.disabled = false;
           lucide.createIcons();
         },
-        // Aggressive GPS Options
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        geoOpts
       );
 
       /* -------------------------------

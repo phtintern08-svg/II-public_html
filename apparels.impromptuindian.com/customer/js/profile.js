@@ -656,20 +656,31 @@ function initAddressEvents() {
                 return;
             }
 
-            // aggressive GPS
+            const geoOpts = (window.LocationUtils && window.LocationUtils.GEO_OPTIONS) || {
+                enableHighAccuracy: true, timeout: 15000, maximumAge: 0
+            };
             navigator.geolocation.getCurrentPosition(
                 async (pos) => {
                     let lat, lng;
                     if (pos.coords) {
                         lat = pos.coords.latitude;
                         lng = pos.coords.longitude;
-                        // Debugging Location Accuracy
-                        console.log(`GPS Success: Lat ${lat}, Lng ${lng}, Acc ${pos.coords.accuracy}m`);
+                        const acc = pos.coords.accuracy;
+                        console.log(`GPS Success: Lat ${lat}, Lng ${lng}, Acc ${acc}m`);
+                        const valid = window.LocationUtils ? window.LocationUtils.isValidLocation(pos) : (acc <= 50);
+                        if (!valid) {
+                            showAlert("Location Inaccurate", "GPS accuracy is ±" + Math.round(acc) + "m. Please drag the pin to your exact address.", "warning");
+                        }
                     } else if (Array.isArray(pos)) {
                         [lat, lng] = pos;
                     }
 
                     const mapModal = document.getElementById("mapModal");
+                    const mapSubtitle = mapModal && mapModal.querySelector(".text-yellow-500");
+                    if (mapSubtitle && pos.coords && pos.coords.accuracy > 50) {
+                        mapSubtitle.innerHTML = '<i data-lucide="alert-triangle" class="w-3 h-3 inline mr-1"></i><span>Location may be inaccurate. Please drag the pin to your exact address.</span>';
+                        if (window.lucide) lucide.createIcons();
+                    }
                     mapModal.classList.remove("map-hidden");
                     mapModal.classList.add("map-visible");
 
@@ -805,7 +816,7 @@ function initAddressEvents() {
                     useCurrentLocationBtn.disabled = false;
                     if (window.lucide) lucide.createIcons();
                 },
-                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+                geoOpts
             );
         });
 
