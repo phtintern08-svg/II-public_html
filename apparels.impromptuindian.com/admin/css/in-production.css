@@ -487,6 +487,38 @@ table {
     border-collapse: collapse;
 }
 
+/* Production Orders table - force native layout so ORD-022 under Order ID, vendor under Vendor */
+.production-orders-table {
+    table-layout: fixed !important;
+    width: 100% !important;
+}
+
+.production-orders-table thead tr,
+.production-orders-table tbody tr {
+    display: table-row !important;
+    grid: none !important;
+}
+
+.production-orders-table thead th,
+.production-orders-table tbody td {
+    display: table-cell !important;
+    box-sizing: border-box;
+}
+
+/* Column widths: Order ID | Vendor | Current Stage | Deadline | Progress | Actions */
+.production-orders-table thead th:nth-child(1),
+.production-orders-table tbody td:nth-child(1) { width: 12%; min-width: 90px; }
+.production-orders-table thead th:nth-child(2),
+.production-orders-table tbody td:nth-child(2) { width: 18%; }
+.production-orders-table thead th:nth-child(3),
+.production-orders-table tbody td:nth-child(3) { width: 18%; }
+.production-orders-table thead th:nth-child(4),
+.production-orders-table tbody td:nth-child(4) { width: 16%; }
+.production-orders-table thead th:nth-child(5),
+.production-orders-table tbody td:nth-child(5) { width: 20%; }
+.production-orders-table thead th:nth-child(6),
+.production-orders-table tbody td:nth-child(6) { width: 16%; }
+
 table thead th {
     padding: 1rem 1.5rem;
     background: rgba(15, 23, 42, 0.4);

@@ -639,9 +639,9 @@ table td:last-child {
 }
 
 /* Turn header and body rows into identical grid */
-/* Exclude support tables + escrow (escrow has its own %-based grid for container fit) */
-table:not(.support-performance-table):not(.support-escalations-table):not(.support-categories-table):not(.support-priority-table):not(.support-escalation-rules-table):not(.support-tickets-table):not(.escrow-orders-table) thead tr,
-table:not(.support-performance-table):not(.support-escalations-table):not(.support-categories-table):not(.support-priority-table):not(.support-escalation-rules-table):not(.support-tickets-table):not(.escrow-orders-table) tbody tr {
+/* Exclude support tables + escrow + production (they use native layout/own grid) */
+table:not(.support-performance-table):not(.support-escalations-table):not(.support-categories-table):not(.support-priority-table):not(.support-escalation-rules-table):not(.support-tickets-table):not(.escrow-orders-table):not(.production-orders-table) thead tr,
+table:not(.support-performance-table):not(.support-escalations-table):not(.support-categories-table):not(.support-priority-table):not(.support-escalation-rules-table):not(.support-tickets-table):not(.escrow-orders-table):not(.production-orders-table) tbody tr {
     display: grid;
     grid-template-columns:
         85px           /* Order ID */
