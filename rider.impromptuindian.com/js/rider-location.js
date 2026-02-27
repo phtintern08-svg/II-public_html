@@ -90,6 +90,8 @@
             return;
         }
         if (watchId != null) return;
+        if (window.__riderWatcherStarted) return;
+        window.__riderWatcherStarted = true;
 
         const geoOpts = (window.LocationUtils && window.LocationUtils.GEO_OPTIONS) || {
             enableHighAccuracy: true, timeout: 15000, maximumAge: 0
@@ -122,6 +124,7 @@
     }
 
     function stopWatching() {
+        window.__riderWatcherStarted = false;
         if (watchId != null) {
             navigator.geolocation.clearWatch(watchId);
             watchId = null;
