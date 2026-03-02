@@ -54,7 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let allTickets = [];
     let currentTicketId = null;
     let allOrders = [];
-    let socket = null;
+    let socket = null;  // Will be initialized with Socket.IO
     let slaTimerInterval = null;
     let typingTimeout = null;
 
@@ -528,7 +528,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             <p class="font-semibold">Order #${orderId}</p>
                             <p class="text-xs text-gray-400">${productType} • ${status}</p>
                         </div>
-                        <button onclick="window.raiseFromOrder(${orderId})"
+                        <button onclick="window.openSupportChat(${orderId})"
                             class="text-yellow-400 hover:text-yellow-300 font-semibold text-sm px-3 py-1 rounded transition-colors">
                             Get Help
                         </button>
@@ -722,14 +722,11 @@ document.addEventListener("DOMContentLoaded", () => {
             ticketIdDisplay.textContent = ticketId;
             conversationPanel.classList.remove("hidden");
             
-            // Join WebSocket room for this ticket
-            if (socket && socket.connected) {
-                socket.emit("join_ticket", {
-                    ticket_id: ticketId,
-                    user_id: CUSTOMER_ID,
-                    user_type: "customer"
-                });
-            }
+            // Join Socket.IO room for this ticket
+            joinTicketRoom(ticketId);
+
+            // Request SLA timer
+            socket.emit('request_sla_timer', { ticket_id: ticketId });
 
             // Load ticket details for SLA timer
             loadTicketDetails(ticketId);
@@ -1011,6 +1008,324 @@ document.addEventListener("DOMContentLoaded", () => {
     setInterval(() => {
         startPolling();
     }, 5000);
+
+    // ============================================
+    // SOCKET.IO REAL-TIME CHAT
+    // ============================================
+
+    // Initialize Socket.IO connection
+    socket = io({
+        transports: ["websocket", "polling"],
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionAttempts: 5
+    });
+
+    // Socket connection events
+    socket.on('connect', () => {
+        console.log('✅ Connected to support chat');
+    });
+
+    socket.on('disconnect', () => {
+        console.log('❌ Disconnected from support chat');
+    });
+
+    socket.on('system_message', (data) => {
+        console.log('System:', data.msg);
+    });
+
+    socket.on('error', (data) => {
+        console.error('Socket error:', data.msg);
+        if (typeof addAIMessage === 'function') {
+            addAIMessage('system', `Error: ${data.msg}`);
+        }
+    });
+
+    // ============================================
+    // AI SUPPORT CHAT SYSTEM
+    // ============================================
+
+    let activeOrder = null;
+    let activeTicketId = null;
+    let currentTicketRoom = null;
+    // typingTimeout already declared above, don't redeclare
+
+    // Open AI Chat (Global function)
+    window.openSupportChat = function(orderId) {
+        activeOrder = orderId;
+        const chatModal = document.getElementById("supportChat");
+        
+        if (chatModal) {
+            chatModal.classList.remove("hidden");
+            chatModal.classList.add("flex");
+            
+            // Clear previous messages
+            const messagesContainer = document.getElementById("chatMessages");
+            if (messagesContainer) {
+                messagesContainer.innerHTML = "";
+            }
+            
+            // Show welcome message
+            aiWelcome();
+            
+            // Focus input
+            const chatInput = document.getElementById("chatInput");
+            if (chatInput) {
+                setTimeout(() => chatInput.focus(), 100);
+            }
+            
+            // Reinitialize icons
+            if (window.lucide) lucide.createIcons();
+        }
+    };
+
+    // Close AI Chat (Global function)
+    window.closeSupportChat = function() {
+        const chatModal = document.getElementById("supportChat");
+        if (chatModal) {
+            chatModal.classList.add("hidden");
+            chatModal.classList.remove("flex");
+            
+            // Leave Socket.IO room
+            leaveTicketRoom();
+            
+            activeOrder = null;
+            activeTicketId = null;
+            currentTicketRoom = null;
+        }
+    };
+
+    // AI Welcome Message
+    function aiWelcome() {
+        if (!activeOrder) return;
+        
+        const welcomeText = `Hi 👋 I'm Impromptu AI Support.\n\n` +
+            `I see you need help with Order #${activeOrder}.\n\n` +
+            `What issue are you facing?\n\n` +
+            `1️⃣ Delivery Delay\n` +
+            `2️⃣ Payment Issue\n` +
+            `3️⃣ Quality Problem\n` +
+            `4️⃣ Refund Request\n` +
+            `5️⃣ Other Issue`;
+        
+        addAIMessage("ai", welcomeText);
+    }
+
+    // Add Message to Chat
+    function addAIMessage(type, text) {
+        const messagesContainer = document.getElementById("chatMessages");
+        if (!messagesContainer) return;
+
+        const messageDiv = document.createElement("div");
+        messageDiv.className = type === "ai" 
+            ? "text-left mb-2" 
+            : "text-right mb-2";
+
+        const bubbleDiv = document.createElement("div");
+        bubbleDiv.className = type === "ai"
+            ? "inline-block max-w-[80%] px-3 py-2 rounded-lg bg-gray-700 text-white text-sm whitespace-pre-wrap"
+            : "inline-block max-w-[80%] px-3 py-2 rounded-lg bg-yellow-400 text-black text-sm whitespace-pre-wrap";
+        
+        bubbleDiv.textContent = text;
+        messageDiv.appendChild(bubbleDiv);
+        messagesContainer.appendChild(messageDiv);
+
+        // Auto scroll to bottom
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    // Show/Hide Typing Indicator
+    function showAITyping(state) {
+        const typingIndicator = document.getElementById("typingIndicator");
+        if (typingIndicator) {
+            typingIndicator.style.display = state ? "block" : "none";
+        }
+    }
+
+    // Send AI Message (Global function)
+    window.sendAIMessage = async function() {
+        const chatInput = document.getElementById("chatInput");
+        if (!chatInput) return;
+
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        // If ticket exists, use Socket.IO for real-time chat
+        if (activeTicketId && currentTicketRoom) {
+            // Send via Socket.IO
+            sendSocketMessage(message);
+            addAIMessage("customer", message);
+            chatInput.value = "";
+            return;
+        }
+
+        // Otherwise, use AI chat API (for initial ticket creation)
+        // Add customer message to chat
+        addAIMessage("customer", message);
+        chatInput.value = "";
+
+        // Show typing indicator
+        showAITyping(true);
+
+        try {
+            const response = await fetch(`${SUPPORT_API}/ai-chat`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${CUSTOMER_TOKEN || ""}`
+                },
+                body: JSON.stringify({
+                    message: message,
+                    order_id: activeOrder,
+                    ticket_id: activeTicketId,
+                    customer_id: CUSTOMER_ID
+                })
+            });
+
+            const data = await response.json();
+
+            // Hide typing indicator
+            showAITyping(false);
+
+            if (data.error) {
+                addAIMessage("ai", `Sorry, I encountered an error: ${data.error}`);
+                return;
+            }
+
+            // Add AI reply
+            if (data.reply) {
+                addAIMessage("ai", data.reply);
+            }
+
+            // Store ticket ID if created
+            if (data.ticket_id) {
+                activeTicketId = data.ticket_id;
+                
+                // Join Socket.IO room for this ticket
+                joinTicketRoom(data.ticket_id);
+                
+                // Show ticket created message
+                setTimeout(() => {
+                    addAIMessage("ai", `\n✅ Your support ticket has been created: ${data.ticket_id}\nAn agent will join this conversation shortly.`);
+                }, 500);
+                
+                // Refresh tickets list
+                if (typeof loadTickets === "function") {
+                    loadTickets();
+                }
+            }
+
+        } catch (error) {
+            console.error("Error sending AI message:", error);
+            showAITyping(false);
+            addAIMessage("ai", "Sorry, I'm having trouble connecting. Please try again.");
+        }
+    };
+
+    // Add typing indicator to chat input
+    const chatInput = document.getElementById("chatInput");
+    if (chatInput) {
+        chatInput.addEventListener('input', () => {
+            if (currentTicketRoom) {
+                handleTyping();
+            }
+        });
+    }
+
+    // ============================================
+    // SOCKET.IO TICKET ROOM FUNCTIONS
+    // ============================================
+
+    // Join ticket room
+    function joinTicketRoom(ticketId) {
+        if (!ticketId || !CUSTOMER_ID) return;
+        
+        currentTicketRoom = ticketId;
+        
+        socket.emit('join_ticket', {
+            ticket_id: ticketId,
+            user_type: 'customer',
+            user_id: CUSTOMER_ID
+        });
+        
+        console.log(`Joined ticket room: ${ticketId}`);
+    }
+
+    // Leave ticket room
+    function leaveTicketRoom() {
+        if (currentTicketRoom) {
+            socket.emit('leave_ticket', {
+                ticket_id: currentTicketRoom
+            });
+            currentTicketRoom = null;
+        }
+    }
+
+    // Send message via Socket.IO
+    function sendSocketMessage(message) {
+        if (!currentTicketRoom || !message.trim()) return;
+        
+        socket.emit('send_message', {
+            ticket_id: currentTicketRoom,
+            message: message,
+            sender: 'customer',
+            sender_id: CUSTOMER_ID,
+            sender_name: 'Customer'
+        });
+    }
+
+    // Handle typing indicator
+    function handleTyping() {
+        if (!currentTicketRoom) return;
+        
+        socket.emit('typing', {
+            ticket_id: currentTicketRoom,
+            user_type: 'customer',
+            user_id: CUSTOMER_ID
+        });
+        
+        // Clear previous timeout
+        if (typingTimeout) {
+            clearTimeout(typingTimeout);
+        }
+        
+        // Stop typing after 2 seconds of inactivity
+        typingTimeout = setTimeout(() => {
+            socket.emit('stop_typing', {
+                ticket_id: currentTicketRoom
+            });
+        }, 2000);
+    }
+
+    // Socket.IO event listeners
+    socket.on('receive_message', (data) => {
+        const senderType = data.sender === 'customer' ? 'customer' : 'ai';
+        addAIMessage(senderType, data.message);
+    });
+
+    socket.on('show_typing', (data) => {
+        if (data.user_type !== 'customer') {
+            showAITyping(true);
+        }
+    });
+
+    socket.on('hide_typing', () => {
+        showAITyping(false);
+    });
+
+    socket.on('sla_timer', (data) => {
+        startSLATimer(data.sla_due_at);
+    });
+
+    socket.on('ticket_escalated', (data) => {
+        addAIMessage('system', data.message || '⚠️ Ticket has been escalated to senior support');
+    });
+
+    socket.on('user_joined', (data) => {
+        if (data.user_type === 'agent') {
+            addAIMessage('system', `👤 Support agent joined the conversation`);
+        }
+    });
 
     // ============================================
     // START INITIALIZATION
