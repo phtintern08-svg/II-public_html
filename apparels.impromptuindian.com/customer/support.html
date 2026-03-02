@@ -12,6 +12,9 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
+  <!-- Socket.IO for Real-time Chat -->
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
   <!-- Custom CSS -->
   <link rel="stylesheet" href="css/common.css">
   <link rel="stylesheet" href="css/support.css">
@@ -53,27 +56,6 @@
 
         <!-- LEFT SIDE -->
         <div class="lg:col-span-1 space-y-4 sm:space-y-6 md:space-y-8">
-
-          <!-- Get Help -->
-          <div class="bg-[#111827] border border-gray-700 rounded-xl p-4 sm:p-5 md:p-6">
-            <div class="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-              <i data-lucide="life-buoy" class="w-5 h-5 sm:w-6 sm:h-6 text-blue-400"></i>
-              <h2 class="text-lg sm:text-xl font-bold">Get Help</h2>
-            </div>
-            <p class="opacity-60 mb-3 sm:mb-4 text-sm sm:text-base">For urgent issues or questions.</p>
-
-            <button
-              class="w-full mb-2 sm:mb-3 bg-[#FFCC00] hover:bg-yellow-400 text-black font-semibold py-2.5 sm:py-2 rounded-lg flex items-center justify-start gap-2 px-3 transition-colors text-sm sm:text-base">
-              <i data-lucide="mail" class="w-4 h-4"></i>
-              Email Us
-            </button>
-
-            <button
-              class="w-full bg-[#FFCC00] hover:bg-yellow-400 text-black font-semibold py-2.5 sm:py-2 rounded-lg flex items-center justify-start gap-2 px-3 transition-colors text-sm sm:text-base">
-              <i data-lucide="phone" class="w-4 h-4"></i>
-              Call Support
-            </button>
-          </div>
 
           <!-- SECTION 2: Smart Ticket Center -->
           <div class="bg-[#111827] border border-gray-700 rounded-xl p-4 sm:p-5 md:p-6">
@@ -128,12 +110,31 @@
                 <i data-lucide="x" class="w-5 h-5"></i>
               </button>
             </div>
-            <div class="mb-4 pb-4 border-b border-gray-700">
-              <p class="text-sm text-gray-400 mb-1">Ticket ID</p>
-              <p class="font-semibold" id="conversationTicketId">-</p>
+            <div class="mb-4 pb-4 border-b border-gray-700 space-y-2">
+              <div class="flex justify-between items-center">
+                <div>
+                  <p class="text-sm text-gray-400 mb-1">Ticket ID</p>
+                  <p class="font-semibold" id="conversationTicketId">-</p>
+                </div>
+                <div id="slaTimerContainer" class="hidden">
+                  <p class="text-xs text-gray-400 mb-1">Response Time</p>
+                  <p class="font-semibold text-yellow-400" id="slaTimer">-</p>
+                </div>
+              </div>
             </div>
-            <div id="chatMessages" class="h-80 overflow-y-auto space-y-3 mb-4 p-2 bg-gray-900/50 rounded-lg">
+            <div id="chatMessages" class="h-80 overflow-y-auto space-y-3 mb-2 p-2 bg-gray-900/50 rounded-lg">
               <div class="text-center text-gray-400 py-8">Loading messages...</div>
+            </div>
+            <!-- Typing Indicator -->
+            <div id="typingIndicator" class="hidden mb-2 px-2">
+              <div class="flex items-center gap-2 text-gray-400 text-sm">
+                <div class="flex gap-1">
+                  <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0s"></div>
+                  <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                  <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+                </div>
+                <span id="typingText">Support agent is typing...</span>
+              </div>
             </div>
             <div class="flex gap-2">
               <input id="chatInput"

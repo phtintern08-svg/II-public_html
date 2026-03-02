@@ -79,6 +79,7 @@ const sidebarHTML = `
 
     <a href="support.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
       <i data-lucide="life-buoy" class="w-5 h-5"></i> <span>Support</span>
+      <span id="supportBadge" class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full hidden">0</span>
     </a>
 
     <a href="settings.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
