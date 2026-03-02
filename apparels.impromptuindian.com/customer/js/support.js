@@ -1053,41 +1053,59 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentTicketRoom = null;
     // typingTimeout already declared above, don't redeclare
 
-    // Open AI Chat (Global function)
+    // Open AI Chat (Global function) - Flipkart-style guided support
     window.openSupportChat = function(orderId) {
         activeOrder = orderId;
         const chatModal = document.getElementById("supportChat");
         
-        if (chatModal) {
-            chatModal.classList.remove("hidden");
-            chatModal.classList.add("flex");
-            
-            // Clear previous messages
-            const messagesContainer = document.getElementById("chatMessages");
-            if (messagesContainer) {
-                messagesContainer.innerHTML = "";
-            }
-            
-            // Emit start_support event via Socket.IO (Flipkart-style guided flow)
-            if (socket && socket.connected) {
-                socket.emit("start_support", {
-                    order_id: orderId,
-                    customer_id: CUSTOMER_ID
+        if (!chatModal) {
+            console.error("Support chat modal not found");
+            return;
+        }
+        
+        // Open chat window first
+        chatModal.classList.remove("hidden");
+        chatModal.classList.add("flex");
+        
+        // Clear previous messages
+        const messagesContainer = document.getElementById("chatMessages");
+        if (messagesContainer) {
+            messagesContainer.innerHTML = '<div class="text-center py-4 text-gray-400 text-sm">Connecting to support...</div>';
+        }
+        
+        // Wait for socket connection, then emit start_support
+        if (socket && socket.connected) {
+            // Emit start_support event (Flipkart-style guided flow)
+            socket.emit("start_support", {
+                order_id: orderId,
+                customer_id: CUSTOMER_ID
+            });
+        } else {
+            // Wait for connection
+            if (socket) {
+                socket.once('connect', () => {
+                    socket.emit("start_support", {
+                        order_id: orderId,
+                        customer_id: CUSTOMER_ID
+                    });
                 });
             } else {
-                // Fallback: show welcome message if Socket.IO not connected
+                // Fallback: show welcome message if Socket.IO not available
+                if (messagesContainer) {
+                    messagesContainer.innerHTML = "";
+                }
                 aiWelcome();
             }
-            
-            // Focus input
-            const chatInput = document.getElementById("chatInput");
-            if (chatInput) {
-                setTimeout(() => chatInput.focus(), 100);
-            }
-            
-            // Reinitialize icons
-            if (window.lucide) lucide.createIcons();
         }
+        
+        // Focus input
+        const chatInput = document.getElementById("chatInput");
+        if (chatInput) {
+            setTimeout(() => chatInput.focus(), 100);
+        }
+        
+        // Reinitialize icons
+        if (window.lucide) lucide.createIcons();
     };
 
     // Select Issue (Global function for Flipkart-style buttons)
