@@ -246,11 +246,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
+            // ✅ Enterprise WebSocket connection
             socket = io("https://support.impromptuindian.com", {
-                transports: ["websocket", "polling"],
+                path: "/socket.io",
+                transports: ["websocket"],  // ✅ Use WebSocket (proxied through Apache)
                 reconnection: true,
                 reconnectionDelay: 1000,
-                reconnectionAttempts: 5
+                reconnectionAttempts: 5,
+                secure: true,  // ✅ Use secure WebSocket (WSS)
+                upgrade: true  // ✅ Allow WebSocket upgrade
             });
 
             socket.on("connect", () => {
@@ -1015,13 +1019,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Initialize Socket.IO connection
     // HARD-LOCK polling (Passenger doesn't support WebSocket upgrades)
-    socket = io(window.location.origin, {
+    // ✅ Enterprise WebSocket connection
+    // Connect to support domain (Apache will proxy to Socket.IO server on port 5001)
+    const socketUrl = "https://support.impromptuindian.com";
+    socket = io(socketUrl, {
         path: "/socket.io",
-        transports: ["polling"],  // FORCE polling only
-        upgrade: false,  // PREVENT WebSocket upgrade
+        transports: ["websocket"],  // ✅ Use WebSocket (proxied through Apache)
         reconnection: true,
         reconnectionDelay: 1000,
-        reconnectionAttempts: 5
+        reconnectionAttempts: 5,
+        secure: true,  // ✅ Use secure WebSocket (WSS)
+        upgrade: true  // ✅ Allow WebSocket upgrade
     });
 
     // Socket connection events
