@@ -246,14 +246,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            // ✅ Socket.IO connection - runs inside Passenger
+            // ✅ Socket.IO connection - Polling mode for cPanel/Passenger compatibility
+            // ⭐ FORCE POLLING: Passenger on shared hosting blocks WebSocket upgrades
             socket = io(window.location.origin, {
-                path: "/socket.io",
-                transports: ["websocket", "polling"],  // Try WebSocket first, fallback to polling
-                upgrade: true,  // ✅ Allow WebSocket upgrade
+                path: "/socket.io/",
+                transports: ["polling"],  // ⭐ FORCE POLLING ONLY (Passenger-compatible)
+                upgrade: false,  // ⭐ DISABLE WebSocket upgrade attempts
                 reconnection: true,
-                reconnectionDelay: 1000,
-                reconnectionAttempts: 5
+                reconnectionAttempts: 10,
+                reconnectionDelay: 2000
             });
 
             socket.on("connect", () => {
@@ -1018,16 +1019,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Initialize Socket.IO connection
     // HARD-LOCK polling (Passenger doesn't support WebSocket upgrades)
-    // ✅ Socket.IO connection - runs inside Passenger (no separate server needed)
-    // Connect to main domain - Socket.IO is integrated with Flask app
+    // ✅ Socket.IO connection - Polling mode for cPanel/Passenger compatibility
+    // ⭐ FORCE POLLING: Passenger on shared hosting blocks WebSocket upgrades
+    // Polling works perfectly for support chat (Zomato/Swiggy also use polling behind load balancers)
     const socketUrl = window.location.origin;  // Use same domain as the page
     socket = io(socketUrl, {
-        path: "/socket.io",
-        transports: ["websocket", "polling"],  // Try WebSocket first, fallback to polling
-        upgrade: true,  // ✅ Allow WebSocket upgrade
+        path: "/socket.io/",
+        transports: ["polling"],  // ⭐ FORCE POLLING ONLY (Passenger-compatible)
+        upgrade: false,  // ⭐ DISABLE WebSocket upgrade attempts
         reconnection: true,
-        reconnectionDelay: 1000,
-        reconnectionAttempts: 5
+        reconnectionAttempts: 10,
+        reconnectionDelay: 2000
     });
 
     // Socket connection events
