@@ -1014,11 +1014,13 @@ document.addEventListener("DOMContentLoaded", () => {
     // ============================================
 
     // Initialize Socket.IO connection
+    // Use polling as primary transport (Passenger doesn't support WebSocket upgrades)
     socket = io({
-        transports: ["websocket", "polling"],
+        transports: ["polling", "websocket"],  // Polling first for Passenger compatibility
         reconnection: true,
         reconnectionDelay: 1000,
-        reconnectionAttempts: 5
+        reconnectionAttempts: 5,
+        upgrade: false  // Disable automatic upgrade to WebSocket
     });
 
     // Socket connection events
