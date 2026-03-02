@@ -246,10 +246,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            // ✅ Enterprise WebSocket connection
-            socket = io("https://support.impromptuindian.com", {
+            // ✅ Socket.IO connection - runs inside Passenger
+            socket = io(window.location.origin, {
                 path: "/socket.io",
-                transports: ["websocket"],  // ✅ Use WebSocket only (proxied through Apache)
+                transports: ["websocket", "polling"],  // Try WebSocket first, fallback to polling
                 upgrade: true,  // ✅ Allow WebSocket upgrade
                 reconnection: true,
                 reconnectionDelay: 1000,
@@ -1018,12 +1018,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Initialize Socket.IO connection
     // HARD-LOCK polling (Passenger doesn't support WebSocket upgrades)
-    // ✅ Enterprise WebSocket connection
-    // Connect to support domain (Apache will proxy to Socket.IO server on port 5001)
-    const socketUrl = "https://support.impromptuindian.com";
+    // ✅ Socket.IO connection - runs inside Passenger (no separate server needed)
+    // Connect to main domain - Socket.IO is integrated with Flask app
+    const socketUrl = window.location.origin;  // Use same domain as the page
     socket = io(socketUrl, {
         path: "/socket.io",
-        transports: ["websocket"],  // ✅ Use WebSocket only (proxied through Apache)
+        transports: ["websocket", "polling"],  // Try WebSocket first, fallback to polling
         upgrade: true,  // ✅ Allow WebSocket upgrade
         reconnection: true,
         reconnectionDelay: 1000,
