@@ -506,11 +506,11 @@ body {
    ======================================== */
 .vendor-requests-table {
     width: 100%;
-    min-width: 870px; /* Sum of all column widths: 250+180+150+140+150 = 870px */
-    border-collapse: separate;
+    min-width: 800px;
+    border-collapse: collapse; /* Changed from separate to collapse for better alignment */
     border-spacing: 0;
     font-size: 0.875rem;
-    table-layout: fixed; /* Ensures consistent column widths based on first row */
+    table-layout: fixed; /* Ensures consistent column widths */
 }
 
 .vendor-requests-table thead {
@@ -530,15 +530,6 @@ body {
     letter-spacing: 0.08em;
     white-space: nowrap;
     vertical-align: middle;
-    overflow: visible;
-    position: relative; /* Ensure proper positioning */
-}
-
-/* Ensure all table cells maintain their structure */
-.vendor-requests-table thead th,
-.vendor-requests-table tbody td {
-    display: table-cell !important; /* Force table-cell display */
-    box-sizing: border-box;
 }
 
 .vendor-requests-table thead th:first-child {
@@ -564,40 +555,65 @@ body {
     color: #64748b;
 }
 
-/* Column-specific alignment - Use explicit widths for table-layout: fixed */
+/* Explicit column widths using nth-child - ensures columns align correctly */
+.vendor-requests-table thead th:nth-child(1),
+.vendor-requests-table tbody td:nth-child(1) {
+    width: 25%;
+    text-align: left;
+}
+
+.vendor-requests-table thead th:nth-child(2),
+.vendor-requests-table tbody td:nth-child(2) {
+    width: 20%;
+    text-align: left;
+}
+
+.vendor-requests-table thead th:nth-child(3),
+.vendor-requests-table tbody td:nth-child(3) {
+    width: 15%;
+    text-align: left;
+}
+
+.vendor-requests-table thead th:nth-child(4),
+.vendor-requests-table tbody td:nth-child(4) {
+    width: 15%;
+    text-align: center;
+}
+
+.vendor-requests-table thead th:nth-child(5),
+.vendor-requests-table tbody td:nth-child(5) {
+    width: 25%;
+    text-align: right;
+}
+
+/* Legacy class support (for backward compatibility) */
 .th-vendor,
 .vendor-requests-table td.td-vendor {
     text-align: left;
-    width: 250px; /* Fixed pixel width for vendor name column */
 }
 
 .th-business,
 .vendor-requests-table td.td-business {
     text-align: left;
-    width: 180px; /* Fixed pixel width for business type column */
 }
 
 .th-date,
 .vendor-requests-table td.td-date {
     text-align: left;
-    width: 150px; /* Fixed pixel width for date column */
 }
 
 .th-status,
 .vendor-requests-table td.td-status {
     text-align: center;
-    width: 140px; /* Fixed pixel width for status column */
 }
 
-.th-status .th-content,
-.vendor-requests-table td.td-status {
+.th-status .th-content {
     justify-content: center;
 }
 
 .th-actions,
 .vendor-requests-table td.td-actions {
     text-align: right;
-    width: 150px; /* Fixed pixel width for actions column */
 }
 
 .th-actions .th-content {
@@ -618,14 +634,18 @@ body {
     border-bottom: none;
 }
 
+.vendor-requests-table thead th,
 .vendor-requests-table tbody td {
     padding: 1rem 1.25rem;
     vertical-align: middle;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+.vendor-requests-table tbody td {
     color: #cbd5e1;
     font-size: 0.875rem;
-    display: table-cell !important; /* Force table-cell display */
-    box-sizing: border-box;
-    position: relative;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Prevent text overflow in specific columns */
@@ -645,7 +665,7 @@ body {
 }
 
 /* Vendor name cell - avatar + name */
-.vendor-requests-table td.td-vendor {
+.vendor-requests-table tbody td:nth-child(1) {
     overflow: visible; /* Allow avatar to show */
 }
 
@@ -661,6 +681,8 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    flex: 1;
+    min-width: 0;
 }
 
 .vendor-requests-table td.td-vendor .vendor-avatar {
