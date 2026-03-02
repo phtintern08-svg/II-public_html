@@ -241,25 +241,44 @@ function renderRequests() {
 
     // ── Desktop table row ──────────────────────────────────────────────
     const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="td-vendor">
-        <div class="vendor-cell-content">
-          <div class="vendor-avatar">${vendorInitial}</div>
-          <span class="vendor-name">${vendorName}</span>
-        </div>
-      </td>
-      <td class="td-business">${businessType}</td>
-      <td class="td-date">${submittedOn}</td>
-      <td class="td-status">
-        <span class="doc-status ${statusClass}">${statusLabel}</span>
-      </td>
-      <td class="td-actions">
-        <button class="btn-primary action-btn" onclick="openVendorModal(${r.id})" title="View Details">
-          <i data-lucide="eye" class="w-4 h-4"></i>
-          <span class="hidden sm:inline">View</span>
-        </button>
-      </td>
+    // Ensure proper cell order matching table headers
+    const vendorCell = document.createElement('td');
+    vendorCell.className = 'td-vendor';
+    vendorCell.innerHTML = `
+      <div class="vendor-cell-content">
+        <div class="vendor-avatar">${vendorInitial}</div>
+        <span class="vendor-name">${vendorName}</span>
+      </div>
     `;
+    
+    const businessCell = document.createElement('td');
+    businessCell.className = 'td-business';
+    businessCell.textContent = businessType;
+    
+    const dateCell = document.createElement('td');
+    dateCell.className = 'td-date';
+    dateCell.textContent = submittedOn;
+    
+    const statusCell = document.createElement('td');
+    statusCell.className = 'td-status';
+    statusCell.innerHTML = `<span class="doc-status ${statusClass}">${statusLabel}</span>`;
+    
+    const actionsCell = document.createElement('td');
+    actionsCell.className = 'td-actions';
+    actionsCell.innerHTML = `
+      <button class="btn-primary action-btn" onclick="openVendorModal(${r.id})" title="View Details">
+        <i data-lucide="eye" class="w-4 h-4"></i>
+        <span class="hidden sm:inline">View</span>
+      </button>
+    `;
+    
+    // Append cells in correct order
+    tr.appendChild(vendorCell);
+    tr.appendChild(businessCell);
+    tr.appendChild(dateCell);
+    tr.appendChild(statusCell);
+    tr.appendChild(actionsCell);
+    
     tbody.appendChild(tr);
 
     // ── Mobile card ────────────────────────────────────────────────────

@@ -506,11 +506,11 @@ body {
    ======================================== */
 .vendor-requests-table {
     width: 100%;
-    min-width: 800px;
+    min-width: 870px; /* Sum of all column widths: 250+180+150+140+150 = 870px */
     border-collapse: separate;
     border-spacing: 0;
     font-size: 0.875rem;
-    table-layout: fixed; /* Ensures consistent column widths */
+    table-layout: fixed; /* Ensures consistent column widths based on first row */
 }
 
 .vendor-requests-table thead {
@@ -531,6 +531,14 @@ body {
     white-space: nowrap;
     vertical-align: middle;
     overflow: visible;
+    position: relative; /* Ensure proper positioning */
+}
+
+/* Ensure all table cells maintain their structure */
+.vendor-requests-table thead th,
+.vendor-requests-table tbody td {
+    display: table-cell !important; /* Force table-cell display */
+    box-sizing: border-box;
 }
 
 .vendor-requests-table thead th:first-child {
@@ -556,33 +564,29 @@ body {
     color: #64748b;
 }
 
-/* Column-specific alignment */
+/* Column-specific alignment - Use explicit widths for table-layout: fixed */
 .th-vendor,
 .vendor-requests-table td.td-vendor {
     text-align: left;
-    width: 25%; /* Fixed width for vendor name column */
-    min-width: 200px;
+    width: 250px; /* Fixed pixel width for vendor name column */
 }
 
 .th-business,
 .vendor-requests-table td.td-business {
     text-align: left;
-    width: 20%; /* Fixed width for business type column */
-    min-width: 160px;
+    width: 180px; /* Fixed pixel width for business type column */
 }
 
 .th-date,
 .vendor-requests-table td.td-date {
     text-align: left;
-    width: 15%; /* Fixed width for date column */
-    min-width: 145px;
+    width: 150px; /* Fixed pixel width for date column */
 }
 
 .th-status,
 .vendor-requests-table td.td-status {
     text-align: center;
-    width: 15%; /* Fixed width for status column */
-    min-width: 120px;
+    width: 140px; /* Fixed pixel width for status column */
 }
 
 .th-status .th-content,
@@ -593,8 +597,7 @@ body {
 .th-actions,
 .vendor-requests-table td.td-actions {
     text-align: right;
-    width: 25%; /* Fixed width for actions column */
-    min-width: 120px;
+    width: 150px; /* Fixed pixel width for actions column */
 }
 
 .th-actions .th-content {
@@ -620,6 +623,9 @@ body {
     vertical-align: middle;
     color: #cbd5e1;
     font-size: 0.875rem;
+    display: table-cell !important; /* Force table-cell display */
+    box-sizing: border-box;
+    position: relative;
 }
 
 /* Prevent text overflow in specific columns */
