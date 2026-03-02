@@ -249,12 +249,11 @@ document.addEventListener("DOMContentLoaded", () => {
             // ✅ Enterprise WebSocket connection
             socket = io("https://support.impromptuindian.com", {
                 path: "/socket.io",
-                transports: ["websocket"],  // ✅ Use WebSocket (proxied through Apache)
+                transports: ["websocket"],  // ✅ Use WebSocket only (proxied through Apache)
+                upgrade: true,  // ✅ Allow WebSocket upgrade
                 reconnection: true,
                 reconnectionDelay: 1000,
-                reconnectionAttempts: 5,
-                secure: true,  // ✅ Use secure WebSocket (WSS)
-                upgrade: true  // ✅ Allow WebSocket upgrade
+                reconnectionAttempts: 5
             });
 
             socket.on("connect", () => {
@@ -1024,12 +1023,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const socketUrl = "https://support.impromptuindian.com";
     socket = io(socketUrl, {
         path: "/socket.io",
-        transports: ["websocket"],  // ✅ Use WebSocket (proxied through Apache)
+        transports: ["websocket"],  // ✅ Use WebSocket only (proxied through Apache)
+        upgrade: true,  // ✅ Allow WebSocket upgrade
         reconnection: true,
         reconnectionDelay: 1000,
-        reconnectionAttempts: 5,
-        secure: true,  // ✅ Use secure WebSocket (WSS)
-        upgrade: true  // ✅ Allow WebSocket upgrade
+        reconnectionAttempts: 5
     });
 
     // Socket connection events
