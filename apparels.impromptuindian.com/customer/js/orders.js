@@ -68,6 +68,12 @@ async function fetchOrders() {
         if (response.ok) {
             const data = await response.json();
             allOrders = data.orders || data; // Handle both formats
+            
+            // Debug: Log status values to verify API returns status
+            if (allOrders.length > 0) {
+                console.log('Order statuses from API:', allOrders.map(o => ({ id: o.id, status: o.status })));
+            }
+            
             renderOrders(allOrders);
         } else {
             console.error('Failed to fetch orders');
@@ -180,11 +186,15 @@ function renderOrders(data) {
             ? `₹${sampleCost.toLocaleString()}`
             : '—';
 
-        // Status Badge Class
-        const normalizedStatus = (order.status || 'pending').toString();
+        // Status Badge Class - Use status directly from orders table
+        // Ensure we're using the actual status from the database
+        const orderStatus = order.status || order.order_status || 'pending';
+        const normalizedStatus = orderStatus.toString().toLowerCase();
+        
         // Fallback to a generic style if status not found in map
         const statusClass = badgeVariant[normalizedStatus] || 'bg-gray-500/10 text-gray-400 border border-gray-500/20 px-2 py-1 rounded text-xs';
 
+        // Format status label for display
         const statusLabel = normalizedStatus.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
         // 1. DESKTOP ROW
@@ -321,8 +331,41 @@ function updateCartBadge() {
     badge.classList.toggle("hidden", total === 0);
 }
 
+/* Auto-refresh orders to update status */
+let ordersRefreshInterval = null;
+
+function startOrdersAutoRefresh() {
+    // Clear existing interval if any
+    if (ordersRefreshInterval) {
+        clearInterval(ordersRefreshInterval);
+    }
+    
+    // Refresh orders every 30 seconds to update status
+    ordersRefreshInterval = setInterval(() => {
+        fetchOrders();
+    }, 30000); // 30 seconds
+}
+
+function stopOrdersAutoRefresh() {
+    if (ordersRefreshInterval) {
+        clearInterval(ordersRefreshInterval);
+        ordersRefreshInterval = null;
+    }
+}
+
 /* Initialize */
 document.addEventListener('DOMContentLoaded', () => {
     fetchOrders();
     updateCartBadge();
+    startOrdersAutoRefresh();
+    
+    // Stop auto-refresh when page is hidden (save resources)
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            stopOrdersAutoRefresh();
+        } else {
+            startOrdersAutoRefresh();
+            fetchOrders(); // Refresh immediately when page becomes visible
+        }
+    });
 });

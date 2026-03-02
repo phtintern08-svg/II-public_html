@@ -1014,13 +1014,14 @@ document.addEventListener("DOMContentLoaded", () => {
     // ============================================
 
     // Initialize Socket.IO connection
-    // Use polling as primary transport (Passenger doesn't support WebSocket upgrades)
-    socket = io({
-        transports: ["polling", "websocket"],  // Polling first for Passenger compatibility
+    // HARD-LOCK polling (Passenger doesn't support WebSocket upgrades)
+    socket = io(window.location.origin, {
+        path: "/socket.io",
+        transports: ["polling"],  // FORCE polling only
+        upgrade: false,  // PREVENT WebSocket upgrade
         reconnection: true,
         reconnectionDelay: 1000,
-        reconnectionAttempts: 5,
-        upgrade: false  // Disable automatic upgrade to WebSocket
+        reconnectionAttempts: 5
     });
 
     // Socket connection events
@@ -1067,8 +1068,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 messagesContainer.innerHTML = "";
             }
             
-            // Show welcome message
-            aiWelcome();
+            // Emit start_support event via Socket.IO (Flipkart-style guided flow)
+            if (socket && socket.connected) {
+                socket.emit("start_support", {
+                    order_id: orderId,
+                    customer_id: CUSTOMER_ID
+                });
+            } else {
+                // Fallback: show welcome message if Socket.IO not connected
+                aiWelcome();
+            }
             
             // Focus input
             const chatInput = document.getElementById("chatInput");
@@ -1079,6 +1088,25 @@ document.addEventListener("DOMContentLoaded", () => {
             // Reinitialize icons
             if (window.lucide) lucide.createIcons();
         }
+    };
+
+    // Select Issue (Global function for Flipkart-style buttons)
+    window.selectIssue = function(issueKey, ticketId) {
+        if (!socket || !socket.connected) {
+            alert("Connection lost. Please refresh the page.");
+            return;
+        }
+        
+        // Emit issue_selected event
+        socket.emit("issue_selected", {
+            issue_key: issueKey,
+            ticket_id: ticketId || currentTicketRoom,
+            order_id: activeOrder
+        });
+        
+        // Remove the buttons (they're replaced by AI response)
+        const buttons = document.querySelectorAll('button[onclick*="selectIssue"]');
+        buttons.forEach(btn => btn.remove());
     };
 
     // Close AI Chat (Global function)
@@ -1326,6 +1354,55 @@ document.addEventListener("DOMContentLoaded", () => {
     socket.on('user_joined', (data) => {
         if (data.user_type === 'agent') {
             addAIMessage('system', `👤 Support agent joined the conversation`);
+        }
+    });
+
+    socket.on('ticket_created', (data) => {
+        // Store ticket ID when created via Socket.IO
+        if (data.ticket_id) {
+            activeTicketId = data.ticket_id;
+            currentTicketRoom = data.ticket_id_raw || data.ticket_id;
+            
+            // Refresh tickets list
+            if (typeof loadTickets === "function") {
+                loadTickets();
+            }
+        }
+    });
+
+    // Flipkart-style guided support events
+    socket.on('ai_message', (data) => {
+        // Display AI message
+        if (data.text) {
+            addAIMessage('ai', data.text);
+        }
+    });
+
+    socket.on('ai_options', (data) => {
+        // Display issue option buttons (Flipkart-style)
+        if (data.options && Array.isArray(data.options)) {
+            const messagesContainer = document.getElementById("chatMessages");
+            if (messagesContainer) {
+                const optionsHtml = data.options.map(opt => `
+                    <button onclick="selectIssue('${opt.key}', '${data.ticket_id || activeTicketId}')"
+                        class="w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded-lg mb-2 transition-colors">
+                        ${opt.title}
+                    </button>
+                `).join('');
+                
+                const optionsContainer = document.createElement('div');
+                optionsContainer.className = 'mt-3 space-y-2';
+                optionsContainer.innerHTML = optionsHtml;
+                messagesContainer.appendChild(optionsContainer);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }
+    });
+
+    socket.on('agent_joined', (data) => {
+        // Agent has joined the conversation
+        if (data.message) {
+            addAIMessage('system', data.message);
         }
     });
 
