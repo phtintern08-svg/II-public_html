@@ -72,26 +72,14 @@ function calculateSummary() {
     const pending = submissions.filter(s => (s.status || 'pending') === 'pending').length;
     const approved = submissions.filter(s => s.status === 'approved').length;
     
-    // Calculate average commission rate
-    const pendingSubs = submissions.filter(s => (s.status || 'pending') === 'pending');
-    let avgCommission = 0;
-    if (pendingSubs.length > 0) {
-        const totalCommission = pendingSubs.reduce((sum, s) => {
-            return sum + (parseFloat(s.proposed_commission_rate) || 0);
-        }, 0);
-        avgCommission = totalCommission / pendingSubs.length;
-    }
-    
     // Animate numbers
     const totalEl = document.querySelector('#total-submissions-count .summary-number');
     const pendingEl = document.querySelector('#pending-submissions-count .summary-number');
     const approvedEl = document.querySelector('#approved-submissions-count .summary-number');
-    const avgCommissionEl = document.querySelector('#avg-commission-rate .summary-number');
     
     if (totalEl) animateNumber(totalEl, total);
     if (pendingEl) animateNumber(pendingEl, pending);
     if (approvedEl) animateNumber(approvedEl, approved);
-    if (avgCommissionEl) animateDecimal(avgCommissionEl, avgCommission);
 }
 
 async function fetchQuotations() {
@@ -234,7 +222,6 @@ function renderQuotations() {
                     <div class="q-date">
                         <i data-lucide="calendar" class="w-3 h-3"></i>
                         ${sub.submitted_at ? new Date(sub.submitted_at).toLocaleDateString() : 'N/A'}
-                        <span class="q-commission-badge">${sub.proposed_commission_rate || 0}% Comm.</span>
                     </div>
                 </div>
             </div>
@@ -320,7 +307,6 @@ function openQuotationModal(id) {
 
     document.getElementById('modal-vendor-name').textContent = sub.vendor_name || 'Unknown Vendor';
     document.getElementById('modal-filename').textContent = sub.filename || 'No file';
-    document.getElementById('modal-commission').value = sub.proposed_commission_rate != null ? sub.proposed_commission_rate : '—';
     document.getElementById('modal-remarks').value = '';
 
     // Set download link
@@ -347,13 +333,6 @@ function closeQuotationModal() {
 
 async function approveQuotation() {
     if (!currentSubmissionId) return;
-
-    const sub = submissions.find(s => s.id === currentSubmissionId);
-    const commission = sub?.proposed_commission_rate;
-    if (commission == null || parseFloat(commission) < 0) {
-        showToast('Invalid commission rate from vendor', 'error');
-        return;
-    }
 
     try {
         const response = await ImpromptuIndianApi.fetch(`/api/admin/quotation-submissions/${currentSubmissionId}/approve`, {

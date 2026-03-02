@@ -747,7 +747,6 @@ if (quotationDropzone) {
 ---------------------------*/
 async function submitQuotation() {
     const file = quotationInput.files[0];
-    const commission = document.getElementById('quotation-commission').value;
 
     // Client-side validation
     if (!file) {
@@ -770,29 +769,12 @@ async function submitQuotation() {
         showToast('File size must be under 10MB', 'error');
         return;
     }
-    
-    if (!commission || commission.trim() === '') {
-        showToast('Enter commission rate', 'error');
-        return;
-    }
-    
-    const commissionNum = parseFloat(commission);
-    if (isNaN(commissionNum)) {
-        showToast('Commission rate must be a valid number', 'error');
-        return;
-    }
-    
-    if (commissionNum < 15) {
-        showToast('Minimum commission is 15%', 'error');
-        return;
-    }
 
     // ✅ FIX: Removed vendor_id from formData - backend uses request.user_id from JWT token
     // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
     
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('commission_rate', commissionNum.toString()); // Ensure it's a string representation of number
 
     try {
         const btn = document.querySelector('button[onclick="submitQuotation()"]');

@@ -1327,32 +1327,15 @@ async function selectAddressType(addressData) {
     const hasWork = !!AddressState.data.work;
     const hasOther = !!AddressState.data.other;
     
-    // Count how many "other" addresses exist
-    const otherAddresses = Object.keys(AddressState.data).filter(key => 
-      key.startsWith('other') && AddressState.data[key]
-    );
-    const otherCount = otherAddresses.length;
-    
-    // If all three basic types are filled, offer other1, other2, etc.
+    // If all three basic types are filled, show error message
     if (hasHome && hasWork && hasOther) {
-      const nextOtherNum = otherCount + 1;
-      const options = [
-        { value: `other${nextOtherNum}`, label: `Other ${nextOtherNum}` }
-      ];
-      
-      // Show custom dialog
-      const userChoice = confirm(
-        `All primary address types (Home, Work, Other) are filled.\n\n` +
-        `Would you like to save this as "Other ${nextOtherNum}"?\n\n` +
-        `Click OK to save as "Other ${nextOtherNum}" or Cancel to choose a different type.`
+      // Show alert that all address types are filled
+      showAlert(
+        "Address Limit Reached",
+        "You have already saved addresses for Home, Work, and Other. Please update an existing address or delete one to add a new address.",
+        "warning"
       );
-      
-      if (userChoice) {
-        resolve(`other${nextOtherNum}`);
-      } else {
-        // Let user manually select
-        resolve(null);
-      }
+      resolve(null);
       return;
     }
     
@@ -1383,7 +1366,7 @@ async function selectAddressType(addressData) {
     if (!hasHome) resolve('home');
     else if (!hasWork) resolve('work');
     else if (!hasOther) resolve('other');
-    else resolve('other1');
+    else resolve(null); // All three are filled
   });
 }
 
@@ -1689,10 +1672,12 @@ async function loadAllAddresses() {
       const addresses = normalizeAddressResponse(raw);
 
       // Handle empty array or null response gracefully
+      // Only load valid address types: home, work, other
+      const validTypes = ['home', 'work', 'other'];
       if (addresses.length > 0) {
         addresses.forEach((addr) => {
-          if (addr && addr.address_type) {
-            AddressState.data[addr.address_type] = addr;
+          if (addr && addr.address_type && validTypes.includes(addr.address_type.toLowerCase())) {
+            AddressState.data[addr.address_type.toLowerCase()] = addr;
           }
         });
       }
