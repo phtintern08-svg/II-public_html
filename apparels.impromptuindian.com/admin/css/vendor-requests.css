@@ -510,6 +510,7 @@ body {
     border-collapse: separate;
     border-spacing: 0;
     font-size: 0.875rem;
+    table-layout: fixed; /* Ensures consistent column widths */
 }
 
 .vendor-requests-table thead {
@@ -559,24 +560,28 @@ body {
 .th-vendor,
 .vendor-requests-table td.td-vendor {
     text-align: left;
+    width: 25%; /* Fixed width for vendor name column */
     min-width: 200px;
 }
 
 .th-business,
 .vendor-requests-table td.td-business {
     text-align: left;
+    width: 20%; /* Fixed width for business type column */
     min-width: 160px;
 }
 
 .th-date,
 .vendor-requests-table td.td-date {
     text-align: left;
+    width: 15%; /* Fixed width for date column */
     min-width: 145px;
 }
 
 .th-status,
 .vendor-requests-table td.td-status {
     text-align: center;
+    width: 15%; /* Fixed width for status column */
     min-width: 120px;
 }
 
@@ -588,6 +593,7 @@ body {
 .th-actions,
 .vendor-requests-table td.td-actions {
     text-align: right;
+    width: 25%; /* Fixed width for actions column */
     min-width: 120px;
 }
 
@@ -616,6 +622,14 @@ body {
     font-size: 0.875rem;
 }
 
+/* Prevent text overflow in specific columns */
+.vendor-requests-table tbody td.td-business,
+.vendor-requests-table tbody td.td-date {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .vendor-requests-table tbody td:first-child {
     padding-left: 1.5rem;
 }
@@ -625,11 +639,22 @@ body {
 }
 
 /* Vendor name cell - avatar + name */
+.vendor-requests-table td.td-vendor {
+    overflow: visible; /* Allow avatar to show */
+}
+
 .vendor-requests-table td.td-vendor .vendor-cell-content {
     display: flex;
     align-items: center;
     gap: 0.75rem;
     min-width: 0;
+    overflow: hidden;
+}
+
+.vendor-requests-table td.td-vendor .vendor-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .vendor-requests-table td.td-vendor .vendor-avatar {
