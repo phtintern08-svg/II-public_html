@@ -234,50 +234,37 @@ function renderRequests() {
     const statusClass = hasDocs ? status : 'rejected';
     const statusLabel = (statusDisplay.charAt(0).toUpperCase() + statusDisplay.slice(1).toLowerCase()).replace(/_/g, ' ');
 
-    const vendorName = r.name || 'N/A';
+    // Extract vendor name - ensure we get the correct value
+    const vendorName = (r.name && r.name.trim()) || (r.vendor_name && r.vendor_name.trim()) || (r.username && r.username.trim()) || (r.business_name && r.business_name.trim()) || 'N/A';
     const vendorInitial = vendorName !== 'N/A' ? vendorName.charAt(0).toUpperCase() : '?';
-    const businessType = r.businessType || 'N/A';
+    const businessType = (r.businessType && r.businessType.trim()) || (r.business_type && r.business_type.trim()) || 'N/A';
     const submittedOn = r.submittedOn || r.submitted || 'N/A';
+    
+    // Debug log to verify data
+    console.log('Rendering row:', { id: r.id, vendorName, businessType, submittedOn, status: statusLabel });
 
     // ── Desktop table row ──────────────────────────────────────────────
+    // Use innerHTML to ensure proper cell order and structure
     const tr = document.createElement('tr');
-    // Ensure proper cell order matching table headers
-    const vendorCell = document.createElement('td');
-    vendorCell.className = 'td-vendor';
-    vendorCell.innerHTML = `
-      <div class="vendor-cell-content">
-        <div class="vendor-avatar">${vendorInitial}</div>
-        <span class="vendor-name">${vendorName}</span>
-      </div>
+    tr.innerHTML = `
+      <td class="td-vendor">
+        <div class="vendor-cell-content">
+          <div class="vendor-avatar">${vendorInitial}</div>
+          <span class="vendor-name">${vendorName}</span>
+        </div>
+      </td>
+      <td class="td-business">${businessType}</td>
+      <td class="td-date">${submittedOn}</td>
+      <td class="td-status">
+        <span class="doc-status ${statusClass}">${statusLabel}</span>
+      </td>
+      <td class="td-actions">
+        <button class="btn-primary action-btn" onclick="openVendorModal(${r.id})" title="View Details">
+          <i data-lucide="eye" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">View</span>
+        </button>
+      </td>
     `;
-    
-    const businessCell = document.createElement('td');
-    businessCell.className = 'td-business';
-    businessCell.textContent = businessType;
-    
-    const dateCell = document.createElement('td');
-    dateCell.className = 'td-date';
-    dateCell.textContent = submittedOn;
-    
-    const statusCell = document.createElement('td');
-    statusCell.className = 'td-status';
-    statusCell.innerHTML = `<span class="doc-status ${statusClass}">${statusLabel}</span>`;
-    
-    const actionsCell = document.createElement('td');
-    actionsCell.className = 'td-actions';
-    actionsCell.innerHTML = `
-      <button class="btn-primary action-btn" onclick="openVendorModal(${r.id})" title="View Details">
-        <i data-lucide="eye" class="w-4 h-4"></i>
-        <span class="hidden sm:inline">View</span>
-      </button>
-    `;
-    
-    // Append cells in correct order
-    tr.appendChild(vendorCell);
-    tr.appendChild(businessCell);
-    tr.appendChild(dateCell);
-    tr.appendChild(statusCell);
-    tr.appendChild(actionsCell);
     
     tbody.appendChild(tr);
 

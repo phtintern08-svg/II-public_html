@@ -644,8 +644,6 @@ body {
 .vendor-requests-table tbody td {
     color: #cbd5e1;
     font-size: 0.875rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 /* Prevent text overflow in specific columns */
@@ -656,7 +654,10 @@ body {
     white-space: nowrap;
 }
 
-.vendor-requests-table tbody td:first-child {
+/* Vendor name column - allow content to display */
+.vendor-requests-table tbody td:first-child,
+.vendor-requests-table tbody td.td-vendor {
+    overflow: visible;
     padding-left: 1.5rem;
 }
 
@@ -675,14 +676,6 @@ body {
     gap: 0.75rem;
     min-width: 0;
     overflow: hidden;
-}
-
-.vendor-requests-table td.td-vendor .vendor-name {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    flex: 1;
-    min-width: 0;
 }
 
 .vendor-requests-table td.td-vendor .vendor-avatar {
@@ -706,6 +699,8 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    flex: 1;
+    min-width: 0;
 }
 
 /* Business type & date - subtle styling */

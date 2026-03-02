@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Support Ticket – ImpromptuIndian</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/support-ticket.css">
+  <link rel="shortcut icon" href="../images/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+</head>
+
+<body class="text-white">
+
+  <div class="flex h-screen overflow-hidden">
+
+    <!-- SIDEBAR CONTAINER -->
+    <div id="sidebar-container"></div>
+
+    <!-- Sidebar Script -->
+    <script src="js/sidebar.js"></script>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 overflow-y-auto p-4 pt-20 sm:p-6 md:p-8 lg:p-10 md:pt-10">
+
+      <!-- Header -->
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h1 class="text-3xl sm:text-3xl md:text-4xl font-bold">Support Ticket</h1>
+          <p class="opacity-70 mt-1 text-sm sm:text-base md:text-xl" id="ticket-id-display">Loading...</p>
+        </div>
+        <button onclick="window.location.href='support.html'" 
+          class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg flex items-center gap-2">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Back</span>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
+
+        <!-- LEFT SIDE: Ticket Info -->
+        <div class="lg:col-span-1 space-y-4 sm:space-y-6">
+
+          <!-- Ticket Info Card -->
+          <div class="bg-[#111827] border border-gray-700 rounded-xl p-4 sm:p-5 md:p-6">
+            <h2 class="text-lg sm:text-xl font-bold mb-4">Ticket Information</h2>
+            <div class="space-y-3 text-sm sm:text-base">
+              <div>
+                <p class="text-gray-400 mb-1">Ticket ID</p>
+                <p class="font-semibold" id="info-ticket-id">-</p>
+              </div>
+              <div>
+                <p class="text-gray-400 mb-1">Category</p>
+                <p class="font-semibold" id="info-category">-</p>
+              </div>
+              <div>
+                <p class="text-gray-400 mb-1">Subject</p>
+                <p class="font-semibold" id="info-subject">-</p>
+              </div>
+              <div>
+                <p class="text-gray-400 mb-1">Status</p>
+                <p id="info-status">-</p>
+              </div>
+              <div>
+                <p class="text-gray-400 mb-1">Created</p>
+                <p class="font-semibold" id="info-created">-</p>
+              </div>
+              <div>
+                <p class="text-gray-400 mb-1">Last Updated</p>
+                <p class="font-semibold" id="info-updated">-</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Issue Description Card -->
+          <div class="bg-[#111827] border border-gray-700 rounded-xl p-4 sm:p-5 md:p-6">
+            <h2 class="text-lg sm:text-xl font-bold mb-4">Issue Description</h2>
+            <p class="text-gray-300" id="issue-description">-</p>
+          </div>
+
+        </div>
+
+        <!-- RIGHT SIDE: Chat Window -->
+        <div class="lg:col-span-2">
+          <div class="bg-[#111827] border border-gray-700 rounded-xl flex flex-col h-[calc(100vh-12rem)]">
+            
+            <!-- Chat Header -->
+            <div class="p-4 sm:p-5 border-b border-gray-700">
+              <h2 class="text-lg sm:text-xl font-bold">Conversation</h2>
+            </div>
+
+            <!-- Chat Messages -->
+            <div class="flex-1 overflow-y-auto p-4 sm:p-6" id="chat-messages">
+              <div class="text-center text-gray-400 py-8">Loading messages...</div>
+            </div>
+
+            <!-- Chat Input -->
+            <div class="p-4 sm:p-5 border-t border-gray-700">
+              <div class="flex gap-2 mb-2">
+                <input type="text" 
+                  id="chat-input" 
+                  placeholder="Type your message..." 
+                  class="flex-1 bg-gray-800 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  onkeypress="if(event.key === 'Enter') sendMessage()" />
+                <button id="send-message-btn" 
+                  class="bg-yellow-400 text-black px-4 py-3 rounded-lg font-semibold hover:bg-yellow-500 transition-colors">
+                  <i data-lucide="send" class="w-5 h-5"></i>
+                </button>
+              </div>
+              <p class="text-xs text-gray-500 mt-2">Press Enter to send</p>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- Support Ticket Script -->
+  <script src="js/support-ticket.js"></script>
+
+</body>
+
+</html>
