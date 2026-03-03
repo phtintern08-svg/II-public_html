@@ -246,11 +246,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            // ✅ Socket.IO connection - Via Apache reverse proxy (port 443)
+            // ✅ Socket.IO connection - Same domain as page (CRITICAL for WebSocket upgrade)
+            // ⭐ Must use same domain as the page (apparels.impromptuindian.com)
             // ⭐ Apache proxies /socket.io/ to standalone server on localhost:3000
             // ⭐ Browser connects via HTTPS (443) - no port needed
             // ⭐ Uses WebSocket (preferred) with polling fallback
-            const socketUrl = "https://support.impromptuindian.com";
+            const socketUrl = window.location.origin;  // ⭐ Same domain as page (apparels.impromptuindian.com)
             socket = io(socketUrl, {
                 path: "/socket.io/",
                 transports: ["websocket", "polling"],  // ⭐ WebSocket preferred, polling fallback
