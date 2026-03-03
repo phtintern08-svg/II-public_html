@@ -246,16 +246,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            // ✅ Socket.IO connection - Polling mode for cPanel/Passenger compatibility
-            // ⭐ FORCE POLLING: Passenger on shared hosting blocks WebSocket upgrades
-            // ⭐ Use support subdomain for Socket.IO server
-            const socketUrl = "https://support.impromptuindian.com";
+            // ✅ Socket.IO connection - Standalone server on port 3000
+            // ⭐ Bypasses Passenger worker limitations - direct connection to Socket.IO server
+            // ⭐ Uses WebSocket (preferred) with polling fallback
+            const socketUrl = "https://support.impromptuindian.com:3000";
             socket = io(socketUrl, {
                 path: "/socket.io/",
-                transports: ["polling"],  // ⭐ FORCE POLLING ONLY (Passenger-compatible)
-                upgrade: false,  // ⭐ DISABLE WebSocket upgrade attempts
+                transports: ["websocket", "polling"],  // ⭐ WebSocket preferred, polling fallback
+                upgrade: true,  // ✅ Allow WebSocket upgrade (standalone server supports it)
                 reconnection: true,
-                reconnectionAttempts: 5,
+                reconnectionAttempts: 10,
                 reconnectionDelay: 2000,
                 timeout: 20000
             });
