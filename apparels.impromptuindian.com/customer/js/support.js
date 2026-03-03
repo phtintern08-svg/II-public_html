@@ -248,13 +248,16 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             // ✅ Socket.IO connection - Polling mode for cPanel/Passenger compatibility
             // ⭐ FORCE POLLING: Passenger on shared hosting blocks WebSocket upgrades
-            socket = io(window.location.origin, {
+            // ⭐ Use support subdomain for Socket.IO server
+            const socketUrl = "https://support.impromptuindian.com";
+            socket = io(socketUrl, {
                 path: "/socket.io/",
                 transports: ["polling"],  // ⭐ FORCE POLLING ONLY (Passenger-compatible)
                 upgrade: false,  // ⭐ DISABLE WebSocket upgrade attempts
                 reconnection: true,
-                reconnectionAttempts: 10,
-                reconnectionDelay: 2000
+                reconnectionAttempts: 5,
+                reconnectionDelay: 2000,
+                timeout: 20000
             });
 
             socket.on("connect", () => {
@@ -269,9 +272,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.error("WebSocket connection error:", error);
             });
 
-            // Listen for new messages
-            socket.on("new_message", (data) => {
-                if (data.ticket_id === currentTicketId) {
+            // Listen for messages (standardized event name)
+            socket.on("receive_message", (data) => {
+                if (data.ticket_id === currentTicketId || data.ticket_id_raw === currentTicketId) {
                     appendMessage(data);
                     hideTypingIndicator();
                 }
@@ -279,15 +282,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 updateUnreadBadge();
             });
 
-            // Listen for typing indicator
-            socket.on("typing_start", (data) => {
-                if (data.ticket_id === currentTicketId && data.sender !== "customer") {
-                    showTypingIndicator(data.sender_name || "Support agent");
+            // Listen for typing indicator (standardized event names)
+            socket.on("show_typing", (data) => {
+                if ((data.ticket_id === currentTicketId || data.ticket_id_raw === currentTicketId) && 
+                    data.user_type !== "customer") {
+                    showTypingIndicator(data.user_name || "Support agent");
                 }
             });
 
-            socket.on("typing_stop", (data) => {
-                if (data.ticket_id === currentTicketId) {
+            socket.on("hide_typing", (data) => {
+                if (!data || data.ticket_id === currentTicketId || data.ticket_id_raw === currentTicketId) {
                     hideTypingIndicator();
                 }
             });
@@ -299,7 +303,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Listen for ticket updates (status changes, SLA updates)
             socket.on("ticket_update", (data) => {
-                if (data.ticket_id === currentTicketId) {
+                if (data.ticket_id === currentTicketId || data.ticket_id_raw === currentTicketId) {
                     if (data.sla_deadline) {
                         startSLATimer(data.sla_deadline);
                     }
@@ -311,6 +315,21 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
             console.error("Error initializing WebSocket:", error);
         }
+    }
+
+    // Join ticket room (helper function - uses numeric ticket ID for consistency)
+    function joinTicketRoom(ticketId) {
+        if (!ticketId || !CUSTOMER_ID || !socket) return;
+        
+        // ⭐ Always use numeric ID for room consistency (backend uses ticket_{ticket.id})
+        // If ticketId is a ticket number (string like "TKT-2026-00001"), backend will resolve it
+        socket.emit('join_ticket', {
+            ticket_id: ticketId,  // Backend will resolve to numeric ID
+            user_type: 'customer',
+            user_id: CUSTOMER_ID
+        });
+        
+        console.log(`Joining ticket room: ${ticketId}`);
     }
 
     // ============================================
@@ -1014,52 +1033,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 5000);
 
     // ============================================
-    // SOCKET.IO REAL-TIME CHAT
+    // AI SUPPORT CHAT SYSTEM (Flipkart-style)
     // ============================================
+    // Note: Socket.IO is initialized in initWebSocket() above
+    // All Socket.IO event listeners are registered there
 
-    // Initialize Socket.IO connection
-    // HARD-LOCK polling (Passenger doesn't support WebSocket upgrades)
-    // ✅ Socket.IO connection - Polling mode for cPanel/Passenger compatibility
-    // ⭐ FORCE POLLING: Passenger on shared hosting blocks WebSocket upgrades
-    // Polling works perfectly for support chat (Zomato/Swiggy also use polling behind load balancers)
-    const socketUrl = window.location.origin;  // Use same domain as the page
-    socket = io(socketUrl, {
-        path: "/socket.io/",
-        transports: ["polling"],  // ⭐ FORCE POLLING ONLY (Passenger-compatible)
-        upgrade: false,  // ⭐ DISABLE WebSocket upgrade attempts
-        reconnection: true,
-        reconnectionAttempts: 10,
-        reconnectionDelay: 2000
-    });
-
-    // Socket connection events
-    socket.on('connect', () => {
-        console.log('✅ Connected to support chat');
-    });
-
-    socket.on('disconnect', () => {
-        console.log('❌ Disconnected from support chat');
-    });
-
-    socket.on('system_message', (data) => {
-        console.log('System:', data.msg);
-    });
-
-    socket.on('error', (data) => {
-        console.error('Socket error:', data.msg);
-        if (typeof addAIMessage === 'function') {
-            addAIMessage('system', `Error: ${data.msg}`);
-        }
-    });
-
-    // ============================================
-    // AI SUPPORT CHAT SYSTEM
-    // ============================================
-
+    // Global variables for AI chat
     let activeOrder = null;
     let activeTicketId = null;
     let currentTicketRoom = null;
-    // typingTimeout already declared above, don't redeclare
 
     // Open AI Chat (Global function) - Flipkart-style guided support
     window.openSupportChat = function(orderId) {
@@ -1123,7 +1105,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         
-        // Emit issue_selected event
+        // Emit issue_selected event - use ticket_id_raw (numeric ID) for room consistency
         socket.emit("issue_selected", {
             issue_key: issueKey,
             ticket_id: ticketId || currentTicketRoom,
@@ -1143,7 +1125,11 @@ document.addEventListener("DOMContentLoaded", () => {
             chatModal.classList.remove("flex");
             
             // Leave Socket.IO room
-            leaveTicketRoom();
+            if (currentTicketRoom && socket) {
+                socket.emit('leave_ticket', {
+                    ticket_id: currentTicketRoom
+                });
+            }
             
             activeOrder = null;
             activeTicketId = null;
@@ -1207,9 +1193,15 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!message) return;
 
         // If ticket exists, use Socket.IO for real-time chat
-        if (activeTicketId && currentTicketRoom) {
+        if (activeTicketId && currentTicketRoom && socket) {
             // Send via Socket.IO
-            sendSocketMessage(message);
+            socket.emit('send_message', {
+                ticket_id: currentTicketRoom,
+                message: message,
+                sender: 'customer',
+                sender_id: CUSTOMER_ID,
+                sender_name: 'Customer'
+            });
             addAIMessage("customer", message);
             chatInput.value = "";
             return;
@@ -1257,8 +1249,15 @@ document.addEventListener("DOMContentLoaded", () => {
             if (data.ticket_id) {
                 activeTicketId = data.ticket_id;
                 
-                // Join Socket.IO room for this ticket
-                joinTicketRoom(data.ticket_id);
+                // Join Socket.IO room for this ticket (use numeric ID for consistency)
+                if (socket && data.ticket_id_raw) {
+                    currentTicketRoom = data.ticket_id_raw;
+                    socket.emit('join_ticket', {
+                        ticket_id: data.ticket_id_raw,
+                        user_type: 'customer',
+                        user_id: CUSTOMER_ID
+                    });
+                }
                 
                 // Show ticket created message
                 setTimeout(() => {
@@ -1278,159 +1277,74 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    // Add typing indicator to chat input
-    const chatInput = document.getElementById("chatInput");
-    if (chatInput) {
-        chatInput.addEventListener('input', () => {
-            if (currentTicketRoom) {
-                handleTyping();
+    // Add Socket.IO event listeners for AI chat (after socket is initialized)
+    // These are registered in initWebSocket() but we ensure they're available here too
+    if (socket) {
+        // Flipkart-style guided support events
+        socket.on('ai_message', (data) => {
+            // Display AI message
+            if (data.text) {
+                addAIMessage('ai', data.text);
             }
         });
-    }
 
-    // ============================================
-    // SOCKET.IO TICKET ROOM FUNCTIONS
-    // ============================================
-
-    // Join ticket room
-    function joinTicketRoom(ticketId) {
-        if (!ticketId || !CUSTOMER_ID) return;
-        
-        currentTicketRoom = ticketId;
-        
-        socket.emit('join_ticket', {
-            ticket_id: ticketId,
-            user_type: 'customer',
-            user_id: CUSTOMER_ID
+        socket.on('ai_options', (data) => {
+            // Display issue option buttons (Flipkart-style)
+            if (data.options && Array.isArray(data.options)) {
+                const messagesContainer = document.getElementById("chatMessages");
+                if (messagesContainer) {
+                    const optionsHtml = data.options.map(opt => `
+                        <button onclick="selectIssue('${opt.key}', '${data.ticket_id_raw || activeTicketId}')"
+                            class="w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded-lg mb-2 transition-colors">
+                            ${opt.title}
+                        </button>
+                    `).join('');
+                    
+                    const optionsContainer = document.createElement('div');
+                    optionsContainer.className = 'mt-3 space-y-2';
+                    optionsContainer.innerHTML = optionsHtml;
+                    messagesContainer.appendChild(optionsContainer);
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }
+            }
         });
-        
-        console.log(`Joined ticket room: ${ticketId}`);
-    }
 
-    // Leave ticket room
-    function leaveTicketRoom() {
-        if (currentTicketRoom) {
-            socket.emit('leave_ticket', {
-                ticket_id: currentTicketRoom
-            });
-            currentTicketRoom = null;
-        }
-    }
-
-    // Send message via Socket.IO
-    function sendSocketMessage(message) {
-        if (!currentTicketRoom || !message.trim()) return;
-        
-        socket.emit('send_message', {
-            ticket_id: currentTicketRoom,
-            message: message,
-            sender: 'customer',
-            sender_id: CUSTOMER_ID,
-            sender_name: 'Customer'
-        });
-    }
-
-    // Handle typing indicator
-    function handleTyping() {
-        if (!currentTicketRoom) return;
-        
-        socket.emit('typing', {
-            ticket_id: currentTicketRoom,
-            user_type: 'customer',
-            user_id: CUSTOMER_ID
-        });
-        
-        // Clear previous timeout
-        if (typingTimeout) {
-            clearTimeout(typingTimeout);
-        }
-        
-        // Stop typing after 2 seconds of inactivity
-        typingTimeout = setTimeout(() => {
-            socket.emit('stop_typing', {
-                ticket_id: currentTicketRoom
-            });
-        }, 2000);
-    }
-
-    // Socket.IO event listeners
-    socket.on('receive_message', (data) => {
-        const senderType = data.sender === 'customer' ? 'customer' : 'ai';
-        addAIMessage(senderType, data.message);
-    });
-
-    socket.on('show_typing', (data) => {
-        if (data.user_type !== 'customer') {
-            showAITyping(true);
-        }
-    });
-
-    socket.on('hide_typing', () => {
-        showAITyping(false);
-    });
-
-    socket.on('sla_timer', (data) => {
-        startSLATimer(data.sla_due_at);
-    });
-
-    socket.on('ticket_escalated', (data) => {
-        addAIMessage('system', data.message || '⚠️ Ticket has been escalated to senior support');
-    });
-
-    socket.on('user_joined', (data) => {
-        if (data.user_type === 'agent') {
-            addAIMessage('system', `👤 Support agent joined the conversation`);
-        }
-    });
-
-    socket.on('ticket_created', (data) => {
-        // Store ticket ID when created via Socket.IO
-        if (data.ticket_id) {
-            activeTicketId = data.ticket_id;
-            currentTicketRoom = data.ticket_id_raw || data.ticket_id;
+        socket.on('ticket_created', (data) => {
+            // Store ticket ID when created via Socket.IO - use ticket_id_raw (numeric ID) for room consistency
+            if (data.ticket_id_raw) {
+                activeTicketId = data.ticket_id;
+                currentTicketRoom = data.ticket_id_raw;  // ⭐ Always use numeric ID for room
             
-            // Refresh tickets list
-            if (typeof loadTickets === "function") {
-                loadTickets();
+                // Refresh tickets list
+                if (typeof loadTickets === "function") {
+                    loadTickets();
+                }
             }
-        }
-    });
+        });
 
-    // Flipkart-style guided support events
-    socket.on('ai_message', (data) => {
-        // Display AI message
-        if (data.text) {
-            addAIMessage('ai', data.text);
-        }
-    });
-
-    socket.on('ai_options', (data) => {
-        // Display issue option buttons (Flipkart-style)
-        if (data.options && Array.isArray(data.options)) {
-            const messagesContainer = document.getElementById("chatMessages");
-            if (messagesContainer) {
-                const optionsHtml = data.options.map(opt => `
-                    <button onclick="selectIssue('${opt.key}', '${data.ticket_id || activeTicketId}')"
-                        class="w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded-lg mb-2 transition-colors">
-                        ${opt.title}
-                    </button>
-                `).join('');
-                
-                const optionsContainer = document.createElement('div');
-                optionsContainer.className = 'mt-3 space-y-2';
-                optionsContainer.innerHTML = optionsHtml;
-                messagesContainer.appendChild(optionsContainer);
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        socket.on('agent_joined', (data) => {
+            // Agent has joined the conversation
+            if (data.message) {
+                addAIMessage('system', data.message);
             }
-        }
-    });
+        });
 
-    socket.on('agent_joined', (data) => {
-        // Agent has joined the conversation
-        if (data.message) {
-            addAIMessage('system', data.message);
-        }
-    });
+        socket.on('sla_timer', (data) => {
+            if (typeof startSLATimer === 'function') {
+                startSLATimer(data.sla_due_at);
+            }
+        });
+
+        socket.on('ticket_escalated', (data) => {
+            addAIMessage('system', data.message || '⚠️ Ticket has been escalated to senior support');
+        });
+
+        socket.on('user_joined', (data) => {
+            if (data.user_type === 'agent') {
+                addAIMessage('system', `👤 Support agent joined the conversation`);
+            }
+        });
+    }
 
     // ============================================
     // START INITIALIZATION
