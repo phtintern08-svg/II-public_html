@@ -246,16 +246,17 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            // ✅ Socket.IO connection - Same domain as page (CRITICAL for WebSocket upgrade)
-            // ⭐ Must use same domain as the page (apparels.impromptuindian.com)
-            // ⭐ Apache proxies /socket.io/ to standalone server on localhost:3000
-            // ⭐ Browser connects via HTTPS (443) - no port needed
-            // ⭐ Uses WebSocket (preferred) with polling fallback
-            const socketUrl = window.location.origin;  // ⭐ Same domain as page (apparels.impromptuindian.com)
+            // ✅ Socket.IO connection - Direct to standalone server on port 3000
+            // ⭐ Nginx in front of Apache ignores .htaccess proxy rules
+            // ⭐ Must connect directly to port 3000 where standalone server runs
+            // ⭐ Uses WSS (secure WebSocket) for HTTPS compatibility
+            // ⭐ This is the correct architecture for cPanel + Nginx + Passenger
+            const socketUrl = "wss://support.impromptuindian.com:3000";
             socket = io(socketUrl, {
                 path: "/socket.io/",
                 transports: ["websocket", "polling"],  // ⭐ WebSocket preferred, polling fallback
-                upgrade: true,  // ✅ Allow WebSocket upgrade (proxied through Apache)
+                upgrade: true,  // ✅ Allow WebSocket upgrade
+                secure: true,  // ✅ Use secure WebSocket (WSS)
                 reconnection: true,
                 reconnectionAttempts: 10,
                 reconnectionDelay: 2000,

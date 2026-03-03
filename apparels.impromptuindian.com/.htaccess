@@ -16,24 +16,9 @@
     </IfModule>
 </FilesMatch>
 
-# ============================================================================
-# SOCKET.IO WEBSOCKET PROXY (FINAL)
-# ============================================================================
-# Proxies /socket.io/ requests to standalone server on localhost:3000
-# This allows browser to connect via HTTPS (443) instead of direct port 3000
-# ⭐ CRITICAL: Both Upgrade and Connection headers required for WebSocket upgrade
-# ============================================================================
-
-RewriteEngine On
-
-# WebSocket upgrade (WSS) - Check for both Upgrade and Connection headers
-RewriteCond %{HTTP:Upgrade} websocket [NC]
-RewriteCond %{HTTP:Connection} upgrade [NC]
-RewriteRule ^socket.io/(.*)$ ws://127.0.0.1:3000/socket.io/$1 [P,L]
-
-# HTTP fallback (polling) - for HTTP polling connections
-RewriteRule ^socket.io/(.*)$ http://127.0.0.1:3000/socket.io/$1 [P,L]
-
 # ===============================
 # END OF HTACCESS
+# ===============================
+# Note: Socket.IO proxy rules removed - Nginx doesn't read .htaccess
+# Socket.IO connects directly to port 3000 (wss://support.impromptuindian.com:3000)
 # ===============================
