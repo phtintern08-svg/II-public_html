@@ -246,14 +246,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            // ✅ Socket.IO connection - Standalone server on port 3000
-            // ⭐ Bypasses Passenger worker limitations - direct connection to Socket.IO server
+            // ✅ Socket.IO connection - Via Apache reverse proxy (port 443)
+            // ⭐ Apache proxies /socket.io/ to standalone server on localhost:3000
+            // ⭐ Browser connects via HTTPS (443) - no port needed
             // ⭐ Uses WebSocket (preferred) with polling fallback
-            const socketUrl = "https://support.impromptuindian.com:3000";
+            const socketUrl = "https://support.impromptuindian.com";
             socket = io(socketUrl, {
                 path: "/socket.io/",
                 transports: ["websocket", "polling"],  // ⭐ WebSocket preferred, polling fallback
-                upgrade: true,  // ✅ Allow WebSocket upgrade (standalone server supports it)
+                upgrade: true,  // ✅ Allow WebSocket upgrade (proxied through Apache)
                 reconnection: true,
                 reconnectionAttempts: 10,
                 reconnectionDelay: 2000,
