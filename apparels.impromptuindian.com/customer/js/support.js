@@ -246,16 +246,18 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            // ✅ Socket.IO connection - Via Passenger (HTTPS 443)
-            // ⭐ Passenger automatically handles WebSocket upgrades on port 443
-            // ⭐ No port needed - uses SSL certificate on port 443
-            // ⭐ Passenger Flask app has Socket.IO initialized and ready
-            // ⭐ This is the correct architecture for cPanel + Nginx + Passenger
-            const socketUrl = "https://support.impromptuindian.com";
+            // ✅ Socket.IO connection - Direct to standalone server on port 3000
+            // ⭐ Passenger doesn't support WebSocket reliably on shared hosting
+            // ⭐ Nginx blocks proxy rules, so direct connection is required
+            // ⭐ Use server IP address directly (bypasses domain/proxy issues)
+            // ⭐ HTTP connection (port 3000 doesn't have SSL, but works fine)
+            // ⭐ This is the production architecture for cPanel shared hosting
+            const socketUrl = "http://66.116.196.208:3000";
             socket = io(socketUrl, {
                 path: "/socket.io/",
                 transports: ["websocket", "polling"],  // ⭐ WebSocket preferred, polling fallback
-                upgrade: true,  // ✅ Allow WebSocket upgrade (Passenger handles it)
+                upgrade: true,  // ✅ Allow WebSocket upgrade
+                secure: false,  // ✅ HTTP (not HTTPS) - port 3000 doesn't have SSL
                 reconnection: true,
                 reconnectionAttempts: 10,
                 reconnectionDelay: 2000,
