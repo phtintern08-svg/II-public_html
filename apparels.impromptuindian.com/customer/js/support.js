@@ -246,17 +246,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            // ✅ Socket.IO connection - Direct to standalone server on port 3000
-            // ⭐ Nginx in front of Apache ignores .htaccess proxy rules
-            // ⭐ Must connect directly to port 3000 where standalone server runs
-            // ⭐ Uses WSS (secure WebSocket) for HTTPS compatibility
+            // ✅ Socket.IO connection - Via Passenger (HTTPS 443)
+            // ⭐ Passenger automatically handles WebSocket upgrades on port 443
+            // ⭐ No port needed - uses SSL certificate on port 443
+            // ⭐ Passenger Flask app has Socket.IO initialized and ready
             // ⭐ This is the correct architecture for cPanel + Nginx + Passenger
-            const socketUrl = "wss://support.impromptuindian.com:3000";
+            const socketUrl = "https://support.impromptuindian.com";
             socket = io(socketUrl, {
                 path: "/socket.io/",
                 transports: ["websocket", "polling"],  // ⭐ WebSocket preferred, polling fallback
-                upgrade: true,  // ✅ Allow WebSocket upgrade
-                secure: true,  // ✅ Use secure WebSocket (WSS)
+                upgrade: true,  // ✅ Allow WebSocket upgrade (Passenger handles it)
                 reconnection: true,
                 reconnectionAttempts: 10,
                 reconnectionDelay: 2000,
