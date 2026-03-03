@@ -24,20 +24,22 @@
 </FilesMatch>
 
 # ============================================================================
-# WebSocket Proxy for Socket.IO Standalone Server
+# SOCKET.IO WEBSOCKET PROXY (FINAL)
 # ============================================================================
 # Proxies /socket.io/ requests to standalone server on localhost:3000
 # This allows browser to connect via HTTPS (443) instead of direct port 3000
+# ⭐ CRITICAL: Both Upgrade and Connection headers required for WebSocket upgrade
 # ============================================================================
 
 RewriteEngine On
 
-# WebSocket upgrade (WSS) - for WebSocket connections
+# WebSocket upgrade (WSS) - Check for both Upgrade and Connection headers
 RewriteCond %{HTTP:Upgrade} =websocket [NC]
-RewriteRule ^socket\.io/(.*) ws://127.0.0.1:3000/socket.io/$1 [P,L]
+RewriteCond %{HTTP:Connection} upgrade [NC]
+RewriteRule ^socket.io/?(.*) ws://127.0.0.1:3000/socket.io/$1 [P,L]
 
 # HTTP fallback (polling) - for HTTP polling connections
-RewriteRule ^socket\.io/(.*) http://127.0.0.1:3000/socket.io/$1 [P,L]
+RewriteRule ^socket.io/?(.*) http://127.0.0.1:3000/socket.io/$1 [P,L]
 
 # ===============================
 # END OF HTACCESS
