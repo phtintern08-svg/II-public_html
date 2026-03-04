@@ -309,8 +309,73 @@ document.addEventListener("DOMContentLoaded", () => {
                         startSLATimer(data.sla_deadline);
                     }
                 }
-                // Refresh ticket list
+                // Refresh ticket list (rate-limited)
                 loadTickets();
+            });
+
+            // Flipkart-style guided support events (AI chat)
+            socket.on('ai_message', (data) => {
+                // Display AI message
+                if (data.text) {
+                    addAIMessage('ai', data.text);
+                }
+            });
+
+            socket.on('ai_options', (data) => {
+                // Display issue option buttons (Flipkart-style)
+                if (data.options && Array.isArray(data.options)) {
+                    const messagesContainer = document.getElementById("chatMessages");
+                    if (messagesContainer) {
+                        const optionsHtml = data.options.map(opt => `
+                            <button onclick="selectIssue('${opt.key}', '${data.ticket_id_raw || activeTicketId}')"
+                                class="w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded-lg mb-2 transition-colors">
+                                ${opt.title}
+                            </button>
+                        `).join('');
+                        
+                        const optionsContainer = document.createElement('div');
+                        optionsContainer.className = 'mt-3 space-y-2';
+                        optionsContainer.innerHTML = optionsHtml;
+                        messagesContainer.appendChild(optionsContainer);
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    }
+                }
+            });
+
+            socket.on('ticket_created', (data) => {
+                // Store ticket ID when created via Socket.IO - use ticket_id_raw (numeric ID) for room consistency
+                if (data.ticket_id_raw) {
+                    activeTicketId = data.ticket_id;
+                    currentTicketRoom = data.ticket_id_raw;  // ⭐ Always use numeric ID for room
+                
+                    // Refresh tickets list (rate-limited)
+                    if (typeof loadTickets === "function") {
+                        loadTickets();
+                    }
+                }
+            });
+
+            socket.on('agent_joined', (data) => {
+                // Agent has joined the conversation
+                if (data.message) {
+                    addAIMessage('system', data.message);
+                }
+            });
+
+            socket.on('sla_timer', (data) => {
+                if (typeof startSLATimer === 'function') {
+                    startSLATimer(data.sla_due_at);
+                }
+            });
+
+            socket.on('ticket_escalated', (data) => {
+                addAIMessage('system', data.message || '⚠️ Ticket has been escalated to senior support');
+            });
+
+            socket.on('user_joined', (data) => {
+                if (data.user_type === 'agent') {
+                    addAIMessage('system', `👤 Support agent joined the conversation`);
+                }
             });
 
         } catch (error) {
@@ -702,10 +767,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Load Customer Tickets
+    // Rate limiting for ticket loading (prevent 429 errors)
+    let lastTicketFetch = 0;
+
     async function loadTickets() {
         if (!CUSTOMER_ID) {
             return;
         }
+
+        // Prevent spam requests - max once every 5 seconds
+        const now = Date.now();
+        if (now - lastTicketFetch < 5000) {
+            return;
+        }
+        lastTicketFetch = now;
 
         try {
             const res = await fetch(`${SUPPORT_API}/tickets/customer/${CUSTOMER_ID}`);
@@ -1015,16 +1090,16 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Start polling as fallback
+        // Start polling as fallback (30 seconds for support chat - low bandwidth)
         if (!pollingInterval) {
             pollingInterval = setInterval(() => {
                 if (CUSTOMER_ID) {
-                    loadTickets();
+                    loadTickets();  // Rate-limited (max once every 5 seconds)
                     if (currentTicketId) {
                         loadChatMessages(currentTicketId);
                     }
                 }
-            }, 15000);
+            }, 30000);  // ✅ 30 seconds (reduces server load by 50%)
         }
     }
 
@@ -1278,74 +1353,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    // Add Socket.IO event listeners for AI chat (after socket is initialized)
-    // These are registered in initWebSocket() but we ensure they're available here too
-    if (socket) {
-        // Flipkart-style guided support events
-        socket.on('ai_message', (data) => {
-            // Display AI message
-            if (data.text) {
-                addAIMessage('ai', data.text);
-            }
-        });
-
-        socket.on('ai_options', (data) => {
-            // Display issue option buttons (Flipkart-style)
-            if (data.options && Array.isArray(data.options)) {
-                const messagesContainer = document.getElementById("chatMessages");
-                if (messagesContainer) {
-                    const optionsHtml = data.options.map(opt => `
-                        <button onclick="selectIssue('${opt.key}', '${data.ticket_id_raw || activeTicketId}')"
-                            class="w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded-lg mb-2 transition-colors">
-                            ${opt.title}
-                        </button>
-                    `).join('');
-                    
-                    const optionsContainer = document.createElement('div');
-                    optionsContainer.className = 'mt-3 space-y-2';
-                    optionsContainer.innerHTML = optionsHtml;
-                    messagesContainer.appendChild(optionsContainer);
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                }
-            }
-        });
-
-        socket.on('ticket_created', (data) => {
-            // Store ticket ID when created via Socket.IO - use ticket_id_raw (numeric ID) for room consistency
-            if (data.ticket_id_raw) {
-                activeTicketId = data.ticket_id;
-                currentTicketRoom = data.ticket_id_raw;  // ⭐ Always use numeric ID for room
-            
-                // Refresh tickets list
-                if (typeof loadTickets === "function") {
-                    loadTickets();
-                }
-            }
-        });
-
-        socket.on('agent_joined', (data) => {
-            // Agent has joined the conversation
-            if (data.message) {
-                addAIMessage('system', data.message);
-            }
-        });
-
-        socket.on('sla_timer', (data) => {
-            if (typeof startSLATimer === 'function') {
-                startSLATimer(data.sla_due_at);
-            }
-        });
-
-        socket.on('ticket_escalated', (data) => {
-            addAIMessage('system', data.message || '⚠️ Ticket has been escalated to senior support');
-        });
-
-        socket.on('user_joined', (data) => {
-            if (data.user_type === 'agent') {
-                addAIMessage('system', `👤 Support agent joined the conversation`);
-            }
-        });
-    }
+    // ✅ AI chat event listeners are now registered inside initWebSocket() after socket creation
+    // This ensures socket exists before registering listeners
 
     // ============================================
     // START INITIALIZATION
