@@ -246,15 +246,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            // ✅ Socket.IO connection - Direct WSS to port 3000 (Solution 2)
-            // ⭐ Bypasses Nginx/Passenger WebSocket restrictions
-            // ⭐ Direct connection to standalone server with SSL
-            // ⭐ Server IP: 66.116.196.208, Port: 3000
+            // ✅ Socket.IO connection - Via Passenger Flask (Polling Mode)
+            // ⭐ Port 3000 is blocked by firewall on shared hosting
+            // ⭐ Use Passenger's built-in Socket.IO with polling transport
             // ⭐ This is the reliable solution for cPanel shared hosting
-            const socketUrl = "wss://66.116.196.208:3000";
+            // ⭐ Polling works perfectly for support chat (low bandwidth)
+            const socketUrl = "https://support.impromptuindian.com";
             socket = io(socketUrl, {
                 path: "/socket.io/",
-                transports: ["websocket", "polling"],  // ⭐ WebSocket preferred, polling fallback
+                transports: ["polling"],  // ⭐ Polling only (WebSocket blocked by firewall)
                 reconnection: true,
                 reconnectionAttempts: 10,
                 reconnectionDelay: 2000,
