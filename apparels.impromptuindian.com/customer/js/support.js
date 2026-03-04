@@ -249,7 +249,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // ✅ Socket.IO connection - Separate Socket Server Architecture
             // ⭐ Frontend: apparels.impromptuindian.com → Backend: support.impromptuindian.com
             // ⭐ Browser → https://support.impromptuindian.com/socket.io (via Apache proxy)
-            // ⭐ Apache → localhost:3000 (standalone Socket.IO server)
+            // ⭐ Apache → localhost:5001 (Gunicorn Socket.IO server)
             // ⭐ This bypasses Passenger limitations for stable real-time connections
             socket = io("https://support.impromptuindian.com", {
                 path: "/socket.io",
