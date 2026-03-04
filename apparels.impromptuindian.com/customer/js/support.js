@@ -278,18 +278,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.log(`🔍 DEBUG: Socket.IO Event: ${event}`, args);
             });
 
-            // Listen for messages (standardized event name)
+            // Listen for messages
             socket.on("receive_message", (data) => {
-                console.log("🔍 DEBUG: receive_message event", data);
-                // Match by display ID, numeric ID, or ticket_id_raw
-                const matchesTicket = (
-                    data.ticket_id === currentTicketId || 
-                    data.ticket_id_raw === currentTicketId ||
-                    data.ticket_id_raw === currentTicketNumericId ||
-                    String(data.ticket_id) === String(currentTicketNumericId)
-                );
+                console.log("🔍 DEBUG: Received message", data);
                 
-                if (matchesTicket) {
+                // ✅ Check if message belongs to the active conversation
+                // Matches Display ID (TKT-...) OR numeric ID
+                const isMatch = (
+                    data.ticket_id === currentTicketId || 
+                    data.ticket_id_raw === currentTicketNumericId ||
+                    String(data.ticket_id_raw) === String(currentTicketNumericId)
+                );
+
+                if (isMatch) {
                     console.log("✅ Message matches current ticket, appending to chat");
                     appendMessage(data);
                     hideTypingIndicator();
@@ -849,55 +850,51 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Open Ticket Conversation (Inline) - Global function
     window.openTicketConversation = function(ticketId) {
-        currentTicketId = ticketId; // Display ID (e.g., "TKT-2026-00001")
+        currentTicketId = ticketId; 
         
-        // Find the actual numeric ID from allTickets array
-        const ticketData = allTickets.find(t => 
-            t.ticket_id === ticketId || 
-            t.id == ticketId || 
-            String(t.id) === String(ticketId) ||
-            t.ticket_id_raw === ticketId
-        );
-        
-        // Store numeric ID for Socket.IO room matching
-        currentTicketNumericId = ticketData ? (ticketData.id || ticketData.ticket_id_raw) : null;
-        
+        // Find the numeric ID from the global allTickets array
+        const ticketData = allTickets.find(t => t.ticket_id === ticketId || t.id == ticketId);
+        currentTicketNumericId = ticketData ? (ticketData.id || ticketData.ticket_id_raw) : ticketId;
+
         console.log("🔍 Opening ticket conversation:", {
             displayId: ticketId,
             numericId: currentTicketNumericId,
             ticketData: ticketData
         });
-        
-        const conversationPanel = document.getElementById("chatMessages");
+
+        // ✅ Show the chat panel (Make sure this ID exists in your HTML)
+        const conversationPanel = document.getElementById("ticketConversation");
+        if (conversationPanel) {
+            conversationPanel.classList.remove("hidden");
+        }
+
+        // Update ticket ID display if element exists
         const ticketIdDisplay = document.getElementById("conversationTicketId");
-
-        if (conversationPanel && ticketIdDisplay) {
+        if (ticketIdDisplay) {
             ticketIdDisplay.textContent = ticketId;
-            if (conversationPanel.classList) {
-                conversationPanel.classList.remove("hidden");
-            }
-            
-            // Join Socket.IO room for this ticket (uses numeric ID internally)
-            joinTicketRoom(ticketId);
+        }
 
-            // Request SLA timer
-            if (socket) {
-                socket.emit('request_sla_timer', { ticket_id: ticketId });
-            }
+        // Join using Numeric ID
+        joinTicketRoom(currentTicketNumericId); 
+        
+        // Load history via HTTP
+        loadChatMessages(ticketId);
 
-            // Load ticket details for SLA timer
-            loadTicketDetails(ticketId);
-            loadChatMessages(ticketId);
+        // Request SLA timer
+        if (socket) {
+            socket.emit('request_sla_timer', { ticket_id: ticketId });
+        }
 
-            // Mark messages as read
-            markMessagesAsRead(ticketId);
+        // Load ticket details for SLA timer
+        loadTicketDetails(ticketId);
 
-            // Scroll conversation into view on mobile
-            if (window.innerWidth < 1024) {
-                const panel = document.getElementById("ticketConversation");
-                if (panel) {
-                    panel.scrollIntoView({ behavior: "smooth" });
-                }
+        // Mark messages as read
+        markMessagesAsRead(ticketId);
+
+        // Scroll conversation into view on mobile
+        if (window.innerWidth < 1024) {
+            if (conversationPanel) {
+                conversationPanel.scrollIntoView({ behavior: "smooth" });
             }
         }
 
