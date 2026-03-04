@@ -52,7 +52,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Global State
     let allTickets = [];
-    let currentTicketId = null;
+    let currentTicketId = null;  // Display ID (e.g., "TKT-2026-00001")
+    let currentTicketNumericId = null;  // Numeric ID for Socket.IO rooms (e.g., 7)
     let allOrders = [];
     let socket = null;  // Will be initialized with Socket.IO
     let slaTimerInterval = null;
@@ -272,11 +273,33 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.error("WebSocket connection error:", error);
             });
 
+            // ✅ DEBUG: Log all incoming Socket.IO events
+            socket.onAny((event, ...args) => {
+                console.log(`🔍 DEBUG: Socket.IO Event: ${event}`, args);
+            });
+
             // Listen for messages (standardized event name)
             socket.on("receive_message", (data) => {
-                if (data.ticket_id === currentTicketId || data.ticket_id_raw === currentTicketId) {
+                console.log("🔍 DEBUG: receive_message event", data);
+                // Match by display ID, numeric ID, or ticket_id_raw
+                const matchesTicket = (
+                    data.ticket_id === currentTicketId || 
+                    data.ticket_id_raw === currentTicketId ||
+                    data.ticket_id_raw === currentTicketNumericId ||
+                    String(data.ticket_id) === String(currentTicketNumericId)
+                );
+                
+                if (matchesTicket) {
+                    console.log("✅ Message matches current ticket, appending to chat");
                     appendMessage(data);
                     hideTypingIndicator();
+                } else {
+                    console.log("⚠️ Message doesn't match current ticket", {
+                        received_ticket_id: data.ticket_id,
+                        received_ticket_id_raw: data.ticket_id_raw,
+                        currentTicketId: currentTicketId,
+                        currentTicketNumericId: currentTicketNumericId
+                    });
                 }
                 // Update unread count
                 updateUnreadBadge();
@@ -386,15 +409,29 @@ document.addEventListener("DOMContentLoaded", () => {
     function joinTicketRoom(ticketId) {
         if (!ticketId || !CUSTOMER_ID || !socket) return;
         
+        // Find the numeric ID from allTickets array
+        const ticketData = allTickets.find(t => 
+            t.ticket_id === ticketId || 
+            t.id == ticketId || 
+            String(t.id) === String(ticketId) ||
+            t.ticket_id_raw === ticketId
+        );
+        
+        // Use numeric ID if available, otherwise use the provided ticketId (backend will resolve it)
+        const numericId = ticketData ? (ticketData.id || ticketData.ticket_id_raw || ticketId) : ticketId;
+        
         // ⭐ Always use numeric ID for room consistency (backend uses ticket_{ticket.id})
-        // If ticketId is a ticket number (string like "TKT-2026-00001"), backend will resolve it
         socket.emit('join_ticket', {
-            ticket_id: ticketId,  // Backend will resolve to numeric ID
+            ticket_id: numericId,  // Use numeric ID for room matching
             user_type: 'customer',
             user_id: CUSTOMER_ID
         });
         
-        console.log(`Joining ticket room: ${ticketId}`);
+        console.log(`🔍 Joining ticket room:`, {
+            displayId: ticketId,
+            numericId: numericId,
+            ticketData: ticketData
+        });
     }
 
     // ============================================
@@ -812,19 +849,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Open Ticket Conversation (Inline) - Global function
     window.openTicketConversation = function(ticketId) {
-        currentTicketId = ticketId;
-        const conversationPanel = document.getElementById("ticketConversation");
+        currentTicketId = ticketId; // Display ID (e.g., "TKT-2026-00001")
+        
+        // Find the actual numeric ID from allTickets array
+        const ticketData = allTickets.find(t => 
+            t.ticket_id === ticketId || 
+            t.id == ticketId || 
+            String(t.id) === String(ticketId) ||
+            t.ticket_id_raw === ticketId
+        );
+        
+        // Store numeric ID for Socket.IO room matching
+        currentTicketNumericId = ticketData ? (ticketData.id || ticketData.ticket_id_raw) : null;
+        
+        console.log("🔍 Opening ticket conversation:", {
+            displayId: ticketId,
+            numericId: currentTicketNumericId,
+            ticketData: ticketData
+        });
+        
+        const conversationPanel = document.getElementById("chatMessages");
         const ticketIdDisplay = document.getElementById("conversationTicketId");
 
         if (conversationPanel && ticketIdDisplay) {
             ticketIdDisplay.textContent = ticketId;
-            conversationPanel.classList.remove("hidden");
+            if (conversationPanel.classList) {
+                conversationPanel.classList.remove("hidden");
+            }
             
-            // Join Socket.IO room for this ticket
+            // Join Socket.IO room for this ticket (uses numeric ID internally)
             joinTicketRoom(ticketId);
 
             // Request SLA timer
-            socket.emit('request_sla_timer', { ticket_id: ticketId });
+            if (socket) {
+                socket.emit('request_sla_timer', { ticket_id: ticketId });
+            }
 
             // Load ticket details for SLA timer
             loadTicketDetails(ticketId);
@@ -835,7 +894,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Scroll conversation into view on mobile
             if (window.innerWidth < 1024) {
-                conversationPanel.scrollIntoView({ behavior: "smooth" });
+                const panel = document.getElementById("ticketConversation");
+                if (panel) {
+                    panel.scrollIntoView({ behavior: "smooth" });
+                }
             }
         }
 
