@@ -246,14 +246,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            // ✅ Socket.IO connection - Via standalone server (Apache proxy → localhost:3000)
-            // ⭐ Browser → https://support.impromptuindian.com/socket.io
-            // ⭐ Apache proxy → localhost:3000 (standalone Socket.IO server)
-            // ⭐ Standalone server supports WebSocket + polling
-            const socketUrl = "https://support.impromptuindian.com";
+            // ✅ Socket.IO connection - Direct to standalone server on port 3000
+            // ⭐ Browser → https://support.impromptuindian.com:3000 (direct connection)
+            // ⭐ Standalone Socket.IO server (bypasses Passenger/Apache proxy)
+            // ⭐ Standalone server supports WebSocket + polling with SSL
+            const socketUrl = "https://support.impromptuindian.com:3000";
             socket = io(socketUrl, {
-                path: "/socket.io",  // ✅ No trailing slash (fixes polling issues)
-                transports: ["websocket", "polling"],  // ✅ WebSocket preferred, polling fallback
+                path: "/socket.io",
+                transports: ["websocket", "polling"],
+                secure: true,  // ✅ HTTPS/WSS connection
                 reconnection: true,
                 reconnectionAttempts: 10,
                 reconnectionDelay: 2000,
