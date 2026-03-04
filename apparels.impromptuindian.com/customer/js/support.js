@@ -246,12 +246,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            // ✅ Socket.IO connection - Direct connection to Gunicorn server
-            // ⭐ Frontend: apparels.impromptuindian.com → Backend: support.impromptuindian.com:5001
-            // ⭐ Browser → https://support.impromptuindian.com:5001 (direct connection)
-            // ⭐ Gunicorn Socket.IO server (bypasses Passenger limitations)
-            // ⭐ This is the simplest approach for cPanel shared hosting
-            socket = io("https://support.impromptuindian.com:5001", {
+            // ✅ Socket.IO connection - Via Apache proxy (port 443)
+            // ⭐ Frontend: apparels.impromptuindian.com → Backend: support.impromptuindian.com
+            // ⭐ Browser → https://support.impromptuindian.com/socket.io (via Apache proxy)
+            // ⭐ Apache → 127.0.0.1:5001 (Gunicorn Socket.IO server)
+            // ⭐ This bypasses firewall restrictions (only port 443 is open on cPanel)
+            socket = io("https://support.impromptuindian.com", {
+                path: "/socket.io",
                 transports: ["websocket", "polling"]  // ✅ WebSocket preferred, polling fallback
             });
 
