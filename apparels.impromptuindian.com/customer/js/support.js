@@ -246,14 +246,18 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            // ✅ Socket.IO connection - Direct to Passenger Socket.IO
+            // ✅ Socket.IO connection - Via Apache proxy to standalone server (Port 3000)
             // ⭐ Frontend: apparels.impromptuindian.com → Backend: support.impromptuindian.com
-            // ⭐ Browser → https://support.impromptuindian.com/socket.io
-            // ⭐ Apache/Passenger → Flask + Socket.IO (threading mode, polling only)
-            // ⭐ Socket.IO is already initialized in Passenger (see logs: "Socket.IO initialized")
+            // ⭐ Browser → https://support.impromptuindian.com/socket.io (via Apache proxy)
+            // ⭐ Apache → localhost:3000 (standalone Socket.IO server)
+            // ⭐ This bypasses Passenger worker recycling for stable chat sessions
             socket = io("https://support.impromptuindian.com", {
                 path: "/socket.io",
-                transports: ["polling"]  // ✅ Polling only (Passenger doesn't support WebSocket upgrades)
+                transports: ["polling"],  // ✅ Stick to polling for cPanel stability
+                upgrade: false,  // ✅ Disable upgrade attempts
+                rememberUpgrade: false,  // ✅ Don't remember upgrade attempts
+                secure: true,  // ✅ Force HTTPS/WSS
+                reconnectionAttempts: 10  // ✅ Retry connection up to 10 times
             });
 
             socket.on("connect", () => {
