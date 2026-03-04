@@ -1103,10 +1103,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Check WebSocket status periodically
+    // Check WebSocket status periodically (20 seconds - reduces server load)
     setInterval(() => {
         startPolling();
-    }, 5000);
+    }, 20000);  // ✅ 20 seconds (reduces checks from 12/min to 3/min per user)
 
     // ============================================
     // AI SUPPORT CHAT SYSTEM (Flipkart-style)
