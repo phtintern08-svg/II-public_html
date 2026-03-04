@@ -246,15 +246,14 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            // ✅ Socket.IO connection - Via Passenger Flask (Polling Mode)
-            // ⭐ Port 3000 is blocked by firewall on shared hosting
-            // ⭐ Use Passenger's built-in Socket.IO with polling transport
-            // ⭐ This is the reliable solution for cPanel shared hosting
-            // ⭐ Polling works perfectly for support chat (low bandwidth)
+            // ✅ Socket.IO connection - Via standalone server (Apache proxy → localhost:3000)
+            // ⭐ Browser → https://support.impromptuindian.com/socket.io
+            // ⭐ Apache proxy → localhost:3000 (standalone Socket.IO server)
+            // ⭐ Standalone server supports WebSocket + polling
             const socketUrl = "https://support.impromptuindian.com";
             socket = io(socketUrl, {
-                path: "/socket.io/",
-                transports: ["polling"],  // ⭐ Polling only (WebSocket blocked by firewall)
+                path: "/socket.io",  // ✅ No trailing slash (fixes polling issues)
+                transports: ["websocket", "polling"],  // ✅ WebSocket preferred, polling fallback
                 reconnection: true,
                 reconnectionAttempts: 10,
                 reconnectionDelay: 2000,
