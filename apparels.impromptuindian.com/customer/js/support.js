@@ -246,11 +246,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            // ✅ Socket.IO connection - Direct to standalone server on port 3000
-            // ⭐ Browser → https://support.impromptuindian.com:3000 (direct connection)
-            // ⭐ Standalone Socket.IO server (bypasses Passenger/Apache proxy)
-            // ⭐ Standalone server supports WebSocket + polling with SSL
-            const socketUrl = "https://support.impromptuindian.com:3000";
+            // ✅ Socket.IO connection - Via Apache proxy (HTTPS → localhost:3000)
+            // ⭐ Browser → https://support.impromptuindian.com/socket.io (port 443, SSL)
+            // ⭐ Apache proxy (.htaccess) → localhost:3000 (standalone Socket.IO server)
+            // ⭐ This avoids firewall blocking port 3000 externally
+            const socketUrl = "https://support.impromptuindian.com";
             socket = io(socketUrl, {
                 path: "/socket.io",
                 transports: ["websocket", "polling"],
