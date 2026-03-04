@@ -254,12 +254,11 @@ document.addEventListener("DOMContentLoaded", () => {
             socket = io("https://support.impromptuindian.com", {
                 path: "/socket.io",
                 transports: ["polling", "websocket"],  // ✅ Polling first (Passenger/cPanel compatible)
-                upgrade: true,  // Allow upgrade to websocket if server supports it
-                withCredentials: true,  // ✅ Send credentials for CORS (Flask CORS allows it)
+                secure: true,  // ✅ Force HTTPS/WSS for secure connections
                 reconnection: true,
-                reconnectionAttempts: 10,
-                reconnectionDelay: 2000,
-                timeout: 20000
+                reconnectionAttempts: 5,
+                reconnectionDelay: 1000,
+                withCredentials: true  // ✅ Send credentials for CORS (Flask CORS allows it)
             });
 
             socket.on("connect", () => {
