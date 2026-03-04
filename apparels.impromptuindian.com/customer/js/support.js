@@ -246,16 +246,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            // ✅ Socket.IO connection - Via HTTPS reverse proxy (Solution 1)
-            // ⭐ Browser connects to https://support.impromptuindian.com (port 443 SSL)
-            // ⭐ Apache/Nginx proxies /socket.io/ to localhost:3000
-            // ⭐ This avoids Mixed Content errors (HTTPS page → WSS connection)
-            // ⭐ This is the recommended production architecture
-            const socketUrl = "https://support.impromptuindian.com";
+            // ✅ Socket.IO connection - Direct WSS to port 3000 (Solution 2)
+            // ⭐ Bypasses Nginx/Passenger WebSocket restrictions
+            // ⭐ Direct connection to standalone server with SSL
+            // ⭐ Server IP: 66.116.196.208, Port: 3000
+            // ⭐ This is the reliable solution for cPanel shared hosting
+            const socketUrl = "wss://66.116.196.208:3000";
             socket = io(socketUrl, {
                 path: "/socket.io/",
                 transports: ["websocket", "polling"],  // ⭐ WebSocket preferred, polling fallback
-                upgrade: true,  // ✅ Allow WebSocket upgrade
                 reconnection: true,
                 reconnectionAttempts: 10,
                 reconnectionDelay: 2000,
