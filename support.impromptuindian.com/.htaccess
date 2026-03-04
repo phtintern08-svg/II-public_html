@@ -30,17 +30,14 @@
 # ⭐ This allows HTTPS page to connect via WSS (no Mixed Content errors)
 # ⭐ Architecture: Browser → https://support.impromptuindian.com → localhost:3000
 
-# Enable rewrite engine
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-    
-    # WebSocket upgrade (WSS) - Handle WebSocket connections
-    RewriteCond %{HTTP:Upgrade} =websocket [NC]
-    RewriteRule ^socket\.io/(.*) ws://127.0.0.1:3000/socket.io/$1 [P,L]
-    
-    # HTTP fallback (polling) - Handle polling transport
-    RewriteRule ^socket\.io/(.*) http://127.0.0.1:3000/socket.io/$1 [P,L]
-</IfModule>
+RewriteEngine On
+
+# WebSocket upgrade (WSS) - Handle WebSocket connections
+RewriteCond %{HTTP:Upgrade} =websocket [NC]
+RewriteRule ^socket.io/(.*) ws://127.0.0.1:3000/socket.io/$1 [P,L]
+
+# HTTP fallback (polling) - Handle polling transport
+RewriteRule ^socket.io/(.*) http://127.0.0.1:3000/socket.io/$1 [P,L]
 
 # ===============================
 # END OF HTACCESS
