@@ -246,15 +246,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            // ✅ Socket.IO connection - Separate Socket Server Architecture
-            // ⭐ Frontend: apparels.impromptuindian.com → Backend: support.impromptuindian.com
-            // ⭐ Browser → https://support.impromptuindian.com/socket.io (via Apache proxy)
-            // ⭐ Apache → localhost:5001 (Gunicorn Socket.IO server)
-            // ⭐ This bypasses Passenger limitations for stable real-time connections
-            socket = io("https://support.impromptuindian.com", {
-                path: "/socket.io",
-                transports: ["websocket", "polling"],  // ✅ WebSocket preferred, polling fallback
-                withCredentials: true  // ✅ Send credentials for CORS
+            // ✅ Socket.IO connection - Direct connection to Gunicorn server
+            // ⭐ Frontend: apparels.impromptuindian.com → Backend: support.impromptuindian.com:5001
+            // ⭐ Browser → https://support.impromptuindian.com:5001 (direct connection)
+            // ⭐ Gunicorn Socket.IO server (bypasses Passenger limitations)
+            // ⭐ This is the simplest approach for cPanel shared hosting
+            socket = io("https://support.impromptuindian.com:5001", {
+                transports: ["websocket", "polling"]  // ✅ WebSocket preferred, polling fallback
             });
 
             socket.on("connect", () => {
