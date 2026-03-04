@@ -246,14 +246,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            // ✅ Socket.IO connection - Via Passenger Flask (works on cPanel shared hosting)
+            // ✅ Socket.IO connection - Cross-subdomain connection
+            // ⭐ Frontend: apparels.impromptuindian.com → Backend: support.impromptuindian.com
             // ⭐ Browser → https://support.impromptuindian.com/socket.io (port 443, SSL)
             // ⭐ Passenger → Flask + Socket.IO (polling mode)
             // ⭐ This is the reliable solution for cPanel (no proxy needed)
-            const socketUrl = "https://support.impromptuindian.com";
-            socket = io(socketUrl, {
+            socket = io("https://support.impromptuindian.com", {
                 path: "/socket.io",
-                transports: ["polling"],  // ✅ Polling only (Passenger doesn't support WebSocket reliably)
+                transports: ["websocket", "polling"],  // Try websocket first, fallback to polling
+                withCredentials: true,  // ✅ Send credentials for CORS (Flask CORS allows it)
                 reconnection: true,
                 reconnectionAttempts: 10,
                 reconnectionDelay: 2000,
