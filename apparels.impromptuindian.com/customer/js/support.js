@@ -246,15 +246,14 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            // ✅ Socket.IO connection - Via Apache proxy (HTTPS → localhost:3000)
+            // ✅ Socket.IO connection - Via Passenger Flask (works on cPanel shared hosting)
             // ⭐ Browser → https://support.impromptuindian.com/socket.io (port 443, SSL)
-            // ⭐ Apache proxy (.htaccess) → localhost:3000 (standalone Socket.IO server)
-            // ⭐ This avoids firewall blocking port 3000 externally
+            // ⭐ Passenger → Flask + Socket.IO (polling mode)
+            // ⭐ This is the reliable solution for cPanel (no proxy needed)
             const socketUrl = "https://support.impromptuindian.com";
             socket = io(socketUrl, {
                 path: "/socket.io",
-                transports: ["websocket", "polling"],
-                secure: true,  // ✅ HTTPS/WSS connection
+                transports: ["polling"],  // ✅ Polling only (Passenger doesn't support WebSocket reliably)
                 reconnection: true,
                 reconnectionAttempts: 10,
                 reconnectionDelay: 2000,
