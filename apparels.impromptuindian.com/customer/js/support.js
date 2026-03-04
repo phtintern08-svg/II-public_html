@@ -246,14 +246,14 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            // ✅ Socket.IO connection - Via Apache proxy (port 443)
+            // ✅ Socket.IO connection - Direct to Passenger Socket.IO
             // ⭐ Frontend: apparels.impromptuindian.com → Backend: support.impromptuindian.com
-            // ⭐ Browser → https://support.impromptuindian.com/socket.io (via Apache proxy)
-            // ⭐ Apache → 127.0.0.1:5001 (Gunicorn Socket.IO server)
-            // ⭐ This bypasses firewall restrictions (only port 443 is open on cPanel)
+            // ⭐ Browser → https://support.impromptuindian.com/socket.io
+            // ⭐ Apache/Passenger → Flask + Socket.IO (threading mode, polling only)
+            // ⭐ Socket.IO is already initialized in Passenger (see logs: "Socket.IO initialized")
             socket = io("https://support.impromptuindian.com", {
                 path: "/socket.io",
-                transports: ["websocket", "polling"]  // ✅ WebSocket preferred, polling fallback
+                transports: ["polling"]  // ✅ Polling only (Passenger doesn't support WebSocket upgrades)
             });
 
             socket.on("connect", () => {
