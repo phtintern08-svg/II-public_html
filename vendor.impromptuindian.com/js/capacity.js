@@ -99,6 +99,9 @@ function renderFilters() {
     sizeSelect.innerHTML = sizeOpts;
 }
 
+// Track original values to detect changes
+let originalCapacityData = {};
+
 function renderTable() {
     const tbody = document.getElementById('capacity-table-body');
     const emptyEl = document.getElementById('capacity-empty');
@@ -112,6 +115,16 @@ function renderTable() {
 
     emptyEl.classList.add('hidden');
     cardEl.classList.remove('hidden');
+
+    // Store original values for change detection
+    originalCapacityData = {};
+    capacityRows.forEach(row => {
+        originalCapacityData[row.product_catalog_id] = {
+            daily_capacity: row.daily_capacity || 0,
+            max_bulk_capacity: row.max_bulk_capacity || 0,
+            lead_time_days: row.lead_time_days || 3
+        };
+    });
 
     tbody.innerHTML = capacityRows.map(row => `
         <tr data-pcid="${row.product_catalog_id}">
@@ -137,72 +150,139 @@ function renderTable() {
                     class="cap-lead-time w-20 px-2 py-1.5 bg-[#0f0f1a] border border-gray-600 rounded text-white text-sm" 
                     data-pcid="${row.product_catalog_id}" />
             </td>
-            <td class="text-right">
-                <button class="btn-save btn-primary py-1.5 px-3 text-xs" data-pcid="${row.product_catalog_id}" title="Save capacity">
-                    <i data-lucide="save" class="w-3.5 h-3.5 inline"></i> Save
-                </button>
-            </td>
         </tr>
     `).join('');
 
     lucide.createIcons();
 
-    // Bind Save buttons
-    tbody.querySelectorAll('.btn-save').forEach(btn => {
-        btn.addEventListener('click', () => saveRow(parseInt(btn.dataset.pcid, 10)));
+    // Add change listeners to all inputs to enable/disable Save All button
+    tbody.querySelectorAll('input[type="number"]').forEach(input => {
+        input.addEventListener('input', checkForChanges);
+        input.addEventListener('change', checkForChanges);
     });
+    
+    // Initial check
+    checkForChanges();
 }
 
-async function saveRow(productCatalogId) {
-    const row = document.querySelector(`tr[data-pcid="${productCatalogId}"]`);
-    if (!row) return;
+function checkForChanges() {
+    const saveAllBtn = document.getElementById('btn-save-all');
+    if (!saveAllBtn) return;
+    
+    let hasChanges = false;
+    const tbody = document.getElementById('capacity-table-body');
+    
+    tbody.querySelectorAll('tr[data-pcid]').forEach(tr => {
+        const pcid = parseInt(tr.dataset.pcid, 10);
+        const original = originalCapacityData[pcid];
+        if (!original) return;
+        
+        const daily = parseInt(tr.querySelector('.cap-daily')?.value || 0, 10);
+        const maxBulk = parseInt(tr.querySelector('.cap-max-bulk')?.value || 0, 10);
+        const leadTime = parseInt(tr.querySelector('.cap-lead-time')?.value || 3, 10);
+        
+        if (daily !== original.daily_capacity || 
+            maxBulk !== original.max_bulk_capacity || 
+            leadTime !== original.lead_time_days) {
+            hasChanges = true;
+        }
+    });
+    
+    saveAllBtn.disabled = !hasChanges;
+}
 
-    const daily = parseInt(row.querySelector('.cap-daily')?.value || 0, 10);
-    const maxBulk = parseInt(row.querySelector('.cap-max-bulk')?.value || 0, 10);
-    const leadTime = parseInt(row.querySelector('.cap-lead-time')?.value || 3, 10);
-
-    const btn = row.querySelector('.btn-save');
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin inline"></i> Saving...';
-        lucide.createIcons();
+async function saveAllCapacity() {
+    const tbody = document.getElementById('capacity-table-body');
+    const saveAllBtn = document.getElementById('btn-save-all');
+    
+    if (!tbody || !saveAllBtn) return;
+    
+    // Collect all capacity data from all rows
+    const capacityUpdates = [];
+    const rows = tbody.querySelectorAll('tr[data-pcid]');
+    
+    rows.forEach(tr => {
+        const pcid = parseInt(tr.dataset.pcid, 10);
+        const original = originalCapacityData[pcid];
+        if (!original) return;
+        
+        const daily = parseInt(tr.querySelector('.cap-daily')?.value || 0, 10);
+        const maxBulk = parseInt(tr.querySelector('.cap-max-bulk')?.value || 0, 10);
+        const leadTime = parseInt(tr.querySelector('.cap-lead-time')?.value || 3, 10);
+        
+        // Only include rows that have changed
+        if (daily !== original.daily_capacity || 
+            maxBulk !== original.max_bulk_capacity || 
+            leadTime !== original.lead_time_days) {
+            capacityUpdates.push({
+                product_catalog_id: pcid,
+                daily_capacity: daily,
+                max_bulk_capacity: maxBulk,
+                lead_time_days: leadTime
+            });
+        }
+    });
+    
+    if (capacityUpdates.length === 0) {
+        alert('No changes to save');
+        return;
     }
-
+    
+    // Disable button and show loading
+    const originalText = saveAllBtn.innerHTML;
+    saveAllBtn.disabled = true;
+    saveAllBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Saving...';
+    lucide.createIcons();
+    
     try {
         const res = await ImpromptuIndianApi.fetch('/api/vendor/capacity', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                product_catalog_id: productCatalogId,
-                daily_capacity: daily,
-                max_bulk_capacity: maxBulk,
-                lead_time_days: leadTime
-            })
+            body: JSON.stringify(capacityUpdates)
         });
+        
         if (!res.ok) {
             const err = await res.json().catch(() => ({}));
-            throw new Error(err.error || 'Failed to save');
+            throw new Error(err.error || 'Failed to save capacity');
         }
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5 inline text-green-400"></i> Saved';
+        
+        const result = await res.json();
+        
+        // Update original values to reflect saved state
+        capacityUpdates.forEach(update => {
+            if (originalCapacityData[update.product_catalog_id]) {
+                originalCapacityData[update.product_catalog_id] = {
+                    daily_capacity: update.daily_capacity,
+                    max_bulk_capacity: update.max_bulk_capacity,
+                    lead_time_days: update.lead_time_days
+                };
+            }
+        });
+        
+        // Show success message
+        saveAllBtn.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-green-400"></i> Saved';
+        lucide.createIcons();
+        
+        // Reset button after delay
+        setTimeout(() => {
+            saveAllBtn.innerHTML = originalText;
+            checkForChanges(); // Re-check for changes
             lucide.createIcons();
-            setTimeout(() => {
-                btn.innerHTML = '<i data-lucide="save" class="w-3.5 h-3.5 inline"></i> Save';
-                lucide.createIcons();
-            }, 1500);
-        }
+        }, 2000);
+        
+        // Show success alert
+        alert(`Successfully saved ${result.count || capacityUpdates.length} capacity update(s)`);
+        
     } catch (e) {
         alert(e.message || 'Failed to save capacity');
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<i data-lucide="save" class="w-3.5 h-3.5 inline"></i> Save';
-            lucide.createIcons();
-        }
+        saveAllBtn.disabled = false;
+        saveAllBtn.innerHTML = originalText;
+        lucide.createIcons();
     }
 }
 
 document.getElementById('btn-refresh')?.addEventListener('click', () => fetchCapacity());
+document.getElementById('btn-save-all')?.addEventListener('click', () => saveAllCapacity());
 document.getElementById('filter-product-type')?.addEventListener('change', () => fetchCapacity());
 document.getElementById('filter-category')?.addEventListener('change', () => fetchCapacity());
 document.getElementById('filter-size')?.addEventListener('change', () => fetchCapacity());

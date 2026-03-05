@@ -429,8 +429,11 @@ async function openOrderModal(id) {
   // 🔥 MARKETPLACE ARCHITECTURE: Only fetch eligible vendors (hard-filtered by backend)
   // Backend filters: approved quotation, capacity, stock, verification status
   let eligibleVendors = [];
+  let allVendors = [];
   let errorMessage = null;
   let isMarketplace = false;
+  let hasNoRecommendedVendors = false;
+  
   try {
     const response = await ImpromptuIndianApi.fetch(`/api/admin/orders/${id}/eligible-vendors`);
     if (response.ok) {
@@ -443,6 +446,40 @@ async function openOrderModal(id) {
       eligibleVendors.forEach(v => {
         eligibleVendorsMap[v.vendor_id] = v;
       });
+      
+      // If no eligible vendors found (and not marketplace), fetch all vendors
+      if (eligibleVendors.length === 0 && !isMarketplace) {
+        hasNoRecommendedVendors = true;
+        try {
+          const allVendorsResponse = await ImpromptuIndianApi.fetch('/api/admin/vendors');
+          if (allVendorsResponse.ok) {
+            const allVendorsData = await allVendorsResponse.json();
+            allVendors = allVendorsData.vendors || [];
+            
+            // Add all vendors to the map with basic structure
+            allVendors.forEach(v => {
+              eligibleVendorsMap[v.id] = {
+                vendor_id: v.id,
+                vendor_name: v.business_name || v.username || 'Unknown Vendor',
+                score: 0,
+                distance_km: null,
+                stock_available: 0,
+                capacity_available: 0,
+                lead_time_days: 0,
+                base_cost_per_piece: 0,
+                city: '',
+                state: '',
+                auto_assigned: false,
+                is_manual_selection: true // Flag to indicate manual selection
+              };
+            });
+            
+            console.log(`No recommended vendors found. Loaded ${allVendors.length} total vendors for manual selection.`);
+          }
+        } catch (e) {
+          console.error('Error fetching all vendors:', e);
+        }
+      }
       
       if (responseData.message) {
         console.log('Eligible vendors:', responseData.message);
@@ -457,11 +494,14 @@ async function openOrderModal(id) {
     errorMessage = 'Failed to load eligible vendors. Please try again.';
   }
 
-  // Build vendor options: ONLY eligible vendors (professional enterprise-style layout)
+  // Build vendor options: Eligible vendors OR all vendors if none recommended
   // 🔥 SECURITY: Only store vendor_id in HTML, not full JSON (prevents XSS)
-  const vendorOptionsHtml = eligibleVendors.length > 0
-    ? `
-      <optgroup label="${isMarketplace ? 'Product Owner (Marketplace)' : 'Eligible Vendors'}">
+  let vendorOptionsHtml = '';
+  
+  if (eligibleVendors.length > 0) {
+    // Show recommended/eligible vendors
+    vendorOptionsHtml = `
+      <optgroup label="${isMarketplace ? 'Product Owner (Marketplace)' : 'Recommended Vendors'}">
         ${eligibleVendors.map((v, index) => {
           const location = [v.city, v.state].filter(Boolean).join(', ') || 'Location not specified';
           const capacity = v.capacity_available ?? 0;
@@ -482,8 +522,30 @@ async function openOrderModal(id) {
         `;
         }).join('')}
       </optgroup>
-    `
-    : `<option value="" disabled>${errorMessage || 'No eligible vendors found. Check requirements, capacity, and quotations.'}</option>`;
+    `;
+  } else if (hasNoRecommendedVendors && allVendors.length > 0) {
+    // Show all vendors when no recommended vendors found
+    vendorOptionsHtml = `
+      <optgroup label="All Vendors (Manual Selection)">
+        ${allVendors.map(v => {
+          const vendorName = v.business_name || v.username || 'Unknown Vendor';
+          const status = v.verification_status || 'unknown';
+          return `
+          <option
+            value="${v.id}"
+            data-base-cost="0"
+            data-manual-selection="true"
+          >
+            ${vendorName} | Status: ${status} | (Manual Selection - Not Recommended)
+          </option>
+        `;
+        }).join('')}
+      </optgroup>
+    `;
+  } else {
+    // No vendors available at all
+    vendorOptionsHtml = `<option value="" disabled>${errorMessage || 'No vendors available. Please check system status.'}</option>`;
+  }
 
   body.innerHTML = `
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -600,10 +662,11 @@ async function openOrderModal(id) {
             <div>
               <label class="block mb-2 text-xs font-bold text-gray-500 uppercase tracking-tighter">Choose Vendor <span class="text-red-400">*</span></label>
               ${isMarketplace ? '<p class="text-xs text-green-400/80 mb-2">Marketplace product order. Vendor who posted this product is shown.</p>' : ''}
-              ${eligibleVendors.length > 0 && !isMarketplace ? '<p class="text-xs text-gray-400 mb-2">Top recommendation auto-selected. Only eligible vendors shown.</p>' : ''}
-              ${eligibleVendors.length === 0 ? '<p class="text-xs text-yellow-400/80 mb-2">No eligible vendors found. Vendors must have approved quotation, sufficient capacity, and be verified.</p>' : ''}
-              <select id="vendor-select" class="w-full p-3 bg-gray-900 border border-white/10 rounded-xl text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none" ${eligibleVendors.length === 0 ? 'disabled' : ''}>
-                <option value="">${eligibleVendors.length > 0 ? 'Select a vendor...' : 'No eligible vendors'}</option>
+              ${eligibleVendors.length > 0 && !isMarketplace ? '<p class="text-xs text-gray-400 mb-2">Top recommendation auto-selected. Only recommended vendors shown.</p>' : ''}
+              ${hasNoRecommendedVendors && allVendors.length > 0 ? '<p class="text-xs text-yellow-400/80 mb-2">⚠️ No recommended vendors found. Showing all vendors for manual selection. Vendor may not meet all requirements (quotation, capacity, verification).</p>' : ''}
+              ${eligibleVendors.length === 0 && !hasNoRecommendedVendors ? '<p class="text-xs text-red-400/80 mb-2">No vendors available. Please check system status.</p>' : ''}
+              <select id="vendor-select" class="w-full p-3 bg-gray-900 border border-white/10 rounded-xl text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none" ${eligibleVendors.length === 0 && !hasNoRecommendedVendors ? 'disabled' : ''}>
+                <option value="">${eligibleVendors.length > 0 ? 'Select a vendor...' : hasNoRecommendedVendors ? 'Select a vendor (manual)...' : 'No vendors available'}</option>
                 ${vendorOptionsHtml}
               </select>
               <div id="vendor-insight-panel" class="mt-4 hidden bg-white/5 p-5 rounded-xl border border-white/10"></div>
@@ -666,42 +729,73 @@ async function openOrderModal(id) {
           const location = [vendor.city, vendor.state].filter(Boolean).join(', ') || 'Location not specified';
           const matchScore = (vendor.score != null ? vendor.score * 100 : 0).toFixed(0);
           const scoreColor = vendor.score >= 0.8 ? 'text-emerald-400' : vendor.score >= 0.6 ? 'text-blue-400' : 'text-yellow-400';
+          const isManualSelection = vendor.is_manual_selection || false;
           
-          insightPanel.innerHTML = `
-            <div class="space-y-4">
-              <div class="flex items-start justify-between">
-                <div class="flex-1">
-                  <h4 class="text-white font-semibold text-base mb-1">${vendor.vendor_name}</h4>
-                  <p class="text-gray-400 text-sm">${location}</p>
+          // Show different content for manual selections
+          if (isManualSelection) {
+            insightPanel.innerHTML = `
+              <div class="space-y-4">
+                <div class="flex items-start justify-between">
+                  <div class="flex-1">
+                    <h4 class="text-white font-semibold text-base mb-1">${vendor.vendor_name}</h4>
+                    <p class="text-gray-400 text-sm">${location}</p>
+                  </div>
+                  <div class="text-right">
+                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20">
+                      <span class="text-xs text-yellow-400 font-semibold">Manual Selection</span>
+                    </div>
+                  </div>
                 </div>
-                <div class="text-right">
-                  <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
-                    <span class="text-xs text-gray-400">Match</span>
-                    <span class="${scoreColor} font-bold text-sm">${matchScore}%</span>
+                
+                <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
+                  <p class="text-xs text-yellow-400">
+                    ⚠️ This vendor was manually selected. They may not meet all requirements (approved quotation, capacity, stock). 
+                    Please verify vendor capabilities before assignment.
+                  </p>
+                </div>
+              </div>
+            `;
+          } else {
+            insightPanel.innerHTML = `
+              <div class="space-y-4">
+                <div class="flex items-start justify-between">
+                  <div class="flex-1">
+                    <h4 class="text-white font-semibold text-base mb-1">${vendor.vendor_name}</h4>
+                    <p class="text-gray-400 text-sm">${location}</p>
+                  </div>
+                  <div class="text-right">
+                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
+                      <span class="text-xs text-gray-400">Match</span>
+                      <span class="${scoreColor} font-bold text-sm">${matchScore}%</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 pt-3 border-t border-white/10">
+                  <div>
+                    <div class="text-xs text-gray-500 mb-1">Production Capacity</div>
+                    <div class="text-white font-semibold">${vendor.capacity_available ?? 0} pcs</div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-gray-500 mb-1">Lead Time</div>
+                    <div class="text-white font-semibold">${vendor.lead_time_days ?? 0} day${vendor.lead_time_days !== 1 ? 's' : ''}</div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-gray-500 mb-1">Available Stock</div>
+                    <div class="text-white font-semibold">${vendor.stock_available ?? 0} pcs</div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-gray-500 mb-1">Distance</div>
+                    <div class="text-white font-semibold">${vendor.distance_km != null ? vendor.distance_km.toFixed(1) + ' km' : '—'}</div>
                   </div>
                 </div>
               </div>
-              
-              <div class="grid grid-cols-2 gap-4 pt-3 border-t border-white/10">
-                <div>
-                  <div class="text-xs text-gray-500 mb-1">Production Capacity</div>
-                  <div class="text-white font-semibold">${vendor.capacity_available ?? 0} pcs</div>
-                </div>
-                <div>
-                  <div class="text-xs text-gray-500 mb-1">Lead Time</div>
-                  <div class="text-white font-semibold">${vendor.lead_time_days ?? 0} day${vendor.lead_time_days !== 1 ? 's' : ''}</div>
-                </div>
-                <div>
-                  <div class="text-xs text-gray-500 mb-1">Available Stock</div>
-                  <div class="text-white font-semibold">${vendor.stock_available ?? 0} pcs</div>
-                </div>
-                <div>
-                  <div class="text-xs text-gray-500 mb-1">Distance</div>
-                  <div class="text-white font-semibold">${vendor.distance_km != null ? vendor.distance_km.toFixed(1) + ' km' : '—'}</div>
-                </div>
-              </div>
-              
-              ${breakdown.stock_score !== undefined ? `
+            `;
+          }
+          
+          // Only show breakdown for recommended vendors
+          if (!isManualSelection && breakdown.stock_score !== undefined) {
+            const breakdownSection = `
               <div class="pt-3 border-t border-white/10">
                 <button type="button" id="toggle-breakdown" class="flex items-center gap-2 text-xs text-gray-400 hover:text-gray-300 transition-colors">
                   <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform" id="breakdown-icon"></i>
@@ -726,23 +820,27 @@ async function openOrderModal(id) {
                   </div>
                 </div>
               </div>
-              ` : ''}
-            </div>
-          `;
+            `;
+            insightPanel.innerHTML += breakdownSection;
+          }
           
-          // Initialize breakdown toggle
-          if (window.lucide) lucide.createIcons();
-          const toggleBtn = insightPanel.querySelector('#toggle-breakdown');
-          const breakdownContent = insightPanel.querySelector('#breakdown-content');
-          const breakdownIcon = insightPanel.querySelector('#breakdown-icon');
-          if (toggleBtn && breakdownContent) {
-            toggleBtn.addEventListener('click', () => {
-              const isHidden = breakdownContent.classList.contains('hidden');
-              breakdownContent.classList.toggle('hidden');
-              if (breakdownIcon) {
-                breakdownIcon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
-              }
-            });
+          // Initialize breakdown toggle for recommended vendors
+          if (!isManualSelection && window.lucide) {
+            lucide.createIcons();
+            const toggleBtn = insightPanel.querySelector('#toggle-breakdown');
+            const breakdownContent = insightPanel.querySelector('#breakdown-content');
+            const breakdownIcon = insightPanel.querySelector('#breakdown-icon');
+            if (toggleBtn && breakdownContent) {
+              toggleBtn.addEventListener('click', () => {
+                const isHidden = breakdownContent.classList.contains('hidden');
+                breakdownContent.classList.toggle('hidden');
+                if (breakdownIcon) {
+                  breakdownIcon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+                }
+              });
+            }
+          } else if (window.lucide) {
+            lucide.createIcons();
           }
         }
       }

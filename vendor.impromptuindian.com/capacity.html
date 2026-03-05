@@ -81,8 +81,16 @@
             <!-- Capacity Table -->
             <div class="reveal card" id="capacity-card">
                 <div class="card-header">
-                    <h3 class="card-title">Your Products & Capacity</h3>
-                    <p class="text-sm text-gray-500 mt-1">Vendor Price is read-only. Edit only capacity fields.</p>
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="card-title">Your Products & Capacity</h3>
+                            <p class="text-sm text-gray-500 mt-1">Vendor Price is read-only. Edit only capacity fields.</p>
+                        </div>
+                        <button id="btn-save-all" class="btn-primary flex items-center gap-2" disabled>
+                            <i data-lucide="save" class="w-4 h-4"></i>
+                            Save All Changes
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="table-container">
@@ -95,7 +103,6 @@
                                     <th>Daily Capacity</th>
                                     <th>Max Bulk</th>
                                     <th>Lead Time (days)</th>
-                                    <th class="text-right">Save</th>
                                 </tr>
                             </thead>
                             <tbody id="capacity-table-body"></tbody>
