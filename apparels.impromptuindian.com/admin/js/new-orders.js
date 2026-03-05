@@ -430,11 +430,13 @@ async function openOrderModal(id) {
   // Backend filters: approved quotation, capacity, stock, verification status
   let eligibleVendors = [];
   let errorMessage = null;
+  let isMarketplace = false;
   try {
     const response = await ImpromptuIndianApi.fetch(`/api/admin/orders/${id}/eligible-vendors`);
     if (response.ok) {
-      const data = await response.json();
-      eligibleVendors = data.eligible_vendors || [];
+      const responseData = await response.json();
+      eligibleVendors = responseData.eligible_vendors || [];
+      isMarketplace = responseData.is_marketplace || false;
       
       // 🔥 SECURITY: Store vendor data in JS map (not HTML attributes) to prevent XSS
       // Map is scoped to this function call - no global state pollution
@@ -442,8 +444,8 @@ async function openOrderModal(id) {
         eligibleVendorsMap[v.vendor_id] = v;
       });
       
-      if (data.message) {
-        console.log('Eligible vendors:', data.message);
+      if (responseData.message) {
+        console.log('Eligible vendors:', responseData.message);
       }
     } else {
       const errorData = await response.json().catch(() => ({}));
@@ -459,13 +461,14 @@ async function openOrderModal(id) {
   // 🔥 SECURITY: Only store vendor_id in HTML, not full JSON (prevents XSS)
   const vendorOptionsHtml = eligibleVendors.length > 0
     ? `
-      <optgroup label="Eligible Vendors">
+      <optgroup label="${isMarketplace ? 'Product Owner (Marketplace)' : 'Eligible Vendors'}">
         ${eligibleVendors.map((v, index) => {
           const location = [v.city, v.state].filter(Boolean).join(', ') || 'Location not specified';
           const capacity = v.capacity_available ?? 0;
           const leadTime = v.lead_time_days ?? 0;
           const distance = v.distance_km != null ? `${v.distance_km.toFixed(1)} km` : '—';
           const isBestMatch = index === 0;
+          const isAutoAssigned = v.auto_assigned || false;
           
           // Professional structured format: Vendor Name | Location | Metrics
           return `
@@ -474,7 +477,7 @@ async function openOrderModal(id) {
             data-base-cost="${v.base_cost_per_piece || 0}"
             ${index === 0 ? 'selected' : ''}
           >
-            ${v.vendor_name} | ${location} | Capacity: ${capacity} pcs | Lead: ${leadTime} day${leadTime !== 1 ? 's' : ''} | ${distance}${isBestMatch ? ' | Best Match' : ''}
+            ${v.vendor_name}${isAutoAssigned ? ' (Product Owner)' : ''} | ${location} | Capacity: ${capacity} pcs | Lead: ${leadTime} day${leadTime !== 1 ? 's' : ''} | ${distance}${isBestMatch && !isMarketplace ? ' | Best Match' : ''}
           </option>
         `;
         }).join('')}
@@ -596,7 +599,8 @@ async function openOrderModal(id) {
           <div class="space-y-4">
             <div>
               <label class="block mb-2 text-xs font-bold text-gray-500 uppercase tracking-tighter">Choose Vendor <span class="text-red-400">*</span></label>
-              ${eligibleVendors.length > 0 ? '<p class="text-xs text-gray-400 mb-2">Top recommendation auto-selected. Only eligible vendors shown.</p>' : ''}
+              ${isMarketplace ? '<p class="text-xs text-green-400/80 mb-2">Marketplace product order. Vendor who posted this product is shown.</p>' : ''}
+              ${eligibleVendors.length > 0 && !isMarketplace ? '<p class="text-xs text-gray-400 mb-2">Top recommendation auto-selected. Only eligible vendors shown.</p>' : ''}
               ${eligibleVendors.length === 0 ? '<p class="text-xs text-yellow-400/80 mb-2">No eligible vendors found. Vendors must have approved quotation, sufficient capacity, and be verified.</p>' : ''}
               <select id="vendor-select" class="w-full p-3 bg-gray-900 border border-white/10 rounded-xl text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none" ${eligibleVendors.length === 0 ? 'disabled' : ''}>
                 <option value="">${eligibleVendors.length > 0 ? 'Select a vendor...' : 'No eligible vendors'}</option>
