@@ -673,15 +673,6 @@ async function openOrderModal(id) {
             </div>
             
             <div>
-              <label class="block mb-2 text-xs font-bold text-gray-500 uppercase tracking-tighter">Quotation Price (per piece) <span class="text-red-400">*</span></label>
-              <div class="relative">
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₹</span>
-                <input type="number" id="quotation-price" step="0.01" min="0" class="w-full pl-8 pr-3 py-3 bg-gray-900 border border-white/10 rounded-xl text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none" placeholder="Enter price per piece" required>
-              </div>
-              <p class="text-xs text-gray-500 mt-1">Total for ${order.effectiveQty || order.qty} pieces: <span id="quotation-total" class="text-yellow-400 font-semibold">₹0</span></p>
-            </div>
-            
-            <div>
               <label class="block mb-2 text-xs font-bold text-gray-500 uppercase tracking-tighter">Internal Operations Notes</label>
               <textarea id="admin-notes" class="w-full p-3 bg-gray-900 border border-white/10 text-white text-sm rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none" rows="3" placeholder="Add specific instructions for this order..."></textarea>
             </div>
@@ -695,22 +686,9 @@ async function openOrderModal(id) {
   document.getElementById('order-modal').classList.remove('hidden');
   if (window.lucide) lucide.createIcons();
   
-  // Calculate total quotation when price changes
-  const quotationInput = document.getElementById('quotation-price');
-  const quotationTotal = document.getElementById('quotation-total');
+  // Vendor select: insight panel
   const vendorSelect = document.getElementById('vendor-select');
   const insightPanel = document.getElementById('vendor-insight-panel');
-
-  if (quotationInput && quotationTotal) {
-    quotationInput.addEventListener('input', () => {
-      const price = parseFloat(quotationInput.value) || 0;
-      const effectiveQty = order.effectiveQty || order.qty;
-      const total = price * effectiveQty;
-      quotationTotal.textContent = `₹${total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    });
-  }
-
-  // Vendor select: insight panel + auto-fill quotation price
   // 🔥 CLOSURE: Capture eligibleVendorsMap in closure for event handler
   if (vendorSelect) {
     vendorSelect.addEventListener('change', (function(map) {
@@ -844,15 +822,6 @@ async function openOrderModal(id) {
           }
         }
       }
-
-        // Auto-fill quotation price when selecting an eligible vendor
-        if (quotationInput && vendor) {
-          const baseCost = parseFloat(vendor.base_cost_per_piece || 0);
-          if (baseCost > 0) {
-            quotationInput.value = baseCost.toFixed(2);
-            quotationInput.dispatchEvent(new Event('input'));
-          }
-        }
       };
     })(eligibleVendorsMap));
 
@@ -870,16 +839,10 @@ function closeOrderModal() {
 
 async function assignVendor() {
   const vendorId = document.getElementById('vendor-select')?.value;
-  const quotationPrice = document.getElementById('quotation-price')?.value;
   
   // Validation
   if (!vendorId) {
     showToast('Please select a vendor', 'warning');
-    return;
-  }
-  
-  if (!quotationPrice || parseFloat(quotationPrice) <= 0) {
-    showToast('Please enter a valid quotation price per piece', 'warning');
     return;
   }
 
@@ -896,17 +859,15 @@ async function assignVendor() {
   // 🔥 SECURITY: Get vendor name from select option text (map is scoped, but option text is safe)
   const vendorSelect = document.getElementById('vendor-select');
   const selectedOpt = vendorSelect?.options[vendorSelect.selectedIndex];
-  const vendorName = selectedOpt?.textContent?.split('—')[0]?.trim() || `Vendor #${vendorId}`;
+  const vendorName = selectedOpt?.textContent?.split('|')[0]?.trim() || `Vendor #${vendorId}`;
   // 🔥 BULK ORDER FIX: Use effective quantity (bulk_quantity for bulk orders, quantity for sample)
   const effectiveQty = order.effectiveQty || order.qty;
-  const totalPrice = parseFloat(quotationPrice) * effectiveQty;
   
   const confirmed = confirm(
     `⚠️ Confirm Vendor Assignment\n\n` +
     `Order: #${currentOrderId}\n` +
     `Vendor: ${vendorName}\n` +
-    `Price per piece: ₹${parseFloat(quotationPrice).toLocaleString('en-IN', { minimumFractionDigits: 2 })}\n` +
-    `Total (${effectiveQty} pieces${order.isBulk ? ' bulk' : ''}): ₹${totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}\n\n` +
+    `Quantity: ${effectiveQty} pieces${order.isBulk ? ' (bulk)' : ''}\n\n` +
     `Note: Vendor cannot reject this assignment. Order will be locked to this vendor.\n\n` +
     `Proceed with assignment?`
   );
@@ -925,7 +886,6 @@ async function assignVendor() {
       },
       body: JSON.stringify({
         vendor_id: parseInt(vendorId),
-        quotation_price_per_piece: parseFloat(quotationPrice),
         sample_cost: order.amount  // 🔥 FIX: Use real sample cost from database, not hardcoded value
       })
     });
