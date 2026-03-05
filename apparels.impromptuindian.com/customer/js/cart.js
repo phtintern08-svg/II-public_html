@@ -360,51 +360,69 @@ async function createCartOrders(paymentResult) {
       throw new Error("Failed to fetch address");
     }
     
-    const addresses = await addressRes.json();
-    if (!addresses || addresses.length === 0) {
+    const addressData = await addressRes.json();
+    const addresses = addressData.addresses || addressData || [];
+    
+    if (!Array.isArray(addresses) || addresses.length === 0) {
       throw new Error("Please add a delivery address in your profile first");
     }
     
     const address = addresses[0]; // Use first address
     
-    // Create order for each cart item
-    for (const item of cart) {
-      const orderData = {
-        product_type: item.productType || 'T-Shirt',
-        category: item.category || 'Regular Fit',
-        color: item.color || 'Black',
-        fabric: item.fabric || 'Cotton',
-        quantity: item.quantity,
-        price_per_piece: item.price,
-        delivery_date: null,
-        address_line1: address.address_line1,
-        address_line2: address.address_line2 || '',
-        city: address.city,
-        state: address.state,
-        pincode: address.pincode,
-        country: address.country || 'India',
-        transaction_id: paymentResult.transactionId,
-        payment_method: paymentResult.method,
-        payment_details: JSON.stringify(paymentResult),
-        sample_cost: item.price * item.quantity,
-        sample_size: item.size || 'M'
-      };
-      
-      const orderRes = await window.ImpromptuIndianApi.fetch('/api/orders/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify(orderData)
-      });
-      
-      if (!orderRes.ok) {
-        const error = await orderRes.json().catch(() => ({}));
-        console.error('Order creation failed:', error);
-        throw new Error(error.error || 'Failed to create order');
-      }
+    // Calculate totals
+    const subtotal = cart.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0);
+    const shipping = 50;
+    const total = subtotal + shipping;
+    
+    // Prepare order items from cart
+    const orderItems = cart.map(item => ({
+      product_id: item.id || item.product_id || null,
+      product_name: item.name || item.product_name || 'Product',
+      product_type: item.product_type || item.productType || 'T-Shirt',
+      category: item.category || 'Regular Fit',
+      quantity: item.quantity || 1,
+      price: item.price || 0,
+      size: item.selectedSize || item.size || null,
+      color: item.color || item.selectedColor || null,
+      image: item.image || item.image_url || null
+    }));
+    
+    // Create single order with multiple items
+    const orderData = {
+      transaction_id: paymentResult.transactionId,
+      payment_method: paymentResult.method,
+      payment_details: JSON.stringify(paymentResult),
+      total_amount: total,
+      subtotal: subtotal,
+      shipping: shipping,
+      address_line1: address.address_line1,
+      address_line2: address.address_line2 || '',
+      city: address.city,
+      state: address.state,
+      pincode: address.pincode,
+      country: address.country || 'India',
+      latitude: address.latitude || null,
+      longitude: address.longitude || null,
+      items: orderItems
+    };
+    
+    const orderRes = await window.ImpromptuIndianApi.fetch('/api/customer/orders', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify(orderData)
+    });
+    
+    if (!orderRes.ok) {
+      const error = await orderRes.json().catch(() => ({}));
+      console.error('Order creation failed:', error);
+      throw new Error(error.error || 'Failed to create order');
     }
+    
+    const orderResult = await orderRes.json();
+    console.log('Order created successfully:', orderResult);
   } catch (error) {
     console.error('Create orders error:', error);
     throw error;
