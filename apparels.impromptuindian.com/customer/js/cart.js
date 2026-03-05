@@ -48,7 +48,7 @@ function loadCartPage() {
     return;
   }
 
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = cart.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0);
   const shipping = 50;
   const total = subtotal + shipping;
 
@@ -57,27 +57,38 @@ function loadCartPage() {
   <p class="text-gray-400 mb-6">Review your items before checkout.</p>
 
   <div class="bg-[#0b1220] rounded-xl divide-y border border-gray-700 mb-6" id="cartItems">
-    ${cart.map(item => `
+    ${cart.map(item => {
+      const color = item.color || item.selectedColor || '';
+      const size = item.selectedSize || item.size || '';
+      let detailsText = '';
+      
+      if (color && size) {
+        detailsText = `${color} — ${size}`;
+      } else if (size) {
+        detailsText = `Size: ${size}`;
+      } else if (color) {
+        detailsText = `Color: ${color}`;
+      }
+      
+      return `
       <div class="p-5 flex items-center gap-4">
-        <img src="${item.image}" class="w-20 h-20 rounded object-cover" />
-
+        <img src="${item.image || item.image_url || '../images/placeholder.png'}" class="w-20 h-20 rounded object-cover" />
         <div class="flex-1">
-          <div class="font-semibold">${item.name}</div>
-          <div class="text-gray-400 text-sm">${item.color} — ${item.size}</div>
-          <div class="font-bold mt-1">₹${item.price}</div>
+          <div class="font-semibold">${item.name || item.product_name || 'Product'}</div>
+          ${detailsText ? `<div class="text-gray-400 text-sm">${detailsText}</div>` : ''}
+          <div class="font-bold mt-1">₹${item.price || 0}</div>
         </div>
-
         <div class="flex items-center gap-2">
           <button onclick="changeQty('${item.id}', -1)" class="px-3 py-1 border rounded border-gray-600 hover:bg-gray-700">-</button>
           <span class="w-8 text-center">${item.quantity}</span>
           <button onclick="changeQty('${item.id}', 1)" class="px-3 py-1 border rounded border-gray-600 hover:bg-gray-700">+</button>
         </div>
-
         <button onclick="removeItem('${item.id}')" class="text-red-400 hover:text-red-300">
           <i data-lucide="trash-2" class="w-5 h-5"></i>
         </button>
       </div>
-    `).join("")}
+      `;
+    }).join("")}
   </div>
 
   <div class="bg-[#0b1220] rounded-xl p-6 border border-gray-700">
