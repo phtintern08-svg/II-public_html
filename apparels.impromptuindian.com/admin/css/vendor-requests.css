@@ -552,12 +552,12 @@ main {
 }
 
 .vendor-requests-table thead th:first-child {
-    padding-left: 1.5rem;
+    padding-left: 1rem;
     border-radius: 0;
 }
 
 .vendor-requests-table thead th:last-child {
-    padding-right: 1.5rem;
+    padding-right: 1rem;
 }
 
 .th-content {
@@ -582,6 +582,7 @@ main {
 .vendor-requests-table tbody td:nth-child(1) {
     width: 25%;
     min-width: 0;
+    max-width: 25%;
     text-align: left;
 }
 
@@ -589,6 +590,7 @@ main {
 .vendor-requests-table tbody td:nth-child(2) {
     width: 20%;
     min-width: 0;
+    max-width: 20%;
     text-align: left;
 }
 
@@ -596,6 +598,7 @@ main {
 .vendor-requests-table tbody td:nth-child(3) {
     width: 15%;
     min-width: 0;
+    max-width: 15%;
     text-align: left;
 }
 
@@ -603,6 +606,7 @@ main {
 .vendor-requests-table tbody td:nth-child(4) {
     width: 15%;
     min-width: 0;
+    max-width: 15%;
     text-align: center;
 }
 
@@ -610,6 +614,7 @@ main {
 .vendor-requests-table tbody td:nth-child(5) {
     width: 25%;
     min-width: 0;
+    max-width: 25%;
     text-align: right;
 }
 
@@ -663,7 +668,7 @@ main {
 
 .vendor-requests-table thead th,
 .vendor-requests-table tbody td {
-    padding: 1rem 1.25rem;
+    padding: 1rem 1rem;
     vertical-align: middle;
     border-bottom: 1px solid rgba(148, 163, 184, 0.08);
     overflow: hidden;
@@ -677,36 +682,39 @@ main {
     font-size: 0.875rem;
     min-width: 0;
     max-width: 0; /* Required for table-layout: fixed to work with text truncation */
+    position: relative;
 }
 
 /* Prevent text overflow in specific columns */
 .vendor-requests-table tbody td.td-business,
 .vendor-requests-table tbody td.td-date {
-    overflow: hidden;
+    overflow: hidden !important;
     text-overflow: ellipsis;
     white-space: nowrap;
     min-width: 0;
     max-width: 0; /* Required for table-layout: fixed to work with text truncation */
+    position: relative;
 }
 
 /* Vendor name column - allow content to display but prevent overflow */
 .vendor-requests-table tbody td:first-child,
 .vendor-requests-table tbody td.td-vendor {
     overflow: hidden;
-    padding-left: 1.5rem;
+    padding-left: 1rem;
     min-width: 0;
     max-width: 0; /* Required for table-layout: fixed to work with text truncation */
 }
 
 .vendor-requests-table tbody td:last-child {
-    padding-right: 1.5rem;
+    padding-right: 1rem;
 }
 
 /* Vendor name cell - avatar + name */
 .vendor-requests-table tbody td:nth-child(1) {
-    overflow: hidden; /* Prevent overflow */
+    overflow: hidden !important; /* Prevent overflow */
     min-width: 0;
     max-width: 0; /* Required for table-layout: fixed to work with text truncation */
+    position: relative;
 }
 
 .vendor-requests-table td.td-vendor .vendor-cell-content {
@@ -714,8 +722,11 @@ main {
     align-items: center;
     gap: 0.75rem;
     min-width: 0;
+    width: 100%;
     max-width: 100%;
     overflow: hidden;
+    position: relative;
+    box-sizing: border-box;
 }
 
 .vendor-requests-table td.td-vendor .vendor-avatar {
@@ -742,7 +753,6 @@ main {
     flex: 1;
     min-width: 0;
     max-width: 100%;
-    display: block;
 }
 
 /* Business type & date - subtle styling */
