@@ -168,7 +168,6 @@
       navHTML += `
         <a href="orders.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white"><i data-lucide="shopping-bag" class="w-5 h-5"></i> <span>Orders</span> ${newOrdersCount > 0 ? `<span class="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">${newOrdersCount}</span>` : ''}</a>
         <a href="capacity.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white"><i data-lucide="factory" class="w-5 h-5"></i> <span>Production Capacity</span></a>
-        <a href="production.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white"><i data-lucide="settings" class="w-5 h-5"></i> <span>Production</span></a>
         <a href="payments.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white"><i data-lucide="dollar-sign" class="w-5 h-5"></i> <span>Payments</span></a>
         <a href="notifications.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white"><i data-lucide="bell" class="w-5 h-5"></i> <span>Notifications</span> ${unreadCount > 0 ? `<span class="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">${unreadCount}</span>` : ''}</a>
       `;
