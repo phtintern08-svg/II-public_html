@@ -123,6 +123,28 @@ function initDropdowns() {
             // 🔥 FIX: Use correct container ID - must match #neckTypeContainer (not #neckContainer)
             const neckContainer = document.getElementById("neckTypeContainer");
             if (neckContainer) neckContainer.innerHTML = "";
+            
+            // 🔥 FIX: Hide neck type section for products that don't have neck types (Cap, Hoodie, Sweatshirt)
+            const productsWithoutNeck = ["Hoodie", "Sweatshirt", "Cap"];
+            if (neckContainer) {
+              // Find the parent div with class "mb-8" that contains the neck type section
+              let parentSection = neckContainer.parentElement;
+              while (parentSection && !parentSection.classList.contains('mb-8')) {
+                parentSection = parentSection.parentElement;
+              }
+              // If not found, use the immediate parent
+              if (!parentSection) {
+                parentSection = neckContainer.parentElement;
+              }
+              
+              if (productsWithoutNeck.includes(key)) {
+                if (parentSection) parentSection.style.display = "none";
+                console.log(`🔒 Hiding neck type section for ${key}`);
+              } else {
+                if (parentSection) parentSection.style.display = "";
+                console.log(`✅ Showing neck type section for ${key}`);
+              }
+            }
 
             // Update dependent UI
             renderCategories(key);
@@ -547,9 +569,10 @@ async function checkEstimate() {
   });
 
   // 🔥 CRITICAL: Determine if neckType is required based on product type
-  // Products like Hoodie and Sweatshirt don't have neck types
-  const productsWithoutNeck = ["Hoodie", "Sweatshirt"];
-  const isNeckRequired = productType && !productsWithoutNeck.includes(productType);
+  // Products like Hoodie, Sweatshirt, and Cap don't have neck types
+  // Only T-Shirt requires neckType
+  const productsWithoutNeck = ["Hoodie", "Sweatshirt", "Cap"];
+  const isNeckRequired = productType === "T-Shirt";
 
   // Clear UI immediately (using state values, not DOM)
   if (displayEl) {
@@ -1159,7 +1182,15 @@ function initQuantities() {
     });
   });
 
-  totalQuantityEl.addEventListener("input", updateTotals);
+  totalQuantityEl.addEventListener("input", (e) => {
+    updateTotals();
+    // 🔥 CRITICAL: Update state quantity when total quantity changes
+    const qty = parseInt(e.target.value) || 0;
+    currentOrderState.quantity = qty;
+    console.log("💾 Quantity updated in state:", currentOrderState.quantity);
+    // Trigger estimate check if other fields are ready
+    checkEstimate();
+  });
 }
 
 /* ------------------------------------------------
@@ -2680,9 +2711,9 @@ function initPlaceOrder() {
       // 🔥 CRITICAL: Validate state - payment allowed if price exists (cost > 0)
       // Must check ALL required fields (same as estimate validation) - neckType is conditional
       // Removed estimateFound check - if price exists, payment is allowed (backend validates final price anyway)
-      // 🔥 FIX: neckType is only required for products that have neck types (not Hoodie/Sweatshirt)
-      const productsWithoutNeck = ["Hoodie", "Sweatshirt"];
-      const isNeckRequired = currentOrderState.productType && !productsWithoutNeck.includes(currentOrderState.productType);
+      // 🔥 FIX: neckType is only required for T-Shirt (not Hoodie/Sweatshirt/Cap)
+      const productsWithoutNeck = ["Hoodie", "Sweatshirt", "Cap"];
+      const isNeckRequired = currentOrderState.productType === "T-Shirt";
       
       if (
         !currentOrderState.productType ||
@@ -2890,10 +2921,10 @@ async function createOrderAfterPayment(paymentResult, amount) {
   });
 
   // 🔥 CRITICAL: Validate state before creating order
-  // 🔥 FIX: neckType is only required for products that have neck types (not Hoodie/Sweatshirt)
+  // 🔥 FIX: neckType is only required for T-Shirt (not Hoodie/Sweatshirt/Cap)
   // Same conditional logic as checkEstimate() and handlePlaceOrder() for consistency
-  const productsWithoutNeck = ["Hoodie", "Sweatshirt"];
-  const isNeckRequired = currentOrderState.productType && !productsWithoutNeck.includes(currentOrderState.productType);
+  const productsWithoutNeck = ["Hoodie", "Sweatshirt", "Cap"];
+  const isNeckRequired = currentOrderState.productType === "T-Shirt";
   
   if (
     !currentOrderState.productType ||
