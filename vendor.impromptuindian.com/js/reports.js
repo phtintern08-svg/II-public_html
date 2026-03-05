@@ -51,11 +51,11 @@ function initializeCharts() {
             maintainAspectRatio: false,
             plugins: {
                 legend: { display: false },
-                tooltip: { backgroundColor: '#1a1f2e', titleColor: '#ffffff', bodyColor: '#9ca3af', borderColor: 'rgba(255, 255, 255, 0.1)', borderWidth: 1, padding: 12, callbacks: { label: (context) => '$' + context.parsed.y.toLocaleString() } }
+                tooltip: { backgroundColor: '#1a1f2e', titleColor: '#ffffff', bodyColor: '#9ca3af', borderColor: 'rgba(255, 255, 255, 0.1)', borderWidth: 1, padding: 12, callbacks: { label: (context) => '₹' + context.parsed.y.toLocaleString('en-IN') } }
             },
             scales: {
                 x: { grid: { display: false }, ticks: { color: '#9ca3af' } },
-                y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#9ca3af', callback: (value) => '$' + value } }
+                y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#9ca3af', callback: (value) => '₹' + value.toLocaleString('en-IN') } }
             }
         }
     });

@@ -58,7 +58,7 @@ function animateValue(elementId, start, end, duration, isCurrency = false, suffi
         }
 
         if (isCurrency) {
-            element.textContent = '$' + Math.floor(current).toLocaleString();
+            element.textContent = '₹' + Math.floor(current).toLocaleString('en-IN');
         } else {
             element.textContent = Math.floor(current) + suffix;
         }
@@ -98,7 +98,7 @@ function initializeEarningsChart() {
                     padding: 12,
                     displayColors: false,
                     callbacks: {
-                        label: (context) => '$' + context.parsed.y.toLocaleString()
+                        label: (context) => '₹' + context.parsed.y.toLocaleString('en-IN')
                     }
                 }
             },
@@ -110,7 +110,7 @@ function initializeEarningsChart() {
                 y: {
                     beginAtZero: true,
                     grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
-                    ticks: { color: '#9ca3af', font: { size: 12 }, callback: (value) => '$' + value }
+                    ticks: { color: '#9ca3af', font: { size: 12 }, callback: (value) => '₹' + value.toLocaleString('en-IN') }
                 }
             }
         }
@@ -131,20 +131,20 @@ function renderCommissionBreakdown() {
                 <span>Gross Earnings</span>
                 <i data-lucide="info" class="w-4 h-4 text-gray-500"></i>
             </div>
-            <div class="breakdown-value">$${gross.toFixed(2)}</div>
+            <div class="breakdown-value">₹${gross.toFixed(2)}</div>
         </div>
         <div class="breakdown-item">
             <div class="breakdown-label">
                 <span>Platform Commission (${earningsData.commissionRate}%)</span>
             </div>
-            <div class="breakdown-value text-red-400">-$${commission.toFixed(2)}</div>
+            <div class="breakdown-value text-red-400">-₹${commission.toFixed(2)}</div>
         </div>
         <div class="breakdown-separator"></div>
         <div class="breakdown-item breakdown-total">
             <div class="breakdown-label">
                 <span>Net Earnings</span>
             </div>
-            <div class="breakdown-value text-green-400">$${earningsData.monthEarnings.toLocaleString()}</div>
+            <div class="breakdown-value text-green-400">₹${earningsData.monthEarnings.toLocaleString('en-IN')}</div>
         </div>
     `;
     lucide.createIcons();
@@ -161,9 +161,9 @@ function renderTransactions() {
             <td class="font-medium">${txn.orderId}</td>
             <td>${new Date(txn.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</td>
             <td>${txn.customer}</td>
-            <td>$${txn.gross.toFixed(2)}</td>
-            <td class="text-red-400">-$${txn.commission.toFixed(2)}</td>
-            <td class="text-right text-green-400 font-semibold">$${txn.net.toFixed(2)}</td>
+            <td>₹${txn.gross.toFixed(2)}</td>
+            <td class="text-red-400">-₹${txn.commission.toFixed(2)}</td>
+            <td class="text-right text-green-400 font-semibold">₹${txn.net.toFixed(2)}</td>
         </tr>
     `).join('');
 

@@ -50,7 +50,7 @@ function initializeChart() {
                     displayColors: false,
                     callbacks: {
                         label: function (context) {
-                            return '$' + context.parsed.y.toLocaleString();
+                            return '₹' + context.parsed.y.toLocaleString('en-IN');
                         }
                     }
                 }
@@ -98,8 +98,8 @@ function animateValue(element, start, end, duration) {
 
         // Format based on the element's original content
         const originalText = element.dataset.originalValue;
-        if (originalText.includes('$')) {
-            element.textContent = '$' + Math.floor(current).toLocaleString();
+        if (originalText.includes('₹') || originalText.includes('$')) {
+            element.textContent = '₹' + Math.floor(current).toLocaleString('en-IN');
         } else if (originalText.includes('%')) {
             element.textContent = Math.floor(current) + '%';
         } else if (originalText.includes('.')) {

@@ -19,8 +19,8 @@ function renderSummary() {
     const inProcess = payouts.filter(p => p.status === 'processing').reduce((sum, p) => sum + p.amount, 0);
     const lastPayout = payouts.find(p => p.status === 'paid');
 
-    document.getElementById('total-paid').textContent = '$' + totalPaid.toLocaleString();
-    document.getElementById('in-process').textContent = '$' + inProcess.toLocaleString();
+    document.getElementById('total-paid').textContent = '₹' + totalPaid.toLocaleString('en-IN');
+    document.getElementById('in-process').textContent = '₹' + inProcess.toLocaleString('en-IN');
     document.getElementById('last-payout-date').textContent = lastPayout ? lastPayout.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '-';
     document.getElementById('total-count').textContent = payouts.length;
 }
@@ -59,7 +59,7 @@ function renderPayouts() {
             <tr>
                 <td class="font-medium">${payout.id}</td>
                 <td>${payout.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
-                <td class="font-semibold">$${payout.amount.toLocaleString()}</td>
+                <td class="font-semibold">₹${payout.amount.toLocaleString('en-IN')}</td>
                 <td>${payout.method}</td>
                 <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
                 <td class="text-right">
@@ -86,7 +86,7 @@ function viewDetails(payoutId) {
         <div class="detail-grid">
             <div class="detail-item"><span class="detail-label">Transaction ID:</span><span class="detail-value">${payout.id}</span></div>
             <div class="detail-item"><span class="detail-label">Date:</span><span class="detail-value">${payout.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span></div>
-            <div class="detail-item"><span class="detail-label">Amount:</span><span class="detail-value font-semibold text-green-400">$${payout.amount.toLocaleString()}</span></div>
+            <div class="detail-item"><span class="detail-label">Amount:</span><span class="detail-value font-semibold text-green-400">₹${payout.amount.toLocaleString('en-IN')}</span></div>
             <div class="detail-item"><span class="detail-label">Method:</span><span class="detail-value">${payout.method}</span></div>
             <div class="detail-item"><span class="detail-label">Account:</span><span class="detail-value">${payout.account}</span></div>
             <div class="detail-item"><span class="detail-label">Status:</span><span class="status-badge ${payout.status === 'paid' ? 'status-paid' : 'status-processing'}">${payout.status === 'paid' ? 'Paid' : 'Processing'}</span></div>

@@ -301,9 +301,9 @@ function initializeWorkloadChart() {
 function renderPaymentSnapshot() {
     const { pendingPayout, monthEarnings, lastPayout, nextPayoutDate } = dashboardData.payments;
 
-    document.getElementById('pending-payout').textContent = '$' + pendingPayout.toLocaleString();
-    document.getElementById('month-earnings').textContent = '$' + monthEarnings.toLocaleString();
-    document.getElementById('last-payout').textContent = '$' + lastPayout.toLocaleString();
+    document.getElementById('pending-payout').textContent = '₹' + pendingPayout.toLocaleString('en-IN');
+    document.getElementById('month-earnings').textContent = '₹' + monthEarnings.toLocaleString('en-IN');
+    document.getElementById('last-payout').textContent = '₹' + lastPayout.toLocaleString('en-IN');
 
     const date = new Date(nextPayoutDate);
     const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
