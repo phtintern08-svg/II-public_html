@@ -681,8 +681,8 @@ main {
     color: #cbd5e1;
     font-size: 0.875rem;
     min-width: 0;
-    max-width: 0; /* Required for table-layout: fixed to work with text truncation */
     position: relative;
+    display: table-cell;
 }
 
 /* Prevent text overflow in specific columns */
@@ -692,7 +692,7 @@ main {
     text-overflow: ellipsis;
     white-space: nowrap;
     min-width: 0;
-    max-width: 0; /* Required for table-layout: fixed to work with text truncation */
+    display: table-cell;
     position: relative;
 }
 
@@ -702,7 +702,7 @@ main {
     overflow: hidden;
     padding-left: 1rem;
     min-width: 0;
-    max-width: 0; /* Required for table-layout: fixed to work with text truncation */
+    display: table-cell;
 }
 
 .vendor-requests-table tbody td:last-child {
@@ -713,12 +713,12 @@ main {
 .vendor-requests-table tbody td:nth-child(1) {
     overflow: hidden !important; /* Prevent overflow */
     min-width: 0;
-    max-width: 0; /* Required for table-layout: fixed to work with text truncation */
+    display: table-cell;
     position: relative;
 }
 
 .vendor-requests-table td.td-vendor .vendor-cell-content {
-    display: flex;
+    display: flex !important;
     align-items: center;
     gap: 0.75rem;
     min-width: 0;
@@ -753,6 +753,7 @@ main {
     flex: 1;
     min-width: 0;
     max-width: 100%;
+    display: block;
 }
 
 /* Business type & date - subtle styling */
@@ -764,11 +765,10 @@ main {
 
 /* Status cell - center badge - allow content to display */
 .vendor-requests-table td.td-status {
-    display: table-cell;
+    display: table-cell !important;
     overflow: visible;
     white-space: nowrap;
     min-width: 0;
-    max-width: none; /* Allow status badge to display fully */
 }
 
 .vendor-requests-table td.td-status .doc-status {
@@ -779,11 +779,11 @@ main {
 
 /* Actions cell - right align buttons - allow content to display */
 .vendor-requests-table td.td-actions {
+    display: table-cell !important;
     text-align: right;
     overflow: visible;
     white-space: nowrap;
     min-width: 0;
-    max-width: none; /* Allow action buttons to display fully */
 }
 
 .vendor-requests-table td.td-actions .action-btn {
@@ -808,103 +808,7 @@ main {
     margin: 0 auto;
 }
 
-/* Legacy fallback for tables without new classes */
-table th:nth-child(1),
-table td:nth-child(1) {
-    width: 28%;
-}
-
-table th:nth-child(2),
-table td:nth-child(2) {
-    width: 18%;
-}
-
-table th:nth-child(3),
-table td:nth-child(3) {
-    width: 18%;
-}
-
-table th:nth-child(4),
-table td:nth-child(4) {
-    width: 16%;
-}
-
-table th:nth-child(5),
-table td:nth-child(5) {
-    width: 20%;
-}
-
-table thead th {
-    padding: 1rem 1.25rem;
-    background: rgba(15, 23, 42, 0.4);
-    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
-    text-align: left;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    white-space: nowrap;
-}
-
-table tbody tr {
-    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
-    border-left: 3px solid transparent;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-}
-
-table tbody tr::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: transparent;
-    transition: background 0.2s ease;
-}
-
-table tbody tr:hover {
-    background: linear-gradient(90deg, rgba(37, 99, 235, 0.05) 0%, rgba(15, 23, 42, 0.3) 100%);
-}
-
-table tbody tr:hover::before {
-    background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
-}
-
-table tbody tr:last-child {
-    border-bottom: none;
-}
-
-table td,
-table th {
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-table tbody td {
-    padding: 1rem 1.25rem;
-    font-size: 0.875rem;
-    color: #cbd5e1;
-    vertical-align: middle;
-}
-
-table tbody td:first-child>div {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    width: 100%;
-}
-
-table tbody td:first-child {
-    font-weight: 600;
-    color: #ffffff;
-}
-
-table tbody td.text-right {
-    text-align: right;
-}
+/* Legacy fallback removed - using vendor-requests-table specific rules only */
 
 /* ========================================
    STATUS BADGES
