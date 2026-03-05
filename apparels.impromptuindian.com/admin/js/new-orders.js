@@ -54,7 +54,7 @@ async function fetchOrders() {
   try {
     // 🔥 FIX: Token is automatically injected by ImpromptuIndianApi.fetch() wrapper
     // No need for manual token check or Authorization header - wrapper handles it
-    const response = await ImpromptuIndianApi.fetch('/api/orders/');
+    const response = await ImpromptuIndianApi.fetch('/api/admin/orders?status=pending_admin_review');
 
     // 🔥 NOTE: 401 handling is now centralized in API wrapper (sidebar.js)
     // If 401 occurs, wrapper automatically redirects to login
@@ -87,7 +87,15 @@ async function fetchOrders() {
         urgent: false,
         vendor: null,
         // ✅ NEW: Store size distribution for bulk orders
-        sizeDistribution: o.size_distribution || null
+        sizeDistribution: o.size_distribution || null,
+        // ✅ NEW: Marketplace product information for cart orders
+        product_name: o.product_name || null,
+        product_image: o.product_image || null,
+        vendor_name: o.vendor_name || null,
+        vendor_id: o.vendor_id || null,
+        marketplace_product_id: o.marketplace_product_id || null,
+        size: o.sample_size || o.size || null,
+        color: o.color || null
       }));
 
     filterOrders();
@@ -529,16 +537,44 @@ async function openOrderModal(id) {
           <h3 class="flex items-center gap-2 text-md font-bold text-yellow-400 mb-4 uppercase tracking-widest">
             <i data-lucide="palette" class="w-4 h-4"></i> Product Details
           </h3>
-          <div class="space-y-3">
-             <div class="flex items-center justify-between text-sm py-2 border-b border-white/5">
+          ${order.product_name ? `
+            <!-- Marketplace Product (Cart Order) -->
+            <div class="space-y-4">
+              <div class="flex items-center gap-3 mb-4">
+                ${order.product_image ? `<img src="${order.product_image}" class="w-16 h-16 rounded-lg object-cover border border-white/10" onerror="this.src='../images/placeholder.png'">` : ''}
+                <div class="flex-1">
+                  <div class="font-semibold text-white text-base">${order.product_name}</div>
+                  ${order.vendor_name ? `<div class="text-sm text-gray-400 mt-1">Vendor: ${order.vendor_name}</div>` : ''}
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-y-3 text-sm">
+                ${order.size ? `
+                  <div class="text-gray-500">Size</div>
+                  <div class="font-semibold text-gray-100">${order.size}</div>
+                ` : ''}
+                ${order.color ? `
+                  <div class="text-gray-500">Color</div>
+                  <div class="font-semibold text-gray-100">${order.color}</div>
+                ` : ''}
+                <div class="text-gray-500">Quantity</div>
+                <div class="font-semibold text-gray-100">${order.qty} pcs</div>
+                <div class="text-gray-500">Price</div>
+                <div class="font-bold text-yellow-400">₹${order.amount > 0 ? order.amount.toLocaleString() : '—'}</div>
+              </div>
+            </div>
+          ` : `
+            <!-- Custom Order (New Order Flow) -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between text-sm py-2 border-b border-white/5">
                 <span class="text-gray-500">Apparel Type</span>
                 <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 font-bold text-xs capitalize">${order.type}</span>
-             </div>
-             <div class="flex items-start justify-between text-sm py-2">
+              </div>
+              <div class="flex items-start justify-between text-sm py-2">
                 <span class="text-gray-500">Customization</span>
-                <span class="text-gray-200 text-right max-w-[200px]">${order.details}</span>
-             </div>
-          </div>
+                <span class="text-gray-200 text-right max-w-[200px]">${order.details || 'None'}</span>
+              </div>
+            </div>
+          `}
         </div>
       </div>
       
