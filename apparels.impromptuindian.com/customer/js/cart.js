@@ -176,16 +176,28 @@ function clearCart() {
 -------------------------------------------*/
 let currentPaymentMethod = 'card';
 
-function openCheckout() {
+async function openCheckout() {
   const cart = getCart();
   if (cart.length === 0) {
     showAlert("Empty Cart", "Your cart is empty. Add items to proceed.", "error");
     return;
   }
 
-  // Check if user is logged in
-  const token = localStorage.getItem('access_token');
-  if (!token) {
+  // Check login via backend (cookie-based authentication)
+  try {
+    const res = await window.ImpromptuIndianApi.fetch('/api/customer/profile', {
+      credentials: 'include'
+    });
+
+    if (!res.ok) {
+      showAlert("Login Required", "Please login to proceed with checkout.", "error");
+      setTimeout(() => {
+        window.location.href = 'login.html';
+      }, 1500);
+      return;
+    }
+  } catch (error) {
+    console.error('Auth check error:', error);
     showAlert("Login Required", "Please login to proceed with checkout.", "error");
     setTimeout(() => {
       window.location.href = 'login.html';
@@ -193,7 +205,7 @@ function openCheckout() {
     return;
   }
 
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = cart.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0);
   const shipping = 50;
   const total = subtotal + shipping;
 
@@ -336,13 +348,9 @@ async function processCheckoutPayment() {
 
 async function createCartOrders(paymentResult) {
   const cart = getCart();
-  const token = localStorage.getItem('access_token');
-  
-  if (!token) {
-    throw new Error("Authentication required");
-  }
 
   // Get customer address (use first address or prompt)
+  // Authentication is verified via cookies (credentials: 'include')
   try {
     const addressRes = await window.ImpromptuIndianApi.fetch('/api/customer/addresses', {
       credentials: 'include'
