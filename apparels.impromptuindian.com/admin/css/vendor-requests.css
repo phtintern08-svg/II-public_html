@@ -577,12 +577,12 @@ main {
     color: #64748b;
 }
 
-/* Explicit column widths using nth-child - ensures columns align correctly */
+/* Explicit column widths using nth-child - equal spacing for all columns */
 .vendor-requests-table thead th:nth-child(1),
 .vendor-requests-table tbody td:nth-child(1) {
-    width: 25%;
+    width: 20%;
     min-width: 0;
-    max-width: 25%;
+    max-width: 20%;
     text-align: left;
 }
 
@@ -596,25 +596,25 @@ main {
 
 .vendor-requests-table thead th:nth-child(3),
 .vendor-requests-table tbody td:nth-child(3) {
-    width: 15%;
+    width: 20%;
     min-width: 0;
-    max-width: 15%;
+    max-width: 20%;
     text-align: left;
 }
 
 .vendor-requests-table thead th:nth-child(4),
 .vendor-requests-table tbody td:nth-child(4) {
-    width: 15%;
+    width: 20%;
     min-width: 0;
-    max-width: 15%;
+    max-width: 20%;
     text-align: center;
 }
 
 .vendor-requests-table thead th:nth-child(5),
 .vendor-requests-table tbody td:nth-child(5) {
-    width: 25%;
+    width: 20%;
     min-width: 0;
-    max-width: 25%;
+    max-width: 20%;
     text-align: right;
 }
 
