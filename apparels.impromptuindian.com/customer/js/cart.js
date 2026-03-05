@@ -105,7 +105,7 @@ function loadCartPage() {
       </div>
     </div>
 
-    <button class="w-full mt-6 bg-[#FFCC00] hover:bg-yellow-400 py-3 rounded-lg text-black font-bold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl">
+    <button onclick="openCheckout()" class="w-full mt-6 bg-[#FFCC00] hover:bg-yellow-400 py-3 rounded-lg text-black font-bold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl">
       <i data-lucide="credit-card" class="w-5 h-5"></i>
       Proceed to Checkout
     </button>
@@ -158,6 +158,238 @@ function clearCart() {
     saveCart([]);
     loadCartPage();
   });
+}
+
+/* ------------------------------------------
+   CHECKOUT & PAYMENT
+-------------------------------------------*/
+let currentPaymentMethod = 'card';
+
+function openCheckout() {
+  const cart = getCart();
+  if (cart.length === 0) {
+    showAlert("Empty Cart", "Your cart is empty. Add items to proceed.", "error");
+    return;
+  }
+
+  // Check if user is logged in
+  const token = localStorage.getItem('access_token');
+  if (!token) {
+    showAlert("Login Required", "Please login to proceed with checkout.", "error");
+    setTimeout(() => {
+      window.location.href = 'login.html';
+    }, 1500);
+    return;
+  }
+
+  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const shipping = 50;
+  const total = subtotal + shipping;
+
+  // Update payment modal with cart totals
+  document.getElementById('checkoutSubtotal').textContent = `₹${subtotal.toLocaleString()}`;
+  document.getElementById('checkoutShipping').textContent = `₹${shipping}`;
+  document.getElementById('checkoutTotal').textContent = `₹${total.toLocaleString()}`;
+  
+  // Update pay button amounts
+  document.querySelectorAll('.checkout-pay-amount').forEach(el => {
+    el.textContent = `₹${total.toLocaleString()}`;
+  });
+
+  // Show checkout modal
+  document.getElementById('checkoutModal').classList.remove('hidden');
+  switchPaymentTab('card');
+  lucide.createIcons();
+}
+
+function closeCheckout() {
+  document.getElementById('checkoutModal').classList.add('hidden');
+}
+
+function switchPaymentTab(method) {
+  currentPaymentMethod = method;
+  
+  // Update tab buttons
+  document.querySelectorAll('[id^="checkout-tab-"]').forEach(btn => {
+    btn.classList.remove('bg-blue-900/10', 'border-blue-500', 'text-blue-400');
+    btn.classList.add('border-transparent', 'text-gray-400');
+  });
+  
+  const activeTab = document.getElementById(`checkout-tab-${method}`);
+  if (activeTab) {
+    activeTab.classList.add('bg-blue-900/10', 'border-blue-500', 'text-blue-400');
+    activeTab.classList.remove('border-transparent', 'text-gray-400');
+  }
+
+  // Update payment views
+  document.querySelectorAll('[id^="checkout-view-"]').forEach(view => {
+    view.classList.add('hidden');
+  });
+  
+  const activeView = document.getElementById(`checkout-view-${method}`);
+  if (activeView) {
+    activeView.classList.remove('hidden');
+  }
+
+  lucide.createIcons();
+}
+
+async function processCheckoutPayment() {
+  const cart = getCart();
+  if (cart.length === 0) {
+    showAlert("Empty Cart", "Your cart is empty.", "error");
+    return;
+  }
+
+  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const shipping = 50;
+  const total = subtotal + shipping;
+
+  const btn = document.getElementById('checkoutPayBtn');
+  const originalText = btn.innerHTML;
+  
+  try {
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Processing...';
+    lucide.createIcons();
+
+    const gateway = new FakePaymentGateway();
+    let paymentResult;
+
+    if (currentPaymentMethod === 'card') {
+      const cardNum = document.getElementById('checkoutCardNumber').value.replace(/\s/g, '');
+      const expiry = document.getElementById('checkoutCardExpiry').value;
+      const cvv = document.getElementById('checkoutCardCvv').value;
+      const cardName = document.getElementById('checkoutCardName').value;
+
+      if (!cardName || cardName.trim().length < 3) {
+        throw new Error("Please enter cardholder name");
+      }
+      if (!cardNum || cardNum.length < 13) {
+        throw new Error("Please enter a valid card number");
+      }
+      if (!expiry || !expiry.match(/^\d{2}\/\d{2}$/)) {
+        throw new Error("Please enter valid expiry date (MM/YY)");
+      }
+      if (!cvv || cvv.length < 3) {
+        throw new Error("Please enter valid CVV");
+      }
+
+      paymentResult = await gateway.processCardPayment({
+        number: cardNum,
+        expiry: expiry,
+        cvv: cvv,
+        name: cardName
+      }, total);
+
+    } else if (currentPaymentMethod === 'upi') {
+      const upiId = document.getElementById('checkoutUpiId').value;
+      if (!upiId || !upiId.includes('@')) {
+        throw new Error("Please enter a valid UPI ID");
+      }
+      paymentResult = await gateway.processUpiPayment(upiId, total);
+
+    } else if (currentPaymentMethod === 'netbanking') {
+      const bank = document.getElementById('checkoutBankSelect').value;
+      if (!bank) {
+        throw new Error("Please select a bank");
+      }
+      paymentResult = await gateway.processNetBankingPayment(bank, total);
+
+    } else if (currentPaymentMethod === 'cod') {
+      paymentResult = await gateway.processCOD(total);
+    }
+
+    // Payment successful - create orders
+    await createCartOrders(paymentResult);
+    
+    // Clear cart and show success
+    saveCart([]);
+    closeCheckout();
+    showAlert("Order Placed!", `Your order has been placed successfully! Transaction ID: ${paymentResult.transactionId}`, "success");
+    
+    // Reload cart page
+    setTimeout(() => {
+      loadCartPage();
+    }, 1500);
+
+  } catch (error) {
+    console.error('Payment error:', error);
+    showAlert("Payment Failed", error.message || "Payment could not be processed. Please try again.", "error");
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+    lucide.createIcons();
+  }
+}
+
+async function createCartOrders(paymentResult) {
+  const cart = getCart();
+  const token = localStorage.getItem('access_token');
+  
+  if (!token) {
+    throw new Error("Authentication required");
+  }
+
+  // Get customer address (use first address or prompt)
+  try {
+    const addressRes = await window.ImpromptuIndianApi.fetch('/api/customer/addresses', {
+      credentials: 'include'
+    });
+    
+    if (!addressRes.ok) {
+      throw new Error("Failed to fetch address");
+    }
+    
+    const addresses = await addressRes.json();
+    if (!addresses || addresses.length === 0) {
+      throw new Error("Please add a delivery address in your profile first");
+    }
+    
+    const address = addresses[0]; // Use first address
+    
+    // Create order for each cart item
+    for (const item of cart) {
+      const orderData = {
+        product_type: item.productType || 'T-Shirt',
+        category: item.category || 'Regular Fit',
+        color: item.color || 'Black',
+        fabric: item.fabric || 'Cotton',
+        quantity: item.quantity,
+        price_per_piece: item.price,
+        delivery_date: null,
+        address_line1: address.address_line1,
+        address_line2: address.address_line2 || '',
+        city: address.city,
+        state: address.state,
+        pincode: address.pincode,
+        country: address.country || 'India',
+        transaction_id: paymentResult.transactionId,
+        payment_method: paymentResult.method,
+        payment_details: JSON.stringify(paymentResult),
+        sample_cost: item.price * item.quantity,
+        sample_size: item.size || 'M'
+      };
+      
+      const orderRes = await window.ImpromptuIndianApi.fetch('/api/orders/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(orderData)
+      });
+      
+      if (!orderRes.ok) {
+        const error = await orderRes.json().catch(() => ({}));
+        console.error('Order creation failed:', error);
+        throw new Error(error.error || 'Failed to create order');
+      }
+    }
+  } catch (error) {
+    console.error('Create orders error:', error);
+    throw error;
+  }
 }
 
 /* INIT - Wait for DOM to be ready */

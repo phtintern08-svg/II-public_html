@@ -58,7 +58,165 @@
     </div>
   </div>
 
+  <!-- CHECKOUT MODAL -->
+  <div id="checkoutModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 hidden z-50 px-4">
+    <div class="bg-[#0f131a] border border-gray-800 rounded-xl w-full max-w-4xl h-[600px] flex shadow-2xl overflow-hidden relative">
+      
+      <!-- Close Button -->
+      <button onclick="closeCheckout()" class="absolute top-4 right-4 text-gray-400 hover:text-white z-10">
+        <i data-lucide="x" class="w-6 h-6"></i>
+      </button>
+
+      <!-- LEFT SIDEBAR: Payment Methods -->
+      <div class="w-1/3 bg-[#161b22] border-r border-gray-800 flex flex-col">
+        <div class="p-4 border-b border-gray-800">
+          <h3 class="text-white font-semibold flex items-center gap-2">
+            <i data-lucide="wallet" class="text-blue-500"></i> Payment Options
+          </h3>
+        </div>
+
+        <div class="flex-1 overflow-y-auto" style="scrollbar-width: none; -ms-overflow-style: none;">
+          <style>
+            .flex-1::-webkit-scrollbar {
+              display: none;
+            }
+          </style>
+          <button class="w-full text-left px-6 py-4 text-sm font-medium text-blue-400 bg-blue-900/10 border-l-4 border-blue-500 hover:bg-gray-800 transition-colors" id="checkout-tab-card" onclick="switchPaymentTab('card')">
+            <div class="flex items-center gap-3">
+              <i data-lucide="credit-card" class="w-5 h-5"></i>
+              Credit / Debit / ATM Card
+            </div>
+          </button>
+
+          <button class="w-full text-left px-6 py-4 text-sm font-medium text-gray-400 border-l-4 border-transparent hover:bg-gray-800 hover:text-white transition-colors" id="checkout-tab-upi" onclick="switchPaymentTab('upi')">
+            <div class="flex items-center gap-3">
+              <i data-lucide="smartphone" class="w-5 h-5"></i>
+              UPI (PhonePe, GPay)
+            </div>
+          </button>
+
+          <button class="w-full text-left px-6 py-4 text-sm font-medium text-gray-400 border-l-4 border-transparent hover:bg-gray-800 hover:text-white transition-colors" id="checkout-tab-netbanking" onclick="switchPaymentTab('netbanking')">
+            <div class="flex items-center gap-3">
+              <i data-lucide="landmark" class="w-5 h-5"></i>
+              Net Banking
+            </div>
+          </button>
+
+          <button class="w-full text-left px-6 py-4 text-sm font-medium text-gray-400 border-l-4 border-transparent hover:bg-gray-800 hover:text-white transition-colors" id="checkout-tab-cod" onclick="switchPaymentTab('cod')">
+            <div class="flex items-center gap-3">
+              <i data-lucide="banknote" class="w-5 h-5"></i>
+              Cash on Delivery
+            </div>
+          </button>
+        </div>
+
+        <div class="p-4 bg-gray-900/50 text-xs text-gray-500 border-t border-gray-800">
+          100% Secure Payments powered by ImpromptuIndian
+        </div>
+      </div>
+
+      <!-- RIGHT CONTENT: Forms & Summary -->
+      <div class="w-2/3 bg-[#0f131a] flex flex-col relative">
+        <div class="flex-1 p-8 overflow-y-auto pb-32" style="scrollbar-width: none; -ms-overflow-style: none;">
+          <style>
+            .overflow-y-auto::-webkit-scrollbar {
+              display: none;
+            }
+          </style>
+
+          <!-- ORDER SUMMARY -->
+          <div class="mb-8 p-4 bg-gray-800/30 rounded-lg border border-gray-700">
+            <h4 class="text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wider">Order Summary</h4>
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-gray-400 text-sm">Subtotal</span>
+              <span id="checkoutSubtotal" class="text-white font-medium">₹0</span>
+            </div>
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-gray-400 text-sm">Shipping</span>
+              <span id="checkoutShipping" class="text-white font-medium">₹50</span>
+            </div>
+            <div class="border-t border-gray-700 my-2 pt-2 flex justify-between items-center">
+              <span class="text-white font-bold">Total Amount</span>
+              <span id="checkoutTotal" class="text-xl font-bold text-[#FFCC00]">₹0</span>
+            </div>
+          </div>
+
+          <!-- CARD PAYMENT FORM -->
+          <div id="checkout-view-card" class="payment-view">
+            <h4 class="text-lg font-bold text-white mb-4">Enter Card Details</h4>
+            <div class="space-y-4">
+              <div>
+                <input type="text" id="checkoutCardNumber" placeholder="Card Number" maxlength="19" class="w-full bg-gray-900 border border-gray-700 text-white rounded p-3 focus:outline-none focus:border-blue-500 transition-colors">
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <input type="text" id="checkoutCardExpiry" placeholder="Valid Thru (MM/YY)" maxlength="5" class="bg-gray-900 border border-gray-700 text-white rounded p-3 focus:outline-none focus:border-blue-500 transition-colors">
+                <input type="password" id="checkoutCardCvv" placeholder="CVV" maxlength="3" class="bg-gray-900 border border-gray-700 text-white rounded p-3 focus:outline-none focus:border-blue-500 transition-colors">
+              </div>
+              <div>
+                <input type="text" id="checkoutCardName" placeholder="Name on Card" class="w-full bg-gray-900 border border-gray-700 text-white rounded p-3 focus:outline-none focus:border-blue-500 transition-colors">
+              </div>
+            </div>
+            <button id="checkoutPayBtn" class="mt-6 w-full bg-[#FFCC00] hover:bg-[#ffdb4d] text-black font-bold py-3.5 rounded shadow-lg transition-transform active:scale-[0.98]">
+              Pay <span class="checkout-pay-amount">₹0</span>
+            </button>
+          </div>
+
+          <!-- UPI FORM -->
+          <div id="checkout-view-upi" class="payment-view hidden">
+            <h4 class="text-lg font-bold text-white mb-4">UPI Payment</h4>
+            <div class="space-y-4">
+              <div class="bg-white p-4 rounded-lg flex justify-center mb-4">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=ImpromptuIndianCartPayment" alt="UPI QR" class="opacity-90">
+              </div>
+              <div class="text-center text-sm text-gray-400 mb-4">Scan QR with any UPI App</div>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">@</div>
+                <input type="text" id="checkoutUpiId" placeholder="Enter UPI ID" class="w-full bg-gray-900 border border-gray-700 text-white rounded p-3 pl-8 focus:outline-none focus:border-blue-500">
+              </div>
+              <button onclick="processCheckoutPayment()" class="w-full bg-[#FFCC00] hover:bg-[#ffdb4d] text-black font-bold py-3.5 rounded shadow-lg transition-transform active:scale-[0.98]">
+                Verify & Pay <span class="checkout-pay-amount">₹0</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- NET BANKING FORM -->
+          <div id="checkout-view-netbanking" class="payment-view hidden">
+            <h4 class="text-lg font-bold text-white mb-4">Net Banking</h4>
+            <div class="space-y-4">
+              <select id="checkoutBankSelect" class="w-full bg-gray-900 border border-gray-700 text-white rounded p-3 focus:outline-none focus:border-blue-500">
+                <option value="">Select Bank</option>
+                <option value="SBI">State Bank of India</option>
+                <option value="HDFC">HDFC Bank</option>
+                <option value="ICICI">ICICI Bank</option>
+                <option value="Axis">Axis Bank</option>
+                <option value="Kotak">Kotak Mahindra Bank</option>
+                <option value="PNB">Punjab National Bank</option>
+                <option value="BOI">Bank of India</option>
+                <option value="Canara">Canara Bank</option>
+              </select>
+              <button onclick="processCheckoutPayment()" class="w-full bg-[#FFCC00] hover:bg-[#ffdb4d] text-black font-bold py-3.5 rounded shadow-lg transition-transform active:scale-[0.98]">
+                Pay <span class="checkout-pay-amount">₹0</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- COD FORM -->
+          <div id="checkout-view-cod" class="payment-view hidden">
+            <div class="bg-yellow-900/20 border border-yellow-500/30 p-4 rounded text-yellow-400 flex items-start gap-3">
+              <i data-lucide="info" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
+              <p class="text-sm">Cash on Delivery is available. You will pay when the order is delivered.</p>
+            </div>
+            <button onclick="processCheckoutPayment()" class="mt-6 w-full bg-[#FFCC00] hover:bg-[#ffdb4d] text-black font-bold py-3.5 rounded shadow-lg transition-transform active:scale-[0.98]">
+              Place Order (COD) <span class="checkout-pay-amount">₹0</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="js/custom-alert.js"></script>
+  <script src="../js/fake-payment-gateway.js"></script>
   <script src="js/cart.js"></script>
 
 </body>
