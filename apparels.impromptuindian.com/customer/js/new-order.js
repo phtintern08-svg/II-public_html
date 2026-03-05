@@ -886,6 +886,17 @@ function renderNeckTypes(categoryLabel) {
 
     const img = document.createElement("img");
     img.src = neck.img;
+    
+    // 🔥 FIX: Hide card if image fails to load (broken/missing image)
+    img.onerror = function() {
+      console.log(`⚠️ Image not found for ${neck.label}, hiding card`);
+      card.style.display = "none";
+    };
+    
+    // Only show card if image loads successfully
+    img.onload = function() {
+      card.style.display = "";
+    };
 
     const label = document.createElement("div");
     label.className = "category-label";
