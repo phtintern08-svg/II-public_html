@@ -469,6 +469,8 @@ body {
     border: 1px solid rgba(148, 163, 184, 0.15);
     overflow: hidden;
     transition: all 0.3s ease;
+    width: 100%;
+    max-width: 100%;
 }
 
 .card:hover {
@@ -493,12 +495,17 @@ body {
 
 .card-body {
     padding: 0;
+    width: 100%;
+    overflow: hidden;
 }
 
 .table-container {
     overflow-x: auto;
+    overflow-y: visible;
     border-radius: 0 0 0.875rem 0.875rem;
     -webkit-overflow-scrolling: touch;
+    width: 100%;
+    max-width: 100%;
 }
 
 /* ========================================
@@ -506,7 +513,7 @@ body {
    ======================================== */
 .vendor-requests-table {
     width: 100%;
-    min-width: 800px;
+    max-width: 100%;
     border-collapse: collapse; /* Changed from separate to collapse for better alignment */
     border-spacing: 0;
     font-size: 0.875rem;
@@ -559,30 +566,35 @@ body {
 .vendor-requests-table thead th:nth-child(1),
 .vendor-requests-table tbody td:nth-child(1) {
     width: 25%;
+    max-width: 25%;
     text-align: left;
 }
 
 .vendor-requests-table thead th:nth-child(2),
 .vendor-requests-table tbody td:nth-child(2) {
     width: 20%;
+    max-width: 20%;
     text-align: left;
 }
 
 .vendor-requests-table thead th:nth-child(3),
 .vendor-requests-table tbody td:nth-child(3) {
     width: 15%;
+    max-width: 15%;
     text-align: left;
 }
 
 .vendor-requests-table thead th:nth-child(4),
 .vendor-requests-table tbody td:nth-child(4) {
     width: 15%;
+    max-width: 15%;
     text-align: center;
 }
 
 .vendor-requests-table thead th:nth-child(5),
 .vendor-requests-table tbody td:nth-child(5) {
     width: 25%;
+    max-width: 25%;
     text-align: right;
 }
 
@@ -639,11 +651,16 @@ body {
     padding: 1rem 1.25rem;
     vertical-align: middle;
     border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
 }
 
 .vendor-requests-table tbody td {
     color: #cbd5e1;
     font-size: 0.875rem;
+    max-width: 0;
+    min-width: 0;
 }
 
 /* Prevent text overflow in specific columns */
@@ -652,13 +669,17 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    max-width: 0;
+    min-width: 0;
 }
 
-/* Vendor name column - allow content to display */
+/* Vendor name column - allow content to display but prevent overflow */
 .vendor-requests-table tbody td:first-child,
 .vendor-requests-table tbody td.td-vendor {
-    overflow: visible;
+    overflow: hidden;
     padding-left: 1.5rem;
+    max-width: 0;
+    min-width: 0;
 }
 
 .vendor-requests-table tbody td:last-child {
@@ -667,7 +688,9 @@ body {
 
 /* Vendor name cell - avatar + name */
 .vendor-requests-table tbody td:nth-child(1) {
-    overflow: visible; /* Allow avatar to show */
+    overflow: hidden; /* Prevent overflow */
+    max-width: 0;
+    min-width: 0;
 }
 
 .vendor-requests-table td.td-vendor .vendor-cell-content {
@@ -675,6 +698,7 @@ body {
     align-items: center;
     gap: 0.75rem;
     min-width: 0;
+    max-width: 100%;
     overflow: hidden;
 }
 
@@ -713,22 +737,32 @@ body {
 /* Status cell - center badge */
 .vendor-requests-table td.td-status {
     display: table-cell;
+    overflow: visible;
+    white-space: nowrap;
+    max-width: none;
+    min-width: 0;
 }
 
 .vendor-requests-table td.td-status .doc-status {
     display: inline-flex;
     margin: 0 auto;
+    white-space: nowrap;
 }
 
 /* Actions cell - right align buttons */
 .vendor-requests-table td.td-actions {
     text-align: right;
+    overflow: visible;
+    white-space: nowrap;
+    max-width: none;
+    min-width: 0;
 }
 
 .vendor-requests-table td.td-actions .action-btn {
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
+    white-space: nowrap;
 }
 
 /* Empty / loading / error state cell */
