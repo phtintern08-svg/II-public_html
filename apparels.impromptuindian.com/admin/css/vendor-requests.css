@@ -5,6 +5,13 @@ body {
     background-color: var(--bg-dark);
 }
 
+/* Ensure main container doesn't allow horizontal overflow */
+main {
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
 /* Spin animation for refresh button */
 @keyframes spin {
     from {
@@ -500,12 +507,13 @@ body {
 }
 
 .table-container {
-    overflow-x: auto;
+    overflow-x: hidden;
     overflow-y: visible;
     border-radius: 0 0 0.875rem 0.875rem;
     -webkit-overflow-scrolling: touch;
     width: 100%;
     max-width: 100%;
+    box-sizing: border-box;
 }
 
 /* ========================================
@@ -518,6 +526,7 @@ body {
     border-spacing: 0;
     font-size: 0.875rem;
     table-layout: fixed; /* Ensures consistent column widths */
+    box-sizing: border-box;
 }
 
 .vendor-requests-table thead {
@@ -537,6 +546,9 @@ body {
     letter-spacing: 0.08em;
     white-space: nowrap;
     vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
 }
 
 .vendor-requests-table thead th:first-child {
@@ -553,6 +565,9 @@ body {
     align-items: center;
     gap: 0.5rem;
     width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    min-width: 0;
 }
 
 .th-icon {
@@ -566,35 +581,35 @@ body {
 .vendor-requests-table thead th:nth-child(1),
 .vendor-requests-table tbody td:nth-child(1) {
     width: 25%;
-    max-width: 25%;
+    min-width: 0;
     text-align: left;
 }
 
 .vendor-requests-table thead th:nth-child(2),
 .vendor-requests-table tbody td:nth-child(2) {
     width: 20%;
-    max-width: 20%;
+    min-width: 0;
     text-align: left;
 }
 
 .vendor-requests-table thead th:nth-child(3),
 .vendor-requests-table tbody td:nth-child(3) {
     width: 15%;
-    max-width: 15%;
+    min-width: 0;
     text-align: left;
 }
 
 .vendor-requests-table thead th:nth-child(4),
 .vendor-requests-table tbody td:nth-child(4) {
     width: 15%;
-    max-width: 15%;
+    min-width: 0;
     text-align: center;
 }
 
 .vendor-requests-table thead th:nth-child(5),
 .vendor-requests-table tbody td:nth-child(5) {
     width: 25%;
-    max-width: 25%;
+    min-width: 0;
     text-align: right;
 }
 
@@ -654,13 +669,14 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     word-wrap: break-word;
+    box-sizing: border-box;
 }
 
 .vendor-requests-table tbody td {
     color: #cbd5e1;
     font-size: 0.875rem;
-    max-width: 0;
     min-width: 0;
+    max-width: 0; /* Required for table-layout: fixed to work with text truncation */
 }
 
 /* Prevent text overflow in specific columns */
@@ -669,8 +685,8 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 0;
     min-width: 0;
+    max-width: 0; /* Required for table-layout: fixed to work with text truncation */
 }
 
 /* Vendor name column - allow content to display but prevent overflow */
@@ -678,8 +694,8 @@ body {
 .vendor-requests-table tbody td.td-vendor {
     overflow: hidden;
     padding-left: 1.5rem;
-    max-width: 0;
     min-width: 0;
+    max-width: 0; /* Required for table-layout: fixed to work with text truncation */
 }
 
 .vendor-requests-table tbody td:last-child {
@@ -689,8 +705,8 @@ body {
 /* Vendor name cell - avatar + name */
 .vendor-requests-table tbody td:nth-child(1) {
     overflow: hidden; /* Prevent overflow */
-    max-width: 0;
     min-width: 0;
+    max-width: 0; /* Required for table-layout: fixed to work with text truncation */
 }
 
 .vendor-requests-table td.td-vendor .vendor-cell-content {
@@ -725,6 +741,8 @@ body {
     white-space: nowrap;
     flex: 1;
     min-width: 0;
+    max-width: 100%;
+    display: block;
 }
 
 /* Business type & date - subtle styling */
@@ -734,13 +752,13 @@ body {
     font-weight: 500;
 }
 
-/* Status cell - center badge */
+/* Status cell - center badge - allow content to display */
 .vendor-requests-table td.td-status {
     display: table-cell;
     overflow: visible;
     white-space: nowrap;
-    max-width: none;
     min-width: 0;
+    max-width: none; /* Allow status badge to display fully */
 }
 
 .vendor-requests-table td.td-status .doc-status {
@@ -749,13 +767,13 @@ body {
     white-space: nowrap;
 }
 
-/* Actions cell - right align buttons */
+/* Actions cell - right align buttons - allow content to display */
 .vendor-requests-table td.td-actions {
     text-align: right;
     overflow: visible;
     white-space: nowrap;
-    max-width: none;
     min-width: 0;
+    max-width: none; /* Allow action buttons to display fully */
 }
 
 .vendor-requests-table td.td-actions .action-btn {
