@@ -1,7 +1,6 @@
 /* User Management Page Styles */
 body {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-    background-attachment: fixed;
+    background: #0f172a;
     color: #ffffff;
     min-height: 100vh;
     position: relative;
@@ -16,8 +15,8 @@ body::before {
     right: 0;
     bottom: 0;
     background: 
-        radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+        radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
     pointer-events: none;
     z-index: 0;
 }
@@ -65,12 +64,19 @@ main {
     align-items: center;
     gap: 1rem;
     padding: 1.25rem 1.75rem;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.08) 100%);
-    border: 1.5px solid rgba(59, 130, 246, 0.25);
+    background: rgba(30, 41, 59, 0.6);
+    border: 1.5px solid rgba(59, 130, 246, 0.2);
     border-radius: 1rem;
     backdrop-filter: blur(10px);
-    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     min-width: 180px;
+    transition: all 0.3s ease;
+}
+
+.user-count-badge:hover {
+    border-color: rgba(59, 130, 246, 0.3);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
 }
 
 .badge-icon {
@@ -107,21 +113,33 @@ main {
 
 /* Info Card */
 .info-card {
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.85) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 1.5rem;
     padding: 0;
     margin-bottom: 2rem;
     backdrop-filter: blur(20px);
-    transition: all 0.3s ease;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
     overflow: hidden;
+    animation: cardFadeIn 0.6s ease-out;
+}
+
+@keyframes cardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .info-card:hover {
-    border-color: rgba(255, 255, 255, 0.12);
-    box-shadow: 0 16px 50px rgba(0, 0, 0, 0.5);
-    transform: translateY(-3px);
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 16px 50px rgba(0, 0, 0, 0.4);
+    transform: translateY(-4px);
 }
 
 .card-header-section {
@@ -143,6 +161,12 @@ main {
     justify-content: center;
     flex-shrink: 0;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.icon-wrapper:hover {
+    transform: scale(1.05) rotate(5deg);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .info-card-title {
@@ -161,8 +185,20 @@ main {
 
 .divider {
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: rgba(255, 255, 255, 0.1);
     margin: 0 2.5rem;
+    animation: dividerExpand 0.6s ease-out 0.3s both;
+}
+
+@keyframes dividerExpand {
+    from {
+        width: 0;
+        opacity: 0;
+    }
+    to {
+        width: calc(100% - 5rem);
+        opacity: 1;
+    }
 }
 
 /* Form Styles */
@@ -215,6 +251,16 @@ main {
     background: rgba(255, 255, 255, 0.08);
     box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
     transform: translateY(-1px);
+    animation: inputFocus 0.3s ease;
+}
+
+@keyframes inputFocus {
+    0% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.15);
+    }
+    100% {
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+    }
 }
 
 .form-input::placeholder {
@@ -271,13 +317,19 @@ main {
     width: 2.5rem;
     height: 2.5rem;
     border-radius: 0.75rem;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%);
-    border: 1px solid rgba(59, 130, 246, 0.2);
+    background: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.25);
     display: flex;
     align-items: center;
     justify-content: center;
     color: #60a5fa;
     flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.permissions-icon-wrapper:hover {
+    background: rgba(59, 130, 246, 0.2);
+    transform: scale(1.1);
 }
 
 .permissions-subtitle {
@@ -311,47 +363,74 @@ main {
     align-items: center;
     gap: 1.25rem;
     padding: 1.25rem 1.5rem;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.02) 100%);
-    border: 2px solid rgba(255, 255, 255, 0.08);
+    background: rgba(30, 41, 59, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.1);
     border-radius: 1rem;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
     cursor: pointer;
+    animation: permissionCardFadeIn 0.5s ease-out both;
 }
+
+@keyframes permissionCardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.permission-card:nth-child(1) { animation-delay: 0.1s; }
+.permission-card:nth-child(2) { animation-delay: 0.15s; }
+.permission-card:nth-child(3) { animation-delay: 0.2s; }
+.permission-card:nth-child(4) { animation-delay: 0.25s; }
+.permission-card:nth-child(5) { animation-delay: 0.3s; }
+.permission-card:nth-child(6) { animation-delay: 0.35s; }
 
 .permission-card::before {
     content: '';
     position: absolute;
     top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(139, 92, 246, 0.08) 100%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(59, 130, 246, 0.1);
+    transition: left 0.4s ease;
 }
 
 .permission-card:hover {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.03) 100%);
+    background: rgba(30, 41, 59, 0.6);
     border-color: rgba(59, 130, 246, 0.4);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 .permission-card:hover::before {
-    opacity: 1;
+    left: 100%;
 }
 
 .permission-input:checked + .permission-card {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.18) 0%, rgba(59, 130, 246, 0.12) 100%);
+    background: rgba(59, 130, 246, 0.15);
     border-color: #3b82f6;
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15), 0 8px 24px rgba(59, 130, 246, 0.2);
-    transform: translateY(-2px);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2), 0 8px 24px rgba(59, 130, 246, 0.25);
+    transform: translateY(-2px) scale(1.02);
+    animation: permissionSelect 0.4s ease-out;
 }
 
-.permission-input:checked + .permission-card::before {
-    opacity: 1;
+@keyframes permissionSelect {
+    0% {
+        transform: translateY(-2px) scale(1);
+    }
+    50% {
+        transform: translateY(-2px) scale(1.05);
+    }
+    100% {
+        transform: translateY(-2px) scale(1.02);
+    }
 }
 
 .permission-icon {
@@ -413,9 +492,22 @@ main {
 .permission-input:checked + .permission-card .permission-checkmark {
     opacity: 1;
     transform: scale(1) rotate(0deg);
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    background: #3b82f6;
     border-color: #3b82f6;
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    animation: checkmarkPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes checkmarkPop {
+    0% {
+        transform: scale(0.8) rotate(-90deg);
+    }
+    50% {
+        transform: scale(1.2) rotate(10deg);
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+    }
 }
 
 .permission-input:checked + .permission-card .permission-checkmark i {
@@ -458,7 +550,7 @@ main {
     align-items: center;
     gap: 0.75rem;
     padding: 1rem 2.5rem;
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    background: #3b82f6;
     color: #ffffff;
     font-weight: 600;
     font-size: 1rem;
@@ -478,8 +570,8 @@ main {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
-    transition: left 0.6s ease;
+    background: rgba(255, 255, 255, 0.2);
+    transition: left 0.5s ease;
 }
 
 .btn-primary:hover:not(:disabled)::before {
@@ -487,7 +579,7 @@ main {
 }
 
 .btn-primary:hover:not(:disabled) {
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    background: #2563eb;
     transform: translateY(-3px);
     box-shadow: 0 10px 30px rgba(59, 130, 246, 0.5);
 }
@@ -495,6 +587,19 @@ main {
 .btn-primary:active:not(:disabled) {
     transform: translateY(-1px);
     box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+    animation: buttonPress 0.2s ease;
+}
+
+@keyframes buttonPress {
+    0% {
+        transform: translateY(-1px) scale(1);
+    }
+    50% {
+        transform: translateY(-1px) scale(0.98);
+    }
+    100% {
+        transform: translateY(-1px) scale(1);
+    }
 }
 
 .btn-primary:disabled {
@@ -584,7 +689,7 @@ main {
 }
 
 .users-table thead {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.03) 100%);
+    background: rgba(30, 41, 59, 0.5);
     border-bottom: 2px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -618,12 +723,29 @@ main {
 }
 
 .users-table tbody tr {
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
+    animation: tableRowFadeIn 0.4s ease-out both;
 }
 
+@keyframes tableRowFadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.users-table tbody tr:nth-child(1) { animation-delay: 0.1s; }
+.users-table tbody tr:nth-child(2) { animation-delay: 0.2s; }
+.users-table tbody tr:nth-child(3) { animation-delay: 0.3s; }
+
 .users-table tbody tr:hover {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.02) 100%);
+    background: rgba(30, 41, 59, 0.6);
     transform: translateX(4px);
+    box-shadow: -4px 0 0 rgba(59, 130, 246, 0.5);
 }
 
 .users-table tbody tr:last-child td {
@@ -679,7 +801,7 @@ main {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    animation: slideIn 0.3s ease;
+    animation: slideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @keyframes slideIn {
@@ -876,12 +998,17 @@ main {
 /* Reveal Animation */
 .reveal {
     opacity: 0;
-    animation: reveal 0.6s ease forwards;
+    animation: reveal 0.8s ease-out forwards;
 }
 
 @keyframes reveal {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
     to {
         opacity: 1;
+        transform: translateY(0);
     }
 }
 
