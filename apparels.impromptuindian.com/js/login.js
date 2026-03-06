@@ -243,6 +243,10 @@ if (loginForm) {
                 }
                 if (result.role) {
                     localStorage.setItem('role', result.role);
+                    // Also store as vendorRole for vendor portal compatibility
+                    if (result.role === 'vendor' || result.role === 'subuser') {
+                        localStorage.setItem('vendorRole', result.role);
+                    }
                 }
                 if (result.username) {
                     localStorage.setItem('username', result.username);
