@@ -147,14 +147,14 @@
     const nav = document.getElementById('sidebar-nav');
     if (!nav) return;
 
-    // Get role - check both 'role' and 'vendorRole' for compatibility
-    const role = localStorage.getItem('vendorRole') || localStorage.getItem('role') || 'vendor';
+    // Get role from localStorage
+    const role = localStorage.getItem("role") || "vendor";
     const isSubUser = role === 'subuser';
 
     // Get permissions for subusers
     let permissions = [];
     if (isSubUser) {
-      const permissionsStr = localStorage.getItem('vendorPermissions');
+      const permissionsStr = localStorage.getItem("permissions");
       if (permissionsStr) {
         try {
           permissions = JSON.parse(permissionsStr);
@@ -334,6 +334,18 @@
       const avatarEl = document.getElementById('userAvatar');
       if (nameEl) nameEl.textContent = name;
       if (avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
+
+      /* 🔥 IMPORTANT: Store role and permissions */
+      if (data.role) {
+        localStorage.setItem("role", data.role);
+      }
+
+      if (data.permissions) {
+        localStorage.setItem("permissions", JSON.stringify(data.permissions));
+      }
+
+      // Re-render sidebar after role is known
+      renderSidebarNav();
     } catch (e) {
       console.error('Failed to load sidebar user data:', e);
     }
@@ -379,9 +391,14 @@
         logoutBtn.addEventListener('click', logout);
       }
 
-      renderSidebarNav();
-      fetchAndUpdateStatus();
-      populateUserData();
+      // Load user data first to get role/permissions (populateUserData will call renderSidebarNav)
+      populateUserData().then(() => {
+        fetchAndUpdateStatus();
+      }).catch(() => {
+        // If profile fetch fails, render with default role
+        renderSidebarNav();
+        fetchAndUpdateStatus();
+      });
 
       const toggleBtn = document.getElementById("mobile-menu-toggle");
       const sidebar = container.querySelector(".sidebar");

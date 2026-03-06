@@ -243,10 +243,6 @@ if (loginForm) {
                 }
                 if (result.role) {
                     localStorage.setItem('role', result.role);
-                    // Also store as vendorRole for vendor portal compatibility
-                    if (result.role === 'vendor' || result.role === 'subuser') {
-                        localStorage.setItem('vendorRole', result.role);
-                    }
                 }
                 if (result.username) {
                     localStorage.setItem('username', result.username);
@@ -267,7 +263,7 @@ if (loginForm) {
                 }
                 // Store permissions for subusers
                 if (result.permissions) {
-                    localStorage.setItem('vendorPermissions', JSON.stringify(result.permissions));
+                    localStorage.setItem('permissions', JSON.stringify(result.permissions));
                 }
 
                 // For customer role, fetch full profile details from database
