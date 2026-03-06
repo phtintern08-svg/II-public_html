@@ -200,16 +200,6 @@
         `;
       }
       
-      // Production Capacity
-      if (permissions.includes('capacity')) {
-        navHTML += `
-          <a href="capacity.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
-            <i data-lucide="factory" class="w-5 h-5"></i>
-            <span>Production Capacity</span>
-          </a>
-        `;
-      }
-      
       // Notifications
       if (permissions.includes('notifications')) {
         navHTML += `
@@ -217,16 +207,6 @@
             <i data-lucide="bell" class="w-5 h-5"></i>
             <span>Notifications</span>
             ${unreadCount > 0 ? `<span class="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">${unreadCount}</span>` : ''}
-          </a>
-        `;
-      }
-      
-      // Profile
-      if (permissions.includes('profile')) {
-        navHTML += `
-          <a href="profile.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
-            <i data-lucide="user-cog" class="w-5 h-5"></i>
-            <span>Profile & Settings</span>
           </a>
         `;
       }
@@ -342,6 +322,11 @@
 
       if (data.permissions) {
         localStorage.setItem("permissions", JSON.stringify(data.permissions));
+      }
+
+      // Store order categories for subusers
+      if (data.order_categories) {
+        localStorage.setItem("order_categories", JSON.stringify(data.order_categories));
       }
 
       // Re-render sidebar after role is known

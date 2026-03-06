@@ -126,6 +126,64 @@
     <link rel="stylesheet" href="css/orders-landing.css">
     <script src="js/reveal-init.js"></script>
     <script src="js/orders-stats.js"></script>
+    <script>
+        // Filter order category cards based on subuser permissions
+        document.addEventListener('DOMContentLoaded', () => {
+            const role = localStorage.getItem('role') || 'vendor';
+            
+            // Only filter for subusers
+            if (role === 'subuser') {
+                const orderCategoriesStr = localStorage.getItem('order_categories');
+                let orderCategories = [];
+                
+                if (orderCategoriesStr) {
+                    try {
+                        orderCategories = JSON.parse(orderCategoriesStr);
+                    } catch (e) {
+                        console.error('Error parsing order_categories:', e);
+                        orderCategories = ['new_orders', 'in_production', 'ready_for_dispatch', 'completed_orders']; // Default
+                    }
+                } else {
+                    orderCategories = ['new_orders', 'in_production', 'ready_for_dispatch', 'completed_orders']; // Default
+                }
+                
+                // Map order categories to card selectors
+                const categoryMap = {
+                    'new_orders': 'a[href="new-orders.html"]',
+                    'in_production': 'a[href="in-production.html"]',
+                    'ready_for_dispatch': 'a[href="ready-dispatch.html"]',
+                    'completed_orders': 'a[href="completed-orders.html"]'
+                };
+                
+                // Hide cards that are not in order_categories
+                Object.keys(categoryMap).forEach(category => {
+                    if (!orderCategories.includes(category)) {
+                        const card = document.querySelector(categoryMap[category]);
+                        if (card) {
+                            card.closest('.order-category-card')?.remove();
+                        }
+                    }
+                });
+                
+                // Hide stat cards that are not in order_categories
+                const statMap = {
+                    'new_orders': '#new-orders-count',
+                    'in_production': '#production-count',
+                    'ready_for_dispatch': '#ready-count',
+                    'completed_orders': '#completed-count'
+                };
+                
+                Object.keys(statMap).forEach(category => {
+                    if (!orderCategories.includes(category)) {
+                        const statCard = document.querySelector(statMap[category])?.closest('.stat-card-mini');
+                        if (statCard) {
+                            statCard.remove();
+                        }
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>
