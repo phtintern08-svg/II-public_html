@@ -253,6 +253,14 @@ if (loginForm) {
                 if (result.phone) {
                     localStorage.setItem('phone', result.phone);
                 }
+                // Store vendor_id for subusers
+                if (result.vendor_id) {
+                    localStorage.setItem('vendor_id', result.vendor_id);
+                }
+                // Store name for subusers (they use 'name' instead of 'username')
+                if (result.name) {
+                    localStorage.setItem('name', result.name);
+                }
 
                 // For customer role, fetch full profile details from database
                 if (result.role === 'customer' && result.token) {

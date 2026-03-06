@@ -15,31 +15,51 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/in-production.css">
     <style>
-        /* Custom styles for delivery option cards */
+        /* Custom styles for delivery option cards - Enhanced colors */
         .delivery-option-card input[type="radio"]:checked + .delivery-card-inner {
-            border-color: rgb(34 197 94);
-            background-color: rgb(34 197 94 / 0.15);
-            box-shadow: 0 0 0 3px rgb(34 197 94 / 0.1);
+            border-color: #22c55e;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0.1) 100%);
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2), 0 4px 12px rgba(34, 197, 94, 0.15);
+            transform: scale(1.02);
         }
         .delivery-option-card input[type="radio"][value="platform"]:checked + .delivery-card-inner {
-            border-color: rgb(59 130 246);
-            background-color: rgb(59 130 246 / 0.15);
-            box-shadow: 0 0 0 3px rgb(59 130 246 / 0.1);
+            border-color: #3b82f6;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2), 0 4px 12px rgba(59, 130, 246, 0.15);
+            transform: scale(1.02);
         }
         .delivery-option-card input[type="radio"]:checked + .delivery-card-inner .delivery-radio-indicator {
-            border-color: rgb(34 197 94);
-            background-color: rgb(34 197 94);
+            border-color: #22c55e;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
         }
         .delivery-option-card input[type="radio"][value="platform"]:checked + .delivery-card-inner .delivery-radio-indicator {
-            border-color: rgb(59 130 246);
-            background-color: rgb(59 130 246);
+            border-color: #3b82f6;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
         }
         .delivery-option-card input[type="radio"]:checked + .delivery-card-inner .delivery-radio-dot {
             opacity: 1;
             background-color: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+        .delivery-option-card input[type="radio"]:checked + .delivery-card-inner .text-white {
+            color: #f0fdf4;
+            font-weight: 600;
+        }
+        .delivery-option-card input[type="radio"][value="platform"]:checked + .delivery-card-inner .text-white {
+            color: #eff6ff;
+            font-weight: 600;
         }
         .delivery-option-card:hover .delivery-card-inner {
             border-color: rgb(107 114 128);
+            background-color: rgba(17, 24, 39, 0.6);
+        }
+        .delivery-option-card input[type="radio"]:checked + .delivery-card-inner:hover {
+            border-color: #22c55e;
+        }
+        .delivery-option-card input[type="radio"][value="platform"]:checked + .delivery-card-inner:hover {
+            border-color: #3b82f6;
         }
     </style>
 </head>
@@ -173,8 +193,12 @@
                         class="w-full bg-gray-900 border border-gray-700 text-white rounded-lg p-3 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all">
 
                     <input id="rider-phone" type="tel"
-                        placeholder="Rider Phone Number"
+                        placeholder="Rider Phone Number (10 digits)"
+                        pattern="^[6-9]\d{9}$"
+                        maxlength="14"
+                        inputmode="numeric"
                         class="w-full bg-gray-900 border border-gray-700 text-white rounded-lg p-3 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all">
+                    <p class="text-xs text-gray-500 mt-1">Must be 10 digits starting with 6, 7, 8, or 9</p>
 
                     <div class="space-y-2">
                         <label class="text-xs text-gray-400 font-medium">

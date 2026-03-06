@@ -133,6 +133,79 @@ function openDispatchModal(orderId) {
     const ampm = nextHour.getHours() >= 12 ? 'PM' : 'AM';
     document.getElementById('delivery-time').value = `${hour12}:${minute}`;
     document.getElementById('delivery-ampm').value = ampm;
+    
+    // Add phone number input validation
+    setupPhoneValidation();
+}
+
+function setupPhoneValidation() {
+    const phoneInput = document.getElementById('rider-phone');
+    if (!phoneInput) return;
+    
+    // Remove existing event listeners by cloning and replacing
+    const newPhoneInput = phoneInput.cloneNode(true);
+    phoneInput.parentNode.replaceChild(newPhoneInput, phoneInput);
+    
+    // Format input as user types (allow spaces/dashes, but show formatted)
+    newPhoneInput.addEventListener('input', function(e) {
+        let value = e.target.value;
+        
+        // Remove all non-digit characters except + at the start
+        value = value.replace(/[^\d+]/g, '');
+        
+        // Remove +91 if present at start
+        if (value.startsWith('+91')) {
+            value = value.substring(3);
+        } else if (value.startsWith('91') && value.length > 10) {
+            value = value.substring(2);
+        }
+        
+        // Limit to 10 digits
+        value = value.substring(0, 10);
+        
+        // Update the input value
+        e.target.value = value;
+        
+        // Validate and update border color
+        validatePhoneNumber(e.target);
+    });
+    
+    // Validate on blur
+    newPhoneInput.addEventListener('blur', function(e) {
+        validatePhoneNumber(e.target);
+    });
+}
+
+function validatePhoneNumber(input) {
+    const value = sanitizePhoneNumber(input.value);
+    const phonePattern = /^[6-9]\d{9}$/;
+    const isValid = phonePattern.test(value);
+    
+    if (value && !isValid) {
+        input.classList.add('border-red-500');
+        input.classList.remove('border-gray-700', 'border-green-500');
+    } else if (value && isValid) {
+        input.classList.add('border-green-500');
+        input.classList.remove('border-gray-700', 'border-red-500');
+    } else {
+        input.classList.remove('border-red-500', 'border-green-500');
+        input.classList.add('border-gray-700');
+    }
+    
+    return isValid;
+}
+
+function sanitizePhoneNumber(phone) {
+    // Remove all non-digit characters
+    let cleaned = phone.replace(/\D/g, '');
+    
+    // Remove country code if present (+91 or 91)
+    if (cleaned.startsWith('91') && cleaned.length > 10) {
+        cleaned = cleaned.substring(2);
+    }
+    
+    // Return only the 10-digit number
+    return cleaned.substring(0, 10);
 }
 
 function closeDispatchModal() {
@@ -193,12 +266,22 @@ async function confirmDispatch() {
 
     if (method === "inhouse") {
         riderName = document.getElementById("rider-name").value.trim();
-        riderPhone = document.getElementById("rider-phone").value.trim();
+        let riderPhone = document.getElementById("rider-phone").value.trim();
         const time = document.getElementById("delivery-time").value.trim();
         const ampm = document.getElementById("delivery-ampm").value;
 
         if (!riderName || !riderPhone || !time) {
             alert("Please fill all rider details including delivery time");
+            return;
+        }
+
+        // Sanitize and validate phone number
+        riderPhone = sanitizePhoneNumber(riderPhone);
+        const phonePattern = /^[6-9]\d{9}$/;
+        
+        if (!phonePattern.test(riderPhone)) {
+            alert("Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9");
+            document.getElementById("rider-phone").focus();
             return;
         }
 
