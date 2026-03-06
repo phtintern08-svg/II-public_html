@@ -120,17 +120,114 @@
                             <p class="form-hint">Minimum 6 characters. Share this securely with the user.</p>
                         </div>
 
+                        <!-- Permissions Section -->
                         <div class="form-group full-width">
-                            <div class="permissions-info">
-                                <i data-lucide="info" class="w-5 h-5 text-blue-400"></i>
-                                <div>
-                                    <p class="permissions-title">User Permissions</p>
-                                    <p class="permissions-text">
-                                        New users will have access to <strong>Dashboard</strong> and <strong>Orders</strong> only. 
-                                        They cannot access Payments, Capacity, Notifications, Profile, or Verification settings.
-                                    </p>
-                                </div>
+                            <label class="form-label mb-4">
+                                <i data-lucide="shield" class="w-4 h-4 inline mr-2"></i>
+                                Access Permissions
+                                <span class="text-red-400">*</span>
+                            </label>
+                            <div class="permissions-grid">
+                                <label class="permission-checkbox">
+                                    <input type="checkbox" name="permissions" value="dashboard" checked class="permission-input">
+                                    <div class="permission-card">
+                                        <div class="permission-icon bg-blue-500/10">
+                                            <i data-lucide="layout-dashboard" class="w-5 h-5 text-blue-500"></i>
+                                        </div>
+                                        <div class="permission-content">
+                                            <span class="permission-name">Dashboard</span>
+                                            <span class="permission-desc">View dashboard statistics</span>
+                                        </div>
+                                        <div class="permission-checkmark">
+                                            <i data-lucide="check" class="w-5 h-5"></i>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="permission-checkbox">
+                                    <input type="checkbox" name="permissions" value="orders" checked class="permission-input">
+                                    <div class="permission-card">
+                                        <div class="permission-icon bg-green-500/10">
+                                            <i data-lucide="shopping-bag" class="w-5 h-5 text-green-500"></i>
+                                        </div>
+                                        <div class="permission-content">
+                                            <span class="permission-name">Orders</span>
+                                            <span class="permission-desc">View and manage orders</span>
+                                        </div>
+                                        <div class="permission-checkmark">
+                                            <i data-lucide="check" class="w-5 h-5"></i>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="permission-checkbox">
+                                    <input type="checkbox" name="permissions" value="payments" class="permission-input">
+                                    <div class="permission-card">
+                                        <div class="permission-icon bg-yellow-500/10">
+                                            <i data-lucide="dollar-sign" class="w-5 h-5 text-yellow-500"></i>
+                                        </div>
+                                        <div class="permission-content">
+                                            <span class="permission-name">Payments</span>
+                                            <span class="permission-desc">View payment history</span>
+                                        </div>
+                                        <div class="permission-checkmark">
+                                            <i data-lucide="check" class="w-5 h-5"></i>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="permission-checkbox">
+                                    <input type="checkbox" name="permissions" value="capacity" class="permission-input">
+                                    <div class="permission-card">
+                                        <div class="permission-icon bg-purple-500/10">
+                                            <i data-lucide="factory" class="w-5 h-5 text-purple-500"></i>
+                                        </div>
+                                        <div class="permission-content">
+                                            <span class="permission-name">Production Capacity</span>
+                                            <span class="permission-desc">Manage production capacity</span>
+                                        </div>
+                                        <div class="permission-checkmark">
+                                            <i data-lucide="check" class="w-5 h-5"></i>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="permission-checkbox">
+                                    <input type="checkbox" name="permissions" value="notifications" class="permission-input">
+                                    <div class="permission-card">
+                                        <div class="permission-icon bg-orange-500/10">
+                                            <i data-lucide="bell" class="w-5 h-5 text-orange-500"></i>
+                                        </div>
+                                        <div class="permission-content">
+                                            <span class="permission-name">Notifications</span>
+                                            <span class="permission-desc">View notifications</span>
+                                        </div>
+                                        <div class="permission-checkmark">
+                                            <i data-lucide="check" class="w-5 h-5"></i>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="permission-checkbox">
+                                    <input type="checkbox" name="permissions" value="profile" class="permission-input">
+                                    <div class="permission-card">
+                                        <div class="permission-icon bg-indigo-500/10">
+                                            <i data-lucide="user-cog" class="w-5 h-5 text-indigo-500"></i>
+                                        </div>
+                                        <div class="permission-content">
+                                            <span class="permission-name">Profile & Settings</span>
+                                            <span class="permission-desc">View profile information</span>
+                                        </div>
+                                        <div class="permission-checkmark">
+                                            <i data-lucide="check" class="w-5 h-5"></i>
+                                        </div>
+                                    </div>
+                                </label>
                             </div>
+                            <p class="form-hint mt-3">
+                                <i data-lucide="info" class="w-4 h-4 inline mr-1"></i>
+                                Select the features this user can access. At least one permission must be selected.
+                            </p>
                         </div>
 
                         <div class="form-group full-width mt-4">
@@ -172,7 +269,7 @@
                                     <tr>
                                         <th>Name</th>
                                         <th>Email</th>
-                                        <th>Role</th>
+                                        <th>Permissions</th>
                                         <th>Created</th>
                                         <th class="text-right">Actions</th>
                                     </tr>

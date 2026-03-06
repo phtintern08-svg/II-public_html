@@ -261,6 +261,10 @@ if (loginForm) {
                 if (result.name) {
                     localStorage.setItem('name', result.name);
                 }
+                // Store permissions for subusers
+                if (result.permissions) {
+                    localStorage.setItem('vendorPermissions', JSON.stringify(result.permissions));
+                }
 
                 // For customer role, fetch full profile details from database
                 if (result.role === 'customer' && result.token) {

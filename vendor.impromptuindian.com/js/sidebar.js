@@ -156,19 +156,90 @@
     // Check if user is subuser (from localStorage role)
     const role = localStorage.getItem('role') || 'vendor';
     const isSubUser = role === 'subuser';
+    
+    // Get permissions for subusers
+    let permissions = [];
+    if (isSubUser) {
+      const permissionsStr = localStorage.getItem('vendorPermissions');
+      if (permissionsStr) {
+        try {
+          permissions = JSON.parse(permissionsStr);
+        } catch (e) {
+          // Default permissions for backward compatibility
+          permissions = ['dashboard', 'orders'];
+        }
+      } else {
+        // Default permissions for backward compatibility
+        permissions = ['dashboard', 'orders'];
+      }
+    }
 
     let navHTML = `<p class="uppercase text-xs mb-3 opacity-70">Vendor Menu</p>`;
 
-    // Dashboard - Always visible
-    navHTML += `<a href="home.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> <span>Dashboard</span></a>`;
+    // Dashboard - Always visible (or if has dashboard permission)
+    if (!isSubUser || permissions.includes('dashboard')) {
+      navHTML += `<a href="home.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> <span>Dashboard</span></a>`;
+    }
 
-    // Subusers: Limited menu (Dashboard + Orders only)
+    // Subusers: Show menu based on permissions
     if (isSubUser) {
+      // Orders
+      if (permissions.includes('orders')) {
+        navHTML += `
+          <a href="orders.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
+            <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+            <span>Orders</span>
+            ${newOrdersCount > 0 ? `<span class="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">${newOrdersCount}</span>` : ''}
+          </a>
+        `;
+      }
+      
+      // Payments
+      if (permissions.includes('payments')) {
+        navHTML += `
+          <a href="payments.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
+            <i data-lucide="dollar-sign" class="w-5 h-5"></i>
+            <span>Payments</span>
+          </a>
+        `;
+      }
+      
+      // Production Capacity
+      if (permissions.includes('capacity')) {
+        navHTML += `
+          <a href="capacity.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
+            <i data-lucide="factory" class="w-5 h-5"></i>
+            <span>Production Capacity</span>
+          </a>
+        `;
+      }
+      
+      // Notifications
+      if (permissions.includes('notifications')) {
+        navHTML += `
+          <a href="notifications.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
+            <i data-lucide="bell" class="w-5 h-5"></i>
+            <span>Notifications</span>
+            ${unreadCount > 0 ? `<span class="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">${unreadCount}</span>` : ''}
+          </a>
+        `;
+      }
+      
+      // Profile
+      if (permissions.includes('profile')) {
+        navHTML += `
+          <a href="profile.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
+            <i data-lucide="user-cog" class="w-5 h-5"></i>
+            <span>Profile & Settings</span>
+          </a>
+        `;
+      }
+      
+      // Support - Always available
       navHTML += `
-        <a href="orders.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
-          <i data-lucide="shopping-bag" class="w-5 h-5"></i>
-          <span>Orders</span>
-          ${newOrdersCount > 0 ? `<span class="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">${newOrdersCount}</span>` : ''}
+        <a href="support.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
+          <i data-lucide="headphones" class="w-5 h-5"></i>
+          <span>Support</span>
         </a>
       `;
     } else {

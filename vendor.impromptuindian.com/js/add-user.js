@@ -165,6 +165,33 @@
           })
         : 'N/A';
 
+      // Render permissions badges
+      const permissions = user.permissions || ['dashboard', 'orders']; // Default for backward compatibility
+      const permissionIcons = {
+        dashboard: 'layout-dashboard',
+        orders: 'shopping-bag',
+        payments: 'dollar-sign',
+        capacity: 'factory',
+        notifications: 'bell',
+        profile: 'user-cog'
+      };
+      
+      const permissionLabels = {
+        dashboard: 'Dashboard',
+        orders: 'Orders',
+        payments: 'Payments',
+        capacity: 'Capacity',
+        notifications: 'Notifications',
+        profile: 'Profile'
+      };
+
+      const permissionsHTML = permissions.map(perm => `
+        <span class="permission-badge">
+          <i data-lucide="${permissionIcons[perm] || 'circle'}" class="w-3 h-3"></i>
+          ${permissionLabels[perm] || perm}
+        </span>
+      `).join('');
+
       row.innerHTML = `
         <td>
           <div class="flex items-center gap-3">
@@ -178,10 +205,9 @@
           <span class="text-gray-400">${escapeHtml(user.email)}</span>
         </td>
         <td>
-          <span class="user-badge">
-            <i data-lucide="user" class="w-4 h-4"></i>
-            Subuser
-          </span>
+          <div class="permission-badges">
+            ${permissionsHTML}
+          </div>
         </td>
         <td>
           <span class="text-gray-400">${createdDate}</span>
@@ -205,6 +231,18 @@
     if (window.lucide) {
       lucide.createIcons();
     }
+    
+    // Update permission checkboxes visual state
+    updatePermissionCheckboxes();
+  }
+  
+  // Update permission checkboxes visual state
+  function updatePermissionCheckboxes() {
+    const checkboxes = document.querySelectorAll('.permission-input');
+    checkboxes.forEach(checkbox => {
+      // Visual state is handled by CSS :checked selector
+      // This function can be used for additional logic if needed
+    });
   }
 
   // Update User Count
@@ -222,6 +260,10 @@
     const email = userEmailInput.value.trim().toLowerCase();
     const password = userPasswordInput.value.trim();
 
+    // Get selected permissions
+    const permissionCheckboxes = document.querySelectorAll('input[name="permissions"]:checked');
+    const permissions = Array.from(permissionCheckboxes).map(cb => cb.value);
+
     // Validation
     if (!name || !email || !password) {
       showAlert('Validation Error', 'Please fill in all required fields', 'error');
@@ -235,6 +277,11 @@
 
     if (!isValidEmail(email)) {
       showAlert('Validation Error', 'Please enter a valid email address', 'error');
+      return;
+    }
+
+    if (permissions.length === 0) {
+      showAlert('Validation Error', 'Please select at least one permission', 'error');
       return;
     }
 
@@ -257,7 +304,8 @@
         body: JSON.stringify({
           name,
           email,
-          password
+          password,
+          permissions
         })
       });
 
@@ -270,8 +318,10 @@
       // Success
       showAlert('Success', `User "${name}" has been added successfully`, 'success');
       
-      // Reset form
+      // Reset form (including checkboxes - keep dashboard and orders checked)
       addUserForm.reset();
+      document.querySelector('input[value="dashboard"]').checked = true;
+      document.querySelector('input[value="orders"]').checked = true;
       
       // Reload users list
       await loadUsers();
