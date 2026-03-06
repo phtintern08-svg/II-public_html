@@ -124,24 +124,15 @@ function openDispatchModal(orderId) {
     document.getElementById('modal-order-id').textContent = `#${displayId}`;
     document.getElementById('dispatch-modal').classList.remove('hidden');
     
-    // Pre-fill delivery start time with current time rounded up to next hour (12-hour format)
+    // Pre-fill delivery time with current time rounded up to next hour (12-hour format)
     const now = new Date();
     const nextHour = new Date(now);
     nextHour.setHours(now.getHours() + 1, 0, 0, 0);
-    const startHour12 = nextHour.getHours() % 12 || 12;
-    const startMinute = String(nextHour.getMinutes()).padStart(2, '0');
-    const startAMPM = nextHour.getHours() >= 12 ? 'PM' : 'AM';
-    document.getElementById('delivery-start').value = `${startHour12}:${startMinute}`;
-    document.getElementById('delivery-start-ampm').value = startAMPM;
-    
-    // Pre-fill end time as 2 hours after start time
-    const endTime = new Date(nextHour);
-    endTime.setHours(endTime.getHours() + 2);
-    const endHour12 = endTime.getHours() % 12 || 12;
-    const endMinute = String(endTime.getMinutes()).padStart(2, '0');
-    const endAMPM = endTime.getHours() >= 12 ? 'PM' : 'AM';
-    document.getElementById('delivery-end').value = `${endHour12}:${endMinute}`;
-    document.getElementById('delivery-end-ampm').value = endAMPM;
+    const hour12 = nextHour.getHours() % 12 || 12;
+    const minute = String(nextHour.getMinutes()).padStart(2, '0');
+    const ampm = nextHour.getHours() >= 12 ? 'PM' : 'AM';
+    document.getElementById('delivery-time').value = `${hour12}:${minute}`;
+    document.getElementById('delivery-ampm').value = ampm;
 }
 
 function closeDispatchModal() {
@@ -155,10 +146,8 @@ function closeDispatchModal() {
     document.getElementById('rider-section').classList.add('hidden');
     document.getElementById('rider-name').value = '';
     document.getElementById('rider-phone').value = '';
-    document.getElementById('delivery-start').value = '';
-    document.getElementById('delivery-start-ampm').value = 'AM';
-    document.getElementById('delivery-end').value = '';
-    document.getElementById('delivery-end-ampm').value = 'AM';
+    document.getElementById('delivery-time').value = '';
+    document.getElementById('delivery-ampm').value = 'AM';
 }
 
 function toggleDeliveryFields() {
@@ -187,19 +176,6 @@ function updateDeliveryCardStyles() {
     });
 }
 
-function convertTo24Hour(time12, ampm) {
-    // time12 format: "4:00" or "12:30"
-    const [hours, minutes] = time12.split(':').map(Number);
-    let hours24 = hours;
-    
-    if (ampm === 'PM' && hours !== 12) {
-        hours24 = hours + 12;
-    } else if (ampm === 'AM' && hours === 12) {
-        hours24 = 0;
-    }
-    
-    return hours24 * 60 + minutes; // Return minutes since midnight for easy comparison
-}
 
 async function confirmDispatch() {
     if (!selectedOrderId) return;
@@ -218,34 +194,22 @@ async function confirmDispatch() {
     if (method === "inhouse") {
         riderName = document.getElementById("rider-name").value.trim();
         riderPhone = document.getElementById("rider-phone").value.trim();
-        const startTime = document.getElementById("delivery-start").value.trim();
-        const startAMPM = document.getElementById("delivery-start-ampm").value;
-        const endTime = document.getElementById("delivery-end").value.trim();
-        const endAMPM = document.getElementById("delivery-end-ampm").value;
+        const time = document.getElementById("delivery-time").value.trim();
+        const ampm = document.getElementById("delivery-ampm").value;
 
-        if (!riderName || !riderPhone || !startTime || !endTime) {
-            alert("Please fill all rider details including delivery time window");
+        if (!riderName || !riderPhone || !time) {
+            alert("Please fill all rider details including delivery time");
             return;
         }
 
         // Validate time format (HH:MM or H:MM)
         const timePattern = /^([0-9]|1[0-2]):[0-5][0-9]$/;
-        if (!timePattern.test(startTime) || !timePattern.test(endTime)) {
+        if (!timePattern.test(time)) {
             alert("Please enter valid time format (e.g., 4:00 or 12:30)");
             return;
         }
 
-        // Convert to 24-hour format for comparison
-        const start24 = convertTo24Hour(startTime, startAMPM);
-        const end24 = convertTo24Hour(endTime, endAMPM);
-
-        // Validate that end time is after start time
-        if (start24 >= end24) {
-            alert("End time must be after start time");
-            return;
-        }
-
-        deliveryTime = `${startTime} ${startAMPM} - ${endTime} ${endAMPM}`;
+        deliveryTime = `by ${time} ${ampm}`;
     }
 
     try {

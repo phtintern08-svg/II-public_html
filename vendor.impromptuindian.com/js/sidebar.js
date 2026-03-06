@@ -152,31 +152,66 @@
     const unreadCount = localStorage.getItem('vendorUnreadNotifications') || '0';
     const newOrdersCount = parseInt(localStorage.getItem('vendorNewOrdersCount') || '0');
     const isFullyVerified = verificationStatus === 'approved' && quotationStatus === 'approved';
+    
+    // Check if user is subuser (from localStorage role)
+    const role = localStorage.getItem('role') || 'vendor';
+    const isSubUser = role === 'subuser';
 
     let navHTML = `<p class="uppercase text-xs mb-3 opacity-70">Vendor Menu</p>`;
 
-    // Dashboard
+    // Dashboard - Always visible
     navHTML += `<a href="home.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> <span>Dashboard</span></a>`;
 
-    // Verification
-    let badgeClass = verificationStatus === 'approved' ? (quotationStatus === 'approved' ? 'bg-emerald-500' : 'bg-amber-500') : (verificationStatus === 'rejected' ? 'bg-red-500' : 'bg-amber-500');
-    let badgeText = verificationStatus === 'approved' ? (quotationStatus === 'approved' ? 'Verified' : 'Quot. Pending') : (verificationStatus === 'rejected' ? 'Rejected' : 'Pending');
-
-    navHTML += `<a href="verification.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white"><i data-lucide="shield-check" class="w-5 h-5"></i> <span>Verification</span> <span class="ml-auto text-[10px] px-2 py-0.5 rounded-full text-white ${badgeClass}">${badgeText}</span></a>`;
-
-    if (isFullyVerified) {
+    // Subusers: Limited menu (Dashboard + Orders only)
+    if (isSubUser) {
       navHTML += `
-        <a href="orders.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white"><i data-lucide="shopping-bag" class="w-5 h-5"></i> <span>Orders</span> ${newOrdersCount > 0 ? `<span class="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">${newOrdersCount}</span>` : ''}</a>
-        <a href="capacity.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white"><i data-lucide="factory" class="w-5 h-5"></i> <span>Production Capacity</span></a>
-        <a href="payments.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white"><i data-lucide="dollar-sign" class="w-5 h-5"></i> <span>Payments</span></a>
-        <a href="notifications.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white"><i data-lucide="bell" class="w-5 h-5"></i> <span>Notifications</span> ${unreadCount > 0 ? `<span class="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">${unreadCount}</span>` : ''}</a>
+        <a href="orders.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
+          <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+          <span>Orders</span>
+          ${newOrdersCount > 0 ? `<span class="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">${newOrdersCount}</span>` : ''}
+        </a>
+      `;
+    } else {
+      // Full vendor menu
+      // Verification
+      let badgeClass = verificationStatus === 'approved' ? (quotationStatus === 'approved' ? 'bg-emerald-500' : 'bg-amber-500') : (verificationStatus === 'rejected' ? 'bg-red-500' : 'bg-amber-500');
+      let badgeText = verificationStatus === 'approved' ? (quotationStatus === 'approved' ? 'Verified' : 'Quot. Pending') : (verificationStatus === 'rejected' ? 'Rejected' : 'Pending');
+
+      navHTML += `<a href="verification.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white"><i data-lucide="shield-check" class="w-5 h-5"></i> <span>Verification</span> <span class="ml-auto text-[10px] px-2 py-0.5 rounded-full text-white ${badgeClass}">${badgeText}</span></a>`;
+
+      if (isFullyVerified) {
+        navHTML += `
+          <a href="orders.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
+            <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+            <span>Orders</span>
+            ${newOrdersCount > 0 ? `<span class="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">${newOrdersCount}</span>` : ''}
+          </a>
+          <a href="capacity.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
+            <i data-lucide="factory" class="w-5 h-5"></i>
+            <span>Production Capacity</span>
+          </a>
+          <a href="payments.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
+            <i data-lucide="dollar-sign" class="w-5 h-5"></i>
+            <span>Payments</span>
+          </a>
+          <a href="notifications.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
+            <i data-lucide="bell" class="w-5 h-5"></i>
+            <span>Notifications</span>
+            ${unreadCount > 0 ? `<span class="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">${unreadCount}</span>` : ''}
+          </a>
+          <!-- User Management - Only for fully verified vendors -->
+          <a href="add-user.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white">
+            <i data-lucide="user-plus" class="w-5 h-5"></i>
+            <span>Add User</span>
+          </a>
+        `;
+      }
+
+      navHTML += `
+        <a href="profile.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white"><i data-lucide="user-cog" class="w-5 h-5"></i> <span>Profile & Settings</span></a>
+        <a href="support.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white"><i data-lucide="headphones" class="w-5 h-5"></i> <span>Support</span></a>
       `;
     }
-
-    navHTML += `
-      <a href="profile.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white"><i data-lucide="user-cog" class="w-5 h-5"></i> <span>Profile & Settings</span></a>
-      <a href="support.html" class="menu-item flex items-center gap-3 p-3 rounded-lg mb-2 transition-colors hover:bg-black hover:text-white"><i data-lucide="headphones" class="w-5 h-5"></i> <span>Support</span></a>
-    `;
 
     nav.innerHTML = navHTML;
     if (window.lucide) lucide.createIcons();

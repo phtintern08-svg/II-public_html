@@ -285,7 +285,7 @@ function renderOrderDetails(order) {
                         ${order.expected_delivery ? `
                         <div>
                             <span class="block text-gray-500 text-xs uppercase mb-1">Expected Delivery Time</span>
-                            <span class="text-green-400 font-medium">Today between ${order.expected_delivery}</span>
+                            <span class="text-green-400 font-medium">Today ${order.expected_delivery}</span>
                         </div>
                         ` : ''}
                     </div>
