@@ -172,6 +172,21 @@ function toggleDeliveryFields() {
     }
 }
 
+function updateDeliveryCardStyles() {
+    // This function ensures the card styles update when radio buttons change
+    // The CSS handles most of it, but this ensures consistency
+    const cards = document.querySelectorAll('.delivery-option-card');
+    cards.forEach(card => {
+        const radio = card.querySelector('input[type="radio"]');
+        const inner = card.querySelector('.delivery-card-inner');
+        if (radio.checked) {
+            inner.classList.add('ring-2');
+        } else {
+            inner.classList.remove('ring-2');
+        }
+    });
+}
+
 function convertTo24Hour(time12, ampm) {
     // time12 format: "4:00" or "12:30"
     const [hours, minutes] = time12.split(':').map(Number);

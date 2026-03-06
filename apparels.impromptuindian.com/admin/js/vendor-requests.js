@@ -116,6 +116,7 @@ async function fetchRequests() {
         submittedOn: dateStr || 'N/A',
         status: normalizeStatus(v.status || v.verification_status),
         documents: v.documents || {},
+        business_details: v.business_details || {},
         address: v.address || '',
         contact: {
           email: (v.contact && v.contact.email) || v.email || 'N/A',
@@ -367,10 +368,8 @@ function openVendorModal(id) {
 
   // Document Icon Mapping
   const getDocIcon = (type) => {
-    if (type.includes('business')) return 'building-2';
     if (type.includes('aadhar') || type.includes('pan')) return 'credit-card';
     if (type.includes('bank')) return 'landmark';
-    if (type.includes('gst')) return 'file-text';
     if (type.includes('workshop')) return 'image';
     if (type.includes('signature')) return 'pen-tool';
     return 'file';
@@ -379,8 +378,6 @@ function openVendorModal(id) {
   const docLabels = {
     'pan': 'PAN Card',
     'aadhar': 'Aadhar Card',
-    'gst': 'GST Certificate',
-    'business': 'Business Registration',
     'bank': 'Bank Details',
     'workshop': 'Workshop Images',
     'signature': 'Signature'
@@ -389,6 +386,40 @@ function openVendorModal(id) {
   let docsHtml = '';
   if (vendor.documents) {
     docsHtml = '<div class="grid grid-cols-1 gap-3">';
+
+    // Add Business Details section first
+    if (vendor.business_details) {
+      const bd = vendor.business_details;
+      if (bd.company_unique_id || bd.company_id_number || bd.date_of_establishment) {
+        docsHtml += `
+          <div class="group flex flex-col p-3 bg-gray-800/50 border border-blue-500/30 rounded-lg">
+            <div class="flex items-center gap-3 mb-2">
+              <div class="p-2 bg-blue-500/10 rounded-lg text-blue-400">
+                <i data-lucide="building-2" class="w-5 h-5"></i>
+              </div>
+              <div class="flex-1">
+                <p class="text-sm font-medium text-gray-200">Business Details</p>
+                <p class="text-xs text-gray-500">Company Information</p>
+              </div>
+            </div>
+            <div class="mt-2 space-y-2 pl-11">
+              ${bd.company_unique_id ? `<div class="grid grid-cols-[100px_1fr] gap-2 text-xs">
+                <span class="text-gray-500">Unique ID:</span>
+                <span class="text-gray-200 font-medium">${bd.company_unique_id}</span>
+              </div>` : ''}
+              ${bd.company_id_number ? `<div class="grid grid-cols-[100px_1fr] gap-2 text-xs">
+                <span class="text-gray-500">ID Number:</span>
+                <span class="text-gray-200 font-medium">${bd.company_id_number}</span>
+              </div>` : ''}
+              ${bd.date_of_establishment ? `<div class="grid grid-cols-[100px_1fr] gap-2 text-xs">
+                <span class="text-gray-500">Established:</span>
+                <span class="text-gray-200 font-medium">${bd.date_of_establishment}</span>
+              </div>` : ''}
+            </div>
+          </div>
+        `;
+      }
+    }
 
     // Sort: Pending/Uploaded/Rejected (Needs Action) -> Approved (Done)
     const sortedDocs = Object.entries(vendor.documents).sort(([, a], [, b]) => {
@@ -408,7 +439,6 @@ function openVendorModal(id) {
       let extraInfo = '';
       if (key === 'pan' && doc.pan_number) extraInfo = `<p class="text-[10px] text-gray-400 mt-0.5">PAN: ${doc.pan_number}</p>`;
       if (key === 'aadhar' && doc.aadhar_number) extraInfo = `<p class="text-[10px] text-gray-400 mt-0.5">AADHAR: ${doc.aadhar_number}</p>`;
-      if (key === 'gst' && doc.gst_number) extraInfo = `<p class="text-[10px] text-gray-400 mt-0.5">GST: ${doc.gst_number}</p>`;
       if (key === 'bank') {
         if (doc.bank_account_number) extraInfo += `<p class="text-[10px] text-gray-400 mt-0.5">Acc: ${doc.bank_account_number}</p>`;
         if (doc.bank_holder_name) extraInfo += `<p class="text-[10px] text-gray-400 mt-0.5">Holder: ${doc.bank_holder_name}</p>`;
@@ -555,7 +585,7 @@ function openVendorModal(id) {
             <div class="bg-gray-800/40 rounded-xl border border-gray-700/50 flex flex-col h-full overflow-hidden">
                 <div class="p-4 border-b border-gray-700/50 bg-gray-800/60 flex justify-between items-center">
                     <h4 class="text-sm font-semibold text-white uppercase tracking-wider">Verification Documents</h4>
-                    <span class="text-xs text-gray-500 font-mono">${Object.keys(vendor.documents || {}).length} files</span>
+                    <span class="text-xs text-gray-500 font-mono">${Object.keys(vendor.documents || {}).length} ${Object.keys(vendor.documents || {}).length === 1 ? 'file' : 'files'}${vendor.business_details && (vendor.business_details.company_unique_id || vendor.business_details.company_id_number) ? ' + Business Details' : ''}</span>
                 </div>
                 <div class="p-4 overflow-y-auto flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]" style="max-height: 400px;">
                     ${docsHtml}

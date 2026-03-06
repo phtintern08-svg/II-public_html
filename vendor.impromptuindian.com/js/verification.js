@@ -160,8 +160,6 @@ window.formatFieldValue = formatFieldValue;
 const REQUIRED_DOCUMENTS = [
     { id: 'pan', label: 'PAN Card', icon: 'credit-card', required: true, extraFields: [{ name: 'pan_number', placeholder: 'Enter PAN Number' }] },
     { id: 'aadhar', label: 'Aadhar Card', icon: 'id-card', required: true, extraFields: [{ name: 'aadhar_number', placeholder: 'Enter Aadhaar Number' }] },
-    { id: 'gst', label: 'GST Certificate', icon: 'file-text', required: true, extraFields: [{ name: 'gst_number', placeholder: 'Enter GST Number' }] },
-    { id: 'business', label: 'Business Registration', icon: 'building-2', required: true, extraFields: [{ name: 'business_registration_number', placeholder: 'Enter Business Registration Number' }] },
     {
         id: 'bank', label: 'Bank Proof', icon: 'landmark', required: true,
         extraFields: [
@@ -175,6 +173,64 @@ const REQUIRED_DOCUMENTS = [
     { id: 'signature', label: 'Signature', icon: 'pen-tool', required: true }
 ];
 
+/* ---------------------------
+   DOCUMENT STEPS GROUPING
+---------------------------*/
+const DOCUMENT_STEPS = {
+    1: ['pan', 'aadhar'],
+    2: [], // Step 2 is now form fields only, no document uploads
+    3: ['bank', 'workshop', 'signature']
+};
+
+// Business Details Form Fields
+const BUSINESS_DETAILS_FIELDS = {
+    company_unique_id: {
+        label: 'Company Unique ID',
+        type: 'select',
+        options: ['TIN', 'GST', 'ROC', 'CIN', 'Association Registration'],
+        required: true
+    },
+    company_id_number: {
+        label: 'ID Number',
+        type: 'text',
+        placeholder: 'ID Number',
+        required: true
+    },
+    date_of_establishment: {
+        label: 'Date of Establishment',
+        type: 'date',
+        placeholder: 'dd-mm-yyyy',
+        required: true
+    }
+};
+
+let currentVerificationStep = 1;
+
+function ensureVerificationClientState() {
+    // Ensure documents object exists
+    if (!documents || typeof documents !== 'object') {
+        documents = {};
+    }
+
+    // Ensure every required doc exists with a safe default shape
+    REQUIRED_DOCUMENTS.forEach(doc => {
+        if (!documents[doc.id]) {
+            documents[doc.id] = { status: 'pending', fileName: null, fileUrl: null };
+        } else if (!documents[doc.id].status) {
+            documents[doc.id].status = 'pending';
+        }
+    });
+
+    // Ensure business details bucket exists (for Step 2 form prefill)
+    if (!documents['business_details']) {
+        documents['business_details'] = {
+            company_unique_id: '',
+            company_id_number: '',
+            date_of_establishment: ''
+        };
+    }
+}
+
 /* ... skip ... */
 
 /* ---------------------------
@@ -184,7 +240,46 @@ function renderDocumentsGrid() {
     const grid = document.getElementById('documents-grid');
     if (!grid) return;
 
-    grid.innerHTML = REQUIRED_DOCUMENTS.map(docType => {
+    ensureVerificationClientState();
+
+    // Step 2 is special - show business details form instead of documents
+    if (currentVerificationStep === 2 && (verificationStatus === 'not-submitted' || verificationStatus === 'rejected')) {
+        grid.innerHTML = renderBusinessDetailsForm();
+        // Initialize Lucide icons after a short delay to ensure DOM is ready
+        setTimeout(() => {
+            lucide.createIcons();
+        }, 50);
+        updateStepNavigationButtons();
+        updateSubmitButtonVisibility();
+        return;
+    }
+
+    // Show all documents if verification is pending or approved (read-only mode)
+    // Otherwise, filter by current step for step-by-step upload
+    const shouldShowAll = verificationStatus === 'pending' || verificationStatus === 'approved';
+    const visibleDocs = shouldShowAll 
+        ? REQUIRED_DOCUMENTS 
+        : REQUIRED_DOCUMENTS.filter(doc =>
+            DOCUMENT_STEPS[currentVerificationStep].includes(doc.id)
+        );
+
+    if (!visibleDocs || visibleDocs.length === 0) {
+        grid.innerHTML = `
+            <div class="w-full text-center py-10 text-gray-400">
+                <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-800/60 border border-gray-700/50 mb-3">
+                    <i data-lucide="folder-open" class="w-6 h-6 text-gray-500"></i>
+                </div>
+                <p class="text-sm font-medium text-gray-300">Nothing to upload in this step</p>
+                <p class="text-xs text-gray-500 mt-1">Use “Next Step” to continue.</p>
+            </div>
+        `;
+        lucide.createIcons();
+        updateStepNavigationButtons();
+        updateSubmitButtonVisibility();
+        return;
+    }
+
+    grid.innerHTML = visibleDocs.map(docType => {
         const doc = documents[docType.id] || { status: 'pending' };
         const status = doc.status || 'pending';
         let statusLabel = 'Pending';
@@ -264,6 +359,17 @@ function renderDocumentsGrid() {
             extraInputsHtml += `</div>`;
         }
 
+        // Simplified labels for better UX (Upload PAN instead of PAN Card – Pending)
+        const simplifiedLabels = {
+            'pan': 'Upload PAN',
+            'aadhar': 'Upload Aadhaar',
+            'bank': 'Upload Bank Proof',
+            'workshop': 'Upload Workshop Images',
+            'signature': 'Upload Signature'
+        };
+        
+        const displayLabel = simplifiedLabels[docType.id] || docType.label;
+        
         return `
             <div class="document-card ${status}">
                 <div class="document-header">
@@ -271,7 +377,7 @@ function renderDocumentsGrid() {
                         <i data-lucide="${docType.icon}"></i>
                     </div>
                     <div class="flex-1">
-                        <h4>${docType.label}</h4>
+                        <h4>${displayLabel}</h4>
                         ${docType.required
                 ? `<span class="required-badge">Required</span>`
                 : `<span class="optional-badge">Optional</span>`}
@@ -279,10 +385,12 @@ function renderDocumentsGrid() {
                 </div>
 
                 <div class="document-body">
+                    ${status !== 'pending' ? `
                     <div class="document-status ${status}">
                         <i data-lucide="${statusIcon}"></i>
                         <span>${statusLabel}</span>
                     </div>
+                    ` : ''}
                     
                      ${status === 'rejected' && (doc.remarks || doc.adminRemarks) ? `
                         <div class="rejection-box">
@@ -329,7 +437,636 @@ function renderDocumentsGrid() {
     }).join('');
 
     lucide.createIcons();
+    
+    // Update step navigation buttons visibility
+    updateStepNavigationButtons();
+    
+    // Update submit button visibility
+    updateSubmitButtonVisibility();
+    
+    // Update Flipkart-style UI
+    renderStepsList();
+    updateOverallProgress();
 }
+
+/* ---------------------------
+   STEP NAVIGATION WITH VALIDATION
+---------------------------*/
+function isStepComplete(stepNumber) {
+    // Step 2 is special - check business details form fields + document upload
+    if (stepNumber === 2) {
+        const companyUniqueId = document.getElementById('company_unique_id');
+        const companyIdNumber = document.getElementById('company_id_number');
+        const dateOfEstablishment = document.getElementById('date_of_establishment');
+        
+        if (!companyUniqueId || !companyIdNumber || !dateOfEstablishment) {
+            return false;
+        }
+        
+        if (!companyUniqueId.value || companyUniqueId.value === '') {
+            return false;
+        }
+        
+        if (!companyIdNumber.value || companyIdNumber.value.trim() === '') {
+            return false;
+        }
+        
+        if (!dateOfEstablishment.value || dateOfEstablishment.value.trim() === '') {
+            return false;
+        }
+        
+        // Check if business document is uploaded
+        const businessDoc = documents['business_document'] || {};
+        if (!businessDoc.file && !businessDoc.path) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    const stepDocs = DOCUMENT_STEPS[stepNumber] || [];
+    
+    for (const docId of stepDocs) {
+        const doc = documents[docId] || { status: 'pending' };
+        
+        // Check if document is uploaded
+        if (doc.status !== 'uploaded' && doc.status !== 'approved') {
+            return false;
+        }
+        
+        // Check if document has required extra fields filled
+        const docDef = REQUIRED_DOCUMENTS.find(d => d.id === docId);
+        if (docDef && docDef.extraFields) {
+            for (const field of docDef.extraFields) {
+                const inputId = `input-${docId}-${field.name}`;
+                const el = document.getElementById(inputId);
+                let val = '';
+                
+                if (el) {
+                    val = el.value.trim();
+                } else if (doc[field.name]) {
+                    val = doc[field.name];
+                }
+                
+                if (!val) {
+                    return false;
+                }
+                
+                // Validate the value
+                const validation = window.validateField(field.name, val);
+                if (!validation.valid) {
+                    return false;
+                }
+            }
+        }
+    }
+    
+    return true;
+}
+
+function renderBusinessDetailsForm() {
+    const docRow = documents['business_details'] || {};
+    const businessDoc = documents['business_document'] || {};
+    const hasUploadedFile = businessDoc.file || businessDoc.path || businessDoc.fileName;
+    const uploadedFileName = businessDoc.fileName || businessDoc.meta?.filename || businessDoc.meta?.original_filename || '';
+    
+    return `
+        <div class="business-details-form-simple">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="company_unique_id" class="form-label">
+                        Company Unique ID <span class="required-asterisk">*</span>
+                    </label>
+                    <select id="company_unique_id" name="company_unique_id" class="form-select" required
+                            onchange="window.handleBusinessFieldChange('company_unique_id', this)">
+                        <option value="">Select</option>
+                        <option value="TIN" ${docRow.company_unique_id === 'TIN' ? 'selected' : ''}>TIN</option>
+                        <option value="GST" ${docRow.company_unique_id === 'GST' ? 'selected' : ''}>GST</option>
+                        <option value="ROC" ${docRow.company_unique_id === 'ROC' ? 'selected' : ''}>ROC</option>
+                        <option value="CIN" ${docRow.company_unique_id === 'CIN' ? 'selected' : ''}>CIN</option>
+                        <option value="Association Registration" ${docRow.company_unique_id === 'Association Registration' ? 'selected' : ''}>Association Registration</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="company_id_number" class="form-label">
+                        ID Number <span class="required-asterisk">*</span>
+                    </label>
+                    <input type="text" 
+                           id="company_id_number" 
+                           name="company_id_number" 
+                           class="form-input" 
+                           placeholder="Enter ID Number"
+                           value="${docRow.company_id_number || ''}"
+                           required
+                           oninput="window.handleBusinessFieldChange('company_id_number', this)">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="date_of_establishment" class="form-label">
+                        Date of Establishment <span class="required-asterisk">*</span>
+                    </label>
+                    <input type="date" 
+                           id="date_of_establishment" 
+                           name="date_of_establishment" 
+                           class="form-input" 
+                           required
+                           value="${docRow.date_of_establishment || ''}"
+                           onchange="window.handleBusinessFieldChange('date_of_establishment', this)">
+                </div>
+                
+                <div class="form-group">
+                    <label for="business_document_upload" class="form-label">
+                        Document Image <span class="required-asterisk">*</span>
+                    </label>
+                    <div class="file-upload-wrapper">
+                        <label for="business_document_upload" class="file-upload-label">
+                            <input type="file" 
+                                   id="business_document_upload" 
+                                   name="business_document_upload" 
+                                   class="file-input-hidden" 
+                                   accept="image/*,.pdf"
+                                   required
+                                   onchange="window.handleBusinessDocumentUpload(this)">
+                            <span class="file-upload-button">
+                                <i data-lucide="upload" class="w-4 h-4"></i>
+                                <span>Choose File</span>
+                            </span>
+                            <span class="file-upload-text">${hasUploadedFile ? uploadedFileName : 'No file chosen'}</span>
+                        </label>
+                        ${hasUploadedFile ? `
+                            <div class="uploaded-file-info">
+                                <span class="uploaded-file-name">
+                                    <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                                    ${uploadedFileName}
+                                </span>
+                                <button type="button" class="remove-file-btn" onclick="window.removeBusinessDocument()">
+                                    <i data-lucide="x" class="w-3 h-3"></i>
+                                    Remove
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Handle business details field changes
+window.handleBusinessFieldChange = function(fieldName, element) {
+    if (!documents['business_details']) {
+        documents['business_details'] = {};
+    }
+    documents['business_details'][fieldName] = element.value;
+    
+    // Update button states
+    updateStepNavigationButtons();
+    updateSubmitButtonVisibility();
+};
+
+// Handle business document image upload
+window.handleBusinessDocumentUpload = async function(inputElement) {
+    if (!inputElement.files || !inputElement.files[0]) {
+        return;
+    }
+    
+    const file = inputElement.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('doc_type', 'business_document');
+    
+    try {
+        showToast('Uploading document...', 'info');
+        
+        const response = await ImpromptuIndianApi.fetch('/api/vendor/verification/upload', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            // Update documents state
+            if (!documents['business_document']) {
+                documents['business_document'] = {};
+            }
+            documents['business_document'].file = result.fileName;
+            documents['business_document'].path = result.fileName;
+            documents['business_document'].fileName = result.fileName;
+            documents['business_document'].status = 'uploaded';
+            documents['business_document'].meta = {
+                filename: result.fileName,
+                original_filename: file.name,
+                mimetype: file.type,
+                size: file.size
+            };
+            
+            // Re-render the form to show uploaded file
+            renderDocumentsGrid();
+            updateStepNavigationButtons();
+            updateSubmitButtonVisibility();
+            
+            showToast('Document uploaded successfully', 'success');
+        } else {
+            showToast(result.error || 'Failed to upload document', 'error');
+            inputElement.value = ''; // Clear the input
+        }
+    } catch (error) {
+        console.error('Error uploading business document:', error);
+        showToast('Error uploading document', 'error');
+        inputElement.value = ''; // Clear the input
+    }
+};
+
+// Remove business document
+window.removeBusinessDocument = function() {
+    if (documents['business_document']) {
+        delete documents['business_document'].file;
+        delete documents['business_document'].path;
+        delete documents['business_document'].fileName;
+        delete documents['business_document'].meta;
+        documents['business_document'].status = 'pending';
+    }
+    
+    // Clear the file input
+    const fileInput = document.getElementById('business_document_upload');
+    if (fileInput) {
+        fileInput.value = '';
+    }
+    
+    // Re-render the form
+    renderDocumentsGrid();
+    updateStepNavigationButtons();
+    updateSubmitButtonVisibility();
+};
+
+function nextVerificationStep() {
+    // Validate current step is complete before moving forward
+    if (!isStepComplete(currentVerificationStep)) {
+        const stepNames = {
+            1: 'Identity Documents',
+            2: 'Business Details',
+            3: 'Banking & Workshop'
+        };
+        showToast(`Please complete all ${stepNames[currentVerificationStep]} before proceeding`, 'error');
+        return;
+    }
+    
+    if (currentVerificationStep < 3) {
+        currentVerificationStep++;
+        renderDocumentsGrid();
+        updateStepper();
+        updateProgressIndicator();
+        updateDocumentsSectionTitle();
+        renderTopStepIndicators();
+        renderStepsList();
+        updateStepNavigationButtons();
+        updateSubmitButtonVisibility();
+    }
+}
+
+function prevVerificationStep() {
+    if (currentVerificationStep > 1) {
+        currentVerificationStep--;
+        renderDocumentsGrid();
+        updateStepper();
+        updateProgressIndicator();
+        updateDocumentsSectionTitle();
+        renderTopStepIndicators();
+        renderStepsList();
+        updateStepNavigationButtons();
+        updateSubmitButtonVisibility();
+    }
+}
+
+function updateStepper() {
+    document.querySelectorAll('.step').forEach(step => {
+        step.classList.remove('active');
+        if (parseInt(step.dataset.step) === currentVerificationStep) {
+            step.classList.add('active');
+        }
+    });
+}
+
+function updateProgressIndicator() {
+    const progressFill = document.getElementById('progress-fill');
+    const progressText = document.getElementById('progress-text');
+    
+    if (progressFill) {
+        const percentage = (currentVerificationStep / 3) * 100;
+        progressFill.style.width = `${percentage}%`;
+    }
+    
+    if (progressText) {
+        progressText.textContent = `Step ${currentVerificationStep} of 3`;
+    }
+}
+
+function updateStepNavigationButtons() {
+    const prevBtn = document.getElementById('prev-step-btn');
+    const nextBtn = document.getElementById('next-step-btn');
+    const stepNavContainer = prevBtn?.parentElement;
+    
+    // Hide step navigation if verification is pending or approved (show all documents)
+    const shouldShowAll = verificationStatus === 'pending' || verificationStatus === 'approved';
+    
+    if (stepNavContainer) {
+        stepNavContainer.style.display = shouldShowAll ? 'none' : 'flex';
+    }
+    
+    if (prevBtn && !shouldShowAll) {
+        prevBtn.style.display = currentVerificationStep === 1 ? 'none' : 'inline-flex';
+        prevBtn.disabled = false;
+    }
+    
+    if (nextBtn && !shouldShowAll) {
+        if (currentVerificationStep === 3) {
+            nextBtn.style.display = 'none';
+        } else {
+            nextBtn.style.display = 'inline-flex';
+            // Disable next button if current step is not complete
+            const isComplete = isStepComplete(currentVerificationStep);
+            nextBtn.disabled = !isComplete;
+            if (!isComplete) {
+                nextBtn.classList.add('btn-disabled');
+            } else {
+                nextBtn.classList.remove('btn-disabled');
+            }
+        }
+    }
+}
+
+function updateSubmitButtonVisibility() {
+    const submitSection = document.getElementById('submit-section');
+    const submitBtn = document.getElementById('submit-btn');
+    
+    // Show submit button only when:
+    // 1. On step 3 AND step 3 is complete
+    // 2. OR verification status is not-submitted/rejected (for resubmission)
+    const shouldShow = (verificationStatus === 'not-submitted' || verificationStatus === 'rejected') && 
+                       currentVerificationStep === 3 && 
+                       isStepComplete(3);
+    
+    if (submitSection) {
+        submitSection.style.display = shouldShow ? 'flex' : 'none';
+    }
+    
+    if (submitBtn && shouldShow) {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+}
+
+/* ---------------------------
+   PROFESSIONAL WORKFLOW: TIMELINE & STEPPER VISIBILITY
+---------------------------*/
+function updateTimelineVisibility() {
+    const timelineSection = document.getElementById('timeline-section');
+    if (timelineSection) {
+        // Show timeline only after submission (pending, approved, rejected)
+        if (verificationStatus === 'not-submitted') {
+            timelineSection.style.display = 'none';
+        } else {
+            timelineSection.style.display = 'block';
+        }
+    }
+}
+
+function updateStepperVisibility() {
+    const stepperContainer = document.querySelector('.verification-steps');
+    if (stepperContainer) {
+        // Show stepper only before submission or when rejected (can resubmit)
+        if (verificationStatus === 'not-submitted' || verificationStatus === 'rejected') {
+            stepperContainer.style.display = 'block';
+        } else {
+            stepperContainer.style.display = 'none';
+        }
+    }
+    
+    // Hide sidebar after submission (Flipkart style)
+    const sidebar = document.querySelector('.verification-sidebar');
+    const layout = document.querySelector('.verification-layout');
+    if (sidebar && layout) {
+        if (verificationStatus === 'pending' || verificationStatus === 'approved') {
+            sidebar.style.display = 'none';
+            layout.style.gridTemplateColumns = '1fr';
+        } else {
+            sidebar.style.display = 'block';
+            layout.style.gridTemplateColumns = '360px 1fr';
+        }
+    }
+}
+
+function updateDocumentsSectionTitle() {
+    const titleEl = document.getElementById('documents-section-title');
+    const descEl = document.getElementById('documents-section-description');
+    
+    // Only update title when in step-by-step mode (not-submitted or rejected)
+    if (verificationStatus === 'not-submitted' || verificationStatus === 'rejected') {
+        const stepTitles = {
+            1: 'Step 1 – Identity Verification',
+            2: 'Step 2 – Business Details',
+            3: 'Step 3 – Banking & Workshop'
+        };
+        
+        const stepDescriptions = {
+            1: 'Upload your identity documents to verify who you are',
+            2: 'Provide your business registration and tax details',
+            3: 'Add banking information and workshop images'
+        };
+        
+        if (titleEl) {
+            titleEl.textContent = stepTitles[currentVerificationStep] || 'Required Documents';
+        }
+        
+        if (descEl) {
+            descEl.textContent = stepDescriptions[currentVerificationStep] || 'Upload all required documents for verification';
+        }
+    } else {
+        // After submission, show generic title
+        if (titleEl) {
+            titleEl.textContent = 'Required Documents';
+        }
+        if (descEl) {
+            descEl.textContent = 'Your submitted documents';
+        }
+    }
+}
+
+/* ---------------------------
+   FLIPKART-STYLE UI RENDERING
+---------------------------*/
+function renderTopStepIndicators() {
+    const container = document.getElementById('top-step-indicators');
+    if (!container) return;
+
+    const steps = [
+        { id: 1, label: 'Identity Documents', icon: '1' },
+        { id: 2, label: 'Business Details', icon: '2' },
+        { id: 3, label: 'Banking & Workshop', icon: '3' }
+    ];
+
+    // Only show when not submitted
+    if (verificationStatus === 'not-submitted' || verificationStatus === 'rejected') {
+        container.style.display = 'flex';
+        container.innerHTML = steps.map((step, idx) => {
+            let status = 'pending';
+            let iconHtml = `<span class="top-step-indicator-icon">${step.icon}</span>`;
+            
+            if (step.id < currentVerificationStep) {
+                status = 'completed';
+                iconHtml = '<span class="top-step-indicator-icon"><i data-lucide="check" class="w-4 h-4"></i></span>';
+            } else if (step.id === currentVerificationStep) {
+                status = 'active';
+            }
+
+            // Connector status: completed if previous step is completed, otherwise pending/active
+            let connectorStatus = 'pending';
+            if (idx < steps.length - 1) {
+                // Connector after current step
+                if (step.id < currentVerificationStep) {
+                    connectorStatus = 'completed';
+                } else if (step.id === currentVerificationStep) {
+                    connectorStatus = 'active';
+                } else {
+                    // For pending steps, check if previous step was completed
+                    if (idx > 0 && steps[idx - 1].id < currentVerificationStep) {
+                        connectorStatus = 'completed';
+                    }
+                }
+            }
+
+            const connector = (idx < steps.length - 1)
+                ? `<div class="top-step-connector ${connectorStatus}"></div>`
+                : '';
+
+            return `
+                <div class="top-step-indicator ${status}">
+                    ${iconHtml}
+                    <span>${step.label}</span>
+                </div>
+                ${connector}
+            `;
+        }).join('');
+        lucide.createIcons();
+    } else {
+        container.style.display = 'none';
+    }
+}
+
+function calculateOverallProgress() {
+    if (verificationStatus === 'approved') return 100;
+    if (verificationStatus === 'pending') return 100; // All docs submitted
+    
+    // Calculate progress: Step 1 (2 docs) + Step 2 (1 form) + Step 3 (3 docs) = 6 items total
+    let completed = 0;
+    let total = 6;
+    
+    // Step 1: PAN and Aadhaar
+    if (documents['pan'] && (documents['pan'].status === 'uploaded' || documents['pan'].status === 'approved')) completed++;
+    if (documents['aadhar'] && (documents['aadhar'].status === 'uploaded' || documents['aadhar'].status === 'approved')) completed++;
+    
+    // Step 2: Business Details form
+    if (isStepComplete(2)) completed++;
+    
+    // Step 3: Bank, Workshop, Signature
+    if (documents['bank'] && (documents['bank'].status === 'uploaded' || documents['bank'].status === 'approved')) completed++;
+    if (documents['workshop'] && (documents['workshop'].status === 'uploaded' || documents['workshop'].status === 'approved')) completed++;
+    if (documents['signature'] && (documents['signature'].status === 'uploaded' || documents['signature'].status === 'approved')) completed++;
+    
+    return Math.round((completed / total) * 100);
+}
+
+function updateOverallProgress() {
+    const progress = calculateOverallProgress();
+    const progressBar = document.getElementById('overall-progress-bar');
+    const progressText = document.getElementById('overall-progress-text');
+    
+    if (progressBar) {
+        progressBar.style.width = `${Math.max(0, Math.min(100, progress))}%`;
+    }
+    if (progressText) {
+        progressText.textContent = `${Math.max(0, Math.min(100, progress))}%`;
+    }
+}
+
+function renderStepsList() {
+    const container = document.getElementById('steps-list');
+    if (!container) return;
+
+    const stepCategories = [
+        {
+            title: 'Identity Documents',
+            steps: [
+                { id: 'pan', label: 'PAN Card', step: 1 },
+                { id: 'aadhar', label: 'Aadhaar Card', step: 1 }
+            ]
+        },
+        {
+            title: 'Business Details',
+            steps: [
+                { id: 'business_details', label: 'Company Information', step: 2, isForm: true }
+            ]
+        },
+        {
+            title: 'Financial & Workspace',
+            steps: [
+                { id: 'bank', label: 'Bank Proof', step: 3 },
+                { id: 'workshop', label: 'Workshop Images', step: 3 },
+                { id: 'signature', label: 'Signature', step: 3 }
+            ]
+        }
+    ];
+
+    container.innerHTML = stepCategories.map(category => {
+        const stepsHtml = category.steps.map(step => {
+            let status = 'pending';
+            let icon = step.step.toString();
+
+            if (step.isForm) {
+                // For form fields, check if all fields are filled
+                const isComplete = isStepComplete(step.step);
+                if (isComplete) {
+                    status = 'completed';
+                    icon = '<i data-lucide="check" class="w-3 h-3"></i>';
+                } else if (step.step === currentVerificationStep && verificationStatus === 'not-submitted') {
+                    status = 'active';
+                }
+            } else {
+                const doc = documents[step.id] || { status: 'pending' };
+                if (doc.status === 'uploaded' || doc.status === 'approved') {
+                    status = 'completed';
+                    icon = '<i data-lucide="check" class="w-3 h-3"></i>';
+                } else if (step.step === currentVerificationStep && verificationStatus === 'not-submitted') {
+                    status = 'active';
+                }
+            }
+
+            return `
+                <div class="step-item ${status}">
+                    <div class="step-item-icon">${icon}</div>
+                    <span class="step-item-label">${step.label}</span>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="step-category">
+                <h4 class="step-category-title">${category.title}</h4>
+                ${stepsHtml}
+            </div>
+        `;
+    }).join('');
+
+    lucide.createIcons();
+}
+
+// Expose functions to global scope for onclick handlers
+window.nextVerificationStep = nextVerificationStep;
+window.prevVerificationStep = prevVerificationStep;
 
 /* ... skip ... */
 
@@ -383,6 +1120,26 @@ async function submitVerification() {
         }
     });
 
+    // Validate Business Details (Step 2)
+    const companyUniqueId = document.getElementById('company_unique_id');
+    const companyIdNumber = document.getElementById('company_id_number');
+    const dateOfEstablishment = document.getElementById('date_of_establishment');
+    
+    if (!companyUniqueId || !companyUniqueId.value || companyUniqueId.value === '') {
+        showToast('Please select Company Unique ID', 'error');
+        return;
+    }
+    
+    if (!companyIdNumber || !companyIdNumber.value || companyIdNumber.value.trim() === '') {
+        showToast('Please enter ID Number', 'error');
+        return;
+    }
+    
+    if (!dateOfEstablishment || !dateOfEstablishment.value || dateOfEstablishment.value.trim() === '') {
+        showToast('Please enter Date of Establishment', 'error');
+        return;
+    }
+
     if (missingExtras.length > 0) {
         showToast(`Please fill in details for: ${missingExtras.join(', ')}`, 'error');
         return;
@@ -397,7 +1154,10 @@ async function submitVerification() {
         // ✅ FIX: Removed vendor_id from payload - backend uses request.user_id from JWT token
         // ✅ FIX: Use cookie-based authentication (HttpOnly access_token cookie set by backend)
         const payload = {
-            ...extraData
+            ...extraData,
+            company_unique_id: companyUniqueId.value,
+            company_id_number: companyIdNumber.value.trim(),
+            date_of_establishment: dateOfEstablishment.value
         };
 
         const response = await ImpromptuIndianApi.fetch('/api/vendor/verification/submit', {
@@ -513,13 +1273,7 @@ let selectedFile = null;
 ---------------------------*/
 async function fetchVerificationStatus() {
     // ✅ FIX: Removed vendorId check - backend uses request.user_id from JWT token
-    const submitSection = document.getElementById('submit-section');
     const submitBtn = document.getElementById('submit-btn');
-
-    if (submitSection) {
-        submitSection.style.display = 'flex';
-        submitSection.classList.add('show'); // Force visibility
-    }
 
     try {
         // ✅ FIX: Backend route doesn't accept vendorId in URL - uses request.user_id from JWT
@@ -537,16 +1291,42 @@ async function fetchVerificationStatus() {
             verificationStatus = data.status;
             documents = data.documents || {};
 
-            // Ensure every required doc exists
-            REQUIRED_DOCUMENTS.forEach(doc => {
-                if (!documents[doc.id]) {
-                    documents[doc.id] = { status: 'pending', fileName: null, fileUrl: null };
+            ensureVerificationClientState();
+
+            // Load business details if available
+            if (data.company_unique_id || data.company_id_number || data.date_of_establishment) {
+                if (!documents['business_details']) {
+                    documents['business_details'] = {};
                 }
-            });
+                documents['business_details'].company_unique_id = data.company_unique_id || '';
+                documents['business_details'].company_id_number = data.company_id_number || '';
+                documents['business_details'].date_of_establishment = data.date_of_establishment || '';
+            }
+
+            // Ensure every required doc exists
+            ensureVerificationClientState();
 
             renderStatusBanner();
             renderTimeline();
             renderDocumentsGrid();
+            updateStepper();
+            updateProgressIndicator();
+            
+            // Professional workflow: Show timeline only after submission
+            updateTimelineVisibility();
+            // Professional workflow: Show stepper only before submission
+            updateStepperVisibility();
+            // Update section title based on current step
+            updateDocumentsSectionTitle();
+            
+            // Flipkart-style UI updates
+            renderTopStepIndicators();
+            renderStepsList();
+            updateOverallProgress();
+            
+            // Update button states
+            updateStepNavigationButtons();
+            updateSubmitButtonVisibility();
 
             /** ---------------------------
                 CONTROL SUBMIT BUTTON TEXT
@@ -584,6 +1364,14 @@ async function fetchVerificationStatus() {
 
     } catch (e) {
         console.error('Error fetching status:', e);
+        // If auth/session missing, still render local UI so vendor sees upload cards
+        ensureVerificationClientState();
+        renderDocumentsGrid();
+        renderTopStepIndicators();
+        renderStepsList();
+        updateOverallProgress();
+        updateStepNavigationButtons();
+        updateSubmitButtonVisibility();
     }
 }
 
@@ -1161,6 +1949,10 @@ window.handleFieldInput = function (docId, fieldName, inputElement) {
     // Update border color
     inputElement.classList.remove('border-red-500');
     inputElement.classList.add('border-gray-700');
+    
+    // Update button states when field changes
+    updateStepNavigationButtons();
+    updateSubmitButtonVisibility();
 };
 
 // Validate field on blur
@@ -1192,6 +1984,10 @@ window.validateFieldInput = function (docId, fieldName, inputElement) {
         inputElement.classList.remove('border-red-500');
         inputElement.classList.add('border-gray-700');
     }
+    
+    // Update button states after validation
+    updateStepNavigationButtons();
+    updateSubmitButtonVisibility();
 };
 
 /* ---------------------------
@@ -1256,6 +2052,12 @@ async function confirmUpload() {
             renderDocumentsGrid();
             closeUploadModal();
             showToast('Document uploaded!', 'success');
+            
+            // Update button states after upload
+            updateStepNavigationButtons();
+            updateSubmitButtonVisibility();
+            renderStepsList();
+            updateOverallProgress();
 
         } else {
             const errData = await response.json().catch(() => ({}));
@@ -1375,6 +2177,16 @@ function showToast(message, type = 'success') {
    INITIALIZATION
 ---------------------------*/
 document.addEventListener('DOMContentLoaded', async () => {
+    // Initialize stepper and progress on page load
+    updateStepper();
+    updateProgressIndicator();
+    updateTimelineVisibility();
+    updateStepperVisibility();
+    updateDocumentsSectionTitle();
+    renderTopStepIndicators();
+    renderStepsList();
+    updateOverallProgress();
+    
     await fetchVerificationStatus();
 
     // Reveal animation
