@@ -37,14 +37,22 @@
 
                 <!-- Page Header -->
                 <header class="dashboard-header reveal">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h1 class="dashboard-title">User Management</h1>
+                    <div class="header-content">
+                        <div class="header-text">
+                            <h1 class="dashboard-title">
+                                <i data-lucide="users" class="w-8 h-8 inline mr-3 text-blue-400"></i>
+                                User Management
+                            </h1>
                             <p class="dashboard-subtitle">Add and manage team members for your vendor account</p>
                         </div>
                         <div class="user-count-badge">
-                            <i data-lucide="users" class="w-5 h-5"></i>
-                            <span id="user-count-text">0 / 2 Users</span>
+                            <div class="badge-icon">
+                                <i data-lucide="users" class="w-5 h-5"></i>
+                            </div>
+                            <div class="badge-content">
+                                <span class="badge-label">Team Members</span>
+                                <span class="badge-value" id="user-count-text">0 / 2</span>
+                            </div>
                         </div>
                     </div>
                 </header>
@@ -54,12 +62,19 @@
 
                 <!-- Add User Card -->
                 <section class="info-card reveal" style="transition-delay: 100ms;">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="icon-wrapper bg-blue-500/10">
-                            <i data-lucide="user-plus" class="w-6 h-6 text-blue-500"></i>
+                    <div class="card-header-section">
+                        <div class="card-header-left">
+                            <div class="icon-wrapper bg-gradient-to-br from-blue-500/20 to-blue-600/10">
+                                <i data-lucide="user-plus" class="w-6 h-6 text-blue-400"></i>
+                            </div>
+                            <div>
+                                <h2 class="info-card-title">Add New User</h2>
+                                <p class="info-card-subtitle">Create a new team member account with custom permissions</p>
+                            </div>
                         </div>
-                        <h2 class="info-card-title mb-0">Add New User</h2>
                     </div>
+
+                    <div class="divider"></div>
 
                     <form id="add-user-form" class="form-grid">
                         <div class="form-group">
@@ -121,12 +136,21 @@
                         </div>
 
                         <!-- Permissions Section -->
-                        <div class="form-group full-width">
-                            <label class="form-label mb-4">
-                                <i data-lucide="shield" class="w-4 h-4 inline mr-2"></i>
-                                Access Permissions
-                                <span class="text-red-400">*</span>
-                            </label>
+                        <div class="form-group full-width permissions-section">
+                            <div class="permissions-header">
+                                <div class="permissions-header-left">
+                                    <div class="permissions-icon-wrapper">
+                                        <i data-lucide="shield-check" class="w-5 h-5"></i>
+                                    </div>
+                                    <div>
+                                        <label class="form-label mb-1">
+                                            Access Permissions
+                                            <span class="text-red-400">*</span>
+                                        </label>
+                                        <p class="permissions-subtitle">Select the features this user can access. At least one permission must be selected.</p>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="permissions-grid">
                                 <label class="permission-checkbox">
                                     <input type="checkbox" name="permissions" value="dashboard" checked class="permission-input">
@@ -224,16 +248,12 @@
                                     </div>
                                 </label>
                             </div>
-                            <p class="form-hint mt-3">
-                                <i data-lucide="info" class="w-4 h-4 inline mr-1"></i>
-                                Select the features this user can access. At least one permission must be selected.
-                            </p>
                         </div>
 
-                        <div class="form-group full-width mt-4">
+                        <div class="form-group full-width form-actions">
                             <button type="submit" class="btn-primary" id="add-user-btn">
                                 <i data-lucide="user-plus" class="w-5 h-5"></i>
-                                Add User
+                                <span>Add User</span>
                             </button>
                         </div>
                     </form>
@@ -241,12 +261,19 @@
 
                 <!-- Existing Users Card -->
                 <section class="info-card reveal" style="transition-delay: 200ms;">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="icon-wrapper bg-green-500/10">
-                            <i data-lucide="users" class="w-6 h-6 text-green-500"></i>
+                    <div class="card-header-section">
+                        <div class="card-header-left">
+                            <div class="icon-wrapper bg-gradient-to-br from-green-500/20 to-green-600/10">
+                                <i data-lucide="users" class="w-6 h-6 text-green-400"></i>
+                            </div>
+                            <div>
+                                <h2 class="info-card-title">Team Members</h2>
+                                <p class="info-card-subtitle">Manage your existing team members and their access</p>
+                            </div>
                         </div>
-                        <h2 class="info-card-title mb-0">Team Members</h2>
                     </div>
+
+                    <div class="divider"></div>
 
                     <div id="users-list-container">
                         <!-- Loading State -->
@@ -257,9 +284,11 @@
 
                         <!-- Empty State -->
                         <div id="users-empty" class="empty-state" style="display: none;">
-                            <i data-lucide="user-x" class="w-16 h-16 text-gray-600 mb-4"></i>
-                            <p class="text-gray-400 text-lg font-medium">No team members yet</p>
-                            <p class="text-gray-500 text-sm mt-2">Add your first team member using the form above</p>
+                            <div class="empty-icon-wrapper">
+                                <i data-lucide="user-x" class="w-16 h-16 text-gray-600"></i>
+                            </div>
+                            <p class="text-gray-300 text-lg font-semibold mb-2">No team members yet</p>
+                            <p class="text-gray-500 text-sm">Add your first team member using the form above</p>
                         </div>
 
                         <!-- Users Table -->

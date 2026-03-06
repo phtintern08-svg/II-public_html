@@ -29,6 +29,18 @@ async function fetchOrderDetails() {
         }
         const order = await response.json();
         currentOrder = order;
+        
+        // Debug: Log full order data to verify rider fields are present
+        console.log('Order details fetched:', {
+            id: order.id,
+            status: order.status,
+            delivery_method: order.delivery_method,
+            rider_name: order.rider_name,
+            rider_phone: order.rider_phone,
+            expected_delivery: order.expected_delivery,
+            full_order: order
+        });
+        
         renderOrderDetails(order);
     } catch (error) {
         console.error("Error fetching order details:", error);
@@ -238,8 +250,20 @@ function renderOrderDetails(order) {
 
     document.getElementById("address-box").innerHTML = addressParts.join('') || '<span class="text-gray-500 italic">No address available</span>';
 
-    // Add Delivery/Rider Information Card if order is dispatched
-    if (order.status === 'dispatched' && (order.rider_name || order.delivery_method)) {
+    // Add Delivery/Rider Information Card if order is dispatched or has rider details
+    // Show rider info if order is dispatched OR if rider details exist (for backward compatibility)
+    const hasRiderInfo = order.rider_name || order.delivery_method || order.rider_phone || order.expected_delivery;
+    const isDispatched = order.status === 'dispatched' || order.status === 'out_for_delivery' || order.status === 'delivered';
+    
+    if (hasRiderInfo || isDispatched) {
+        // Debug: Log rider info to console
+        console.log('Order rider details:', {
+            status: order.status,
+            delivery_method: order.delivery_method,
+            rider_name: order.rider_name,
+            rider_phone: order.rider_phone,
+            expected_delivery: order.expected_delivery
+        });
         // Check if delivery info card already exists, remove it first to avoid duplicates
         let deliveryDiv = document.getElementById('delivery-info-card');
         if (deliveryDiv) {
