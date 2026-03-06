@@ -201,22 +201,6 @@
                                 </label>
 
                                 <label class="permission-checkbox">
-                                    <input type="checkbox" name="permissions" value="capacity" class="permission-input">
-                                    <div class="permission-card">
-                                        <div class="permission-icon bg-purple-500/10">
-                                            <i data-lucide="factory" class="w-5 h-5 text-purple-500"></i>
-                                        </div>
-                                        <div class="permission-content">
-                                            <span class="permission-name">Production Capacity</span>
-                                            <span class="permission-desc">Manage production capacity</span>
-                                        </div>
-                                        <div class="permission-checkmark">
-                                            <i data-lucide="check" class="w-5 h-5"></i>
-                                        </div>
-                                    </div>
-                                </label>
-
-                                <label class="permission-checkbox">
                                     <input type="checkbox" name="permissions" value="notifications" class="permission-input">
                                     <div class="permission-card">
                                         <div class="permission-icon bg-orange-500/10">
@@ -231,16 +215,83 @@
                                         </div>
                                     </div>
                                 </label>
+                            </div>
+                        </div>
 
+                        <!-- Order Sub-Categories Section -->
+                        <div class="form-group full-width permissions-section">
+                            <div class="permissions-header">
+                                <div class="permissions-header-left">
+                                    <div class="permissions-icon-wrapper">
+                                        <i data-lucide="list-filter" class="w-5 h-5"></i>
+                                    </div>
+                                    <div>
+                                        <label class="form-label mb-1">
+                                            Order Sub-Categories
+                                            <span class="text-red-400">*</span>
+                                        </label>
+                                        <p class="permissions-subtitle">Select which order categories this user can access. At least one category must be selected.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="permissions-grid">
                                 <label class="permission-checkbox">
-                                    <input type="checkbox" name="permissions" value="profile" class="permission-input">
+                                    <input type="checkbox" name="order-categories" value="new_orders" checked class="permission-input">
                                     <div class="permission-card">
-                                        <div class="permission-icon bg-indigo-500/10">
-                                            <i data-lucide="user-cog" class="w-5 h-5 text-indigo-500"></i>
+                                        <div class="permission-icon bg-blue-500/10">
+                                            <i data-lucide="package-plus" class="w-5 h-5 text-blue-500"></i>
                                         </div>
                                         <div class="permission-content">
-                                            <span class="permission-name">Profile & Settings</span>
-                                            <span class="permission-desc">View profile information</span>
+                                            <span class="permission-name">New Orders</span>
+                                            <span class="permission-desc">View and manage new orders</span>
+                                        </div>
+                                        <div class="permission-checkmark">
+                                            <i data-lucide="check" class="w-5 h-5"></i>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="permission-checkbox">
+                                    <input type="checkbox" name="order-categories" value="in_production" checked class="permission-input">
+                                    <div class="permission-card">
+                                        <div class="permission-icon bg-yellow-500/10">
+                                            <i data-lucide="settings" class="w-5 h-5 text-yellow-500"></i>
+                                        </div>
+                                        <div class="permission-content">
+                                            <span class="permission-name">In Production</span>
+                                            <span class="permission-desc">View orders in production</span>
+                                        </div>
+                                        <div class="permission-checkmark">
+                                            <i data-lucide="check" class="w-5 h-5"></i>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="permission-checkbox">
+                                    <input type="checkbox" name="order-categories" value="ready_for_dispatch" checked class="permission-input">
+                                    <div class="permission-card">
+                                        <div class="permission-icon bg-green-500/10">
+                                            <i data-lucide="truck" class="w-5 h-5 text-green-500"></i>
+                                        </div>
+                                        <div class="permission-content">
+                                            <span class="permission-name">Ready for Dispatch</span>
+                                            <span class="permission-desc">View orders ready to dispatch</span>
+                                        </div>
+                                        <div class="permission-checkmark">
+                                            <i data-lucide="check" class="w-5 h-5"></i>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="permission-checkbox">
+                                    <input type="checkbox" name="order-categories" value="completed_orders" checked class="permission-input">
+                                    <div class="permission-card">
+                                        <div class="permission-icon bg-purple-500/10">
+                                            <i data-lucide="check-circle" class="w-5 h-5 text-purple-500"></i>
+                                        </div>
+                                        <div class="permission-content">
+                                            <span class="permission-name">Completed Orders</span>
+                                            <span class="permission-desc">View completed orders</span>
                                         </div>
                                         <div class="permission-checkmark">
                                             <i data-lucide="check" class="w-5 h-5"></i>

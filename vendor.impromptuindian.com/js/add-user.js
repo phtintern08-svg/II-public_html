@@ -171,18 +171,22 @@
         dashboard: 'layout-dashboard',
         orders: 'shopping-bag',
         payments: 'dollar-sign',
-        capacity: 'factory',
-        notifications: 'bell',
-        profile: 'user-cog'
+        notifications: 'bell'
       };
       
       const permissionLabels = {
         dashboard: 'Dashboard',
         orders: 'Orders',
         payments: 'Payments',
-        capacity: 'Capacity',
-        notifications: 'Notifications',
-        profile: 'Profile'
+        notifications: 'Notifications'
+      };
+
+      // Order category labels
+      const orderCategoryLabels = {
+        new_orders: 'New Orders',
+        in_production: 'In Production',
+        ready_for_dispatch: 'Ready for Dispatch',
+        completed_orders: 'Completed Orders'
       };
 
       const permissionsHTML = permissions.map(perm => `
@@ -191,6 +195,15 @@
           ${permissionLabels[perm] || perm}
         </span>
       `).join('');
+
+      // Render order categories if available
+      const orderCategories = user.order_categories || [];
+      const orderCategoriesHTML = orderCategories.length > 0 ? orderCategories.map(cat => `
+        <span class="permission-badge" style="background: rgba(99, 102, 241, 0.1); color: #818cf8;">
+          <i data-lucide="package" class="w-3 h-3"></i>
+          ${orderCategoryLabels[cat] || cat}
+        </span>
+      `).join('') : '';
 
       row.innerHTML = `
         <td>
@@ -207,6 +220,7 @@
         <td>
           <div class="permission-badges">
             ${permissionsHTML}
+            ${orderCategoriesHTML}
           </div>
         </td>
         <td>
@@ -264,6 +278,10 @@
     const permissionCheckboxes = document.querySelectorAll('input[name="permissions"]:checked');
     const permissions = Array.from(permissionCheckboxes).map(cb => cb.value);
 
+    // Get selected order categories
+    const orderCategoryCheckboxes = document.querySelectorAll('input[name="order-categories"]:checked');
+    const orderCategories = Array.from(orderCategoryCheckboxes).map(cb => cb.value);
+
     // Validation
     if (!name || !email || !password) {
       showAlert('Validation Error', 'Please fill in all required fields', 'error');
@@ -282,6 +300,11 @@
 
     if (permissions.length === 0) {
       showAlert('Validation Error', 'Please select at least one permission', 'error');
+      return;
+    }
+
+    if (orderCategories.length === 0) {
+      showAlert('Validation Error', 'Please select at least one order category', 'error');
       return;
     }
 
@@ -305,7 +328,8 @@
           name,
           email,
           password,
-          permissions
+          permissions,
+          order_categories: orderCategories
         })
       });
 
@@ -318,10 +342,12 @@
       // Success
       showAlert('Success', `User "${name}" has been added successfully`, 'success');
       
-      // Reset form (including checkboxes - keep dashboard and orders checked)
+      // Reset form (including checkboxes - keep dashboard, orders, and all order categories checked)
       addUserForm.reset();
       document.querySelector('input[value="dashboard"]').checked = true;
       document.querySelector('input[value="orders"]').checked = true;
+      // Keep all order categories checked by default
+      document.querySelectorAll('input[name="order-categories"]').forEach(cb => cb.checked = true);
       
       // Reload users list
       await loadUsers();
