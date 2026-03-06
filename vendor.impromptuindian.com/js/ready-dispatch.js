@@ -123,15 +123,115 @@ function openDispatchModal(orderId) {
     const displayId = order ? (order.id || `ORD-${String(orderId).padStart(3, '0')}`) : `ORD-${String(orderId).padStart(3, '0')}`;
     document.getElementById('modal-order-id').textContent = `#${displayId}`;
     document.getElementById('dispatch-modal').classList.remove('hidden');
+    
+    // Pre-fill delivery start time with current time rounded up to next hour (12-hour format)
+    const now = new Date();
+    const nextHour = new Date(now);
+    nextHour.setHours(now.getHours() + 1, 0, 0, 0);
+    const startHour12 = nextHour.getHours() % 12 || 12;
+    const startMinute = String(nextHour.getMinutes()).padStart(2, '0');
+    const startAMPM = nextHour.getHours() >= 12 ? 'PM' : 'AM';
+    document.getElementById('delivery-start').value = `${startHour12}:${startMinute}`;
+    document.getElementById('delivery-start-ampm').value = startAMPM;
+    
+    // Pre-fill end time as 2 hours after start time
+    const endTime = new Date(nextHour);
+    endTime.setHours(endTime.getHours() + 2);
+    const endHour12 = endTime.getHours() % 12 || 12;
+    const endMinute = String(endTime.getMinutes()).padStart(2, '0');
+    const endAMPM = endTime.getHours() >= 12 ? 'PM' : 'AM';
+    document.getElementById('delivery-end').value = `${endHour12}:${endMinute}`;
+    document.getElementById('delivery-end-ampm').value = endAMPM;
 }
 
 function closeDispatchModal() {
     document.getElementById('dispatch-modal').classList.add('hidden');
     selectedOrderId = null;
+    
+    // Reset form
+    document.querySelectorAll('input[name="delivery-method"]').forEach(radio => {
+        radio.checked = false;
+    });
+    document.getElementById('rider-section').classList.add('hidden');
+    document.getElementById('rider-name').value = '';
+    document.getElementById('rider-phone').value = '';
+    document.getElementById('delivery-start').value = '';
+    document.getElementById('delivery-start-ampm').value = 'AM';
+    document.getElementById('delivery-end').value = '';
+    document.getElementById('delivery-end-ampm').value = 'AM';
+}
+
+function toggleDeliveryFields() {
+    const method = document.querySelector('input[name="delivery-method"]:checked')?.value;
+    const riderSection = document.getElementById("rider-section");
+
+    if (method === "inhouse") {
+        riderSection.classList.remove("hidden");
+    } else {
+        riderSection.classList.add("hidden");
+    }
+}
+
+function convertTo24Hour(time12, ampm) {
+    // time12 format: "4:00" or "12:30"
+    const [hours, minutes] = time12.split(':').map(Number);
+    let hours24 = hours;
+    
+    if (ampm === 'PM' && hours !== 12) {
+        hours24 = hours + 12;
+    } else if (ampm === 'AM' && hours === 12) {
+        hours24 = 0;
+    }
+    
+    return hours24 * 60 + minutes; // Return minutes since midnight for easy comparison
 }
 
 async function confirmDispatch() {
     if (!selectedOrderId) return;
+
+    const method = document.querySelector('input[name="delivery-method"]:checked')?.value;
+
+    if (!method) {
+        alert("Please select delivery option");
+        return;
+    }
+
+    let riderName = null;
+    let riderPhone = null;
+    let deliveryTime = null;
+
+    if (method === "inhouse") {
+        riderName = document.getElementById("rider-name").value.trim();
+        riderPhone = document.getElementById("rider-phone").value.trim();
+        const startTime = document.getElementById("delivery-start").value.trim();
+        const startAMPM = document.getElementById("delivery-start-ampm").value;
+        const endTime = document.getElementById("delivery-end").value.trim();
+        const endAMPM = document.getElementById("delivery-end-ampm").value;
+
+        if (!riderName || !riderPhone || !startTime || !endTime) {
+            alert("Please fill all rider details including delivery time window");
+            return;
+        }
+
+        // Validate time format (HH:MM or H:MM)
+        const timePattern = /^([0-9]|1[0-2]):[0-5][0-9]$/;
+        if (!timePattern.test(startTime) || !timePattern.test(endTime)) {
+            alert("Please enter valid time format (e.g., 4:00 or 12:30)");
+            return;
+        }
+
+        // Convert to 24-hour format for comparison
+        const start24 = convertTo24Hour(startTime, startAMPM);
+        const end24 = convertTo24Hour(endTime, endAMPM);
+
+        // Validate that end time is after start time
+        if (start24 >= end24) {
+            alert("End time must be after start time");
+            return;
+        }
+
+        deliveryTime = `${startTime} ${startAMPM} - ${endTime} ${endAMPM}`;
+    }
 
     try {
         // 🔥 FIX: Use correct vendor endpoint with db_id (numeric ID)
@@ -144,7 +244,13 @@ async function confirmDispatch() {
                 },
                 body: JSON.stringify({
                     stage_id: 'dispatched',
-                    notes: 'Order dispatched by vendor logistics.'
+                    delivery_method: method,
+                    rider_name: riderName,
+                    rider_phone: riderPhone,
+                    expected_delivery: deliveryTime,
+                    notes: method === 'inhouse' 
+                        ? `Order dispatched with in-house rider: ${riderName}` 
+                        : 'Order dispatched - platform rider will be assigned automatically.'
                 })
             }
         );

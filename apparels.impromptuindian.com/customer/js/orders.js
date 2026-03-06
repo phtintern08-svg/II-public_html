@@ -239,6 +239,22 @@ function renderOrders(data) {
                            ${order.city || ''}, ${order.state || ''} - ${order.pincode || ''}`
                         : '—'
                     }
+                    ${
+                        order.status === 'dispatched' && (order.rider_name || order.delivery_method)
+                        ? `<div class="mt-2 pt-2 border-t border-gray-700">
+                             <div class="text-xs text-blue-400 font-semibold mb-1">Delivery Info:</div>
+                             ${
+                                 order.delivery_method === 'inhouse' && order.rider_name
+                                 ? `<div class="text-xs">Rider: ${order.rider_name}</div>
+                                    ${order.rider_phone ? `<div class="text-xs">Phone: ${order.rider_phone}</div>` : ''}
+                                    ${order.expected_delivery ? `<div class="text-xs text-green-400">ETA: ${order.expected_delivery}</div>` : ''}`
+                                 : order.delivery_method === 'platform'
+                                 ? `<div class="text-xs">Platform Rider Assigned</div>`
+                                 : ''
+                             }
+                           </div>`
+                        : ''
+                    }
                 </td>
                 <td class="px-4 py-4 text-right text-white font-medium">${sampleCostDisplay}</td>
                 <td class="px-4 py-4 text-right">
@@ -299,6 +315,28 @@ function renderOrders(data) {
                      <span class="text-[10px] text-gray-500 uppercase">Deadline</span>
                      <span class="text-sm font-medium text-gray-300">${order.delivery_date || '—'}</span>
                 </div>
+
+                ${
+                    order.status === 'dispatched' && (order.rider_name || order.delivery_method)
+                    ? `
+                <!-- Delivery Info Box -->
+                <div class="bg-[#111827] rounded p-3 border border-gray-700">
+                    <div class="text-[10px] text-blue-400 font-semibold uppercase mb-2">Delivery Info</div>
+                    ${
+                        order.delivery_method === 'inhouse' && order.rider_name
+                        ? `<div class="text-xs text-gray-300 space-y-1">
+                             <div>Rider: <span class="text-white font-medium">${order.rider_name}</span></div>
+                             ${order.rider_phone ? `<div>Phone: <span class="text-white font-medium">${order.rider_phone}</span></div>` : ''}
+                             ${order.expected_delivery ? `<div class="text-green-400 font-medium">ETA: ${order.expected_delivery}</div>` : ''}
+                           </div>`
+                        : order.delivery_method === 'platform'
+                        ? `<div class="text-xs text-gray-300">Platform Rider Assigned</div>`
+                        : ''
+                    }
+                </div>
+                    `
+                    : ''
+                }
 
                 <!-- Action Button -->
                 <button onclick="goDetails(${order.id})" 

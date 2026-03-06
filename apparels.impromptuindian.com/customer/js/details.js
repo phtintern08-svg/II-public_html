@@ -238,6 +238,84 @@ function renderOrderDetails(order) {
 
     document.getElementById("address-box").innerHTML = addressParts.join('') || '<span class="text-gray-500 italic">No address available</span>';
 
+    // Add Delivery/Rider Information Card if order is dispatched
+    if (order.status === 'dispatched' && (order.rider_name || order.delivery_method)) {
+        // Check if delivery info card already exists, remove it first to avoid duplicates
+        let deliveryDiv = document.getElementById('delivery-info-card');
+        if (deliveryDiv) {
+            deliveryDiv.remove();
+        }
+        
+        deliveryDiv = document.createElement('div');
+        deliveryDiv.id = 'delivery-info-card';
+        deliveryDiv.className = 'bg-[#0b1220] border border-gray-700 rounded-xl p-6';
+        
+        // Find the address card and insert after it
+        const addressCard = document.getElementById('address-box').closest('div.bg-\\[\\#0b1220\\]');
+        if (addressCard && addressCard.parentNode) {
+            addressCard.parentNode.insertBefore(deliveryDiv, addressCard.nextSibling);
+        }
+        
+        let deliveryInfoHtml = `
+            <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                <i data-lucide="truck" class="w-5 h-5 text-green-400"></i>
+                Delivery Information
+            </h2>
+            <div class="space-y-3">
+        `;
+        
+        if (order.delivery_method === 'inhouse' && order.rider_name) {
+            deliveryInfoHtml += `
+                <div class="bg-[#111827] p-4 rounded-lg border border-gray-700">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i data-lucide="user" class="w-4 h-4 text-blue-400"></i>
+                        <span class="text-sm text-gray-400 uppercase">In-House Rider</span>
+                    </div>
+                    <div class="space-y-2">
+                        <div>
+                            <span class="block text-gray-500 text-xs uppercase mb-1">Rider Name</span>
+                            <span class="text-white font-medium">${order.rider_name}</span>
+                        </div>
+                        ${order.rider_phone ? `
+                        <div>
+                            <span class="block text-gray-500 text-xs uppercase mb-1">Contact Number</span>
+                            <span class="text-white font-medium">${order.rider_phone}</span>
+                        </div>
+                        ` : ''}
+                        ${order.expected_delivery ? `
+                        <div>
+                            <span class="block text-gray-500 text-xs uppercase mb-1">Expected Delivery Time</span>
+                            <span class="text-green-400 font-medium">Today between ${order.expected_delivery}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        } else if (order.delivery_method === 'platform') {
+            deliveryInfoHtml += `
+                <div class="bg-[#111827] p-4 rounded-lg border border-gray-700">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i data-lucide="truck" class="w-4 h-4 text-indigo-400"></i>
+                        <span class="text-sm text-gray-400 uppercase">Platform Rider</span>
+                    </div>
+                    <div>
+                        <span class="text-white font-medium">Rider assigned by ImpromptuIndian</span>
+                        <p class="text-xs text-gray-400 mt-1">You will be notified when the rider is assigned.</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        deliveryInfoHtml += `</div>`;
+        deliveryDiv.innerHTML = deliveryInfoHtml;
+    } else {
+        // Remove delivery info card if order is not dispatched or has no delivery info
+        const deliveryDiv = document.getElementById('delivery-info-card');
+        if (deliveryDiv) {
+            deliveryDiv.remove();
+        }
+    }
+
     // Check for Bulk Order option if delivered (Sample Feedback)
     if (order.status === 'delivered') {
         renderBulkOrderOption();
