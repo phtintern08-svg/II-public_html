@@ -250,19 +250,19 @@ function renderOrderDetails(order) {
 
     document.getElementById("address-box").innerHTML = addressParts.join('') || '<span class="text-gray-500 italic">No address available</span>';
 
-    // Add Delivery/Rider Information Card if order is dispatched or has rider details
-    // Show rider info if order is dispatched OR if rider details exist (for backward compatibility)
+    // Add Delivery/Rider Information Card if order has rider details
+    // Show rider info whenever it exists, regardless of status
     const hasRiderInfo = order.rider_name || order.delivery_method || order.rider_phone || order.expected_delivery;
-    const isDispatched = order.status === 'dispatched' || order.status === 'out_for_delivery' || order.status === 'delivered';
     
-    if (hasRiderInfo || isDispatched) {
+    if (hasRiderInfo) {
         // Debug: Log rider info to console
-        console.log('Order rider details:', {
+        console.log('Order rider details found:', {
             status: order.status,
             delivery_method: order.delivery_method,
             rider_name: order.rider_name,
             rider_phone: order.rider_phone,
-            expected_delivery: order.expected_delivery
+            expected_delivery: order.expected_delivery,
+            hasRiderInfo: hasRiderInfo
         });
         // Check if delivery info card already exists, remove it first to avoid duplicates
         let deliveryDiv = document.getElementById('delivery-info-card');
@@ -288,7 +288,8 @@ function renderOrderDetails(order) {
             <div class="space-y-3">
         `;
         
-        if (order.delivery_method === 'inhouse' && order.rider_name) {
+        // Show in-house rider details if delivery_method is 'inhouse' or if rider_name exists
+        if ((order.delivery_method === 'inhouse' || order.rider_name) && order.rider_name) {
             deliveryInfoHtml += `
                 <div class="bg-[#111827] p-4 rounded-lg border border-gray-700">
                     <div class="flex items-center gap-2 mb-3">
@@ -298,18 +299,18 @@ function renderOrderDetails(order) {
                     <div class="space-y-2">
                         <div>
                             <span class="block text-gray-500 text-xs uppercase mb-1">Rider Name</span>
-                            <span class="text-white font-medium">${order.rider_name}</span>
+                            <span class="text-white font-medium text-base">${order.rider_name}</span>
                         </div>
                         ${order.rider_phone ? `
                         <div>
                             <span class="block text-gray-500 text-xs uppercase mb-1">Contact Number</span>
-                            <span class="text-white font-medium">${order.rider_phone}</span>
+                            <a href="tel:${order.rider_phone}" class="text-white font-medium text-base hover:text-green-400 transition-colors">${order.rider_phone}</a>
                         </div>
                         ` : ''}
                         ${order.expected_delivery ? `
                         <div>
                             <span class="block text-gray-500 text-xs uppercase mb-1">Expected Delivery Time</span>
-                            <span class="text-green-400 font-medium">Today ${order.expected_delivery}</span>
+                            <span class="text-green-400 font-medium text-base">Today ${order.expected_delivery}</span>
                         </div>
                         ` : ''}
                     </div>
